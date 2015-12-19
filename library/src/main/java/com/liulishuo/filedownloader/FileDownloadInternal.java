@@ -176,10 +176,11 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                 }
 
 
+                // UI线程第二手转包
                 if (downloadInternal != null) {
                     FileDownloadLog.d(FileDownloadInternal.class, "~~~callback %s old[%s] new[%s]", downloadInternal.getDownloadId(), downloadInternal.getStatus(), transfer.getStatus());
                     switch (transfer.getStatus()) {
-                        case progress:
+                        case FileDownloadStatus.progress:
                             if (downloadInternal.getStatus() == FileDownloadStatus.progress && transfer.getSofarBytes() == downloadInternal.getDownloadedSofar() && transfer.getTotalBytes() == downloadInternal.getTotalSizeBytes()) {
 
                                 FileDownloadLog.w(FileDownloadInternal.class, "unused values! by process callback");
@@ -187,7 +188,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                             }
                             downloadInternal.notifyProgress(transfer.getSofarBytes(), transfer.getTotalBytes());
                             break;
-                        case completed:
+                        case FileDownloadStatus.completed:
                             if (downloadInternal.getStatus() == FileDownloadStatus.completed) {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already completed , callback by process whith same transfer");
                                 break;
@@ -195,21 +196,21 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                             downloadInternal.setDownloadedSofar(transfer.getTotalBytes());
                             downloadInternal.notifyCompleted();
                             break;
-                        case error:
+                        case FileDownloadStatus.error:
                             if (downloadInternal.getStatus() == FileDownloadStatus.error) {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already err , callback by other status same transfer");
                                 break;
                             }
                             downloadInternal.notifyErrored(transfer.getThrowable());
                             break;
-                        case paused:
+                        case FileDownloadStatus.paused:
                             if (downloadInternal.getStatus() == FileDownloadStatus.paused) {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already paused , callback by other status same transfer");
                                 break;
                             }
                             downloadInternal.notifyPaused(transfer.getSofarBytes(), transfer.getTotalBytes());
                             break;
-                        case pending:
+                        case FileDownloadStatus.pending:
                             if (downloadInternal.getStatus() == FileDownloadStatus.paused && transfer.getSofarBytes() == downloadInternal.getDownloadedSofar() && transfer.getTotalBytes() == downloadInternal.getTotalSizeBytes()) {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already pending , callback by other status same transfer");
                                 break;

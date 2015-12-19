@@ -52,7 +52,7 @@ class FileDownloadNotificationMgr {
         notification.update(sofar, total);
     }
 
-    public void showNoProgress(final int id, FileDownloadStatus status) {
+    public void showNoProgress(final int id, int status) {
         final FileDownloadNotification notification = get(id);
 
         if (notification == null) {
@@ -78,7 +78,7 @@ class FileDownloadNotificationMgr {
         private int id, sofar, total;
         private String title, desc;
 
-        private FileDownloadStatus status;
+        private int status;
 
         private FileDownloadNotification(final FileDownloadModel model) {
             this.id = model.getId();
@@ -101,27 +101,25 @@ class FileDownloadNotificationMgr {
 
             String tmpTitle = title;
 
-            if (this.status != null) {
-                switch (this.status) {
-                    case paused:
-                        tmpTitle = String.format("%s %s",
-                                FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_pause),
-                                this.title);
-                        break;
-                    case completed:
-                        tmpTitle = String.format("%s %s",
-                                FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_complete),
-                                this.title);
-                        break;
-                    case error:
-                        tmpTitle = String.format("%s %s",
-                                this.title, FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_error));
-                        break;
-                    case pending:
-                        tmpTitle = String.format("%s %s",
-                                this.title, "正在队列中");
-                        break;
-                }
+            switch (this.status) {
+                case FileDownloadStatus.paused:
+                    tmpTitle = String.format("%s %s",
+                            FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_pause),
+                            this.title);
+                    break;
+                case FileDownloadStatus.completed:
+                    tmpTitle = String.format("%s %s",
+                            FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_complete),
+                            this.title);
+                    break;
+                case FileDownloadStatus.error:
+                    tmpTitle = String.format("%s %s",
+                            this.title, FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_error));
+                    break;
+                case FileDownloadStatus.pending:
+                    tmpTitle = String.format("%s %s",
+                            this.title, "正在队列中");
+                    break;
             }
 
 
@@ -146,7 +144,7 @@ class FileDownloadNotificationMgr {
             show(true);
         }
 
-        public void updateStatus(final FileDownloadStatus status) {
+        public void updateStatus(final int status) {
             this.status = status;
         }
 

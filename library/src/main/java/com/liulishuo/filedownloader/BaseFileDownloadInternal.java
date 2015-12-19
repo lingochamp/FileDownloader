@@ -33,7 +33,7 @@ public abstract class BaseFileDownloadInternal {
 
     private int downloadedSofar;
     private int totalSizeBytes;
-    private FileDownloadStatus status;
+    private int status;
 
     private int progressNotifyNums;
 
@@ -123,7 +123,11 @@ public abstract class BaseFileDownloadInternal {
         this.isForceRedownload = isForceRedownload;
     }
 
-    protected void setStatus(FileDownloadStatus status) {
+    protected void setStatus(int status) {
+        if (status > FileDownloadStatus.MAX_INT ||
+                status < FileDownloadStatus.MIN_INT) {
+            throw new RuntimeException(String.format("status undefined, %d", status));
+        }
         this.status = status;
     }
 
@@ -610,7 +614,7 @@ public abstract class BaseFileDownloadInternal {
         return totalSizeBytes;
     }
 
-    public FileDownloadStatus getStatus() {
+    public int getStatus() {
         return status;
     }
 

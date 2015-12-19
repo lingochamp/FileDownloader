@@ -36,7 +36,7 @@ public class FileDownloadModel implements Parcelable {
     private int progressNotifyNums;
     public final static String PROGRESS_NOTIFY_NUMS = "progressNotifyNums";
 
-    private FileDownloadStatus status;
+    private int status;
     public final static String STATUS = "status";
 
     private int soFar;
@@ -79,7 +79,7 @@ public class FileDownloadModel implements Parcelable {
         this.desc = desc;
     }
 
-    public void setStatus(FileDownloadStatus status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
@@ -115,7 +115,7 @@ public class FileDownloadModel implements Parcelable {
         return desc;
     }
 
-    public FileDownloadStatus getStatus() {
+    public int getStatus() {
         return status;
     }
 
@@ -168,7 +168,7 @@ public class FileDownloadModel implements Parcelable {
         cv.put(TITLE, title);
         cv.put(DESC, desc);
         cv.put(PROGRESS_NOTIFY_NUMS, progressNotifyNums);
-        cv.put(STATUS, status.ordinal());
+        cv.put(STATUS, status);
         cv.put(SOFAR, soFar);
         cv.put(TOTAL, total);
         cv.put(ERR_MSG, errMsg);
@@ -190,7 +190,7 @@ public class FileDownloadModel implements Parcelable {
         dest.writeString(this.title);
         dest.writeString(this.desc);
         dest.writeInt(this.progressNotifyNums);
-        dest.writeInt(this.status == null ? -1 : this.status.ordinal());
+        dest.writeInt(this.status);
         dest.writeInt(this.soFar);
         dest.writeInt(this.total);
         dest.writeString(this.errMsg);
@@ -209,8 +209,7 @@ public class FileDownloadModel implements Parcelable {
         this.title = in.readString();
         this.desc = in.readString();
         this.progressNotifyNums = in.readInt();
-        int tmpStatus = in.readInt();
-        this.status = tmpStatus == -1 ? null : FileDownloadStatus.values()[tmpStatus];
+        this.status = in.readInt();
         this.soFar = in.readInt();
         this.total = in.readInt();
         this.errMsg = in.readString();

@@ -3,6 +3,7 @@ package com.liulishuo.filedownloader;
 
 import com.liulishuo.filedownloader.event.IFileEvent;
 import com.liulishuo.filedownloader.event.IFileListener;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
  * Created by Jacksgong on 9/7/15.
@@ -29,26 +30,28 @@ public abstract class FileDownloadListener extends IFileListener {
 
         final FileDownloadEvent downloaderEvent = ((FileDownloadEvent) event);
 
+
         switch (downloaderEvent.getStatus()) {
-            case progress:
-                progress(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
-                break;
-            case paused:
-                pause(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
-                break;
-            case pending:
+            case FileDownloadStatus.pending:
                 pending(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
                 break;
-            case preCompleteOnNewThread:
+            case FileDownloadStatus.progress:
+                progress(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
+                break;
+            case FileDownloadStatus.paused:
+                pause(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
+                break;
+
+            case FileDownloadStatus.preCompleteOnNewThread:
                 preCompleteOnNewThread(downloaderEvent.getDownloader());
                 break;
-            case completed:
+            case FileDownloadStatus.completed:
                 complete(downloaderEvent.getDownloader());
                 break;
-            case error:
+            case FileDownloadStatus.error:
                 error(downloaderEvent.getDownloader(), downloaderEvent.getThrowable());
                 break;
-            case warn:
+            case FileDownloadStatus.warn:
                 // already same url & path in pending/running list
                 warn(downloaderEvent.getDownloader());
                 break;

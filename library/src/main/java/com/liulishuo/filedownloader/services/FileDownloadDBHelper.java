@@ -64,7 +64,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setTitle(c.getString(c.getColumnIndex(FileDownloadModel.TITLE)));
                 model.setDesc(c.getString(c.getColumnIndex(FileDownloadModel.DESC)));
                 model.setProgressNotifyNums(c.getInt(c.getColumnIndex(FileDownloadModel.PROGRESS_NOTIFY_NUMS)));
-                model.setStatus(FileDownloadStatus.values()[c.getInt(c.getColumnIndex(FileDownloadModel.STATUS))]);
+                model.setStatus(c.getInt(c.getColumnIndex(FileDownloadModel.STATUS)));
                 model.setSoFar(c.getInt(c.getColumnIndex(FileDownloadModel.SOFAR)));
                 model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
@@ -139,7 +139,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     private final int MIN_REFRESH_DURATION_2_DB = 10;
 
     @Override
-    public void update(int id, FileDownloadStatus status, int soFar, int total) {
+    public void update(int id, int status, int soFar, int total) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(status);
@@ -158,7 +158,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
             // db
             ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.STATUS, status.ordinal());
+            cv.put(FileDownloadModel.STATUS, status);
             cv.put(FileDownloadModel.SOFAR, soFar);
             cv.put(FileDownloadModel.TOTAL, total);
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
@@ -189,7 +189,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
             // db
             ContentValues cv = new ContentValues();
             cv.put(FileDownloadModel.ERR_MSG, errMsg);
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.error.ordinal());
+            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.error);
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
     }
@@ -205,7 +205,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
         //db
         ContentValues cv = new ContentValues();
-        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.completed.ordinal());
+        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.completed);
         cv.put(FileDownloadModel.TOTAL, total);
         cv.put(FileDownloadModel.SOFAR, total);
         db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
@@ -219,7 +219,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
             // db
             ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.paused.ordinal());
+            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.paused);
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
     }
@@ -232,7 +232,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
             // db
             ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.pending.ordinal());
+            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.pending);
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
     }

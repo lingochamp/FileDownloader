@@ -12,7 +12,7 @@ import android.os.Parcelable;
 public class FileDownloadTransferModel implements Parcelable {
     // TODO 名称修改
 
-    private FileDownloadStatus status;
+    private int status;
     private int downloadId;
     private int sofarBytes;
     private int totalBytes;
@@ -26,11 +26,11 @@ public class FileDownloadTransferModel implements Parcelable {
         this.totalBytes = model.getTotal();
     }
 
-    public FileDownloadStatus getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(FileDownloadStatus status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
@@ -76,7 +76,7 @@ public class FileDownloadTransferModel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(this.status == null ? -1 : this.status.ordinal());
+        dest.writeInt(this.status);
         dest.writeInt(this.downloadId);
         dest.writeInt(this.sofarBytes);
         dest.writeInt(this.totalBytes);
@@ -84,8 +84,7 @@ public class FileDownloadTransferModel implements Parcelable {
     }
 
     protected FileDownloadTransferModel(Parcel in) {
-        int tmpStatus = in.readInt();
-        this.status = tmpStatus == -1 ? null : FileDownloadStatus.values()[tmpStatus];
+        this.status = in.readInt();
         this.downloadId = in.readInt();
         this.sofarBytes = in.readInt();
         this.totalBytes = in.readInt();

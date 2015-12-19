@@ -16,7 +16,7 @@ class FileDownloadEvent extends IFileEvent {
 
     private BaseFileDownloadInternal downloader;
 
-    private FileDownloadStatus status;
+    private int status;
     private int downloadedSofar;
     private int totalSizeBytes;
 
@@ -84,7 +84,7 @@ class FileDownloadEvent extends IFileEvent {
         return this.downloader;
     }
 
-    public FileDownloadStatus getStatus() {
+    public int getStatus() {
         return this.status;
     }
 

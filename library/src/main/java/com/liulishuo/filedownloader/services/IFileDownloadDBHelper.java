@@ -2,7 +2,6 @@ package com.liulishuo.filedownloader.services;
 
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 import java.util.Set;
 
@@ -30,7 +29,7 @@ interface IFileDownloadDBHelper {
 
     void remove(final int id);
 
-    void update(final int id, final FileDownloadStatus status, final int soFar, final int total);
+    void update(final int id, final int status, final int soFar, final int total);
 
     void updateHeader(final int id, final String etag);
 

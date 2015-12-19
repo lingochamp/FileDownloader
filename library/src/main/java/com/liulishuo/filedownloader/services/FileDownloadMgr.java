@@ -220,19 +220,19 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
     public boolean callback(IFileEvent event) {
         if (event instanceof FileDownloadTransferEvent) {
             switch (((FileDownloadTransferEvent) event).getTransfer().getStatus()) {
-                case error:
-                case completed:
+                case FileDownloadStatus.error:
+                case FileDownloadStatus.completed:
                     mNotificationMgr.showNoProgress(((FileDownloadTransferEvent) event).getTransfer().getDownloadId(),
                             ((FileDownloadTransferEvent) event).getTransfer().getStatus());
                     mNotificationMgr.cancel(((FileDownloadTransferEvent) event).getTransfer().getDownloadId());
                     break;
-                case progress:
+                case FileDownloadStatus.progress:
                     mNotificationMgr.showProgress(((FileDownloadTransferEvent) event).getTransfer().getDownloadId(),
                             ((FileDownloadTransferEvent) event).getTransfer().getSofarBytes(),
                             ((FileDownloadTransferEvent) event).getTransfer().getTotalBytes());
                     break;
-                case pending:
-                case paused:
+                case FileDownloadStatus.pending:
+                case FileDownloadStatus.paused:
                     mNotificationMgr.showNoProgress(((FileDownloadTransferEvent) event).getTransfer().getDownloadId(), ((FileDownloadTransferEvent) event).getTransfer().getStatus());
                     break;
             }
