@@ -267,7 +267,7 @@ public abstract class BaseFileDownloadInternal {
             if (e != null) {
                 // fail
                 FileEventPool.getImpl().asyncPublishInMain(event.error(e).
-                        callback(getCloaseListenerCallback()));
+                        callback(getFinalListenerCallback()));
 
                 downloadList.remove(BaseFileDownloadInternal.this);
                 clearBasic();
@@ -309,14 +309,14 @@ public abstract class BaseFileDownloadInternal {
                 if (isDownloadSucced && isPreCompletedSucced) {
                     // succeed
                     FileEventPool.getImpl().asyncPublishInMain(event.complete().
-                            callback(getCloaseListenerCallback()));
+                            callback(getFinalListenerCallback()));
                     if (mFinishListener != null) {
                         mFinishListener.finalComplete();
                     }
                 } else {
                     // fail
                     FileEventPool.getImpl().asyncPublishInMain(event.error(err).
-                            callback(getCloaseListenerCallback()));
+                            callback(getFinalListenerCallback()));
                     if (mFinishListener != null) {
                         mFinishListener.finalError(err);
                     }
@@ -651,7 +651,7 @@ public abstract class BaseFileDownloadInternal {
     }
 
 
-    private Runnable getCloaseListenerCallback() {
+    private Runnable getFinalListenerCallback() {
         return new Runnable() {
             @Override
             public void run() {
