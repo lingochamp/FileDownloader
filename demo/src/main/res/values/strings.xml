@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">MagicDownloader</string>
+    <string name="app_name">FileDownloader</string>
+    <string name="multi_parallel_download_test">多任务队列并行下载</string>
+    <string name="multi_serial_download_test">多任务队列串行下载</string>
+    <string name="single_task_download_test">单任务下载测试</string>
+    <string name="del_cache_files">删除所有已下载文件</string>
+    <string name="mix_test_title">混合测试</string>
+    <string name="app_github">GITHUB</string>
 </resources>

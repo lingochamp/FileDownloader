@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/top_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            style="@style/DemoButton"
+            android:layout_marginTop="10dp"
+            android:onClick="onClickDel"
+            android:text="@string/del_cache_files" />
+
+        <Button
+            style="@style/DemoButton"
+            android:onClick="onClickStartSingleDownload"
+            android:text="@string/single_task_download_test" />
+
+        <Button
+            style="@style/DemoButton"
+            android:onClick="onClickMultiSerial"
+            android:text="@string/multi_serial_download_test" />
+
+        <Button
+            style="@style/DemoButton"
+            android:onClick="onClickMultiParallel"
+            android:text="@string/multi_parallel_download_test" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/top_group">
+
+        <TextView
+            android:id="@+id/download_msg_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="12sp" />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/tip_msg_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:alpha="0.5"
+        android:textColor="@color/colorAccent"
+        android:textSize="16sp" />
+</RelativeLayout>
