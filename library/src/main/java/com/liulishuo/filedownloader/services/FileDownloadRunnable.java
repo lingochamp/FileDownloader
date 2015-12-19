@@ -221,6 +221,7 @@ class FileDownloadRunnable implements Runnable {
         final String newEtag = response.header("Etag");
 
         if (oldEtag == null && newEtag != null) {
+            FileDownloadLog.w(this, "no etag find by header");
             needRefresh = true;
         } else if (oldEtag != null && newEtag != null && !oldEtag.equals(newEtag)) {
             needRefresh = true;
@@ -269,7 +270,7 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private void onComplete(final int total) {
-        FileDownloadLog.d(this, "On completed %d", downloadTransfer.getDownloadId());
+        FileDownloadLog.d(this, "On completed %d %d", downloadTransfer.getDownloadId(), total);
         downloadTransfer.setStatus(FileDownloadStatus.completed);
 
         helper.updateComplete(downloadTransfer.getDownloadId(), total);
@@ -336,6 +337,8 @@ class FileDownloadRunnable implements Runnable {
 
                 // 如果fileLength >= total bytes 视为脏数据，从头开始下载
                 this.isContinueDownloadAvailable = fileLength < downloadTransfer.getTotalBytes();
+            } else {
+                file.delete();
             }
         }
     }
