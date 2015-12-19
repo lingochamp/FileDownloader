@@ -30,7 +30,7 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
                                 "%s TINYINT, " + // needNotification 0(false)
                                 "%s VARCHAR, " + // title
                                 "%s VARCHAR, " + // desc
-                                "%s INTEGER, " + // progressNotifyNums
+                                "%s INTEGER, " + // progressCallbackTimes
                                 "%s SMALLINT, " + // status
                                 "%s INTEGER, " + // so far
                                 "%s INTEGER, " + // total
@@ -43,7 +43,7 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
                         FileDownloadModel.NEED_NOTIFICATION,
                         FileDownloadModel.TITLE,
                         FileDownloadModel.DESC,
-                        FileDownloadModel.PROGRESS_NOTIFY_NUMS,
+                        FileDownloadModel.PROGRESS_CALLBACK_TIMES,
                         FileDownloadModel.STATUS,
                         FileDownloadModel.SOFAR,
                         FileDownloadModel.TOTAL,

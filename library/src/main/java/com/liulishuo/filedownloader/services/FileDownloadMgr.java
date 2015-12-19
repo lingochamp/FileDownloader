@@ -35,7 +35,7 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
     }
 
 
-    public synchronized int start(String url, String path, FileDownloadNotificationModel notificaitonData, int progressNotifyNums) {
+    public synchronized int start(String url, String path, FileDownloadNotificationModel notificaitonData, int progressCallbackTimes) {
         final int id = FileDownloadUtils.generateId(url, path);
 
         if (checkResume(id)) {
@@ -46,7 +46,7 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
         final FileDownloadModel model = new FileDownloadModel();
         model.setUrl(url);
         model.setPath(path);
-        model.setProgressNotifyNums(progressNotifyNums);
+        model.setProgressCallbackTimes(progressCallbackTimes);
 
         model.setNeedNotification(notificaitonData.isNeed());
         model.setTitle(notificaitonData.getTitle());

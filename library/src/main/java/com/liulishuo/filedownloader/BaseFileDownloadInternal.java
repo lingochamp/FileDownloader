@@ -36,7 +36,7 @@ public abstract class BaseFileDownloadInternal {
     private int totalSizeBytes;
     private int status;
 
-    private int progressNotifyNums = FileDownloadModel.DEFAULT_NOTIFY_NUMS;
+    private int progressCallbackTimes = FileDownloadModel.DEFAULT_NOTIFY_NUMS;
 
     private List<BaseFileDownloadInternal> downloadList;
 
@@ -69,8 +69,12 @@ public abstract class BaseFileDownloadInternal {
         return Integer.toString(getDownloadId());
     }
 
-    protected void setProgressNotifyNums(int progressNotifyNums) {
-        this.progressNotifyNums = progressNotifyNums;
+    /**
+     * @param progressCallbackTimes progress的回调次数，<=0将不会进行progress回调
+     * @see {@link FileDownloadListener#progress(BaseFileDownloadInternal, long, long)}
+     */
+    protected void setProgressCallbackTimes(int progressCallbackTimes) {
+        this.progressCallbackTimes = progressCallbackTimes;
     }
 
     protected void setActivityName(String activityName) {
@@ -516,8 +520,8 @@ public abstract class BaseFileDownloadInternal {
         return this;
     }
 
-    public BaseFileDownloadInternal progressNotifyNums(final int nums) {
-        setProgressNotifyNums(nums);
+    public BaseFileDownloadInternal progressCallbackTimes(final int nums) {
+        setProgressCallbackTimes(nums);
         return this;
     }
 
@@ -576,8 +580,8 @@ public abstract class BaseFileDownloadInternal {
         return url;
     }
 
-    public int getProgressNotifyNums() {
-        return progressNotifyNums;
+    public int getProgressCallbackTimes() {
+        return progressCallbackTimes;
     }
 
     public String getSavePath() {

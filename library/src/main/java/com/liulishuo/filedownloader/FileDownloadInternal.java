@@ -99,7 +99,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                         getUrl(),
                         getSavePath(),
                         new FileDownloadNotificationModel(isNeedNotification(), getNotificationTitle(), getNotificationDesc()),
-                        getProgressNotifyNums());
+                        getProgressCallbackTimes());
 
         if (result != 0) {
             synchronized (NEED_RESTART_LIST) {

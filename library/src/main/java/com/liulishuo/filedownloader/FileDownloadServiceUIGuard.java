@@ -58,7 +58,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         }
     }
 
-    public int startDownloader(final String url, final String path, final FileDownloadNotificationModel notificationData, final int progressNotifyNums) {
+    public int startDownloader(final String url, final String path, final FileDownloadNotificationModel notificationData, final int progressCallbackTimes) {
         int result = 0;
 
         if (getService() == null) {
@@ -66,7 +66,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         }
 
         try {
-            result = getService().start(url, path, notificationData, progressNotifyNums);
+            result = getService().start(url, path, notificationData, progressCallbackTimes);
         } catch (RemoteException e) {
             e.printStackTrace();
         }

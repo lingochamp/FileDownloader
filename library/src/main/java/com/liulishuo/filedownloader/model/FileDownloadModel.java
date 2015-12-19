@@ -34,8 +34,8 @@ public class FileDownloadModel implements Parcelable {
     private String desc;
     public final static String DESC = "desc";
 
-    private int progressNotifyNums = DEFAULT_NOTIFY_NUMS;
-    public final static String PROGRESS_NOTIFY_NUMS = "progressNotifyNums";
+    private int progressCallbackTimes = DEFAULT_NOTIFY_NUMS;
+    public final static String PROGRESS_CALLBACK_TIMES = "progressCallbackTimes";
 
     private int status;
     public final static String STATUS = "status";
@@ -128,12 +128,12 @@ public class FileDownloadModel implements Parcelable {
         return total;
     }
 
-    public int getProgressNotifyNums() {
-        return progressNotifyNums;
+    public int getProgressCallbackTimes() {
+        return progressCallbackTimes;
     }
 
-    public void setProgressNotifyNums(int progressNotifyNums) {
-        this.progressNotifyNums = progressNotifyNums;
+    public void setProgressCallbackTimes(int progressCallbackTimes) {
+        this.progressCallbackTimes = progressCallbackTimes;
     }
 
     public String geteTag() {
@@ -168,7 +168,7 @@ public class FileDownloadModel implements Parcelable {
         cv.put(NEED_NOTIFICATION, needNotification ? 1 : 0);
         cv.put(TITLE, title);
         cv.put(DESC, desc);
-        cv.put(PROGRESS_NOTIFY_NUMS, progressNotifyNums);
+        cv.put(PROGRESS_CALLBACK_TIMES, progressCallbackTimes);
         cv.put(STATUS, status);
         cv.put(SOFAR, soFar);
         cv.put(TOTAL, total);
@@ -190,7 +190,7 @@ public class FileDownloadModel implements Parcelable {
         dest.writeByte(needNotification ? (byte) 1 : (byte) 0);
         dest.writeString(this.title);
         dest.writeString(this.desc);
-        dest.writeInt(this.progressNotifyNums);
+        dest.writeInt(this.progressCallbackTimes);
         dest.writeInt(this.status);
         dest.writeInt(this.soFar);
         dest.writeInt(this.total);
@@ -209,7 +209,7 @@ public class FileDownloadModel implements Parcelable {
         this.needNotification = in.readByte() != 0;
         this.title = in.readString();
         this.desc = in.readString();
-        this.progressNotifyNums = in.readInt();
+        this.progressCallbackTimes = in.readInt();
         this.status = in.readInt();
         this.soFar = in.readInt();
         this.total = in.readInt();

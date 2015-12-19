@@ -83,8 +83,8 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
         }
 
         @Override
-        public int start(String url, String path, FileDownloadNotificationModel notificaitonData, int progressNotifyNums) throws RemoteException {
-            final int downloadId = downloadManager.start(url, path, notificaitonData, progressNotifyNums);
+        public int start(String url, String path, FileDownloadNotificationModel notificaitonData, int progressCallbackTimes) throws RemoteException {
+            final int downloadId = downloadManager.start(url, path, notificaitonData, progressCallbackTimes);
 
             return downloadId;
         }

@@ -63,7 +63,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setNeedNotification(c.getInt(c.getColumnIndex(FileDownloadModel.NEED_NOTIFICATION)) != 0);
                 model.setTitle(c.getString(c.getColumnIndex(FileDownloadModel.TITLE)));
                 model.setDesc(c.getString(c.getColumnIndex(FileDownloadModel.DESC)));
-                model.setProgressNotifyNums(c.getInt(c.getColumnIndex(FileDownloadModel.PROGRESS_NOTIFY_NUMS)));
+                model.setProgressCallbackTimes(c.getInt(c.getColumnIndex(FileDownloadModel.PROGRESS_CALLBACK_TIMES)));
                 model.setStatus(c.getInt(c.getColumnIndex(FileDownloadModel.STATUS)));
                 model.setSoFar(c.getInt(c.getColumnIndex(FileDownloadModel.SOFAR)));
                 model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
