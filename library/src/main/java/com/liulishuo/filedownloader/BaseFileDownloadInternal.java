@@ -72,8 +72,12 @@ public abstract class BaseFileDownloadInternal {
         }
     }
 
+    /**
+     *
+     * @return 确保以当前Downloader为单位唯一
+     */
     public String generateEventId() {
-        return Integer.toString(getDownloadId());
+        return toString();
     }
 
     /**
@@ -682,6 +686,6 @@ public abstract class BaseFileDownloadInternal {
 
     @Override
     public String toString() {
-        return String.format("%d %s", getDownloadId(), super.toString());
+        return String.format("%d@%s", getDownloadId(), super.toString());
     }
 }
