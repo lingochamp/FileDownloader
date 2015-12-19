@@ -1,17 +1,18 @@
 package com.liulishuo.filedownloader;
 
-import com.liulishuo.filedownloader.event.FileEventSampleListener;
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.IFileEvent;
 import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
+import com.liulishuo.filedownloader.event.FileEventPool;
+import com.liulishuo.filedownloader.event.FileEventSampleListener;
 import com.liulishuo.filedownloader.event.FileServiceConnectChangedEvent;
+import com.liulishuo.filedownloader.event.IFileEvent;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -137,7 +138,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
         return FileDownloadServiceUIGuard.getImpl().resumeDownloader(getDownloadId());
     }
 
-    private static class FileDownloadInternalLis implements FileEventSampleListener.IEventListener {
+    private class FileDownloadInternalLis implements FileEventSampleListener.IEventListener {
 
         @Override
         public boolean callback(IFileEvent event) {
@@ -146,7 +147,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                 if (((FileServiceConnectChangedEvent) event).getStatus() == FileServiceConnectChangedEvent.ConnectStatus.connected) {
                     Object[] needRestartList;
                     synchronized (NEED_RESTART_LIST) {
-                        needRestartList  = NEED_RESTART_LIST.toArray();
+                        needRestartList = NEED_RESTART_LIST.toArray();
                         NEED_RESTART_LIST.clear();
                     }
 
@@ -155,8 +156,17 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                         FileDownloadLog.e(FileDownloadInternal.class, "need restart list == null!");
                     } else {
                         for (Object o : needRestartList) {
-                            ((FileDownloadInternal)o).start();
+                            ((FileDownloadInternal) o).start();
                         }
+                    }
+                } else {
+                    // 断开了连接
+                    // TODO 做多重特定引擎支持的时候，这里需要特殊处理
+                    final FileDownloadInternal[] needRestartList = new FileDownloadInternal[getDownloadList().size()];
+                    getDownloadList().toArray(needRestartList);
+                    getDownloadList().clear();
+                    synchronized (NEED_RESTART_LIST) {
+                        NEED_RESTART_LIST.addAll(Arrays.asList(needRestartList));
                     }
                 }
 
@@ -169,6 +179,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                 BaseFileDownloadInternal downloadInternal = null;
                 final FileDownloadTransferModel transfer = ((FileDownloadTransferEvent) event).getTransfer();
                 for (BaseFileDownloadInternal baseFileDownloaderInternal : FileDownloader.getImpl().getDownloadList()) {
+                    // TODO 这里只处理第一个的通知
                     if (baseFileDownloaderInternal.getDownloadId() == transfer.getDownloadId()) {
                         downloadInternal = baseFileDownloaderInternal;
                         break;
@@ -176,7 +187,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                 }
 
 
-                // UI线程第二手转包
+                // UI线程第二手转包到目标listener
                 if (downloadInternal != null) {
                     FileDownloadLog.d(FileDownloadInternal.class, "~~~callback %s old[%s] new[%s]", downloadInternal.getDownloadId(), downloadInternal.getStatus(), transfer.getStatus());
                     switch (transfer.getStatus()) {

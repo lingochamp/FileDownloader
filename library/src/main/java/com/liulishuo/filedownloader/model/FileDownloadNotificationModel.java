@@ -7,7 +7,6 @@ import android.os.Parcelable;
  * Created by Jacksgong on 9/23/15.
  */
 public class FileDownloadNotificationModel implements Parcelable {
-    //TODO 名称修改
 
     private boolean isNeed = false;
     private String title;
