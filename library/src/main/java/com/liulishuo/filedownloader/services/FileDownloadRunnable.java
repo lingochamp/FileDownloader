@@ -3,11 +3,11 @@ package com.liulishuo.filedownloader.services;
 import android.os.Process;
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.event.FileEventPool;
 import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
+import com.liulishuo.filedownloader.event.FileEventPool;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.squareup.okhttp.Call;
@@ -18,6 +18,7 @@ import com.squareup.okhttp.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by Jacksgong on 9/24/15.
@@ -46,7 +47,7 @@ class FileDownloadRunnable implements Runnable {
 
     private final FileDownloadModel downloadModel;
 
-    public int getId(){
+    public int getId() {
         return downloadModel.getId();
     }
 
@@ -78,7 +79,7 @@ class FileDownloadRunnable implements Runnable {
         this.downloadModel = model;
     }
 
-    public boolean isExist(){
+    public boolean isExist() {
         return isPending || isRunning;
     }
 
@@ -160,7 +161,13 @@ class FileDownloadRunnable implements Runnable {
 
                         //write buff
                         sofar += readed;
-                        onProcess(sofar, total);
+                        if (accessFile.length() != sofar) {
+                            // 文件大小必须会等于正在写入的大小
+                            onError(new RuntimeException("file be changed by others when downloading"));
+                            return;
+                        } else {
+                            onProcess(sofar, total);
+                        }
 
                         if (isCancelled()) {
                             onPause();
@@ -244,15 +251,20 @@ class FileDownloadRunnable implements Runnable {
         FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
     }
 
-    private void onError(final Throwable ex) {
-        // TODO ex.getMessage() == null!
+    private void onError(Throwable ex) {
         FileDownloadLog.e(this, ex, "On error %d %s", downloadTransfer.getDownloadId(), ex.getMessage());
+
+        if (TextUtils.isEmpty(ex.getMessage())) {
+            if (ex instanceof SocketTimeoutException) {
+                ex = new RuntimeException(ex.getClass().getSimpleName(), ex);
+            }
+        }
 
         downloadTransfer.setStatus(FileDownloadStatus.error);
         downloadTransfer.setThrowable(ex);
 
-        final String msg = (ex == null || TextUtils.isEmpty(ex.getMessage())) ? "下载链接出现错误" : ex.getMessage();
-        helper.updateError(downloadTransfer.getDownloadId(), msg);
+
+        helper.updateError(downloadTransfer.getDownloadId(), ex.getMessage());
 
         FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
     }
@@ -319,12 +331,12 @@ class FileDownloadRunnable implements Runnable {
     private void checkIsContinueAvailable() {
         File file = new File(path);
         if (file.exists()) {
-            final long sofar = file.length();
-            if (sofar >= downloadTransfer.getSofarBytes() && this.etag != null) {
-                FileDownloadLog.d(this, "adjust sofar old[%d] new[%d]", downloadTransfer.getSofarBytes(), sofar);
+            final long fileLength = file.length();
+            if (fileLength >= downloadTransfer.getSofarBytes() && this.etag != null) {
+                FileDownloadLog.d(this, "adjust sofar old[%d] new[%d]", downloadTransfer.getSofarBytes(), fileLength);
 
-                // 如果sofar >= total bytes 视为脏数据，从头开始下载
-                this.isContinueDownloadAvailable = sofar < downloadTransfer.getTotalBytes();
+                // 如果fileLength >= total bytes 视为脏数据，从头开始下载
+                this.isContinueDownloadAvailable = fileLength < downloadTransfer.getTotalBytes();
             }
         }
     }
