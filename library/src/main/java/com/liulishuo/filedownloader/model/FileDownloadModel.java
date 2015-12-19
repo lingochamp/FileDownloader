@@ -8,7 +8,8 @@ import android.os.Parcelable;
  * Created by Jacksgong on 9/24/15.
  */
 public class FileDownloadModel implements Parcelable {
-    //TODO 名称修改
+
+    public final static int DEFAULT_NOTIFY_NUMS = 100;
 
     // download id
     private int id;
@@ -33,7 +34,7 @@ public class FileDownloadModel implements Parcelable {
     private String desc;
     public final static String DESC = "desc";
 
-    private int progressNotifyNums;
+    private int progressNotifyNums = DEFAULT_NOTIFY_NUMS;
     public final static String PROGRESS_NOTIFY_NUMS = "progressNotifyNums";
 
     private int status;

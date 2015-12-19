@@ -35,7 +35,6 @@ class FileDownloadRunnable implements Runnable {
 
     private int maxNotifyBytes;
 
-    private final int DEFAULT_NOTIFY_NUMS = 100;
 
     private int maxNotifyNums = 0;
 
@@ -70,7 +69,7 @@ class FileDownloadRunnable implements Runnable {
         downloadTransfer.setSofarBytes(model.getSoFar());
         downloadTransfer.setTotalBytes(model.getTotal());
 
-        maxNotifyNums = model.getProgressNotifyNums() != 0 ? model.getProgressNotifyNums() : DEFAULT_NOTIFY_NUMS;
+        maxNotifyNums = model.getProgressNotifyNums();
         maxNotifyNums = maxNotifyNums <= 0 ? 0 : maxNotifyNums;
 
         this.isContinueDownloadAvailable = false;

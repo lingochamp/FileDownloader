@@ -3,6 +3,7 @@ package com.liulishuo.filedownloader;
 import android.app.Activity;
 
 import com.liulishuo.filedownloader.event.FileEventPool;
+import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -35,7 +36,7 @@ public abstract class BaseFileDownloadInternal {
     private int totalSizeBytes;
     private int status;
 
-    private int progressNotifyNums;
+    private int progressNotifyNums = FileDownloadModel.DEFAULT_NOTIFY_NUMS;
 
     private List<BaseFileDownloadInternal> downloadList;
 
@@ -50,7 +51,7 @@ public abstract class BaseFileDownloadInternal {
 
     protected void addEventListener() {
         if (this.listener != null && !isAddedEventLst) {
-            FileDownloadLog.d(this, "[addEventListener] %s", listener);
+            FileDownloadLog.d(this, "[addEventListener] %s", generateEventId());
             FileEventPool.getImpl().addListener(generateEventId(), this.listener);
             isAddedEventLst = true;
         }
@@ -58,14 +59,14 @@ public abstract class BaseFileDownloadInternal {
 
     protected void removeEventListener() {
         if (this.listener != null) {
-            FileDownloadLog.d(this, "[removeEventListener] %s", listener);
+            FileDownloadLog.d(this, "[removeEventListener] %s", generateEventId());
             FileEventPool.getImpl().removeListener(generateEventId(), this.listener);
             isAddedEventLst = false;
         }
     }
 
     public String generateEventId() {
-        return Integer.toString(FileDownloadUtils.generateId(url, savePath));
+        return Integer.toString(getDownloadId());
     }
 
     protected void setProgressNotifyNums(int progressNotifyNums) {
@@ -218,9 +219,6 @@ public abstract class BaseFileDownloadInternal {
 
     public int ready() {
 
-        // for test
-
-        addEventListener();
         if (!downloadList.contains(this)) {
             downloadList.add(this);
         }
