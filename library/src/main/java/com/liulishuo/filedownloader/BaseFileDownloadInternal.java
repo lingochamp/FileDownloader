@@ -40,7 +40,14 @@ public abstract class BaseFileDownloadInternal {
 
     private List<BaseFileDownloadInternal> downloadList;
 
-    private boolean isForceRedownload = false;
+    private boolean isForceReDownload = false;
+
+    /**
+     * 如果{@link #isForceReDownload}为false
+     * 并且检查文件是正确的{@link com.liulishuo.filedownloader.services.FileDownloadMgr#checkReuse(String, String)}
+     * 则不启动下载直接成功返回，此时该变量为true
+     */
+    private boolean isReusedOldFile = false;
 
     public BaseFileDownloadInternal(final String url, final List<BaseFileDownloadInternal> downloadList) {
         this.url = url;
@@ -125,7 +132,7 @@ public abstract class BaseFileDownloadInternal {
     }
 
     protected void setIsForceRedownload(boolean isForceRedownload) {
-        this.isForceRedownload = isForceRedownload;
+        this.isForceReDownload = isForceRedownload;
     }
 
     protected void setStatus(int status) {
@@ -396,10 +403,12 @@ public abstract class BaseFileDownloadInternal {
 
             if (checkCanReuse()) {
                 FileDownloadLog.d(this, "reuse downloaded file %s", getUrl());
+                this.isReusedOldFile = true;
                 notifyStarted();
                 notifyCompleted();
             } else {
                 FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
+                this.isReusedOldFile = false;
                 notifyStarted();
                 downloadId = startExecute();
                 if (downloadId == 0) {
@@ -487,7 +496,7 @@ public abstract class BaseFileDownloadInternal {
      * @return
      */
     public BaseFileDownloadInternal forceRedownload() {
-        this.isForceRedownload = true;
+        this.isForceReDownload = true;
         return this;
     }
 
@@ -624,8 +633,16 @@ public abstract class BaseFileDownloadInternal {
         return activityName;
     }
 
-    public boolean isForceRedownload() {
-        return this.isForceRedownload;
+    public boolean isForceReDownload() {
+        return this.isForceReDownload;
+    }
+
+    /**
+     * @return
+     * @see #isReusedOldFile
+     */
+    public boolean isReusedOldFile() {
+        return isReusedOldFile;
     }
 
     // ---------------------------------------------

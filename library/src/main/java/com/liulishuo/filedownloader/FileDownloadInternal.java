@@ -75,7 +75,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
     protected boolean checkCanReuse() {
 
 
-        if (isForceRedownload()) {
+        if (isForceReDownload()) {
             return false;
         }
 
