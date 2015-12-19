@@ -168,6 +168,10 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                     synchronized (NEED_RESTART_LIST) {
                         NEED_RESTART_LIST.addAll(Arrays.asList(needRestartList));
                     }
+
+                    for (FileDownloadInternal fileDownloadInternal : needRestartList) {
+                        fileDownloadInternal.clear();
+                    }
                 }
 
                 return false;
