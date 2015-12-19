@@ -96,8 +96,6 @@ public abstract class FileDownloadListener extends IFileListener {
     /**
      * @param downloader same download already start & pending/downloading
      */
-    protected void warn(final BaseFileDownloadInternal downloader) {
-
-    }
+    protected abstract void warn(final BaseFileDownloadInternal downloader);
 
 }
