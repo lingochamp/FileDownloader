@@ -216,7 +216,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already err , callback by other status same transfer");
                                 break;
                             }
-                            downloadInternal.notifyErrored(transfer.getThrowable());
+                            downloadInternal.notifyError(transfer.getThrowable());
                             break;
                         case FileDownloadStatus.paused:
                             if (downloadInternal.getStatus() == FileDownloadStatus.paused) {

@@ -1,16 +1,16 @@
 package com.liulishuo.filedownloader.services;
 
 
-import com.liulishuo.filedownloader.event.FileEventSampleListener;
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.IFileEvent;
 import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
+import com.liulishuo.filedownloader.event.FileEventPool;
+import com.liulishuo.filedownloader.event.FileEventSampleListener;
+import com.liulishuo.filedownloader.event.IFileEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.util.FileDownloadUtils;
+import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.io.File;
@@ -21,7 +21,7 @@ import java.io.File;
 class FileDownloadMgr implements FileEventSampleListener.IEventListener {
     private IFileDownloadDBHelper mHelper;
 
-    // TODO 对OkHtppClient，看如何可以有效利用OkHttpClient进行相关优化，进行有关封装
+    // TODO 对OkHttpClient，看如何可以有效利用OkHttpClient进行相关优化，进行有关封装
     private OkHttpClient client;
 
     private FileEventSampleListener mListener;
@@ -63,6 +63,7 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
         model.setSoFar(0);
         model.setTotal(0);
         model.setStatus(FileDownloadStatus.pending);
+        model.setIsCancel(false);
 
         mHelper.update(model);
 
@@ -180,6 +181,7 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
 
         model.setIsCancel(false);
 
+        FileDownloadLog.d(this, "start resume %d %d %d", id, model.getSoFar(), model.getTotal());
         mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper));
 
         return true;
@@ -191,7 +193,13 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
             return false;
         }
 
+        FileDownloadLog.d(this, "pause %d", id);
         model.setIsCancel(true);
+        /**
+         * 耦合 by {@link FileDownloadRunnable#run()} 中的 {@link com.squareup.okhttp.Request.Builder#tag(Object)}
+         * 目前在okHttp里还是每个单独任务
+         */
+//        client.cancel(id);
         return true;
     }
 
@@ -201,6 +209,7 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
             return false;
         }
 
+        FileDownloadLog.d(this, "remove %d", id);
         model.setIsCancel(true);
         return true;
     }

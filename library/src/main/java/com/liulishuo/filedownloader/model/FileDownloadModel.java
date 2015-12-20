@@ -53,7 +53,7 @@ public class FileDownloadModel implements Parcelable {
     private String eTag;
     public final static String ETAG = "etag";
 
-    private boolean isCancel = false;
+    private boolean isCanceled = false;
 
 
     public void setId(int id) {
@@ -144,12 +144,12 @@ public class FileDownloadModel implements Parcelable {
         this.eTag = eTag;
     }
 
-    public boolean isCancel() {
-        return isCancel;
+    public boolean isCanceled() {
+        return isCanceled;
     }
 
     public void setIsCancel(boolean isCancel) {
-        this.isCancel = isCancel;
+        this.isCanceled = isCancel;
     }
 
     public String getErrMsg() {
@@ -196,7 +196,7 @@ public class FileDownloadModel implements Parcelable {
         dest.writeInt(this.total);
         dest.writeString(this.errMsg);
         dest.writeString(this.eTag);
-        dest.writeByte(isCancel ? (byte) 1 : (byte) 0);
+        dest.writeByte(isCanceled ? (byte) 1 : (byte) 0);
     }
 
     public FileDownloadModel() {
@@ -215,7 +215,7 @@ public class FileDownloadModel implements Parcelable {
         this.total = in.readInt();
         this.errMsg = in.readString();
         this.eTag = in.readString();
-        this.isCancel = in.readByte() != 0;
+        this.isCanceled = in.readByte() != 0;
     }
 
     public static final Creator<FileDownloadModel> CREATOR = new Creator<FileDownloadModel>() {
