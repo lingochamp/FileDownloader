@@ -88,6 +88,7 @@ public class FileDownloader {
                                 public void finalError(Throwable e) {
                                     isFinal = true;
                                     // 目前如果是失败一个，就把所有的给停了
+                                    // TODO 这个看下有没有让用户主动触发的方法
                                     pause(listener);
                                     synchronized (lockThread) {
                                         lockThread.notify();
@@ -165,6 +166,20 @@ public class FileDownloader {
                     downloadList.remove(downloadInternal);
                     downloadInternal.clear();
                 }
+            }
+        }
+    }
+
+    public void pauseAll() {
+        final List<BaseFileDownloadInternal> downloadList = getDownloadList();
+        final Object[] os = downloadList.toArray();
+        for (Object o : os) {
+            final BaseFileDownloadInternal downloadInternal = (BaseFileDownloadInternal) o;
+            if (!downloadInternal.pause()) {
+                // 还没有开始下载，可能在pending?
+                //TODO 所有的remove 都有没有告知外界?是否从架构层解决该问题
+                downloadList.remove(downloadInternal);
+                downloadInternal.clear();
             }
         }
     }
