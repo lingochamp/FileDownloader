@@ -21,6 +21,7 @@ import java.util.Set;
  */
 class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
+    // TODO thread safe? update ? get? 
     private FileDownloadDBOpenHelper openHelper;
     private SQLiteDatabase db;
 
@@ -113,11 +114,15 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     @Override
     public void update(FileDownloadModel downloadModel) {
         if (downloadModel == null) {
-            FileDownloadLog.d(this, "update but model == null!");
+            FileDownloadLog.e(this, "update but model == null!");
             return;
         }
 
         if (find(downloadModel.getId()) != null) {
+            // 替换
+            downloaderModelMap.remove(downloadModel.getId());
+            downloaderModelMap.put(downloadModel.getId(), downloadModel);
+
             // db
             ContentValues cv = downloadModel.toContentValues();
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(downloadModel.getId())});
