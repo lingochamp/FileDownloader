@@ -53,10 +53,13 @@ class FileDownloadRunnable implements Runnable {
     private volatile boolean isRunning = false;
     private volatile boolean isPending = false;
 
-    public FileDownloadRunnable(final FileDownloadModel model, final IFileDownloadDBHelper helper) {
+    private OkHttpClient client;
+
+    public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model, final IFileDownloadDBHelper helper) {
         isPending = true;
         isRunning = false;
 
+        this.client = client;
         this.helper = helper;
 
         this.url = model.getUrl();
@@ -112,14 +115,12 @@ class FileDownloadRunnable implements Runnable {
 
             FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
 
-            OkHttpClient httpClient = new OkHttpClient();
-
             checkIsContinueAvailable();
 
             Request.Builder headerBuilder = new Request.Builder().url(url);
             addHeader(headerBuilder);
 
-            Call call = httpClient.newCall(headerBuilder.get().build());
+            Call call = client.newCall(headerBuilder.get().build());
 
             Response response = call.execute();
 

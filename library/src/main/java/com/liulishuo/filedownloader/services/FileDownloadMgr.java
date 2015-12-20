@@ -11,6 +11,7 @@ import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.squareup.okhttp.OkHttpClient;
 
 import java.io.File;
 
@@ -20,6 +21,8 @@ import java.io.File;
 class FileDownloadMgr implements FileEventSampleListener.IEventListener {
     private IFileDownloadDBHelper mHelper;
 
+    // TODO 对OkHtppClient，看如何可以有效利用OkHttpClient进行相关优化，进行有关封装
+    private OkHttpClient client;
 
     private FileEventSampleListener mListener;
     private FileDownloadThreadPool mThreadPool = new FileDownloadThreadPool();
@@ -30,6 +33,10 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
         mHelper = new FileDownloadDBHelper();
         mListener = new FileEventSampleListener(this);
         mNotificationMgr = new FileDownloadNotificationMgr();
+
+        // init client
+        client = new OkHttpClient();
+        // TODO 设置超时
 
         FileEventPool.getImpl().addListener(FileDownloadTransferEvent.ID, mListener);
     }
@@ -59,7 +66,7 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
 
         mHelper.update(model);
 
-        mThreadPool.execute(new FileDownloadRunnable(model, mHelper));
+        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper));
 
         if (notificaitonData.isNeed()) {
             if (mNotificationMgr.get(id) == null) {
@@ -173,7 +180,7 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
 
         model.setIsCancel(false);
 
-        mThreadPool.execute(new FileDownloadRunnable(model, mHelper));
+        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper));
 
         return true;
     }
