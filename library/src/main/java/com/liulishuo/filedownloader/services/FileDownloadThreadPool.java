@@ -12,6 +12,7 @@ class FileDownloadThreadPool {
 
     private SparseArray<FileDownloadRunnable> poolRunnables = new SparseArray<>();
 
+    // TODO 对用户开放线程池大小，全局并行下载数
     private ExecutorService threadPool = Executors.newFixedThreadPool(3);
 
     public void execute(FileDownloadRunnable runnable) {
