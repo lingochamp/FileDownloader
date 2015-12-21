@@ -2,10 +2,10 @@ package com.liulishuo.filedownloader.services;
 
 import android.os.RemoteException;
 
-import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.FileEventSampleListener;
-import com.liulishuo.filedownloader.event.IFileEvent;
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
@@ -14,23 +14,23 @@ import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 /**
  * Created by Jacksgong on 9/23/15.
  */
-public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallback, FileDownloadService.FileDownloadServiceBinder> implements FileEventSampleListener.IEventListener {
+public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallback, FileDownloadService.FileDownloadServiceBinder> implements DownloadEventSampleListener.IEventListener {
 
-    private FileEventSampleListener mListener;
+    private DownloadEventSampleListener mListener;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mListener = new FileEventSampleListener(this);
+        mListener = new DownloadEventSampleListener(this);
 
-        FileEventPool.getImpl().addListener(FileDownloadTransferEvent.ID, mListener);
+        DownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, mListener);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        FileEventPool.getImpl().removeListener(FileDownloadTransferEvent.ID, mListener);
+        DownloadEventPool.getImpl().removeListener(DownloadTransferEvent.ID, mListener);
     }
 
     @Override
@@ -40,14 +40,14 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
 
     @Override
     protected boolean handleCallback(int cmd, IFileDownloadIPCCallback IFileDownloadIPCCallback, Object... objects) throws RemoteException {
-        IFileDownloadIPCCallback.callback(((FileDownloadTransferEvent) objects[0]).getTransfer());
+        IFileDownloadIPCCallback.callback(((DownloadTransferEvent) objects[0]).getTransfer());
         return false;
     }
 
     @Override
-    public boolean callback(IFileEvent event) {
+    public boolean callback(IDownloadEvent event) {
 
-        if (event instanceof FileDownloadTransferEvent) {
+        if (event instanceof DownloadTransferEvent) {
             callback(0, event);
         }
         return false;

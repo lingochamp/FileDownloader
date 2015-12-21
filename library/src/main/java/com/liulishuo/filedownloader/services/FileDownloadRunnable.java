@@ -3,8 +3,8 @@ package com.liulishuo.filedownloader.services;
 import android.os.Process;
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
-import com.liulishuo.filedownloader.event.FileEventPool;
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -259,7 +259,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.update(downloadTransfer.getDownloadId(), FileDownloadStatus.progress, sofar, total);
 
-        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
     }
 
     private void onError(Throwable ex) {
@@ -277,7 +277,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updateError(downloadTransfer.getDownloadId(), ex.getMessage());
 
-        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
     }
 
     private void onComplete(final int total) {
@@ -286,7 +286,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updateComplete(downloadTransfer.getDownloadId(), total);
 
-        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
     }
 
     private void onPause() {
@@ -305,7 +305,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updatePending(downloadTransfer.getDownloadId());
 
-        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
     }
 
     private boolean isCancelled() {

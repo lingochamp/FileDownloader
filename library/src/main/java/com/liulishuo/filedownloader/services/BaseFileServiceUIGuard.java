@@ -9,8 +9,8 @@ import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
 
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.FileServiceConnectChangedEvent;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
@@ -55,9 +55,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             e.printStackTrace();
         }
 
-        FileEventPool.getImpl().
-                asyncPublishInNewThread(new FileServiceConnectChangedEvent(
-                        FileServiceConnectChangedEvent.ConnectStatus.connected, serviceClass));
+        DownloadEventPool.getImpl().
+                asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
+                        DownloadServiceConnectChangedEvent.ConnectStatus.connected, serviceClass));
 
     }
 
@@ -72,9 +72,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         }
         FileDownloadLog.d(this, "onServiceDisconnected %s %s", name, this.service);
         this.service = null;
-        FileEventPool.getImpl().
-                asyncPublishInNewThread(new FileServiceConnectChangedEvent(
-                        FileServiceConnectChangedEvent.ConnectStatus.disconnected, serviceClass));
+        DownloadEventPool.getImpl().
+                asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
+                        DownloadServiceConnectChangedEvent.ConnectStatus.disconnected, serviceClass));
     }
 
     private List<Context> BIND_CONTEXTS = new ArrayList<>();

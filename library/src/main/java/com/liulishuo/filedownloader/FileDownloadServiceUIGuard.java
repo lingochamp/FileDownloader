@@ -3,8 +3,8 @@ package com.liulishuo.filedownloader;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
@@ -55,7 +55,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
 
         @Override
         public void callback(FileDownloadTransferModel transfer) throws RemoteException {
-            FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(transfer));
+            DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(transfer));
         }
     }
 

@@ -1,13 +1,13 @@
 package com.liulishuo.filedownloader;
 
 
-import com.liulishuo.filedownloader.event.IFileEvent;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
  * Created by Jacksgong on 9/7/15.
  */
-class FileDownloadEvent extends IFileEvent {
+class FileDownloadEvent extends IDownloadEvent {
 
     public FileDownloadEvent(final BaseFileDownloadInternal downloader) {
         super(downloader.generateEventId());

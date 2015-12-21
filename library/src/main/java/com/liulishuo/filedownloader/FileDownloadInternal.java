@@ -1,10 +1,10 @@
 package com.liulishuo.filedownloader;
 
-import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.FileEventSampleListener;
-import com.liulishuo.filedownloader.event.FileServiceConnectChangedEvent;
-import com.liulishuo.filedownloader.event.IFileEvent;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
+import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -19,15 +19,15 @@ import java.util.List;
  */
 class FileDownloadInternal extends BaseFileDownloadInternal {
 
-    private static FileEventSampleListener DOWNLOAD_INTERNAL_LIS;
+    private static DownloadEventSampleListener DOWNLOAD_INTERNAL_LIS;
     private static List<BaseFileDownloadInternal> NEED_RESTART_LIST = new ArrayList<>();
 
     public FileDownloadInternal(String url) {
         super(url);
         if (DOWNLOAD_INTERNAL_LIS == null) {
-            DOWNLOAD_INTERNAL_LIS = new FileEventSampleListener(new FileDownloadInternalLis());
-            FileEventPool.getImpl().addListener(FileServiceConnectChangedEvent.ID, DOWNLOAD_INTERNAL_LIS);
-            FileEventPool.getImpl().addListener(FileDownloadTransferEvent.ID, DOWNLOAD_INTERNAL_LIS);
+            DOWNLOAD_INTERNAL_LIS = new DownloadEventSampleListener(new FileDownloadInternalLis());
+            DownloadEventPool.getImpl().addListener(DownloadServiceConnectChangedEvent.ID, DOWNLOAD_INTERNAL_LIS);
+            DownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, DOWNLOAD_INTERNAL_LIS);
         }
     }
 
@@ -116,13 +116,13 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
         return FileDownloadServiceUIGuard.getImpl().pauseDownloader(getDownloadId());
     }
 
-    private class FileDownloadInternalLis implements FileEventSampleListener.IEventListener {
+    private class FileDownloadInternalLis implements DownloadEventSampleListener.IEventListener {
 
         @Override
-        public boolean callback(IFileEvent event) {
-            if (event instanceof FileServiceConnectChangedEvent) {
-                FileDownloadLog.d(FileDownloadInternal.class, "callback connect service %s", ((FileServiceConnectChangedEvent) event).getStatus());
-                if (((FileServiceConnectChangedEvent) event).getStatus() == FileServiceConnectChangedEvent.ConnectStatus.connected) {
+        public boolean callback(IDownloadEvent event) {
+            if (event instanceof DownloadServiceConnectChangedEvent) {
+                FileDownloadLog.d(FileDownloadInternal.class, "callback connect service %s", ((DownloadServiceConnectChangedEvent) event).getStatus());
+                if (((DownloadServiceConnectChangedEvent) event).getStatus() == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
                     Object[] needRestartList;
                     synchronized (NEED_RESTART_LIST) {
                         needRestartList = NEED_RESTART_LIST.toArray();
@@ -155,9 +155,9 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
 
             }
 
-            if (event instanceof FileDownloadTransferEvent) {
+            if (event instanceof DownloadTransferEvent) {
 
-                final FileDownloadTransferModel transfer = ((FileDownloadTransferEvent) event).getTransfer();
+                final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
                 final BaseFileDownloadInternal downloadInternal = FileDownloadList.getImpl().get(transfer.getDownloadId());
 
 

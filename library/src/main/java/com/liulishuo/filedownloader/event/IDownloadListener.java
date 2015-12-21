@@ -3,11 +3,11 @@ package com.liulishuo.filedownloader.event;
 /**
  * Created by Jacksgong on 15/6/23.
  */
-public abstract class IFileListener {
+public abstract class IDownloadListener {
 
     private final int priority;
 
-    public IFileListener(int priority) {
+    public IDownloadListener(int priority) {
         this.priority = priority;
     }
 
@@ -15,6 +15,6 @@ public abstract class IFileListener {
         return this.priority;
     }
 
-    public abstract boolean callback(IFileEvent event);
+    public abstract boolean callback(IDownloadEvent event);
 
 }

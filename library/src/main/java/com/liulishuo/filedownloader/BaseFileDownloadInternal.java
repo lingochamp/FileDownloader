@@ -2,7 +2,7 @@ package com.liulishuo.filedownloader;
 
 import android.app.Activity;
 
-import com.liulishuo.filedownloader.event.FileEventPool;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -57,7 +57,7 @@ public abstract class BaseFileDownloadInternal {
     protected void addEventListener() {
         if (this.listener != null && !isAddedEventLst) {
             FileDownloadLog.d(this, "[addEventListener] %s", generateEventId());
-            FileEventPool.getImpl().addListener(generateEventId(), this.listener);
+            DownloadEventPool.getImpl().addListener(generateEventId(), this.listener);
             isAddedEventLst = true;
         }
     }
@@ -65,7 +65,7 @@ public abstract class BaseFileDownloadInternal {
     protected void removeEventListener() {
         if (this.listener != null) {
             FileDownloadLog.d(this, "[removeEventListener] %s", generateEventId());
-            FileEventPool.getImpl().removeListener(generateEventId(), this.listener);
+            DownloadEventPool.getImpl().removeListener(generateEventId(), this.listener);
             isAddedEventLst = false;
         }
     }

@@ -4,10 +4,10 @@ package com.liulishuo.filedownloader.event;
 /**
  * Created by Jacksgong on 9/24/15.
  */
-public class FileServiceConnectChangedEvent extends IFileEvent {
+public class DownloadServiceConnectChangedEvent extends IDownloadEvent {
     public final static String ID = "event.service.connect.changed";
 
-    public FileServiceConnectChangedEvent(final ConnectStatus status, final Class<?> serviceClass) {
+    public DownloadServiceConnectChangedEvent(final ConnectStatus status, final Class<?> serviceClass) {
         super(ID);
 
         this.status = status;

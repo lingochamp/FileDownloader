@@ -17,23 +17,23 @@ import java.util.concurrent.Executors;
 /**
  * Created by Jacksgong on 15/6/23.
  */
-final public class FileEventPoolImpl implements IFileEventPool {
+final public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     private ExecutorService threadPool = Executors.newFixedThreadPool(8);
 
-    private final HashMap<String, LinkedList<IFileListener>> listenersMap = new HashMap<>();
+    private final HashMap<String, LinkedList<IDownloadListener>> listenersMap = new HashMap<>();
 
     private Handler handler;
 
-    public FileEventPoolImpl() {
+    public DownloadEventPoolImpl() {
         handler = new Handler(Looper.getMainLooper());
     }
 
     @Override
-    public boolean addListener(final String eventId, final IFileListener listener) {
+    public boolean addListener(final String eventId, final IDownloadListener listener) {
         FileDownloadLog.v(this, "addListener %s", eventId);
         Assert.assertNotNull("EventPoolImpl.add", listener);
-        LinkedList<IFileListener> container = listenersMap.get(eventId);
+        LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null) {
             listenersMap.put(eventId, container = new LinkedList<>());
         }
@@ -43,10 +43,10 @@ final public class FileEventPoolImpl implements IFileEventPool {
     }
 
     @Override
-    public boolean removeListener(final String eventId, final IFileListener listener) {
+    public boolean removeListener(final String eventId, final IDownloadListener listener) {
         FileDownloadLog.v(this, "removeListener %s", eventId);
 //        Assert.assertNotNull("EventPoolImpl.remove", listener);
-        LinkedList<IFileListener> container = listenersMap.get(eventId);
+        LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null || listener == null) {
             return false;
         }
@@ -57,11 +57,11 @@ final public class FileEventPoolImpl implements IFileEventPool {
     }
 
     @Override
-    public boolean publish(final IFileEvent event) {
+    public boolean publish(final IDownloadEvent event) {
         FileDownloadLog.v(this, "publish %s", event.getId());
         Assert.assertNotNull("EventPoolImpl.publish", event);
         String eventId = event.getId();
-        LinkedList<IFileListener> listeners = listenersMap.get(eventId);
+        LinkedList<IDownloadListener> listeners = listenersMap.get(eventId);
         if (listeners == null) {
             FileDownloadLog.w(this, "No listener for this event %s", eventId);
             return false;
@@ -71,7 +71,7 @@ final public class FileEventPoolImpl implements IFileEventPool {
     }
 
     @Override
-    public void asyncPublish(final IFileEvent event, final Looper looper) {
+    public void asyncPublish(final IDownloadEvent event, final Looper looper) {
         FileDownloadLog.v(this, "asyncPublish %s", event.getId());
         Assert.assertNotNull("EventPoolImpl.asyncPublish event", event);
         Assert.assertNotNull("EventPoolImpl.asyncPublish looper", looper);
@@ -79,42 +79,42 @@ final public class FileEventPoolImpl implements IFileEventPool {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                FileEventPoolImpl.this.publish(event);
+                DownloadEventPoolImpl.this.publish(event);
             }
         });
     }
 
 
     @Override
-    public void asyncPublishInNewThread(final IFileEvent event) {
+    public void asyncPublishInNewThread(final IDownloadEvent event) {
         FileDownloadLog.v(this, "asyncPublishInNewThread %s", event.getId());
         Assert.assertNotNull("EventPoolImpl.asyncPublish event", event);
 
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                FileEventPoolImpl.this.publish(event);
+                DownloadEventPoolImpl.this.publish(event);
             }
         });
     }
 
     @Override
-    public void asyncPublishInMain(final IFileEvent event) {
+    public void asyncPublishInMain(final IDownloadEvent event) {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                FileEventPoolImpl.this.publish(event);
+                DownloadEventPoolImpl.this.publish(event);
             }
         });
     }
 
-    private void trigger(final LinkedList<IFileListener> listeners, final IFileEvent event) {
+    private void trigger(final LinkedList<IDownloadListener> listeners, final IDownloadEvent event) {
         synchronized (listeners) {
             try {
                 if (event.getOrder()) {
-                    Collections.sort(listeners, new Comparator<IFileListener>() {
+                    Collections.sort(listeners, new Comparator<IDownloadListener>() {
                         @Override
-                        public int compare(IFileListener lhs, IFileListener rhs) {
+                        public int compare(IDownloadListener lhs, IDownloadListener rhs) {
                             return rhs.getPriority() - lhs.getPriority();
                         }
                     });
@@ -125,7 +125,7 @@ final public class FileEventPoolImpl implements IFileEventPool {
             }
 
             for (Object o : listeners.toArray()) {
-                if (((IFileListener) o).callback(event)) {
+                if (((IDownloadListener) o).callback(event)) {
                     break;
                 }
             }
@@ -139,11 +139,11 @@ final public class FileEventPoolImpl implements IFileEventPool {
     }
 
     @Override
-    public boolean hasListener(final IFileEvent event) {
+    public boolean hasListener(final IDownloadEvent event) {
         FileDownloadLog.v(this, "hasListener %s", event.getId());
         Assert.assertNotNull("EventPoolImpl.hasListener", event);
         String eventId = event.getId();
-        LinkedList<IFileListener> listeners = listenersMap.get(eventId);
+        LinkedList<IDownloadListener> listeners = listenersMap.get(eventId);
         return listeners != null && listeners.size() > 0;
     }
 }

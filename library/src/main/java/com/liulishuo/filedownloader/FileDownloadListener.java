@@ -1,8 +1,8 @@
 package com.liulishuo.filedownloader;
 
 
-import com.liulishuo.filedownloader.event.IFileEvent;
-import com.liulishuo.filedownloader.event.IFileListener;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
+import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
@@ -12,7 +12,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  * may final width {@link #pause}/{@link #complete}/{@link #error}/{@link #warn}
  * if reuse just {@link #preCompleteOnNewThread} ->{@link #complete}
  */
-public abstract class FileDownloadListener extends IFileListener {
+public abstract class FileDownloadListener extends IDownloadListener {
 
     public FileDownloadListener() {
         this(0);
@@ -23,7 +23,7 @@ public abstract class FileDownloadListener extends IFileListener {
     }
 
     @Override
-    public boolean callback(IFileEvent event) {
+    public boolean callback(IDownloadEvent event) {
         if (!(event instanceof FileDownloadEvent)) {
             return false;
         }

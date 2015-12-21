@@ -3,14 +3,14 @@ package com.liulishuo.filedownloader.event;
 /**
  * Created by Jacksgong on 15/6/23.
  */
-public abstract class IFileEvent {
+public abstract class IDownloadEvent {
     public Runnable callback = null;
 
-    public IFileEvent(final String id) {
+    public IDownloadEvent(final String id) {
         this.id = id;
     }
 
-    public IFileEvent(final String id, boolean order) {
+    public IDownloadEvent(final String id, boolean order) {
         this.id = id;
         this.order = order;
     }

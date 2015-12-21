@@ -1,10 +1,10 @@
 package com.liulishuo.filedownloader.services;
 
 
-import com.liulishuo.filedownloader.event.FileDownloadTransferEvent;
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.FileEventSampleListener;
-import com.liulishuo.filedownloader.event.IFileEvent;
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -18,27 +18,27 @@ import java.io.File;
 /**
  * Created by Jacksgong on 9/24/15.
  */
-class FileDownloadMgr implements FileEventSampleListener.IEventListener {
+class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
     private IFileDownloadDBHelper mHelper;
 
     // TODO 对OkHttpClient，看如何可以有效利用OkHttpClient进行相关优化，进行有关封装
     private OkHttpClient client;
 
-    private FileEventSampleListener mListener;
+    private DownloadEventSampleListener mListener;
     private FileDownloadThreadPool mThreadPool = new FileDownloadThreadPool();
 
     private FileDownloadNotificationMgr mNotificationMgr;
 
     public FileDownloadMgr() {
         mHelper = new FileDownloadDBHelper();
-        mListener = new FileEventSampleListener(this);
+        mListener = new DownloadEventSampleListener(this);
         mNotificationMgr = new FileDownloadNotificationMgr();
 
         // init client
         client = new OkHttpClient();
         // TODO 设置超时
 
-        FileEventPool.getImpl().addListener(FileDownloadTransferEvent.ID, mListener);
+        DownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, mListener);
     }
 
 
@@ -239,23 +239,23 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
     }
 
     @Override
-    public boolean callback(IFileEvent event) {
-        if (event instanceof FileDownloadTransferEvent) {
-            switch (((FileDownloadTransferEvent) event).getTransfer().getStatus()) {
+    public boolean callback(IDownloadEvent event) {
+        if (event instanceof DownloadTransferEvent) {
+            switch (((DownloadTransferEvent) event).getTransfer().getStatus()) {
                 case FileDownloadStatus.error:
                 case FileDownloadStatus.completed:
-                    mNotificationMgr.showNoProgress(((FileDownloadTransferEvent) event).getTransfer().getDownloadId(),
-                            ((FileDownloadTransferEvent) event).getTransfer().getStatus());
-                    mNotificationMgr.cancel(((FileDownloadTransferEvent) event).getTransfer().getDownloadId());
+                    mNotificationMgr.showNoProgress(((DownloadTransferEvent) event).getTransfer().getDownloadId(),
+                            ((DownloadTransferEvent) event).getTransfer().getStatus());
+                    mNotificationMgr.cancel(((DownloadTransferEvent) event).getTransfer().getDownloadId());
                     break;
                 case FileDownloadStatus.progress:
-                    mNotificationMgr.showProgress(((FileDownloadTransferEvent) event).getTransfer().getDownloadId(),
-                            ((FileDownloadTransferEvent) event).getTransfer().getSofarBytes(),
-                            ((FileDownloadTransferEvent) event).getTransfer().getTotalBytes());
+                    mNotificationMgr.showProgress(((DownloadTransferEvent) event).getTransfer().getDownloadId(),
+                            ((DownloadTransferEvent) event).getTransfer().getSofarBytes(),
+                            ((DownloadTransferEvent) event).getTransfer().getTotalBytes());
                     break;
                 case FileDownloadStatus.pending:
                 case FileDownloadStatus.paused:
-                    mNotificationMgr.showNoProgress(((FileDownloadTransferEvent) event).getTransfer().getDownloadId(), ((FileDownloadTransferEvent) event).getTransfer().getStatus());
+                    mNotificationMgr.showNoProgress(((DownloadTransferEvent) event).getTransfer().getDownloadId(), ((DownloadTransferEvent) event).getTransfer().getStatus());
                     break;
             }
         }

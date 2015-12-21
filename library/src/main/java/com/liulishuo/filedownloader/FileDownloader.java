@@ -3,8 +3,8 @@ package com.liulishuo.filedownloader;
 import android.app.Application;
 import android.util.Log;
 
-import com.liulishuo.filedownloader.event.FileEventPool;
-import com.liulishuo.filedownloader.event.FileEventPoolImpl;
+import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class FileDownloader {
         // 下载进程与UI进程都存一个
         Log.d(TAG, "init Downloader");
         FileDownloadHelper.initAppContext(application);
-        FileEventPool.setImpl(new FileEventPoolImpl());
+        DownloadEventPool.setImpl(new DownloadEventPoolImpl());
     }
 
     private final static class HolderClass {
