@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.liulishuo.filedownloader.BaseFileDownloadInternal;
+import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -60,6 +60,11 @@ public class MixTestActivity extends AppCompatActivity {
     private int totalCounts = 0;
     private int finalCounts = 0;
 
+    /**
+     * 启动单任务下载
+     *
+     * @param view
+     */
     public void onClickStartSingleDownload(final View view) {
         updateDisplay(String.format("点击 单任务下载 %s", Constant.BIG_FILE_URLS[0]));
         totalCounts++;
@@ -69,6 +74,11 @@ public class MixTestActivity extends AppCompatActivity {
                 .start();
     }
 
+    /**
+     * 启动并行多任务下载
+     *
+     * @param view
+     */
     public void onClickMultiParallel(final View view) {
         updateDisplay(String.format("点击 %d个不同的任务并行下载", Constant.URLS.length));
         updateDisplay("以相同的listener作为target，将不同的下载任务绑定起来");
@@ -88,6 +98,11 @@ public class MixTestActivity extends AppCompatActivity {
         FileDownloader.getImpl().start(parallelTarget, false);
     }
 
+    /**
+     * 启动串行多任务下载
+     *
+     * @param view
+     */
     public void onClickMultiSerial(final View view) {
         updateDisplay(String.format("点击 %d个不同的任务并行下载", Constant.URLS.length));
         updateDisplay("以相同的listener作为target，将不同的下载任务绑定起来");
@@ -110,57 +125,57 @@ public class MixTestActivity extends AppCompatActivity {
     private FileDownloadListener createListener() {
         return new FileDownloadListener() {
             @Override
-            protected void progress(BaseFileDownloadInternal downloader, long downloadedSofar, long totalSizeBytes) {
-                updateDisplay(String.format("[progress] id[%d] %d/%d", downloader.getDownloadId(), downloadedSofar, totalSizeBytes));
+            protected void progress(final BaseDownloadTask task, final long soFarBytes, final long totalBytes) {
+                updateDisplay(String.format("[progress] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
             }
 
             @Override
-            protected void pending(BaseFileDownloadInternal downloader, long downloadedSofar, long totalSizeBytes) {
-                updateDisplay(String.format("[pending] id[%d] %d/%d", downloader.getDownloadId(), downloadedSofar, totalSizeBytes));
+            protected void pending(final BaseDownloadTask task, final long soFarBytes, final long totalBytes) {
+                updateDisplay(String.format("[pending] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
             }
 
             @Override
-            protected void blockComplete(final BaseFileDownloadInternal downloader) {
+            protected void blockComplete(final BaseDownloadTask task) {
                 downloadMsgTv.post(new Runnable() {
                     @Override
                     public void run() {
-                        updateDisplay(String.format("[blockComplete] id[%d]", downloader.getDownloadId()));
+                        updateDisplay(String.format("[blockComplete] id[%d]", task.getDownloadId()));
                     }
                 });
             }
 
             @Override
-            protected void complete(BaseFileDownloadInternal downloader) {
+            protected void complete(BaseDownloadTask task) {
                 finalCounts++;
                 updateDisplay(String.format("[complete] id[%d] oldFile[%B]",
-                        downloader.getDownloadId(),
-                        downloader.isReusedOldFile()));
-                updateDisplay(String.format("---------------------------------- %d", (Integer)downloader.getTag()));
+                        task.getDownloadId(),
+                        task.isReusedOldFile()));
+                updateDisplay(String.format("---------------------------------- %d", (Integer) task.getTag()));
             }
 
             @Override
-            protected void pause(BaseFileDownloadInternal downloader, long downloadedSofar, long totalSizeBytes) {
+            protected void pause(final BaseDownloadTask task, final long soFarBytes, final long totalBytes) {
                 finalCounts++;
-                updateDisplay(String.format("[pause] id[%d] %d/%d", downloader.getDownloadId(), downloadedSofar, totalSizeBytes));
-                updateDisplay(String.format("############################## %d", (Integer) downloader.getTag()));
+                updateDisplay(String.format("[pause] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
+                updateDisplay(String.format("############################## %d", (Integer) task.getTag()));
             }
 
             @Override
-            protected void error(BaseFileDownloadInternal downloader, Throwable e) {
+            protected void error(BaseDownloadTask task, Throwable e) {
                 finalCounts++;
                 updateDisplay(Html.fromHtml(String.format("[error] id[%d] %s %s",
-                        downloader.getDownloadId(),
+                        task.getDownloadId(),
                         e.getMessage(),
                         FileDownloadUtils.getStack(e.getStackTrace(), false))));
 
-                updateDisplay(String.format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %d", (Integer) downloader.getTag()));
+                updateDisplay(String.format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %d", (Integer) task.getTag()));
             }
 
             @Override
-            protected void warn(BaseFileDownloadInternal downloader) {
+            protected void warn(BaseDownloadTask task) {
                 finalCounts++;
-                updateDisplay(String.format("[warm] id[%d]", downloader.getDownloadId()));
-                updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", (Integer) downloader.getTag()));
+                updateDisplay(String.format("[warm] id[%d]", task.getDownloadId()));
+                updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", (Integer) task.getTag()));
             }
         };
     }

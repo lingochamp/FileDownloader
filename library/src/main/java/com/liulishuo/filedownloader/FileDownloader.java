@@ -25,7 +25,7 @@ public class FileDownloader {
      * @param application
      */
     public static void init(final Application application) {
-        // 下载进程与UI进程都存一个
+        // 下载进程与非下载进程都存一个
         Log.d(TAG, "init Downloader");
         FileDownloadHelper.initAppContext(application);
         DownloadEventPool.setImpl(new DownloadEventPoolImpl());
@@ -39,8 +39,8 @@ public class FileDownloader {
         return HolderClass.INSTANCE;
     }
 
-    public BaseFileDownloadInternal create(final String url) {
-        return new FileDownloadInternal(url);
+    public BaseDownloadTask create(final String url) {
+        return new FileDownloadTask(url);
     }
 
     /**
@@ -56,10 +56,10 @@ public class FileDownloader {
             threadPool = Executors.newFixedThreadPool(1);
         }
 
-        final BaseFileDownloadInternal[] downloadList = FileDownloadList.getImpl().copy();
+        final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
         final List<Integer> ids = new ArrayList<>();
         for (int i = 0; i < downloadList.length; i++) {
-            final BaseFileDownloadInternal downloadInternal = downloadList[i];
+            final BaseDownloadTask downloadInternal = downloadList[i];
             if (downloadInternal.getListener() == listener) {
 
                 if (threadPool != null) {
@@ -76,7 +76,7 @@ public class FileDownloader {
                                 return;
                             }
 
-                            downloadInternal.setFinishListener(new BaseFileDownloadInternal.FinishListener() {
+                            downloadInternal.setFinishListener(new BaseDownloadTask.FinishListener() {
                                 @Override
                                 public void over() {
                                     isFinal = true;
@@ -121,19 +121,19 @@ public class FileDownloader {
      * @see #pause(int)
      */
     public void pause(final FileDownloadListener listener) {
-        final BaseFileDownloadInternal[] downloadList = FileDownloadList.getImpl().copy();
-        for (BaseFileDownloadInternal baseFileDownloadInternal : downloadList) {
-            if (baseFileDownloadInternal.getListener() == listener) {
-                baseFileDownloadInternal.pause();
+        final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
+        for (BaseDownloadTask baseDownloadTask : downloadList) {
+            if (baseDownloadTask.getListener() == listener) {
+                baseDownloadTask.pause();
             }
         }
 
     }
 
     public void pauseAll() {
-        final BaseFileDownloadInternal[] downloadList = FileDownloadList.getImpl().copy();
-        for (BaseFileDownloadInternal baseFileDownloadInternal : downloadList) {
-            baseFileDownloadInternal.pause();
+        final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
+        for (BaseDownloadTask baseDownloadTask : downloadList) {
+            baseDownloadTask.pause();
         }
     }
 
@@ -144,7 +144,7 @@ public class FileDownloader {
      * @see #pause(FileDownloadListener)
      */
     public void pause(final int downloadId) {
-        BaseFileDownloadInternal downloaderInternal = FileDownloadList.getImpl().get(downloadId);
+        BaseDownloadTask downloaderInternal = FileDownloadList.getImpl().get(downloadId);
         if (downloaderInternal == null) {
             return;
         }
@@ -152,7 +152,7 @@ public class FileDownloader {
     }
 
     public int getSofar(final int downloadId) {
-        BaseFileDownloadInternal downloaderInternal = FileDownloadList.getImpl().get(downloadId);
+        BaseDownloadTask downloaderInternal = FileDownloadList.getImpl().get(downloadId);
         if (downloaderInternal == null) {
             return FileDownloadServiceUIGuard.getImpl().getSofar(downloadId);
         }
@@ -161,7 +161,7 @@ public class FileDownloader {
     }
 
     public int getTotal(final int downloadId) {
-        BaseFileDownloadInternal downloaderInternal = FileDownloadList.getImpl().get(downloadId);
+        BaseDownloadTask downloaderInternal = FileDownloadList.getImpl().get(downloadId);
         if (downloaderInternal == null) {
             return FileDownloadServiceUIGuard.getImpl().getTotal(downloadId);
         }
@@ -184,14 +184,5 @@ public class FileDownloader {
         }
     }
 
-    /**
-     * cancelSystemDownloader & remove file
-     *
-     * @param downloadId will invalid
-     * @return the number of downloads actually cancelled
-     */
-//    public int cancelSystemDownloader(final long downloadId) {
-//        return EngzoSystemDownloaderInternal.DM.remove(downloadId);
-//    }
 
 }

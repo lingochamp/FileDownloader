@@ -8,9 +8,9 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
  */
 class FileDownloadDriver implements IFileDownloadMessage {
 
-    private BaseFileDownloadInternal download;
+    private BaseDownloadTask download;
 
-    FileDownloadDriver(final BaseFileDownloadInternal download) {
+    FileDownloadDriver(final BaseDownloadTask download) {
         this.download = download;
     }
 

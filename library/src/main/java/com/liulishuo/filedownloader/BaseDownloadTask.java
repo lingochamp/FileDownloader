@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Created by Jacksgong on 9/23/15.
  */
-public abstract class BaseFileDownloadInternal {
+public abstract class BaseDownloadTask {
 
     private int downloadId;
     private String url;
@@ -47,7 +47,7 @@ public abstract class BaseFileDownloadInternal {
 
     private FileDownloadDriver driver;
 
-    public BaseFileDownloadInternal(final String url) {
+    public BaseDownloadTask(final String url) {
         this.url = url;
         driver = new FileDownloadDriver(this);
     }
@@ -79,7 +79,7 @@ public abstract class BaseFileDownloadInternal {
 
     /**
      * @param progressCallbackTimes progress的回调次数，<=0将不会进行progress回调
-     * @see {@link FileDownloadListener#progress(BaseFileDownloadInternal, long, long)}
+     * @see {@link FileDownloadListener#progress(BaseDownloadTask, long, long)}
      */
     protected void setProgressCallbackTimes(int progressCallbackTimes) {
         this.progressCallbackTimes = progressCallbackTimes;
@@ -138,7 +138,7 @@ public abstract class BaseFileDownloadInternal {
 
     private FinishListener mFinishListener;
 
-    public BaseFileDownloadInternal setFinishListener(final FinishListener finishListener) {
+    public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
         this.mFinishListener = finishListener;
         return this;
     }
@@ -316,7 +316,7 @@ public abstract class BaseFileDownloadInternal {
      *
      * @return
      */
-    public BaseFileDownloadInternal forceReDownload() {
+    public BaseDownloadTask forceReDownload() {
         this.isForceReDownload = true;
         return this;
     }
@@ -328,7 +328,7 @@ public abstract class BaseFileDownloadInternal {
      * @return
      * @deprecated
      */
-    public BaseFileDownloadInternal bindActivity(final Activity activity) {
+    public BaseDownloadTask bindActivity(final Activity activity) {
         //TODO 有待考究
 //        this.activityName = activity.toString();
         return this;
@@ -338,19 +338,19 @@ public abstract class BaseFileDownloadInternal {
      * @param path Path for save download file
      * @return
      */
-    public BaseFileDownloadInternal savePath(final String path) {
+    public BaseDownloadTask savePath(final String path) {
         this.savePath = path;
         FileDownloadLog.d(this, "savePath %s", path);
         return this;
     }
 
-    public BaseFileDownloadInternal addListener(final FileDownloadListener listener) {
+    public BaseDownloadTask addListener(final FileDownloadListener listener) {
         setListener(listener);
         FileDownloadLog.d(this, "addListener %s", listener);
         return this;
     }
 
-    public BaseFileDownloadInternal progressCallbackTimes(final int nums) {
+    public BaseDownloadTask progressCallbackTimes(final int nums) {
         setProgressCallbackTimes(nums);
         return this;
     }
@@ -360,11 +360,11 @@ public abstract class BaseFileDownloadInternal {
      *
      * @return
      */
-    public BaseFileDownloadInternal needNotification() {
+    public BaseDownloadTask needNotification() {
         return needNotification(null, null);
     }
 
-    public BaseFileDownloadInternal needNotification(final String title) {
+    public BaseDownloadTask needNotification(final String title) {
         return needNotification(title, null);
     }
 
@@ -375,7 +375,7 @@ public abstract class BaseFileDownloadInternal {
      * @param desc
      * @return
      */
-    public BaseFileDownloadInternal needNotification(final String title, final String desc) {
+    public BaseDownloadTask needNotification(final String title, final String desc) {
         this.isNeedNotification = true;
         this.notificationTitle = title;
         this.notificationDesc = desc;
@@ -393,7 +393,7 @@ public abstract class BaseFileDownloadInternal {
      * @param tag
      * @return
      */
-    public BaseFileDownloadInternal setTag(final Object tag) {
+    public BaseDownloadTask setTag(final Object tag) {
         this.tag = tag;
         FileDownloadLog.d(this, "setTag %s", tag);
         return this;

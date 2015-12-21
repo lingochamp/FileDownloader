@@ -68,41 +68,38 @@ public abstract class FileDownloadListener extends IDownloadListener {
     }
 
 
-    /**
-     * @param downloader
-     */
-    protected abstract void progress(final BaseFileDownloadInternal downloader, final long downloadedSofar, final long totalSizeBytes);
+    protected abstract void pending(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
 
+    protected abstract void progress(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
 
-    protected abstract void pending(final BaseFileDownloadInternal downloader, final long downloadedSofar, final long totalSizeBytes);
 
     /**
      * block complete in new thread
      *
-     * @param downloader
+     * @param atom
      */
-    protected abstract void blockComplete(final BaseFileDownloadInternal downloader);
+    protected abstract void blockComplete(final BaseDownloadTask task);
 
     // final width below methods
 
     /**
      * succeed download
      *
-     * @param downloader
+     * @param atom
      */
-    protected abstract void complete(final BaseFileDownloadInternal downloader);
+    protected abstract void complete(final BaseDownloadTask task);
 
-    protected abstract void pause(final BaseFileDownloadInternal downloader, final long downloadedSofar, final long totalSizeBytes);
+    protected abstract void pause(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
 
     /**
-     * @param downloader
+     * @param atom
      * @param e
      */
-    protected abstract void error(final BaseFileDownloadInternal downloader, final Throwable e);
+    protected abstract void error(final BaseDownloadTask task, final Throwable e);
 
     /**
-     * @param downloader same download already start & pending/downloading
+     * @param atom same download already start & pending/downloading
      */
-    protected abstract void warn(final BaseFileDownloadInternal downloader);
+    protected abstract void warn(final BaseDownloadTask task);
 
 }

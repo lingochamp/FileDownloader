@@ -17,12 +17,12 @@ import java.util.List;
 /**
  * Created by Jacksgong on 9/24/15.
  */
-class FileDownloadInternal extends BaseFileDownloadInternal {
+class FileDownloadTask extends BaseDownloadTask {
 
     private static DownloadEventSampleListener DOWNLOAD_INTERNAL_LIS;
-    private static List<BaseFileDownloadInternal> NEED_RESTART_LIST = new ArrayList<>();
+    private static List<BaseDownloadTask> NEED_RESTART_LIST = new ArrayList<>();
 
-    public FileDownloadInternal(String url) {
+    public FileDownloadTask(String url) {
         super(url);
         if (DOWNLOAD_INTERNAL_LIS == null) {
             DOWNLOAD_INTERNAL_LIS = new DownloadEventSampleListener(new FileDownloadInternalLis());
@@ -121,7 +121,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
         @Override
         public boolean callback(IDownloadEvent event) {
             if (event instanceof DownloadServiceConnectChangedEvent) {
-                FileDownloadLog.d(FileDownloadInternal.class, "callback connect service %s", ((DownloadServiceConnectChangedEvent) event).getStatus());
+                FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s", ((DownloadServiceConnectChangedEvent) event).getStatus());
                 if (((DownloadServiceConnectChangedEvent) event).getStatus() == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
                     Object[] needRestartList;
                     synchronized (NEED_RESTART_LIST) {
@@ -131,10 +131,10 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
 
                     if (needRestartList == null) {
                         // 不可能!
-                        FileDownloadLog.e(FileDownloadInternal.class, "need restart list == null!");
+                        FileDownloadLog.e(FileDownloadTask.class, "need restart list == null!");
                     } else {
                         for (Object o : needRestartList) {
-                            ((FileDownloadInternal) o).start();
+                            ((FileDownloadTask) o).start();
                         }
                     }
                 } else {
@@ -143,7 +143,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                     FileDownloadList.getImpl().divert(NEED_RESTART_LIST);
 
                     synchronized (NEED_RESTART_LIST) {
-                        for (BaseFileDownloadInternal fileDownloadInternal : NEED_RESTART_LIST) {
+                        for (BaseDownloadTask fileDownloadInternal : NEED_RESTART_LIST) {
                             // TODO 缺少通知用户的操作
                             fileDownloadInternal.clear();
                         }
@@ -158,17 +158,17 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
             if (event instanceof DownloadTransferEvent) {
 
                 final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
-                final BaseFileDownloadInternal downloadInternal = FileDownloadList.getImpl().get(transfer.getDownloadId());
+                final BaseDownloadTask downloadInternal = FileDownloadList.getImpl().get(transfer.getDownloadId());
 
 
                 // UI线程第二手转包到目标listener
                 if (downloadInternal != null) {
-                    FileDownloadLog.d(FileDownloadInternal.class, "~~~callback %s old[%s] new[%s]", downloadInternal.getDownloadId(), downloadInternal.getStatus(), transfer.getStatus());
+                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", downloadInternal.getDownloadId(), downloadInternal.getStatus(), transfer.getStatus());
                     switch (transfer.getStatus()) {
                         case FileDownloadStatus.progress:
                             if (downloadInternal.getStatus() == FileDownloadStatus.progress && transfer.getSofarBytes() == downloadInternal.getDownloadedSofar() && transfer.getTotalBytes() == downloadInternal.getTotalSizeBytes()) {
 
-                                FileDownloadLog.w(FileDownloadInternal.class, "unused values! by process callback");
+                                FileDownloadLog.w(FileDownloadTask.class, "unused values! by process callback");
                                 break;
                             }
 
@@ -178,7 +178,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                             break;
                         case FileDownloadStatus.completed:
                             if (downloadInternal.getStatus() == FileDownloadStatus.completed) {
-                                FileDownloadLog.w(FileDownloadInternal.class, "already completed , callback by process whith same transfer");
+                                FileDownloadLog.w(FileDownloadTask.class, "already completed , callback by process whith same transfer");
                                 break;
                             }
 
@@ -188,7 +188,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                             break;
                         case FileDownloadStatus.error:
                             if (downloadInternal.getStatus() == FileDownloadStatus.error) {
-                                FileDownloadLog.w(FileDownloadInternal.class, "already err , callback by other status same transfer");
+                                FileDownloadLog.w(FileDownloadTask.class, "already err , callback by other status same transfer");
                                 break;
                             }
 
@@ -209,7 +209,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                             break;
                         case FileDownloadStatus.pending:
                             if (downloadInternal.getStatus() == FileDownloadStatus.paused && transfer.getSofarBytes() == downloadInternal.getDownloadedSofar() && transfer.getTotalBytes() == downloadInternal.getTotalSizeBytes()) {
-                                FileDownloadLog.w(FileDownloadInternal.class, "already pending , callback by other status same transfer");
+                                FileDownloadLog.w(FileDownloadTask.class, "already pending , callback by other status same transfer");
                                 break;
                             }
 
@@ -226,7 +226,7 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
             return false;
         }
 
-        private void copyStatus(final FileDownloadTransferModel transfer, final BaseFileDownloadInternal downloadInternal) {
+        private void copyStatus(final FileDownloadTransferModel transfer, final BaseDownloadTask downloadInternal) {
             downloadInternal.setStatus(transfer.getStatus());
             downloadInternal.setDownloadedSofar(transfer.getSofarBytes());
             downloadInternal.setTotalSizeBytes(transfer.getTotalBytes());

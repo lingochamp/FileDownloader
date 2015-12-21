@@ -9,12 +9,12 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  */
 class FileDownloadEvent extends IDownloadEvent {
 
-    public FileDownloadEvent(final BaseFileDownloadInternal downloader) {
+    public FileDownloadEvent(final BaseDownloadTask downloader) {
         super(downloader.generateEventId());
         this.downloader = downloader;
     }
 
-    private BaseFileDownloadInternal downloader;
+    private BaseDownloadTask downloader;
 
     private int status;
 
@@ -59,7 +59,7 @@ class FileDownloadEvent extends IDownloadEvent {
         return this;
     }
 
-    public BaseFileDownloadInternal getDownloader() {
+    public BaseDownloadTask getDownloader() {
         return this.downloader;
     }
 

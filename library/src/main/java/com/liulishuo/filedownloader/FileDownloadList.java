@@ -20,33 +20,33 @@ class FileDownloadList {
         return HolderClass.INSTANCE;
     }
 
-    private ArrayList<BaseFileDownloadInternal> list;
+    private ArrayList<BaseDownloadTask> list;
 
     private FileDownloadList() {
         list = new ArrayList<>();
     }
 
-    public BaseFileDownloadInternal get(final int id) {
+    public BaseDownloadTask get(final int id) {
         synchronized (list) {
-            for (BaseFileDownloadInternal baseFileDownloadInternal : list) {
+            for (BaseDownloadTask baseDownloadTask : list) {
                 // TODO 这里只处理第一个的通知，后面这里需要改id为BaseFileDownloadInternal#toString，有可能第二个error，可能性极低
                 // 因为目前只有一种可能到这里，在判断是否第二个在队列是否重复的过程中，上一个还没有添加到下载池中
-                if (baseFileDownloadInternal.getDownloadId() == id) {
-                    return baseFileDownloadInternal;
+                if (baseDownloadTask.getDownloadId() == id) {
+                    return baseDownloadTask;
                 }
             }
         }
         return null;
     }
 
-    public boolean contains(final BaseFileDownloadInternal download) {
+    public boolean contains(final BaseDownloadTask download) {
         return list.contains(download);
     }
 
-    public BaseFileDownloadInternal[] copy() {
+    public BaseDownloadTask[] copy() {
         synchronized (list) {
             // 防止size变化
-            BaseFileDownloadInternal[] copy = new BaseFileDownloadInternal[list.size()];
+            BaseDownloadTask[] copy = new BaseDownloadTask[list.size()];
             return list.toArray(copy);
         }
     }
@@ -54,7 +54,7 @@ class FileDownloadList {
     /**
      * 为了某些目的转移，别忘了回调了
      */
-    public void divert(final List<BaseFileDownloadInternal> destination) {
+    public void divert(final List<BaseDownloadTask> destination) {
         synchronized (list) {
             synchronized (destination) {
                 destination.addAll(list);
@@ -64,19 +64,19 @@ class FileDownloadList {
         }
     }
 
-    public boolean removeByWarn(final BaseFileDownloadInternal willRemoveDownload) {
+    public boolean removeByWarn(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.warn);
     }
 
-    public boolean removeByError(final BaseFileDownloadInternal willRemoveDownload) {
+    public boolean removeByError(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.error);
     }
 
-    public boolean removeByPaused(final BaseFileDownloadInternal willRemoveDownload) {
+    public boolean removeByPaused(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.paused);
     }
 
-    public boolean removeByCompleted(final BaseFileDownloadInternal willRemoveDownload) {
+    public boolean removeByCompleted(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.completed);
     }
 
@@ -88,7 +88,7 @@ class FileDownloadList {
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#error}
      * @return
      */
-    public boolean remove(final BaseFileDownloadInternal willRemoveDownload, final int removeByStatus) {
+    public boolean remove(final BaseDownloadTask willRemoveDownload, final int removeByStatus) {
         boolean succeed;
         synchronized (list) {
             succeed = list.remove(willRemoveDownload);
@@ -131,14 +131,14 @@ class FileDownloadList {
         return succeed;
     }
 
-    public void add(final BaseFileDownloadInternal downloadInternal) {
+    public void add(final BaseDownloadTask downloadInternal) {
         ready(downloadInternal);
 
         // 抛消息
         downloadInternal.getDriver().notifyStarted();
     }
 
-    public void ready(final BaseFileDownloadInternal downloadInternal) {
+    public void ready(final BaseDownloadTask downloadInternal) {
         synchronized (list) {
             if (list.contains(downloadInternal)) {
                 FileDownloadLog.w(this, "already has %s", downloadInternal);
