@@ -8,23 +8,25 @@ public interface Constant {
     String[] BIG_FILE_URLS = {
             "http://7xjww9.com1.z0.glb.clouddn.com/20130221114001385.jpg",
             "http://dg.101.hk/1.rar",
+            "https://static.pexels.com/photos/479/landscape-nature-sunset-trees.jpg",
+            "http://7xjww9.com1.z0.glb.clouddn.com/Hopetoun_falls.jpg",
             // 5m
-            "http://mirror.internode.on.net/pub/test/5meg.test5",
-            "http://mirror.internode.on.net/pub/test/5meg.test4",
-            "http://mirror.internode.on.net/pub/test/5meg.test3",
-            "http://mirror.internode.on.net/pub/test/5meg.test2",
-            "http://mirror.internode.on.net/pub/test/5meg.test1",
+//            "http://mirror.internode.on.net/pub/test/5meg.test5",
+//            "http://mirror.internode.on.net/pub/test/5meg.test4",
+//            "http://mirror.internode.on.net/pub/test/5meg.test3",
+//            "http://mirror.internode.on.net/pub/test/5meg.test2",
+//            "http://mirror.internode.on.net/pub/test/5meg.test1",
             // 6m
-            "http://download.chinaunix.net/down.php?id=10608&ResourceID=5267&site=1",
+//            "http://download.chinaunix.net/down.php?id=10608&ResourceID=5267&site=1",
             // 6.8m
-            "http://dlsw.baidu.com/sw-search-sp/soft/7b/33461/freeime.1406862029.exe",
+//            "http://dlsw.baidu.com/sw-search-sp/soft/7b/33461/freeime.1406862029.exe",
             // 10m
-            "http://mirror.internode.on.net/pub/test/10meg.test",
-            "http://mirror.internode.on.net/pub/test/10meg.test1",
-            "http://mirror.internode.on.net/pub/test/10meg.test2",
-            "http://mirror.internode.on.net/pub/test/10meg.test3",
+//            "http://mirror.internode.on.net/pub/test/10meg.test",
+//            "http://mirror.internode.on.net/pub/test/10meg.test1",
+//            "http://mirror.internode.on.net/pub/test/10meg.test2",
+//            "http://mirror.internode.on.net/pub/test/10meg.test3",
             "http://mirror.internode.on.net/pub/test/10meg.test4",
-            "http://mirror.internode.on.net/pub/test/10meg.test5",
+//            "http://mirror.internode.on.net/pub/test/10meg.test5",
             // 20m
             "http://www.pc6.com/down.asp?id=72873",
             // 22m

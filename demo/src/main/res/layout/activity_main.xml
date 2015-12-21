@@ -9,4 +9,9 @@
         android:onClick="onClickMix"
         android:text="@string/mix_test_title" />
 
+    <Button
+        style="@style/DemoButton"
+        android:onClick="onClickSingle"
+        android:text="单任务测试" />
+
 </LinearLayout>

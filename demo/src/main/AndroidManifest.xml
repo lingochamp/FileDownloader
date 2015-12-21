@@ -26,6 +26,9 @@
 
         <activity android:name=".MixTestActivity"
             android:label="@string/mix_test_title"/>
+
+        <activity android:name=".SingleTaskActivity"
+            android:label="@string/single_task_download_test"/>
     </application>
 
 </manifest>

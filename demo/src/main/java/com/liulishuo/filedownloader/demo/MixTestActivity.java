@@ -125,12 +125,12 @@ public class MixTestActivity extends AppCompatActivity {
     private FileDownloadListener createListener() {
         return new FileDownloadListener() {
             @Override
-            protected void progress(final BaseDownloadTask task, final long soFarBytes, final long totalBytes) {
+            protected void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 updateDisplay(String.format("[progress] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
             }
 
             @Override
-            protected void pending(final BaseDownloadTask task, final long soFarBytes, final long totalBytes) {
+            protected void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 updateDisplay(String.format("[pending] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
             }
 
@@ -145,18 +145,18 @@ public class MixTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void complete(BaseDownloadTask task) {
+            protected void completed(BaseDownloadTask task) {
                 finalCounts++;
-                updateDisplay(String.format("[complete] id[%d] oldFile[%B]",
+                updateDisplay(String.format("[completed] id[%d] oldFile[%B]",
                         task.getDownloadId(),
                         task.isReusedOldFile()));
                 updateDisplay(String.format("---------------------------------- %d", (Integer) task.getTag()));
             }
 
             @Override
-            protected void pause(final BaseDownloadTask task, final long soFarBytes, final long totalBytes) {
+            protected void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 finalCounts++;
-                updateDisplay(String.format("[pause] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
+                updateDisplay(String.format("[paused] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
                 updateDisplay(String.format("############################## %d", (Integer) task.getTag()));
             }
 

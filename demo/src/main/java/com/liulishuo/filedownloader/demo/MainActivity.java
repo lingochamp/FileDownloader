@@ -21,4 +21,8 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, MixTestActivity.class));
     }
 
+    public void onClickSingle(final View view) {
+        startActivity(new Intent(this, SingleTaskActivity.class));
+    }
+
 }
