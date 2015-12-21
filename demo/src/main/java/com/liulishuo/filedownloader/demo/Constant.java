@@ -50,9 +50,13 @@ public interface Constant {
             "http://cdn.llsapp.com/user_images/26ebf7deb8eb1f66056cbdac31aa18209d2f7daf_1436262740.jpg",
             "http://cdn.llsapp.com/yy/image/a1de0e33-c3f3-4795-b2b9-4dafbcf06bee.jpg",
             "http://cdn.llsapp.com/yy/image/cc4bc37d-ef77-4469-a8e9-2c70105a3f94.jpg",
+            // 重复
+            "http://cdn.llsapp.com/yy/image/cc4bc37d-ef77-4469-a8e9-2c70105a3f94.jpg",
             "http://cdn.llsapp.com/yy/image/dd72c879-b1c4-4fb9-b871-d57dfa3aa709.jpg",
             "http://cdn.llsapp.com/crm_test_1447220020113.jpg",
             "http://cdn.llsapp.com/crm_test_1447220428493.jpg",
+            // 重复
+            "http://cdn.llsapp.com/yy/image/a1de0e33-c3f3-4795-b2b9-4dafbcf06bee.jpg",
             "http://cdn.llsapp.com/forum/image/72e344b20d48432487389f8ad0dec163_1435047695818.png",
             "http://cdn.llsapp.com/forum/image/36d3070792b14633ad1f596c38f892e2_1435047020634.jpg",
             "http://cdn.llsapp.com/yy/image/5d8bfbd4-51b8-4fe6-ba01-4a5f37c478a6.jpg",
@@ -64,6 +68,8 @@ public interface Constant {
             "http://cdn.llsapp.com/357070051859561_1390016094611.jpg",
             "http://cdn.llsapp.com/forum/image/6f7a673ea1224019bf73bb2301f61b26_1435211914955.jpg",
             "http://cdn.llsapp.com/forum/image/a58b054f250e4237bd7d914c1feafc05_1435211918877.jpg",
+            // 重复
+            "http://cdn.llsapp.com/forum/image/f74026981afa42e0b73a6983450deca1_1441780286505.jpg",
             "http://cdn.llsapp.com/forum/image/432f360f3a1b4436b569c1a58c0dffe4_1435917578613.jpg",
             "http://cdn.llsapp.com/forum/image/a704f63a5b904961b71ea04b8a6aa36d_1397448248398.jpg",
             "http://cdn.llsapp.com/yy/image/52f4abdb-5f7f-46c2-9095-cce5fc09b296.png",

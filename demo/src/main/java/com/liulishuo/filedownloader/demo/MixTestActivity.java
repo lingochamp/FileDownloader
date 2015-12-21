@@ -2,6 +2,7 @@ package com.liulishuo.filedownloader.demo;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -73,11 +74,13 @@ public class MixTestActivity extends AppCompatActivity {
 
         // 以相同的listener作为target，将不同的下载任务绑定起来
         final FileDownloadListener parallelTarget = createListener();
+        int i = 0;
         for (String url : Constant.URLS) {
             totalCounts++;
             FileDownloader.getImpl().create(url)
                     .addListener(parallelTarget)
                     .progressCallbackTimes(3)
+                    .setTag(++i)
                     .ready();
         }
 
@@ -90,11 +93,13 @@ public class MixTestActivity extends AppCompatActivity {
 
         // 以相同的listener作为target，将不同的下载任务绑定起来
         final FileDownloadListener serialTarget = createListener();
+        int i = 0;
         for (String url : Constant.URLS) {
             totalCounts++;
             FileDownloader.getImpl().create(url)
                     .addListener(serialTarget)
                     .progressCallbackTimes(3)
+                    .setTag(++i)
                     .ready();
         }
 
@@ -127,33 +132,40 @@ public class MixTestActivity extends AppCompatActivity {
             @Override
             protected void complete(BaseFileDownloadInternal downloader) {
                 finalCounts++;
-                updateDisplay(String.format("[complete] id[%d] oldFile[%B]", downloader.getDownloadId(), downloader.isReusedOldFile()));
+                updateDisplay(String.format("[complete] id[%d] oldFile[%B]",
+                        downloader.getDownloadId(),
+                        downloader.isReusedOldFile()));
+                updateDisplay(String.format("---------------------------------- %d", downloader.getTag() != null? (Integer)downloader.getTag() : 1));
             }
 
             @Override
             protected void pause(BaseFileDownloadInternal downloader, long downloadedSofar, long totalSizeBytes) {
                 finalCounts++;
                 updateDisplay(String.format("[pause] id[%d] %d/%d", downloader.getDownloadId(), downloadedSofar, totalSizeBytes));
+                updateDisplay(String.format("############################## %d", downloader.getTag() != null ? (Integer) downloader.getTag() : 1));
             }
 
             @Override
             protected void error(BaseFileDownloadInternal downloader, Throwable e) {
                 finalCounts++;
-                updateDisplay(String.format("[error] id[%d] %s",
+                updateDisplay(Html.fromHtml(String.format("[error] id[%d] %s %s",
                         downloader.getDownloadId(),
                         e.getMessage(),
-                        FileDownloadUtils.getStack(e.getStackTrace(), false)));
+                        FileDownloadUtils.getStack(e.getStackTrace(), false))));
+
+                updateDisplay(String.format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %d", downloader.getTag() != null ? (Integer) downloader.getTag() : 1));
             }
 
             @Override
             protected void warn(BaseFileDownloadInternal downloader) {
                 finalCounts++;
                 updateDisplay(String.format("[warm] id[%d]", downloader.getDownloadId()));
+                updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", downloader.getTag() != null ? (Integer) downloader.getTag() : 1));
             }
         };
     }
 
-    private void updateDisplay(final String msg) {
+    private void updateDisplay(final CharSequence msg) {
         downloadMsgTv.append(String.format("\n %s", msg));
         tipMsgTv.setText(String.format("%d/%d", finalCounts, totalCounts));
         scrollView.post(scroll2Bottom);
@@ -167,6 +179,12 @@ public class MixTestActivity extends AppCompatActivity {
             }
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FileDownloader.getImpl().pauseAll();
+    }
 
     private LinearLayout topGroup;
     private ScrollView scrollView;
