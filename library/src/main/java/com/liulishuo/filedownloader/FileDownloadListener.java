@@ -8,9 +8,9 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 /**
  * Created by Jacksgong on 9/7/15.
  * <p/>
- * normal chain {@link #pending} -> {@link #progress}  -> {@link #blockComplete} -> {@link #complete}
- * may final width {@link #pause}/{@link #complete}/{@link #error}/{@link #warn}
- * if reuse just {@link #blockComplete} ->{@link #complete}
+ * normal chain {@link #pending} -> {@link #progress}  -> {@link #blockComplete} -> {@link #completed}
+ * may final width {@link #paused}/{@link #completed}/{@link #error}/{@link #warn}
+ * if reuse just {@link #blockComplete} ->{@link #completed}
  */
 public abstract class FileDownloadListener extends IDownloadListener {
 
@@ -34,25 +34,25 @@ public abstract class FileDownloadListener extends IDownloadListener {
         switch (downloaderEvent.getStatus()) {
             case FileDownloadStatus.pending:
                 pending(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getDownloadedSofar(),
-                        downloaderEvent.getDownloader().getTotalSizeBytes());
+                        downloaderEvent.getDownloader().getSoFarBytes(),
+                        downloaderEvent.getDownloader().getTotalBytes());
                 break;
             case FileDownloadStatus.progress:
                 progress(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getDownloadedSofar(),
-                        downloaderEvent.getDownloader().getTotalSizeBytes());
+                        downloaderEvent.getDownloader().getSoFarBytes(),
+                        downloaderEvent.getDownloader().getTotalBytes());
                 break;
             case FileDownloadStatus.paused:
-                pause(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getDownloadedSofar(),
-                        downloaderEvent.getDownloader().getTotalSizeBytes());
+                paused(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getSoFarBytes(),
+                        downloaderEvent.getDownloader().getTotalBytes());
                 break;
 
             case FileDownloadStatus.preCompleteOnNewThread:
                 blockComplete(downloaderEvent.getDownloader());
                 break;
             case FileDownloadStatus.completed:
-                complete(downloaderEvent.getDownloader());
+                completed(downloaderEvent.getDownloader());
                 break;
             case FileDownloadStatus.error:
                 error(downloaderEvent.getDownloader(),
@@ -68,15 +68,15 @@ public abstract class FileDownloadListener extends IDownloadListener {
     }
 
 
-    protected abstract void pending(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
+    protected abstract void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
-    protected abstract void progress(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
+    protected abstract void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
 
     /**
-     * block complete in new thread
+     * block completed in new thread
      *
-     * @param atom
+     * @param task
      */
     protected abstract void blockComplete(final BaseDownloadTask task);
 
@@ -85,20 +85,20 @@ public abstract class FileDownloadListener extends IDownloadListener {
     /**
      * succeed download
      *
-     * @param atom
+     * @param task
      */
-    protected abstract void complete(final BaseDownloadTask task);
+    protected abstract void completed(final BaseDownloadTask task);
 
-    protected abstract void pause(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
+    protected abstract void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     /**
-     * @param atom
+     * @param task
      * @param e
      */
     protected abstract void error(final BaseDownloadTask task, final Throwable e);
 
     /**
-     * @param atom same download already start & pending/downloading
+     * @param task same download already start & pending/downloading
      */
     protected abstract void warn(final BaseDownloadTask task);
 

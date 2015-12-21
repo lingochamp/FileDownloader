@@ -134,7 +134,7 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
 
             if (model.getStatus() != FileDownloadStatus.completed) {
                 // 数据状态没完成
-                FileDownloadLog.w(this, "status not complete %s %s", model.getStatus(), url);
+                FileDownloadLog.w(this, "status not completed %s %s", model.getStatus(), url);
                 break;
             }
 
@@ -193,7 +193,7 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
             return false;
         }
 
-        FileDownloadLog.d(this, "pause %d", id);
+        FileDownloadLog.d(this, "paused %d", id);
         model.setIsCancel(true);
         /**
          * 耦合 by {@link FileDownloadRunnable#run()} 中的 {@link com.squareup.okhttp.Request.Builder#tag(Object)}

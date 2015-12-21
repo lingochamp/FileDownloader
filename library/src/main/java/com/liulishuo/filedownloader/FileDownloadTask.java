@@ -68,8 +68,8 @@ class FileDownloadTask extends BaseDownloadTask {
         }
 
         setDownloadId(model.getDownloadId());
-        setDownloadedSofar(model.getSofarBytes());
-        setTotalSizeBytes(model.getTotalBytes());
+        setSoFarBytes(model.getSofarBytes());
+        setTotalBytes(model.getTotalBytes());
         setStatus(model.getStatus());
         return true;
 
@@ -109,6 +109,15 @@ class FileDownloadTask extends BaseDownloadTask {
             NEED_RESTART_LIST.remove(this);
         }
         return true;
+    }
+
+    @Override
+    public boolean pause() {
+        synchronized (NEED_RESTART_LIST) {
+            NEED_RESTART_LIST.remove(this);
+        }
+
+        return super.pause();
     }
 
     @Override
@@ -166,7 +175,7 @@ class FileDownloadTask extends BaseDownloadTask {
                     FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", downloadInternal.getDownloadId(), downloadInternal.getStatus(), transfer.getStatus());
                     switch (transfer.getStatus()) {
                         case FileDownloadStatus.progress:
-                            if (downloadInternal.getStatus() == FileDownloadStatus.progress && transfer.getSofarBytes() == downloadInternal.getDownloadedSofar() && transfer.getTotalBytes() == downloadInternal.getTotalSizeBytes()) {
+                            if (downloadInternal.getStatus() == FileDownloadStatus.progress && transfer.getSofarBytes() == downloadInternal.getSoFarBytes() && transfer.getTotalBytes() == downloadInternal.getTotalBytes()) {
 
                                 FileDownloadLog.w(FileDownloadTask.class, "unused values! by process callback");
                                 break;
@@ -204,11 +213,11 @@ class FileDownloadTask extends BaseDownloadTask {
 //                                FileDownloadLog.w(FileDownloadInternal.class, "already paused , callback by other status same transfer");
 //                                break;
 //                            }
-//                            downloadInternal.setDownloadedSofar(transfer.getSofarBytes());
+//                            downloadInternal.setSoFarBytes(transfer.getSofarBytes());
 //                            downloadInternal.notifyPaused();
                             break;
                         case FileDownloadStatus.pending:
-                            if (downloadInternal.getStatus() == FileDownloadStatus.paused && transfer.getSofarBytes() == downloadInternal.getDownloadedSofar() && transfer.getTotalBytes() == downloadInternal.getTotalSizeBytes()) {
+                            if (downloadInternal.getStatus() == FileDownloadStatus.paused && transfer.getSofarBytes() == downloadInternal.getSoFarBytes() && transfer.getTotalBytes() == downloadInternal.getTotalBytes()) {
                                 FileDownloadLog.w(FileDownloadTask.class, "already pending , callback by other status same transfer");
                                 break;
                             }
@@ -228,8 +237,8 @@ class FileDownloadTask extends BaseDownloadTask {
 
         private void copyStatus(final FileDownloadTransferModel transfer, final BaseDownloadTask downloadInternal) {
             downloadInternal.setStatus(transfer.getStatus());
-            downloadInternal.setDownloadedSofar(transfer.getSofarBytes());
-            downloadInternal.setTotalSizeBytes(transfer.getTotalBytes());
+            downloadInternal.setSoFarBytes(transfer.getSofarBytes());
+            downloadInternal.setTotalBytes(transfer.getTotalBytes());
         }
     }
 

@@ -30,8 +30,8 @@ public abstract class BaseDownloadTask {
     private Object tag;
     private Throwable ex;
 
-    private int downloadedSofar;
-    private int totalSizeBytes;
+    private int soFarBytes;
+    private int totalBytes;
     private int status = FileDownloadStatus.pending;
 
     private int progressCallbackTimes = FileDownloadModel.DEFAULT_NOTIFY_NUMS;
@@ -79,7 +79,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * @param progressCallbackTimes progress的回调次数，<=0将不会进行progress回调
-     * @see {@link FileDownloadListener#progress(BaseDownloadTask, long, long)}
+     * @see {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
      */
     protected void setProgressCallbackTimes(int progressCallbackTimes) {
         this.progressCallbackTimes = progressCallbackTimes;
@@ -116,12 +116,12 @@ public abstract class BaseDownloadTask {
         this.notificationDesc = notificationDesc;
     }
 
-    protected void setDownloadedSofar(int downloadedSofar) {
-        this.downloadedSofar = downloadedSofar;
+    protected void setSoFarBytes(int soFarBytes) {
+        this.soFarBytes = soFarBytes;
     }
 
-    protected void setTotalSizeBytes(int totalSizeBytes) {
-        this.totalSizeBytes = totalSizeBytes;
+    protected void setTotalBytes(int totalBytes) {
+        this.totalBytes = totalBytes;
     }
 
     protected void setIsForceRedownload(boolean isForceRedownload) {
@@ -198,15 +198,13 @@ public abstract class BaseDownloadTask {
         }
 
 
-        this.downloadId = 0;
-
         try {
             checkFile(savePath);
 
             // 服务是否启动
             if (!checkCanStart()) {
                 // 没有准备好
-                return 0;
+                return getDownloadId();
             }
 
             FileDownloadList.getImpl().add(this);
@@ -220,7 +218,7 @@ public abstract class BaseDownloadTask {
                 setStatus(FileDownloadStatus.warn);
                 FileDownloadList.getImpl().removeByWarn(this);
 
-                return 0;
+                return getDownloadId();
             }
 
             if (checkCanReuse()) {
@@ -235,8 +233,7 @@ public abstract class BaseDownloadTask {
                 FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
                 this.isReusedOldFile = false;
 
-                downloadId = startExecute();
-                if (downloadId == 0) {
+                if (startExecute() == 0) {
                     setEx(new RuntimeException("not run download, not got download id"));
                     FileDownloadList.getImpl().removeByError(this);
                 }
@@ -253,7 +250,7 @@ public abstract class BaseDownloadTask {
                         "tag[%s]", url, savePath, listener, isNeedNotification, notificationTitle, notificationDesc,
                 tag);
 
-        return downloadId;
+        return getDownloadId();
 
     }
 
@@ -288,11 +285,10 @@ public abstract class BaseDownloadTask {
 
         final boolean result = pauseExecute();
 
-
         if (result) {
             FileDownloadList.getImpl().removeByPaused(this);
         } else {
-            FileDownloadLog.w(this, "pause false %s", toString());
+            FileDownloadLog.w(this, "paused false %s", toString());
             // 一直依赖不在下载进程队列中
             // 只有可能是 串行 还没有执行到 or 并行还没来得及加入进的
             FileDownloadList.getImpl().removeByPaused(this);
@@ -312,7 +308,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * Force re download whether already downloaded complete
+     * Force re download whether already downloaded completed
      *
      * @return
      */
@@ -445,12 +441,12 @@ public abstract class BaseDownloadTask {
         return notificationDesc;
     }
 
-    public int getDownloadedSofar() {
-        return downloadedSofar;
+    public int getSoFarBytes() {
+        return soFarBytes;
     }
 
-    public int getTotalSizeBytes() {
-        return totalSizeBytes;
+    public int getTotalBytes() {
+        return totalBytes;
     }
 
     public int getStatus() {

@@ -1,11 +1,11 @@
 package com.liulishuo.filedownloader;
 
 import android.app.Application;
-import android.util.Log;
 
 import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +16,6 @@ import java.util.concurrent.Executors;
  * Created by Jacksgong on 12/17/15.
  */
 public class FileDownloader {
-    private final static String TAG = "FileDownloader";
-
 
     /**
      * 不耗时，做一些简单初始化准备工作，不会启动下载进程
@@ -26,7 +24,7 @@ public class FileDownloader {
      */
     public static void init(final Application application) {
         // 下载进程与非下载进程都存一个
-        Log.d(TAG, "init Downloader");
+        FileDownloadLog.d(FileDownloader.class, "init Downloader");
         FileDownloadHelper.initAppContext(application);
         DownloadEventPool.setImpl(new DownloadEventPoolImpl());
     }
@@ -115,7 +113,7 @@ public class FileDownloader {
 
 
     /**
-     * pause download by same listener
+     * paused download by same listener
      *
      * @param listener
      * @see #pause(int)
@@ -138,7 +136,7 @@ public class FileDownloader {
     }
 
     /**
-     * pause download by download id
+     * paused download by download id
      *
      * @param downloadId
      * @see #pause(FileDownloadListener)
@@ -146,6 +144,7 @@ public class FileDownloader {
     public void pause(final int downloadId) {
         BaseDownloadTask downloaderInternal = FileDownloadList.getImpl().get(downloadId);
         if (downloaderInternal == null) {
+            FileDownloadLog.w(this, "request pause but not exist %d", downloadId);
             return;
         }
         downloaderInternal.pause();
@@ -157,7 +156,7 @@ public class FileDownloader {
             return FileDownloadServiceUIGuard.getImpl().getSofar(downloadId);
         }
 
-        return downloaderInternal.getDownloadedSofar();
+        return downloaderInternal.getSoFarBytes();
     }
 
     public int getTotal(final int downloadId) {
@@ -166,7 +165,7 @@ public class FileDownloader {
             return FileDownloadServiceUIGuard.getImpl().getTotal(downloadId);
         }
 
-        return downloaderInternal.getTotalSizeBytes();
+        return downloaderInternal.getTotalBytes();
     }
 
     /**

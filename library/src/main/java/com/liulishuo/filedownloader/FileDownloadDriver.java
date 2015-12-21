@@ -36,7 +36,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyProgress() {
-        FileDownloadLog.d(this, "notify progress %s %d %d", download, download.getDownloadedSofar(), download.getTotalSizeBytes());
+        FileDownloadLog.d(this, "notify progress %s %d %d", download, download.getSoFarBytes(), download.getTotalBytes());
 
         DownloadEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(download).
                 progress());
@@ -49,7 +49,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
      */
     @Override
     public void notifyBlockComplete() {
-        FileDownloadLog.d(this, "notify block complete %s %s", download, Thread.currentThread().getName());
+        FileDownloadLog.d(this, "notify block completed %s %s", download, Thread.currentThread().getName());
 
         DownloadEventPool.getImpl().publish(new FileDownloadEvent(download).preCompleteOnNewThread());
         download.ing();
