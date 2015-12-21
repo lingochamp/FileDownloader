@@ -136,7 +136,7 @@ public class FileDownloadModel implements Parcelable {
         this.progressCallbackTimes = progressCallbackTimes;
     }
 
-    public String geteTag() {
+    public String getETag() {
         return eTag;
     }
 

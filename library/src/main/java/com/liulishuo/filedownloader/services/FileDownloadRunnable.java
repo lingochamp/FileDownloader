@@ -3,8 +3,8 @@ package com.liulishuo.filedownloader.services;
 import android.os.Process;
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -79,7 +79,7 @@ class FileDownloadRunnable implements Runnable {
 
         this.isContinueDownloadAvailable = false;
 
-        this.etag = model.geteTag();
+        this.etag = model.getETag();
         this.downloadModel = model;
     }
 
@@ -171,7 +171,7 @@ class FileDownloadRunnable implements Runnable {
 
                         //write buff
                         sofar += readed;
-                        if (accessFile.length() != sofar) {
+                        if (accessFile.length() < sofar) {
                             // 文件大小必须会等于正在写入的大小
                             onError(new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), sofar)));
                             return;
@@ -180,8 +180,7 @@ class FileDownloadRunnable implements Runnable {
                         }
 
                         if (isCancelled()) {
-                            // 这边没有必要从服务端再回调，由于直接调pause看是否已经成功
-//                            onPause();
+                            onPause();
                             return;
                         }
 
@@ -232,8 +231,9 @@ class FileDownloadRunnable implements Runnable {
         final String oldEtag = this.etag;
         final String newEtag = response.header("Etag");
 
+        FileDownloadLog.w(this, "etag find by header %s", newEtag);
+
         if (oldEtag == null && newEtag != null) {
-            FileDownloadLog.w(this, "no etag find by header");
             needRefresh = true;
         } else if (oldEtag != null && newEtag != null && !oldEtag.equals(newEtag)) {
             needRefresh = true;
@@ -245,20 +245,23 @@ class FileDownloadRunnable implements Runnable {
 
     }
 
-    private long lastNotifiedSofar = 0;
+    private long lastNotifiedSoFar = 0;
 
-    private void onProcess(final int sofar, final int total) {
-        if (maxNotifyBytes < 0 || sofar - lastNotifiedSofar < maxNotifyBytes && sofar != total) {
+    private void onProcess(final int soFar, final int total) {
+        if (soFar != total) {
+            downloadTransfer.setSofarBytes(soFar);
+            downloadTransfer.setTotalBytes(total);
+            downloadTransfer.setStatus(FileDownloadStatus.progress);
+
+            helper.update(downloadTransfer.getDownloadId(), FileDownloadStatus.progress, soFar, total);
+        }
+
+        if (maxNotifyBytes < 0 || soFar - lastNotifiedSoFar < maxNotifyBytes) {
             return;
         }
-        lastNotifiedSofar = sofar;
-        FileDownloadLog.d(this, "On progress %d %d %d", downloadTransfer.getDownloadId(), sofar, total);
+        lastNotifiedSoFar = soFar;
+        FileDownloadLog.d(this, "On progress %d %d %d", downloadTransfer.getDownloadId(), soFar, total);
 
-        downloadTransfer.setSofarBytes(sofar);
-        downloadTransfer.setTotalBytes(total);
-        downloadTransfer.setStatus(FileDownloadStatus.progress);
-
-        helper.update(downloadTransfer.getDownloadId(), FileDownloadStatus.progress, sofar, total);
 
         DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
     }
@@ -296,6 +299,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updatePause(downloadTransfer.getDownloadId());
 
+        // 这边没有必要从服务端再回调，由于直接调pause看是否已经成功
 //        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
     }
 
@@ -329,7 +333,7 @@ class FileDownloadRunnable implements Runnable {
             throw new RuntimeException(String.format("found invalid internal destination path[%s], & path is directory[%B]", path, file.isDirectory()));
         }
         if (!file.exists()) {
-            if(!file.createNewFile()) {
+            if (!file.createNewFile()) {
                 throw new IOException(String.format("create new file error  %s", file.getAbsolutePath()));
             }
         }
@@ -353,7 +357,7 @@ class FileDownloadRunnable implements Runnable {
                 this.isContinueDownloadAvailable = true;
             } else {
                 final boolean result = file.delete();
-                FileDownloadLog.d(this, "delete file for dirty file %B", result);
+                FileDownloadLog.d(this, "delete file for dirty file %B, fileLength[%d], sofar[%d] total[%d] etag", result, fileLength, downloadTransfer.getSofarBytes(), downloadTransfer.getTotalBytes());
             }
         }
     }
