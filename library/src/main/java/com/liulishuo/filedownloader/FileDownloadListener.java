@@ -8,9 +8,9 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 /**
  * Created by Jacksgong on 9/7/15.
  * <p/>
- * normal chain {@link #pending} -> {@link #progress}  -> {@link #preCompleteOnNewThread} -> {@link #complete}
+ * normal chain {@link #pending} -> {@link #progress}  -> {@link #blockComplete} -> {@link #complete}
  * may final width {@link #pause}/{@link #complete}/{@link #error}/{@link #warn}
- * if reuse just {@link #preCompleteOnNewThread} ->{@link #complete}
+ * if reuse just {@link #blockComplete} ->{@link #complete}
  */
 public abstract class FileDownloadListener extends IDownloadListener {
 
@@ -49,7 +49,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
                 break;
 
             case FileDownloadStatus.preCompleteOnNewThread:
-                preCompleteOnNewThread(downloaderEvent.getDownloader());
+                blockComplete(downloaderEvent.getDownloader());
                 break;
             case FileDownloadStatus.completed:
                 complete(downloaderEvent.getDownloader());
@@ -81,7 +81,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
      *
      * @param downloader
      */
-    protected abstract void preCompleteOnNewThread(final BaseFileDownloadInternal downloader);
+    protected abstract void blockComplete(final BaseFileDownloadInternal downloader);
 
     // final width below methods
 
