@@ -9,6 +9,13 @@ android {
         targetSdkVersion COMPILE_SDK_VERSION as int
         versionCode VERSION_CODE as int
         versionName VERSION_NAME as String
+
+        Properties p = new Properties()
+        p.load(project.rootProject.file('local.properties').newDataInputStream())
+        def needLog = p.getProperty("needLog");
+        buildConfigField "boolean", "DOWNLOAD_NEED_LOG", needLog == "true" ? "true" : "false"
+
+
     }
     buildTypes {
         release {
