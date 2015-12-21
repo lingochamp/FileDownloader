@@ -209,6 +209,8 @@ public abstract class BaseFileDownloadInternal {
                 return 0;
             }
 
+            FileDownloadList.getImpl().add(this);
+
             // 是否正在下载
             if (checkDownloading(getUrl(), getSavePath())) {
                 // 正在下载
@@ -225,7 +227,6 @@ public abstract class BaseFileDownloadInternal {
                 FileDownloadLog.d(this, "reuse downloaded file %s", getUrl());
                 this.isReusedOldFile = true;
 
-                FileDownloadList.getImpl().add(this);
 
                 setStatus(FileDownloadStatus.completed);
                 FileDownloadList.getImpl().removeByCompleted(this);
@@ -234,7 +235,6 @@ public abstract class BaseFileDownloadInternal {
                 FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
                 this.isReusedOldFile = false;
 
-                FileDownloadList.getImpl().add(this);
                 downloadId = startExecute();
                 if (downloadId == 0) {
                     setEx(new RuntimeException("not run download, not got download id"));
