@@ -33,13 +33,19 @@ public abstract class FileDownloadListener extends IFileListener {
 
         switch (downloaderEvent.getStatus()) {
             case FileDownloadStatus.pending:
-                pending(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
+                pending(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getDownloadedSofar(),
+                        downloaderEvent.getDownloader().getTotalSizeBytes());
                 break;
             case FileDownloadStatus.progress:
-                progress(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
+                progress(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getDownloadedSofar(),
+                        downloaderEvent.getDownloader().getTotalSizeBytes());
                 break;
             case FileDownloadStatus.paused:
-                pause(downloaderEvent.getDownloader(), downloaderEvent.getDownloadedSofar(), downloaderEvent.getTotalSizeBytes());
+                pause(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getDownloadedSofar(),
+                        downloaderEvent.getDownloader().getTotalSizeBytes());
                 break;
 
             case FileDownloadStatus.preCompleteOnNewThread:
@@ -49,7 +55,8 @@ public abstract class FileDownloadListener extends IFileListener {
                 complete(downloaderEvent.getDownloader());
                 break;
             case FileDownloadStatus.error:
-                error(downloaderEvent.getDownloader(), downloaderEvent.getThrowable());
+                error(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getEx());
                 break;
             case FileDownloadStatus.warn:
                 // already same url & path in pending/running list

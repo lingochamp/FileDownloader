@@ -10,6 +10,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
+import com.squareup.okhttp.CacheControl;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -92,7 +93,7 @@ class FileDownloadRunnable implements Runnable {
         try {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-            FileDownloadModel model = helper.find(getId());
+            FileDownloadModel model = this.downloadModel;
 
             if (model == null) {
                 FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
@@ -113,24 +114,32 @@ class FileDownloadRunnable implements Runnable {
                 return;
             }
 
+            if (model.isCanceled()) {
+                FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
+                return;
+            }
+
             FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
 
             checkIsContinueAvailable();
 
             Request.Builder headerBuilder = new Request.Builder().url(url);
             addHeader(headerBuilder);
+            headerBuilder.tag(this.getId());
+            // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
+            headerBuilder.cacheControl(CacheControl.FORCE_NETWORK);
 
             Call call = client.newCall(headerBuilder.get().build());
 
             Response response = call.execute();
 
-            final boolean isSuccedStart = response.code() == 200;
+            final boolean isSucceedStart = response.code() == 200;
             final boolean isSucceedContinue = response.code() == 206 && isContinueDownloadAvailable;
 
-            if (isSuccedStart || isSucceedContinue) {
+            if (isSucceedStart || isSucceedContinue) {
                 int total = downloadTransfer.getTotalBytes();
                 int sofar = 0;
-                if (isSuccedStart || total == 0) {
+                if (isSucceedStart || total == 0) {
                     // TODO 目前没有对 2^31-1bit以上大小支持，未来会开发一个对应的库
                     total = (int) response.body().contentLength();
                 }
@@ -163,14 +172,15 @@ class FileDownloadRunnable implements Runnable {
                         sofar += readed;
                         if (accessFile.length() != sofar) {
                             // 文件大小必须会等于正在写入的大小
-                            onError(new RuntimeException("file be changed by others when downloading"));
+                            onError(new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), sofar)));
                             return;
                         } else {
                             onProcess(sofar, total);
                         }
 
                         if (isCancelled()) {
-                            onPause();
+                            // 这边没有必要从服务端再回调，由于直接调pause看是否已经成功
+//                            onPause();
                             return;
                         }
 
@@ -285,7 +295,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updatePause(downloadTransfer.getDownloadId());
 
-        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
+//        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
     }
 
     public void onResume() {
@@ -299,7 +309,7 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private boolean isCancelled() {
-        return this.downloadModel.isCancel();
+        return this.downloadModel.isCanceled();
     }
 
     // ----------------------------------
@@ -333,13 +343,14 @@ class FileDownloadRunnable implements Runnable {
         File file = new File(path);
         if (file.exists()) {
             final long fileLength = file.length();
-            if (fileLength >= downloadTransfer.getSofarBytes() && this.etag != null) {
+            if (fileLength >= downloadTransfer.getSofarBytes() && this.etag != null && fileLength < downloadTransfer.getTotalBytes()) {
+                // 如果fileLength >= total bytes 视为脏数据，从头开始下载
                 FileDownloadLog.d(this, "adjust sofar old[%d] new[%d]", downloadTransfer.getSofarBytes(), fileLength);
 
-                // 如果fileLength >= total bytes 视为脏数据，从头开始下载
-                this.isContinueDownloadAvailable = fileLength < downloadTransfer.getTotalBytes();
+                this.isContinueDownloadAvailable = true;
             } else {
-                file.delete();
+                final boolean result = file.delete();
+                FileDownloadLog.d(this, "delete file for dirty file %B", result);
             }
         }
     }

@@ -2,6 +2,8 @@ package com.liulishuo.filedownloader.model;
 
 /**
  * Created by Jacksgong on 11/26/15.
+ *
+ * @see com.liulishuo.filedownloader.IFileDownloadMessage
  */
 public interface FileDownloadStatus {
     int pending = 1;

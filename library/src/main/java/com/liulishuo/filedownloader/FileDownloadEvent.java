@@ -17,19 +17,9 @@ class FileDownloadEvent extends IFileEvent {
     private BaseFileDownloadInternal downloader;
 
     private int status;
-    private int downloadedSofar;
-    private int totalSizeBytes;
 
-    /**
-     * @param downloadedSofar
-     * @param totalSizeBytes
-     * @return
-     */
-    public FileDownloadEvent progress(final int downloadedSofar, final int totalSizeBytes) {
+    public FileDownloadEvent progress() {
         this.status = FileDownloadStatus.progress;
-
-        this.downloadedSofar = downloadedSofar;
-        this.totalSizeBytes = totalSizeBytes;
 
         return this;
     }
@@ -39,30 +29,19 @@ class FileDownloadEvent extends IFileEvent {
         return this;
     }
 
-    private Throwable e;
-
-    public FileDownloadEvent error(final Throwable e) {
+    public FileDownloadEvent error() {
         this.status = FileDownloadStatus.error;
-        this.e = e;
         return this;
     }
 
 
-    public FileDownloadEvent pause(final int downloadedSofar, final int totalSizeBytes) {
+    public FileDownloadEvent pause() {
         this.status = FileDownloadStatus.paused;
-
-        this.downloadedSofar = downloadedSofar;
-        this.totalSizeBytes = totalSizeBytes;
-
         return this;
     }
 
-    public FileDownloadEvent pending(final int downloadedSofar, final int totalSizeBytes) {
+    public FileDownloadEvent pending() {
         this.status = FileDownloadStatus.pending;
-
-        this.downloadedSofar = downloadedSofar;
-        this.totalSizeBytes = totalSizeBytes;
-
         return this;
     }
 
@@ -87,17 +66,4 @@ class FileDownloadEvent extends IFileEvent {
     public int getStatus() {
         return this.status;
     }
-
-    public Throwable getThrowable() {
-        return this.e;
-    }
-
-    public int getDownloadedSofar() {
-        return downloadedSofar;
-    }
-
-    public int getTotalSizeBytes() {
-        return totalSizeBytes;
-    }
-
 }

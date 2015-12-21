@@ -199,10 +199,16 @@ class FileDownloadMgr implements FileEventSampleListener.IEventListener {
          * 耦合 by {@link FileDownloadRunnable#run()} 中的 {@link com.squareup.okhttp.Request.Builder#tag(Object)}
          * 目前在okHttp里还是每个单独任务
          */
+        // 之所以注释掉，不想这里回调error，okHttp中会根据okHttp所在被cancel的情况抛error
 //        client.cancel(id);
         return true;
     }
 
+    /**
+     * @param id
+     * @return
+     * @deprecated 不需要 直接用{@link #pause(int)}
+     */
     public boolean remove(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {

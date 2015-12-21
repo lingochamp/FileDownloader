@@ -21,7 +21,7 @@ import java.util.Set;
  */
 class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
-    // TODO thread safe? update ? get? 
+    // TODO thread safe? update ? get?
     private FileDownloadDBOpenHelper openHelper;
     private SQLiteDatabase db;
 

@@ -17,6 +17,7 @@ import com.liulishuo.filedownloader.services.FileDownloadService;
  * Created by Jacksgong on 9/23/15.
  */
 class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServiceUIGuard.FileDownloadServiceCallback, IFileDownloadIPCService> {
+    // TODO 优化 回调回来由对象改为 目标小原子对象
 
     private final static class HolderClass {
         private final static FileDownloadServiceUIGuard INSTANCE = new FileDownloadServiceUIGuard();

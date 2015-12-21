@@ -10,8 +10,6 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Jacksgong on 9/23/15.
@@ -29,16 +27,14 @@ public abstract class BaseFileDownloadInternal {
     private String notificationTitle;
     private String notificationDesc;
 
-    private String activityName;
-    private Object mTag;
+    private Object tag;
+    private Throwable ex;
 
     private int downloadedSofar;
     private int totalSizeBytes;
-    private int status;
+    private int status = FileDownloadStatus.pending;
 
     private int progressCallbackTimes = FileDownloadModel.DEFAULT_NOTIFY_NUMS;
-
-    private List<BaseFileDownloadInternal> downloadList;
 
     private boolean isForceReDownload = false;
 
@@ -49,9 +45,11 @@ public abstract class BaseFileDownloadInternal {
      */
     private boolean isReusedOldFile = false;
 
-    public BaseFileDownloadInternal(final String url, final List<BaseFileDownloadInternal> downloadList) {
+    private FileDownloadDriver driver;
+
+    public BaseFileDownloadInternal(final String url) {
         this.url = url;
-        this.downloadList = downloadList;
+        driver = new FileDownloadDriver(this);
     }
 
     private boolean isAddedEventLst = false;
@@ -73,7 +71,6 @@ public abstract class BaseFileDownloadInternal {
     }
 
     /**
-     *
      * @return 确保以当前Downloader为单位唯一
      */
     public String generateEventId() {
@@ -86,10 +83,6 @@ public abstract class BaseFileDownloadInternal {
      */
     protected void setProgressCallbackTimes(int progressCallbackTimes) {
         this.progressCallbackTimes = progressCallbackTimes;
-    }
-
-    protected void setActivityName(String activityName) {
-        this.activityName = activityName;
     }
 
     protected void setDownloadId(int downloadId) {
@@ -123,10 +116,6 @@ public abstract class BaseFileDownloadInternal {
         this.notificationDesc = notificationDesc;
     }
 
-    protected void setmTag(Object mTag) {
-        this.mTag = mTag;
-    }
-
     protected void setDownloadedSofar(int downloadedSofar) {
         this.downloadedSofar = downloadedSofar;
     }
@@ -147,212 +136,43 @@ public abstract class BaseFileDownloadInternal {
         this.status = status;
     }
 
-    protected List<BaseFileDownloadInternal> getDownloadList() {
-        return this.downloadList;
-    }
-
     private FinishListener mFinishListener;
 
     public BaseFileDownloadInternal setFinishListener(final FinishListener finishListener) {
         this.mFinishListener = finishListener;
         return this;
     }
+
     // --------------------------------------------
+    public FileDownloadDriver getDriver() {
+        return this.driver;
+    }
 
-    protected void notifyPaused(final int downloadedSofar, final int totalSizeBytes) {
-        FileDownloadLog.d(this, "notify paused %s %d %d", downloadId, downloadedSofar, totalSizeBytes);
+    public void begin() {
 
-        this.status = FileDownloadStatus.paused;
-        this.downloadedSofar = downloadedSofar;
-        this.totalSizeBytes = totalSizeBytes;
+    }
 
-        FileEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(this).pause(downloadedSofar, totalSizeBytes));
-        removeEventListener();
+    public void ing() {
+
+    }
+
+    public void over() {
 
         if (mFinishListener != null) {
-            mFinishListener.finalPause();
+            mFinishListener.over();
         }
     }
 
-    protected void notifyPending(final int downloadedSofar, final int totalSizeBytes) {
-        FileDownloadLog.d(this, "notify pending %s %d %d", downloadId, downloadedSofar, totalSizeBytes);
-
-        this.status = FileDownloadStatus.pending;
-        this.downloadedSofar = downloadedSofar;
-        this.totalSizeBytes = totalSizeBytes;
-
-        FileEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(this).pending(downloadedSofar, totalSizeBytes));
-    }
-
-    protected void notifyStarted() {
-        FileDownloadLog.d(this, "notify start %s", downloadId);
-        addEventListener();
-
-        if (!downloadList.contains(this)) {
-            downloadList.add(this);
-        }
-
-    }
-
-    /**
-     * 全下载器UI进程同步，检测是否存在相同的任务
-     */
-    private void checkSameTask() {
-        synchronized (downloadList) {
-            List<BaseFileDownloadInternal> removeList = new ArrayList<>();
-            final Object[] objects = getDownloadList().toArray();
-            for (Object object : objects) {
-                final BaseFileDownloadInternal downloadInternal = (BaseFileDownloadInternal) object;
-                if (downloadInternal.getDownloadId() == this.getDownloadId() &&
-                        downloadInternal != this) {
-                    removeList.add(downloadInternal);
-                }
-            }
-
-            for (final BaseFileDownloadInternal baseFileDownloadInternal : removeList) {
-                baseFileDownloadInternal.notifyWarn(new Runnable() {
-                    @Override
-                    public void run() {
-                        baseFileDownloadInternal.removeEventListener();
-                    }
-                });
-            }
-
-            // 把后面有重复的清除掉
-            downloadList.removeAll(removeList);
-        }
-    }
-
-    protected void notifyWarn(final Runnable runnable) {
-        FileDownloadLog.d(this, "notify warn same url & path %s", getDownloadId());
-        FileEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(this).warn().callback(runnable));
-
-        if (mFinishListener != null) {
-            mFinishListener.finalWarn();
-        }
-    }
 
     public int ready() {
 
-        if (!downloadList.contains(this)) {
-            downloadList.add(this);
-        }
+        FileDownloadLog.d(this, "ready 2 download %s", toString());
 
-        FileDownloadLog.d(this, "ready 2 download %s %d %s", getDownloadId(), downloadList.size(), this.getUrl());
+        FileDownloadList.getImpl().ready(this);
+
         return getDownloadId();
     }
 
-
-    protected void notifyProgress(final int downloadedSofar, final int totalSizeBytes) {
-        FileDownloadLog.d(this, "notify progress %s %d %d", downloadId, downloadedSofar, totalSizeBytes);
-
-        this.status = FileDownloadStatus.progress;
-        this.downloadedSofar = downloadedSofar;
-        this.totalSizeBytes = totalSizeBytes;
-
-        FileEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(this).progress(downloadedSofar, totalSizeBytes));
-    }
-
-    protected void notifyCompleted() {
-        FileDownloadLog.d(this, "notify completed %s", downloadId);
-
-        this.status = FileDownloadStatus.completed;
-        this.downloadedSofar = this.totalSizeBytes;
-
-        endDownloaded(null);
-    }
-
-    protected void notifyErrored(final Throwable e) {
-        FileDownloadLog.e(this, e, "notify err %s %s", downloadId, e.getMessage());
-
-        this.status = FileDownloadStatus.error;
-
-        endDownloaded(e);
-    }
-
-    private Thread preCompleteThread;
-
-    protected void endDownloaded(final Throwable e) {
-
-        final FileDownloadEvent event = new FileDownloadEvent(BaseFileDownloadInternal.this);
-
-        if (!downloadList.contains(this)) {
-            if (e != null) {
-                // fail
-                FileEventPool.getImpl().asyncPublishInMain(event.error(e).
-                        callback(getFinalListenerCallback()));
-
-                downloadList.remove(BaseFileDownloadInternal.this);
-                clearBasic();
-
-                // 结束整个过程
-                if (mFinishListener != null) {
-                    mFinishListener.finalError(e);
-                }
-            } else {
-                clear();
-            }
-
-            return;
-        }
-
-        preCompleteThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Throwable err = e;
-                boolean isDownloadSucced = (err == null);
-
-                boolean isPreCompletedSucced = true;
-
-                try {
-                    if (isDownloadSucced) {
-                        FileEventPool.getImpl().publish(event.preCompleteOnNewThread());
-                    }
-
-                } catch (Throwable ex) {
-                    ex.printStackTrace();
-                    isPreCompletedSucced = false;
-                    err = new Throwable(String.format("pre completed err %s", ex.getMessage()), ex);
-                }
-
-                downloadList.remove(BaseFileDownloadInternal.this);
-                clearBasic();
-
-                // 结束整个过程
-                if (isDownloadSucced && isPreCompletedSucced) {
-                    // succeed
-                    FileEventPool.getImpl().asyncPublishInMain(event.complete().
-                            callback(getFinalListenerCallback()));
-                    if (mFinishListener != null) {
-                        mFinishListener.finalComplete();
-                    }
-                } else {
-                    // fail
-                    FileEventPool.getImpl().asyncPublishInMain(event.error(err).
-                            callback(getFinalListenerCallback()));
-                    if (mFinishListener != null) {
-                        mFinishListener.finalError(err);
-                    }
-                }
-
-
-            }
-        });
-
-        preCompleteThread.start();
-
-    }
-
-
-    public void onBindActivityResumed(final Activity activity) {
-        if (downloadList.contains(this)) {
-            addEventListener();
-        }
-    }
-
-    public void onBindActivityPaused(final Activity activity) {
-        removeEventListener();
-    }
     // --------------------------------------------
 
     /**
@@ -362,7 +182,7 @@ public abstract class BaseFileDownloadInternal {
      */
     public int start() {
         FileDownloadLog.d(this, "begin call start url[%s], savePath[%s], listener[%s], isNeedNotification[%B], notificationTitle[%s], notificationDesc[%s]," +
-                " tag[%s]", url, savePath, listener, isNeedNotification, notificationTitle, notificationDesc, mTag);
+                " tag[%s]", url, savePath, listener, isNeedNotification, notificationTitle, notificationDesc, tag);
 
         if (savePath == null) {
             savePath = FileDownloadUtils.getDefaultSaveFilePath(url);
@@ -394,13 +214,9 @@ public abstract class BaseFileDownloadInternal {
                 // 正在下载
                 // 这里就直接结束了
                 FileDownloadLog.d(this, "Current is downloading %d", getDownloadId());
-                downloadList.remove(this);
-                notifyWarn(new Runnable() {
-                    @Override
-                    public void run() {
-                        clear();
-                    }
-                });
+
+                setStatus(FileDownloadStatus.warn);
+                FileDownloadList.getImpl().removeByWarn(this);
 
                 return 0;
             }
@@ -408,26 +224,34 @@ public abstract class BaseFileDownloadInternal {
             if (checkCanReuse()) {
                 FileDownloadLog.d(this, "reuse downloaded file %s", getUrl());
                 this.isReusedOldFile = true;
-                notifyStarted();
-                notifyCompleted();
+
+                FileDownloadList.getImpl().add(this);
+
+                setStatus(FileDownloadStatus.completed);
+                FileDownloadList.getImpl().removeByCompleted(this);
+
             } else {
                 FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
                 this.isReusedOldFile = false;
-                notifyStarted();
+
+                FileDownloadList.getImpl().add(this);
                 downloadId = startExecute();
                 if (downloadId == 0) {
-                    notifyErrored(new RuntimeException("not run download, not got download id"));
+                    setEx(new RuntimeException("not run download, not got download id"));
+                    FileDownloadList.getImpl().removeByError(this);
                 }
             }
 
         } catch (Throwable e) {
             e.printStackTrace();
-            notifyErrored(e);
+
+            setEx(e);
+            FileDownloadList.getImpl().removeByError(this);
         }
 
         FileDownloadLog.d(this, "end call start url[%s], savePath[%s], listener[%s], isNeedNotification[%B], notificationTitle[%s], notificationDesc[%s]," +
-                        "activityName[%s], tag[%s]", url, savePath, listener, isNeedNotification, notificationTitle, notificationDesc, activityName,
-                mTag);
+                        "tag[%s]", url, savePath, listener, isNeedNotification, notificationTitle, notificationDesc,
+                tag);
 
         return downloadId;
 
@@ -460,29 +284,22 @@ public abstract class BaseFileDownloadInternal {
     protected abstract boolean pauseExecute();
 
     public boolean pause() {
-        if (preCompleteThread != null) {
-            preCompleteThread.interrupt();
+        setStatus(FileDownloadStatus.paused);
+
+        final boolean result = pauseExecute();
+
+
+        if (result) {
+            FileDownloadList.getImpl().removeByPaused(this);
+        } else {
+            FileDownloadLog.w(this, "pause false %s", toString());
+            // 一直依赖不在下载进程队列中
+            // 只有可能是 串行 还没有执行到 or 并行还没来得及加入进的
+            FileDownloadList.getImpl().removeByPaused(this);
+
         }
-        return pauseExecute();
+        return result;
     }
-
-    protected abstract boolean resumeExecute();
-
-    public void resume() {
-        addEventListener();
-        final boolean succeed = resumeExecute();
-        if (!succeed) {
-            removeEventListener();
-        }
-    }
-
-    protected abstract boolean removeExecute();
-
-    public void remove() {
-        removeExecute();
-        downloadId = 0;
-    }
-
 
     public void clear() {
         removeEventListener();
@@ -499,7 +316,7 @@ public abstract class BaseFileDownloadInternal {
      *
      * @return
      */
-    public BaseFileDownloadInternal forceRedownload() {
+    public BaseFileDownloadInternal forceReDownload() {
         this.isForceReDownload = true;
         return this;
     }
@@ -567,7 +384,7 @@ public abstract class BaseFileDownloadInternal {
     }
 
     public Object getTag() {
-        return this.mTag;
+        return this.tag;
     }
 
     /**
@@ -577,7 +394,7 @@ public abstract class BaseFileDownloadInternal {
      * @return
      */
     public BaseFileDownloadInternal setTag(final Object tag) {
-        this.mTag = tag;
+        this.tag = tag;
         FileDownloadLog.d(this, "setTag %s", tag);
         return this;
     }
@@ -586,7 +403,18 @@ public abstract class BaseFileDownloadInternal {
     // -------------------------------------------------
 
     public int getDownloadId() {
+        // TODO 这里和savePah有关，但是savePath如果为空在start以后会重新生成因此有坑
         return downloadId == 0 ? FileDownloadUtils.generateId(url, savePath) : downloadId;
+    }
+
+    /**
+     * @return for OkHttpTag/ queue tag
+     * <p/>
+     * As in same queue has same chainKey
+     */
+    protected int getChainKey() {
+        // TODO 极低概率不唯一
+        return getListener().hashCode();
     }
 
     public String getUrl() {
@@ -617,10 +445,6 @@ public abstract class BaseFileDownloadInternal {
         return notificationDesc;
     }
 
-    public Object getmTag() {
-        return mTag;
-    }
-
     public int getDownloadedSofar() {
         return downloadedSofar;
     }
@@ -633,12 +457,16 @@ public abstract class BaseFileDownloadInternal {
         return status;
     }
 
-    public String getActivityName() {
-        return activityName;
-    }
-
     public boolean isForceReDownload() {
         return this.isForceReDownload;
+    }
+
+    public Throwable getEx() {
+        return ex;
+    }
+
+    public void setEx(Throwable ex) {
+        this.ex = ex;
     }
 
     /**
@@ -651,13 +479,7 @@ public abstract class BaseFileDownloadInternal {
 
     // ---------------------------------------------
     public interface FinishListener {
-        void finalError(final Throwable e);
-
-        void finalComplete();
-
-        void finalPause();
-
-        void finalWarn();
+        void over();
     }
 
     protected boolean checkFile(final String path) throws IOException {
@@ -674,12 +496,17 @@ public abstract class BaseFileDownloadInternal {
     }
 
 
-    private Runnable getFinalListenerCallback() {
-        return new Runnable() {
+    private Runnable cacheRunnable;
+
+    public Runnable getOverCallback() {
+        if (cacheRunnable != null) {
+            return cacheRunnable;
+        }
+
+        return cacheRunnable = new Runnable() {
             @Override
             public void run() {
-                removeEventListener();
-                setListener(null);
+                clear();
             }
         };
     }
@@ -688,4 +515,5 @@ public abstract class BaseFileDownloadInternal {
     public String toString() {
         return String.format("%d@%s", getDownloadId(), super.toString());
     }
+
 }

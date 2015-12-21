@@ -12,7 +12,6 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -21,10 +20,10 @@ import java.util.List;
 class FileDownloadInternal extends BaseFileDownloadInternal {
 
     private static FileEventSampleListener DOWNLOAD_INTERNAL_LIS;
-    private static List<FileDownloadInternal> NEED_RESTART_LIST = new ArrayList<>();
+    private static List<BaseFileDownloadInternal> NEED_RESTART_LIST = new ArrayList<>();
 
-    public FileDownloadInternal(String url, List<BaseFileDownloadInternal> downloadList) {
-        super(url, downloadList);
+    public FileDownloadInternal(String url) {
+        super(url);
         if (DOWNLOAD_INTERNAL_LIS == null) {
             DOWNLOAD_INTERNAL_LIS = new FileEventSampleListener(new FileDownloadInternalLis());
             FileEventPool.getImpl().addListener(FileServiceConnectChangedEvent.ID, DOWNLOAD_INTERNAL_LIS);
@@ -32,21 +31,6 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
         }
     }
 
-    @Override
-    protected boolean removeExecute() {
-        synchronized (NEED_RESTART_LIST) {
-            NEED_RESTART_LIST.remove(this);
-        }
-        return FileDownloadServiceUIGuard.getImpl().removeDownloader(getDownloadId());
-    }
-
-    @Override
-    protected void endDownloaded(Throwable e) {
-        super.endDownloaded(e);
-        synchronized (NEED_RESTART_LIST) {
-            NEED_RESTART_LIST.remove(this);
-        }
-    }
 
     @Override
     public void clearBasic() {
@@ -57,13 +41,12 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
     }
 
     @Override
-    protected void addEventListener() {
-        super.addEventListener();
-    }
+    public void over() {
+        super.over();
 
-    @Override
-    protected void removeEventListener() {
-        super.removeEventListener();
+        synchronized (NEED_RESTART_LIST) {
+            NEED_RESTART_LIST.remove(this);
+        }
     }
 
     @Override
@@ -133,11 +116,6 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
         return FileDownloadServiceUIGuard.getImpl().pauseDownloader(getDownloadId());
     }
 
-    @Override
-    protected boolean resumeExecute() {
-        return FileDownloadServiceUIGuard.getImpl().resumeDownloader(getDownloadId());
-    }
-
     private class FileDownloadInternalLis implements FileEventSampleListener.IEventListener {
 
         @Override
@@ -162,16 +140,15 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                 } else {
                     // 断开了连接
                     // TODO 做多重特定引擎支持的时候，这里需要特殊处理
-                    final FileDownloadInternal[] needRestartList = new FileDownloadInternal[getDownloadList().size()];
-                    getDownloadList().toArray(needRestartList);
-                    getDownloadList().clear();
+                    FileDownloadList.getImpl().divert(NEED_RESTART_LIST);
+
                     synchronized (NEED_RESTART_LIST) {
-                        NEED_RESTART_LIST.addAll(Arrays.asList(needRestartList));
+                        for (BaseFileDownloadInternal fileDownloadInternal : NEED_RESTART_LIST) {
+                            // TODO 缺少通知用户的操作
+                            fileDownloadInternal.clear();
+                        }
                     }
 
-                    for (FileDownloadInternal fileDownloadInternal : needRestartList) {
-                        fileDownloadInternal.clear();
-                    }
                 }
 
                 return false;
@@ -180,15 +157,8 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
 
             if (event instanceof FileDownloadTransferEvent) {
 
-                BaseFileDownloadInternal downloadInternal = null;
                 final FileDownloadTransferModel transfer = ((FileDownloadTransferEvent) event).getTransfer();
-                for (BaseFileDownloadInternal baseFileDownloaderInternal : FileDownloader.getImpl().getDownloadList()) {
-                    // TODO 这里只处理第一个的通知
-                    if (baseFileDownloaderInternal.getDownloadId() == transfer.getDownloadId()) {
-                        downloadInternal = baseFileDownloaderInternal;
-                        break;
-                    }
-                }
+                final BaseFileDownloadInternal downloadInternal = FileDownloadList.getImpl().get(transfer.getDownloadId());
 
 
                 // UI线程第二手转包到目标listener
@@ -201,36 +171,51 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
                                 FileDownloadLog.w(FileDownloadInternal.class, "unused values! by process callback");
                                 break;
                             }
-                            downloadInternal.notifyProgress(transfer.getSofarBytes(), transfer.getTotalBytes());
+
+                            copyStatus(transfer, downloadInternal);
+                            downloadInternal.getDriver().notifyProgress();
+
                             break;
                         case FileDownloadStatus.completed:
                             if (downloadInternal.getStatus() == FileDownloadStatus.completed) {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already completed , callback by process whith same transfer");
                                 break;
                             }
-                            downloadInternal.setDownloadedSofar(transfer.getTotalBytes());
-                            downloadInternal.notifyCompleted();
+
+                            copyStatus(transfer, downloadInternal);
+                            FileDownloadList.getImpl().removeByCompleted(downloadInternal);
+
                             break;
                         case FileDownloadStatus.error:
                             if (downloadInternal.getStatus() == FileDownloadStatus.error) {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already err , callback by other status same transfer");
                                 break;
                             }
-                            downloadInternal.notifyError(transfer.getThrowable());
+
+                            copyStatus(transfer, downloadInternal);
+                            downloadInternal.setEx(transfer.getThrowable());
+
+                            FileDownloadList.getImpl().removeByError(downloadInternal);
+
                             break;
                         case FileDownloadStatus.paused:
-                            if (downloadInternal.getStatus() == FileDownloadStatus.paused) {
-                                FileDownloadLog.w(FileDownloadInternal.class, "already paused , callback by other status same transfer");
-                                break;
-                            }
-                            downloadInternal.notifyPaused(transfer.getSofarBytes(), transfer.getTotalBytes());
+                            // 由调BaseFileDownloadInternal#pause直接根据回调结果处理
+//                            if (downloadInternal.getStatus() == FileDownloadStatus.paused) {
+//                                FileDownloadLog.w(FileDownloadInternal.class, "already paused , callback by other status same transfer");
+//                                break;
+//                            }
+//                            downloadInternal.setDownloadedSofar(transfer.getSofarBytes());
+//                            downloadInternal.notifyPaused();
                             break;
                         case FileDownloadStatus.pending:
                             if (downloadInternal.getStatus() == FileDownloadStatus.paused && transfer.getSofarBytes() == downloadInternal.getDownloadedSofar() && transfer.getTotalBytes() == downloadInternal.getTotalSizeBytes()) {
                                 FileDownloadLog.w(FileDownloadInternal.class, "already pending , callback by other status same transfer");
                                 break;
                             }
-                            downloadInternal.notifyPending(transfer.getSofarBytes(), transfer.getTotalBytes());
+
+
+                            copyStatus(transfer, downloadInternal);
+                            downloadInternal.getDriver().notifyPending();
                             break;
                     }
                 } else {
@@ -239,6 +224,12 @@ class FileDownloadInternal extends BaseFileDownloadInternal {
 
             }
             return false;
+        }
+
+        private void copyStatus(final FileDownloadTransferModel transfer, final BaseFileDownloadInternal downloadInternal) {
+            downloadInternal.setStatus(transfer.getStatus());
+            downloadInternal.setDownloadedSofar(transfer.getSofarBytes());
+            downloadInternal.setTotalSizeBytes(transfer.getTotalBytes());
         }
     }
 
