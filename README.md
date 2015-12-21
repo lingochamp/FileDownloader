@@ -23,7 +23,7 @@
 #### 3. 需要注意
 
 - 为了绝大多数使用性能考虑，目前下载引擎目前受限于int可表示的范围，而我们的回调`total`与`so far`以byte为单位回调，因此最大只能表示到`2^31-1`=2_147_483_647 = 1.99GB(ps: 如果有更大的文件下载需求，提issue，我们会进行一些巧妙的优化，利用负值区间？根据大小走特殊通道传输?)
-- 暂停: pause, 恢复: 直接调用start，默认就是断点续传
+- 暂停: paused, 恢复: 直接调用start，默认就是断点续传
 
 #### 4. 使用okHttp并使用其中的一些默认属性
 
@@ -72,11 +72,11 @@ public XXApplication extends Application{
              }
 
              @Override
-             protected void complete(BaseDownloadTask task) {
+             protected void completed(BaseDownloadTask task) {
              }
 
              @Override
-             protected void pause(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+             protected void paused(BaseDownloadTask task, long soFarBytes, long totalBytes) {
              }
 
              @Override
@@ -109,12 +109,12 @@ final FileDownloadListener queueTarget = new FileDownloadListener() {
     }
 
     @Override
-    protected void complete(BaseDownloadTask task) {
+    protected void completed(BaseDownloadTask task) {
 
     }
 
     @Override
-    protected void pause(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+    protected void paused(BaseDownloadTask task, long soFarBytes, long totalBytes) {
 
     }
 
