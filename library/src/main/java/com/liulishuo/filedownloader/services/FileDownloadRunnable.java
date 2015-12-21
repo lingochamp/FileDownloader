@@ -17,6 +17,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.SocketTimeoutException;
@@ -328,7 +329,9 @@ class FileDownloadRunnable implements Runnable {
             throw new RuntimeException(String.format("found invalid internal destination path[%s], & path is directory[%B]", path, file.isDirectory()));
         }
         if (!file.exists()) {
-            file.createNewFile();
+            if(!file.createNewFile()) {
+                throw new IOException(String.format("create new file error  %s", file.getAbsolutePath()));
+            }
         }
 
         RandomAccessFile outFd = new RandomAccessFile(file, "rw");
