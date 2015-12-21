@@ -32,15 +32,128 @@
 
 ## I. 效果
 
-
 ## II. 使用
+
+#### 全局初始化在`Application.onCreate`中
+
+```
+
+public XXApplication extends Application{
+
+    ...
+    @Override
+    public void onCreate() {
+        // 不耗时，做一些简单初始化准备工作，不会启动下载进程
+        FileDownloader.init(this);
+    }
+    
+    ...
+}
+
+```
+
+#### 启动单任务下载
+
+```
+
+ FileDownloader.getImpl().create(url)
+         .savePath(path)
+         .addListener(new FileDownloadListener() {
+             @Override
+             protected void pending(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+             }
+
+             @Override
+             protected void progress(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+             }
+
+             @Override
+             protected void blockComplete(BaseDownloadTask task) {
+             }
+
+             @Override
+             protected void complete(BaseDownloadTask task) {
+             }
+
+             @Override
+             protected void pause(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+             }
+
+             @Override
+             protected void error(BaseDownloadTask task, Throwable e) {
+             }
+
+             @Override
+             protected void warn(BaseDownloadTask task) {
+             }
+         }).start()
+```
+
+#### 启动多任务下载
+
+```
+final FileDownloadListener queueTarget = new FileDownloadListener() {
+    @Override
+    protected void pending(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+
+    }
+
+    @Override
+    protected void progress(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+
+    }
+
+    @Override
+    protected void blockComplete(BaseDownloadTask task) {
+
+    }
+
+    @Override
+    protected void complete(BaseDownloadTask task) {
+
+    }
+
+    @Override
+    protected void pause(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+
+    }
+
+    @Override
+    protected void error(BaseDownloadTask task, Throwable e) {
+
+    }
+
+    @Override
+    protected void warn(BaseDownloadTask task) {
+
+    }
+}
+
+for (String url : URLS) {
+    FileDownloader.getImpl().create(url)
+            .addListener(queueTarget)
+            .ready();
+}
+
+if(serial){
+    // 串行执行该队列
+    FileDownloader.getImpl().start(queueTarget, true);
+}
+
+if(parallel){
+    // 并行执行该队列
+    FileDownloader.getImpl().start(queueTarget, false);
+}
+
+```
+
+
+
 
 ## III. 架构层简单说明
 
 ## TODO
 
-[] 对外开放自动重试次数封装
-[] 对外开放连接/读/写超时时间
-[] 线程池教空闲时，考虑智能单任务多线程下载
-
-
+- 对外开放自动重试次数封装
+- 对外开放连接/读/写超时时间
+- 线程池教空闲时，考虑智能单任务多线程下载
