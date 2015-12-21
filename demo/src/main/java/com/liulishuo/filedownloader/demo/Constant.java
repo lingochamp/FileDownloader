@@ -6,6 +6,8 @@ package com.liulishuo.filedownloader.demo;
 public interface Constant {
 
     String[] BIG_FILE_URLS = {
+            "http://7xjww9.com1.z0.glb.clouddn.com/20130221114001385.jpg",
+            "http://wallpaperbeta.com/wallpaper_3840x1080/nature_river_stones_mountains_forest_gray_3840x1080_hd-wallpaper-242308.jpg",
             // 5m
             "http://mirror.internode.on.net/pub/test/5meg.test5",
             "http://mirror.internode.on.net/pub/test/5meg.test4",

@@ -61,10 +61,11 @@ public class MixTestActivity extends AppCompatActivity {
     private int finalCounts = 0;
 
     public void onClickStartSingleDownload(final View view) {
-        updateDisplay(String.format("点击 单任务下载 %s", Constant.BIG_FILE_URLS[3]));
+        updateDisplay(String.format("点击 单任务下载 %s", Constant.BIG_FILE_URLS[0]));
         totalCounts++;
-        FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[3])
+        FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[0])
                 .addListener(createListener())
+                .setTag(1)
                 .start();
     }
 
@@ -119,12 +120,11 @@ public class MixTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void preCompleteOnNewThread(final BaseFileDownloadInternal downloader) {
-                // to ui thread
+            protected void blockComplete(final BaseFileDownloadInternal downloader) {
                 downloadMsgTv.post(new Runnable() {
                     @Override
                     public void run() {
-                        updateDisplay(String.format("[preCompleteOnNewThread] id[%d]", downloader.getDownloadId()));
+                        updateDisplay(String.format("[blockComplete] id[%d]", downloader.getDownloadId()));
                     }
                 });
             }
@@ -135,14 +135,14 @@ public class MixTestActivity extends AppCompatActivity {
                 updateDisplay(String.format("[complete] id[%d] oldFile[%B]",
                         downloader.getDownloadId(),
                         downloader.isReusedOldFile()));
-                updateDisplay(String.format("---------------------------------- %d", downloader.getTag() != null? (Integer)downloader.getTag() : 1));
+                updateDisplay(String.format("---------------------------------- %d", (Integer)downloader.getTag()));
             }
 
             @Override
             protected void pause(BaseFileDownloadInternal downloader, long downloadedSofar, long totalSizeBytes) {
                 finalCounts++;
                 updateDisplay(String.format("[pause] id[%d] %d/%d", downloader.getDownloadId(), downloadedSofar, totalSizeBytes));
-                updateDisplay(String.format("############################## %d", downloader.getTag() != null ? (Integer) downloader.getTag() : 1));
+                updateDisplay(String.format("############################## %d", (Integer) downloader.getTag()));
             }
 
             @Override
@@ -153,14 +153,14 @@ public class MixTestActivity extends AppCompatActivity {
                         e.getMessage(),
                         FileDownloadUtils.getStack(e.getStackTrace(), false))));
 
-                updateDisplay(String.format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %d", downloader.getTag() != null ? (Integer) downloader.getTag() : 1));
+                updateDisplay(String.format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %d", (Integer) downloader.getTag()));
             }
 
             @Override
             protected void warn(BaseFileDownloadInternal downloader) {
                 finalCounts++;
                 updateDisplay(String.format("[warm] id[%d]", downloader.getDownloadId()));
-                updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", downloader.getTag() != null ? (Integer) downloader.getTag() : 1));
+                updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", (Integer) downloader.getTag()));
             }
         };
     }
