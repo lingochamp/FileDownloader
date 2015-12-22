@@ -55,83 +55,93 @@ public XXApplication extends Application{
 #### 启动单任务下载
 
 ```
+ 
+FileDownloader.getImpl().create(url)
+        .setPath(path)
+        .setListener(new FileDownloadListener() {
+            @Override
+            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            }
 
- FileDownloader.getImpl().create(url)
-         .savePath(path)
-         .addListener(new FileDownloadListener() {
-             @Override
-             protected void pending(BaseDownloadTask task, long soFarBytes, long totalBytes) {
-             }
+            @Override
+            protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+            }
 
-             @Override
-             protected void progress(BaseDownloadTask task, long soFarBytes, long totalBytes) {
-             }
+            @Override
+            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            }
 
-             @Override
-             protected void blockComplete(BaseDownloadTask task) {
-             }
+            @Override
+            protected void blockComplete(BaseDownloadTask task) {
+            }
 
-             @Override
-             protected void completed(BaseDownloadTask task) {
-             }
+            @Override
+            protected void completed(BaseDownloadTask task) {
+            }
 
-             @Override
-             protected void paused(BaseDownloadTask task, long soFarBytes, long totalBytes) {
-             }
+            @Override
+            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            }
 
-             @Override
-             protected void error(BaseDownloadTask task, Throwable e) {
-             }
+            @Override
+            protected void error(BaseDownloadTask task, Throwable e) {
+            }
 
-             @Override
-             protected void warn(BaseDownloadTask task) {
-             }
-         }).start()
+            @Override
+            protected void warn(BaseDownloadTask task) {
+            }
+        }).start();
 ```
 
 #### 启动多任务下载
 
 ```
+ 
 final FileDownloadListener queueTarget = new FileDownloadListener() {
-    @Override
-    protected void pending(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+            @Override
+            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
 
-    }
+            }
 
-    @Override
-    protected void progress(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+            @Override
+            protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
 
-    }
+            }
 
-    @Override
-    protected void blockComplete(BaseDownloadTask task) {
+            @Override
+            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
 
-    }
+            }
 
-    @Override
-    protected void completed(BaseDownloadTask task) {
+            @Override
+            protected void blockComplete(BaseDownloadTask task) {
 
-    }
+            }
 
-    @Override
-    protected void paused(BaseDownloadTask task, long soFarBytes, long totalBytes) {
+            @Override
+            protected void completed(BaseDownloadTask task) {
 
-    }
+            }
 
-    @Override
-    protected void error(BaseDownloadTask task, Throwable e) {
+            @Override
+            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
 
-    }
+            }
 
-    @Override
-    protected void warn(BaseDownloadTask task) {
+            @Override
+            protected void error(BaseDownloadTask task, Throwable e) {
 
-    }
-}
+            }
 
+            @Override
+            protected void warn(BaseDownloadTask task) {
+
+            }
+        };
+        
 for (String url : URLS) {
     FileDownloader.getImpl().create(url)
-            .addListener(queueTarget)
+            .setListener(queueTarget)
             .ready();
 }
 
@@ -147,13 +157,94 @@ if(parallel){
 
 ```
 
+#### 全局接口说明(`FileDownloader.`)
+
+> 所有的暂停，就是停止，会释放所有资源并且停到所有相关线程，下次启动的时候默认会断点续传
+
+| 方法名 | 备注
+| --- | ---
+| init(Application) |  简单初始化，不会启动下载进程
+| create(url:String) | 创建一个下载任务
+| start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
+| pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
+| pauseAll(void) | 暂停所有任务
+| pause(downloadId) | 启动downloadId的任务
+| getSoFar(downloadId) | 获得下载Id为downloadId的soFarBytes
+| getTotal(downloadId) | 获得下载Id为downloadId的totalBytes
+| bindService(void) | 主动启动下载进程(可事先调用该方法(可以不调用)，保证第一次下载的时候没有启动进程的速度消耗)
+| unBindService(void) | 主动停止下载进程(如果不调用该方法，进程闲置一段时间以后，系统调度会自动将其回收)
+
+#### Task接口说明
+
+| 方法名 | 备注
+| --- | ---
+| setPath(path:String) | 下载文件的存储绝对路径
+| setListener(listener:FileDownloadListener) | 设置监听，可以以相同监听组成队列
+| setCallbackProgressTimes(times:int) | 设置progress最大回调次数
+| setTag(tag:Object) | 内部不会使用，在回调的时候用户自己使用
+| setForceReDownload(void) | 强制重新下载，将会忽略检测文件是否健在
+| setFinishListener(listener:FinishListener) | 结束监听，仅包含结束(over(void))的监听 
+| ready(void) | 用于队列下载的单任务的结束符(见上面:启动多任务下载的案例)
+| start(void) | 启动下载任务
+| pause(void) | 暂停下载任务(也可以理解为停止下载，但是在start的时候默认会断点续传)
+| getDownloadId(void):int | 获取唯一Id(内部通过url与path生成)
+| getUrl(void):String | 获取下载连接
+| getCallbackProgressTimes(void):int | 获得progress最大回调次数
+| getPath(void):String | 获取下载文件存储路径
+| getListener(void):FileDownloadListener | 获取监听器
+| getSoFarBytes(void):int | 获取已经下载的字节数
+| getTotalBytes(void):int | 获取下载文件总大小
+| getStatus(void):int | 获取当前的状态
+| isForceReDownload(void):boolean | 是否强制重新下载
+| getEx(void):Throwable | 获取下载过程抛出的Throwable
+| isReusedOldFile(void):boolean | 判断是否是直接使用了旧文件(检测是有效文件)，没有启动下载
+| getTag(void):Object | 获取用户setTag进来的Object
+| isContinue(void):boolean | 是否成功断点续传
+| getEtag(void):String | 获取当前下载获取到的ETag
+
+#### 监听器说明
+
+##### 一般的下载回调流程:
+
+pending -> connected -> progress <-> blockComplete -> completed
+
+##### 可能会遇到以下回调而直接终止整个下载过程:
+
+paused / completed / error / warn
+
+##### 如果检测存在已经下载完成的文件 :
+
+blockComplete -> completed
+
+##### 方法说明
+
+| 回调方法 | 备注 | 带回数据
+| --- | --- | ---
+| pending | 等待，已经进入下载队列 | 数据库中的soFarBytes与totalBytes
+| connected | 已经连接上 | ETag, 是否断点续传, soFarBytes, totalBytes
+| progress | 下载进度回调 | soFarBytes 
+| blockComplete | 在完成前同步调用该方法，此时已经下载完成 | -
+| completed | 完成整个下载过程 | -
+| paused | 暂停下载 | soFarBytes
+| error | 下载出现错误 | 抛出的Throwable
+| warn | 在下载队列中(正在等待/正在下载)已经存在相同下载连接与相同存储路径的任务 | - 
 
 
+## III. LICENSE
 
-## III. 架构层简单说明
+```
+Copyright (c) 2015 LingoChamp Inc.
 
-## TODO
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-- 对外开放自动重试次数封装
-- 对外开放连接/读/写超时时间
-- 线程池教空闲时，考虑智能单任务多线程下载
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
