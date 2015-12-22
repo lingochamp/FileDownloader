@@ -1,6 +1,5 @@
 package com.liulishuo.filedownloader.i;
 
-import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 
