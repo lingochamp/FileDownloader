@@ -209,7 +209,7 @@ if(parallel){
 | isContinue(void):boolean | 是否成功断点续传
 | getEtag(void):String | 获取当前下载获取到的ETag
 
-#### 监听器说明
+#### 监听器(`FileDownloadListener`)说明
 
 ##### 一般的下载回调流程:
 
