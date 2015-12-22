@@ -1,5 +1,7 @@
 # FileDownloader
 
+[ ![Download][bintray_svg] ][bintray_url]
+
 > Android 文件下载引擎，稳定、高效、简单易用
 > 本引擎目前基于口碑很好的okhttp
 
@@ -266,3 +268,5 @@ limitations under the License.
 [serial_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/serial.gif
 [single_progress_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single_progress.gif
 [single_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single.gif
+[bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
+[bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
