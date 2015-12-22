@@ -124,10 +124,11 @@ public abstract class BaseDownloadTask {
      * Force re download whether already downloaded completed
      * 强制重新下载不会，忽略文件是否是有效存在
      *
+     * @param isForceReDownload 是否强制重新下载
      * @return
      */
-    public BaseDownloadTask setForceReDownload() {
-        this.isForceReDownload = true;
+    public BaseDownloadTask setForceReDownload(final boolean isForceReDownload) {
+        this.isForceReDownload = isForceReDownload;
         return this;
     }
 
