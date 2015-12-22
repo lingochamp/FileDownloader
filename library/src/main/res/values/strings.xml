@@ -1,5 +1,0 @@
-<resources>
-    <string name="downloadfile_notification_title_pause">暂停</string>
-    <string name="downloadfile_notification_title_complete">完成</string>
-    <string name="downloadfile_notification_title_error">出现错误</string>
-</resources>
