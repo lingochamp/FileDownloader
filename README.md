@@ -32,6 +32,12 @@
 
 ## I. 效果
 
+![][mix_gif]
+![][parallel_gif]
+![][serial_gif]
+![][single_progress_gif]
+![][single_gif]
+
 
 ## II. 使用
 
@@ -255,3 +261,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+[mix_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/mix.gif
+[parallel_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/parallel.gif
+[serial_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/serial.gif
+[single_progress_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/single_progress.gif
+[single_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/single.gif
