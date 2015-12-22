@@ -1,9 +1,9 @@
 package com.liulishuo.filedownloader.services;
 
 
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
@@ -16,6 +16,20 @@ import com.squareup.okhttp.OkHttpClient;
 import java.io.File;
 
 /**
+ * Copyright (c) 2015 LingoChamp Inc.
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  * Created by Jacksgong on 9/24/15.
  */
 class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {

@@ -13,6 +13,20 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Copyright (c) 2015 LingoChamp Inc.
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  * Created by Jacksgong on 9/23/15.
  */
 public abstract class BaseDownloadTask {
@@ -227,6 +241,7 @@ public abstract class BaseDownloadTask {
     }
 
     // ------------------- get -----------------------
+
     /**
      * @return 获得有效的对应当前download task的id
      * id生成与url和path相关
@@ -579,7 +594,7 @@ public abstract class BaseDownloadTask {
     /**
      * @param transfer 为了优化有部分数据在某些情况下是没有带回来的
      */
-    public void updateData(final FileDownloadTransferModel transfer) {
+    public void update(final FileDownloadTransferModel transfer) {
         switch (transfer.getStatus()) {
             case FileDownloadStatus.pending:
                 if (getStatus() == FileDownloadStatus.pending) {
@@ -659,8 +674,8 @@ public abstract class BaseDownloadTask {
     }
     // --------------------------------------- 以上 内部协作接口 --------------------------------------------------
 
-
     // -------------------------------------------------
+
     /**
      * @return for OkHttpTag/ queue tag
      * <p/>
