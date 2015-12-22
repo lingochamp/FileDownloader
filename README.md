@@ -206,15 +206,21 @@ if(parallel){
 
 ##### 一般的下载回调流程:
 
+```
 pending -> connected -> progress <-> blockComplete -> completed
+```
 
 ##### 可能会遇到以下回调而直接终止整个下载过程:
 
+```
 paused / completed / error / warn
+```
 
 ##### 如果检测存在已经下载完成的文件 :
 
+```
 blockComplete -> completed
+```
 
 ##### 方法说明
 
