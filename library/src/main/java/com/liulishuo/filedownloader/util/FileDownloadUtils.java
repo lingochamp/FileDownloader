@@ -31,17 +31,18 @@ public class FileDownloadUtils {
      * Checks whether the filename looks legitimate
      */
     public static boolean isFilenameValid(String filename) {
-        filename = filename.replaceFirst("/+", "/"); // normalize leading
+//        filename = filename.replaceFirst("/+", "/"); // normalize leading
         // slashes
-        return filename.startsWith(Environment.getDownloadCacheDirectory()
-                .toString())
-                || filename.startsWith(Environment
-                .getExternalStorageDirectory().toString());
+//        return filename.startsWith(Environment.getDownloadCacheDirectory()
+//                .toString())
+//                || filename.startsWith(Environment
+//                .getExternalStorageDirectory().toString());
+        return true;
     }
 
     public static String getDefaultSaveRootPath() {
         if (FileDownloadHelper.getAppContext().getExternalCacheDir() == null) {
-            return FileDownloadHelper.getAppContext().getCacheDir().getAbsolutePath();
+            return Environment.getDownloadCacheDirectory().getAbsolutePath();
         } else {
             return FileDownloadHelper.getAppContext().getExternalCacheDir().getAbsolutePath();
         }
