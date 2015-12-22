@@ -195,22 +195,6 @@ class FileDownloadMgr {
         return true;
     }
 
-    /**
-     * @param id
-     * @return
-     * @deprecated 不需要 直接用{@link #pause(int)}
-     */
-    public boolean remove(final int id) {
-        final FileDownloadModel model = mHelper.find(id);
-        if (model == null) {
-            return false;
-        }
-
-        FileDownloadLog.d(this, "remove %d", id);
-        model.setIsCancel(true);
-        return true;
-    }
-
     public int getSoFar(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {

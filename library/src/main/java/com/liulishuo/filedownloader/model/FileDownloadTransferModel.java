@@ -115,8 +115,6 @@ public class FileDownloadTransferModel implements Parcelable {
     }
 
     /**
-     * @param dest
-     * @param flags
      * @see com.liulishuo.filedownloader.BaseDownloadTask#update(FileDownloadTransferModel)
      */
     @Override
@@ -150,7 +148,6 @@ public class FileDownloadTransferModel implements Parcelable {
     }
 
     /**
-     * @param in
      * @see com.liulishuo.filedownloader.BaseDownloadTask#update(FileDownloadTransferModel)
      */
     protected FileDownloadTransferModel(Parcel in) {

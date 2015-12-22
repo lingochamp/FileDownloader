@@ -103,8 +103,8 @@ public abstract class BaseFileService<CALLBACK extends IInterface, BINDER extend
     }
 
     /**
-     * @param cmd
-     * @param objects
+     * @param cmd handle by cmd
+     * @param objects params
      * @return is consume
      */
     protected abstract boolean handleCallback(final int cmd, final CALLBACK callback, Object... objects) throws RemoteException;

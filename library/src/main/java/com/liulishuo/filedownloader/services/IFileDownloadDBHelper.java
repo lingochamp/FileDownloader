@@ -32,7 +32,6 @@ interface IFileDownloadDBHelper {
 
     /**
      * @param id download id
-     * @return
      */
     FileDownloadModel find(final int id);
 

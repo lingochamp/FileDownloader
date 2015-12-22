@@ -71,7 +71,6 @@ public abstract class BaseDownloadTask {
 
     /**
      * @param path Path for save download file
-     * @return
      */
     public BaseDownloadTask setPath(final String path) {
         this.path = path;
@@ -81,7 +80,6 @@ public abstract class BaseDownloadTask {
 
     /**
      * @param listener 对外的监听，在队列中可 以listener为单位进行绑定为一个队列
-     * @return
      */
     public BaseDownloadTask setListener(final FileDownloadListener listener) {
         if (this.listener != listener) {
@@ -103,10 +101,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * For cache something you want
-     *
-     * @param tag
-     * @return
+     * @param tag For cache something you want
      */
     public BaseDownloadTask setTag(final Object tag) {
         this.tag = tag;
@@ -120,7 +115,6 @@ public abstract class BaseDownloadTask {
      * 强制重新下载不会，忽略文件是否是有效存在
      *
      * @param isForceReDownload 是否强制重新下载
-     * @return
      */
     public BaseDownloadTask setForceReDownload(final boolean isForceReDownload) {
         this.isForceReDownload = isForceReDownload;
@@ -129,9 +123,6 @@ public abstract class BaseDownloadTask {
 
     /**
      * 任意的任务结束都会回调到这个回调，warn,error,paused,completed
-     *
-     * @param finishListener
-     * @return
      */
     public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
         this.finishListener = finishListener;
@@ -182,8 +173,6 @@ public abstract class BaseDownloadTask {
      * 停止任务, 对于线程而言会直接关闭，清理所有相关数据，不会hold住任何东西
      *
      * 如果重新启动，默认会断点续传，所以为pause
-     *
-     * @return
      */
     public boolean pause() {
         setStatus(FileDownloadStatus.paused);
@@ -289,8 +278,8 @@ public abstract class BaseDownloadTask {
 
 
     /**
-     * @return
      * @see #isReusedOldFile
+     * @return 是否是使用了已经存在的有效文件，而非启动下载
      */
     public boolean isReusedOldFile() {
         return isReusedOldFile;
@@ -355,8 +344,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return
-     * @warn need give values
+     * @return 是否本地有效文件可以直接复用，而不用启动下载
      */
     protected boolean _checkCanReuse() {
         return false;

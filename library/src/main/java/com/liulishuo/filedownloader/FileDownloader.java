@@ -34,7 +34,8 @@ public class FileDownloader {
     /**
      * 不耗时，做一些简单初始化准备工作，不会启动下载进程
      *
-     * @param application
+     * 建议在{@link Application#onCreate()}时调用
+     *
      */
     public static void init(final Application application) {
         // 下载进程与非下载进程都存一个
@@ -56,11 +57,8 @@ public class FileDownloader {
     }
 
     /**
-     * start download by same listener
-     *
-     * @param listener
+     * @param listener start download by same listener
      * @param isSerial 是否需要串行
-     * @return
      */
     public List<Integer> start(final FileDownloadListener listener, final boolean isSerial) {
         ExecutorService threadPool = null;
@@ -126,9 +124,7 @@ public class FileDownloader {
 
 
     /**
-     * paused download by same listener
-     *
-     * @param listener
+     * @param listener paused download by same listener
      * @see #pause(int)
      */
     public void pause(final FileDownloadListener listener) {
@@ -149,9 +145,7 @@ public class FileDownloader {
     }
 
     /**
-     * paused download by download id
-     *
-     * @param downloadId
+     * @param downloadId pause download by download id
      * @see #pause(FileDownloadListener)
      */
     public void pause(final int downloadId) {

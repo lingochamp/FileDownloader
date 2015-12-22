@@ -89,12 +89,19 @@ public abstract class FileDownloadListener extends IDownloadListener {
     }
 
 
+    /**
+     * 进入队列
+     *
+     * @param task       Current task
+     * @param soFarBytes 数据库中的当前已经下载了多少
+     * @param totalBytes 数据库中的总字节数
+     */
     protected abstract void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     /**
      * 连接上
      *
-     * @param task
+     * @param task       Current task
      * @param etag       ETag
      * @param isContinue 是否是断点续传继续下载
      * @param soFarBytes 已经下载了多少
@@ -104,12 +111,17 @@ public abstract class FileDownloadListener extends IDownloadListener {
 
     }
 
+    /**
+     * @param task       Current task
+     * @param soFarBytes 已经下载了的字节数
+     * @param totalBytes 总字节数
+     */
     protected abstract void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     /**
      * block completed in new thread
      *
-     * @param task
+     * @param task Current task
      */
     protected abstract void blockComplete(final BaseDownloadTask task);
 
@@ -118,19 +130,30 @@ public abstract class FileDownloadListener extends IDownloadListener {
     /**
      * succeed download
      *
-     * @param task
+     * @param task Current task
      */
     protected abstract void completed(final BaseDownloadTask task);
 
+    /**
+     * 下载被暂停
+     *
+     * @param task       Current task
+     * @param soFarBytes 已经下载了的字节数
+     * @param totalBytes 总字节数
+     */
     protected abstract void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     /**
-     * @param task
-     * @param e
+     * 下载出现错误
+     *
+     * @param task Current task
+     * @param e    Any throwable on download pipeline
      */
     protected abstract void error(final BaseDownloadTask task, final Throwable e);
 
     /**
+     * 相同任务(url与path相同)已经在队列中(等待中/正在下载中）
+     *
      * @param task same download already start & pending/downloading
      */
     protected abstract void warn(final BaseDownloadTask task);

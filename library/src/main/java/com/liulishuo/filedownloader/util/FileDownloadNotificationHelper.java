@@ -29,7 +29,6 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
 
     /**
      * @param id Download id
-     * @return
      */
     public T get(final int id) {
         return notificationMap.get(id);
@@ -52,9 +51,6 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
     /**
      * add
      * 新增 一个通知对象
-     *
-     * @param notification
-     * @return
      */
     public void add(T notification) {
 
@@ -67,9 +63,9 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
      *
      * 显示一个有进度变化的notification
      *
-     * @param id
-     * @param sofar
-     * @param total
+     * @param id download id
+     * @param sofar 已经下载了的字节数
+     * @param total 总字节数
      */
     public void showProgress(final int id, final int sofar, final int total) {
         final T notification = get(id);
@@ -88,8 +84,8 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
      *
      * 显示一个没有进度变化的notification
      *
-     * @param id
-     * @param status
+     * @param id download id
+     * @param status 状态{@link FileDownloadStatus}
      */
     public void showNoProgress(final int id, int status) {
         final FileDownloadNotification notification = get(id);
@@ -107,7 +103,7 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
      *
      * 已经结束下载过程
      *
-     * @param id
+     * @param id download id
      */
     public void cancel(final int id) {
         final FileDownloadNotification notification = remove(id);

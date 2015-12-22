@@ -95,12 +95,11 @@ class FileDownloadList {
     }
 
     /**
-     * @param willRemoveDownload
+     * @param willRemoveDownload will be remove
      * @param removeByStatus     must remove by status {@link com.liulishuo.filedownloader.model.FileDownloadStatus#warn}
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#paused}
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#completed}
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#error}
-     * @return
      */
     boolean remove(final BaseDownloadTask willRemoveDownload, final int removeByStatus) {
         boolean succeed;
