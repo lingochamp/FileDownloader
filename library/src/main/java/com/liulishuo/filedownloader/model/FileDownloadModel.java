@@ -37,17 +37,6 @@ public class FileDownloadModel implements Parcelable {
     private String path;
     public final static String PATH = "path";
 
-    private boolean needNotification;
-    public final static String NEED_NOTIFICATION = "needNotification";
-
-    // notification title
-    private String title;
-    public final static String TITLE = "title";
-
-    // notification desc
-    private String desc;
-    public final static String DESC = "desc";
-
     private int callbackProgressTimes = DEFAULT_CALLBACK_PROGRESS_TIMES;
     public final static String CALLBACK_PROGRESS_TIMES = "callbackProgressTimes";
 
@@ -82,18 +71,6 @@ public class FileDownloadModel implements Parcelable {
         this.path = path;
     }
 
-    public void setNeedNotification(boolean needNotification) {
-        this.needNotification = needNotification;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
     public void setStatus(int status) {
         this.status = status;
     }
@@ -116,18 +93,6 @@ public class FileDownloadModel implements Parcelable {
 
     public String getPath() {
         return path;
-    }
-
-    public boolean isNeedNotification() {
-        return needNotification;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDesc() {
-        return desc;
     }
 
     public int getStatus() {
@@ -179,9 +144,6 @@ public class FileDownloadModel implements Parcelable {
         cv.put(ID, id);
         cv.put(URL, url);
         cv.put(PATH, path);
-        cv.put(NEED_NOTIFICATION, needNotification ? 1 : 0);
-        cv.put(TITLE, title);
-        cv.put(DESC, desc);
         cv.put(CALLBACK_PROGRESS_TIMES, callbackProgressTimes);
         cv.put(STATUS, status);
         cv.put(SOFAR, soFar);
@@ -201,9 +163,6 @@ public class FileDownloadModel implements Parcelable {
         dest.writeInt(this.id);
         dest.writeString(this.url);
         dest.writeString(this.path);
-        dest.writeByte(needNotification ? (byte) 1 : (byte) 0);
-        dest.writeString(this.title);
-        dest.writeString(this.desc);
         dest.writeInt(this.callbackProgressTimes);
         dest.writeInt(this.status);
         dest.writeInt(this.soFar);
@@ -220,9 +179,6 @@ public class FileDownloadModel implements Parcelable {
         this.id = in.readInt();
         this.url = in.readString();
         this.path = in.readString();
-        this.needNotification = in.readByte() != 0;
-        this.title = in.readString();
-        this.desc = in.readString();
         this.callbackProgressTimes = in.readInt();
         this.status = in.readInt();
         this.soFar = in.readInt();

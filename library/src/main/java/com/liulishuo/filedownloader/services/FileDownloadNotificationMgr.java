@@ -3,7 +3,6 @@ package com.liulishuo.filedownloader.services;
 import android.app.NotificationManager;
 import android.content.Context;
 
-import com.liulishuo.filedownloader.R;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
@@ -55,6 +54,12 @@ class FileDownloadNotificationMgr {
         return notification;
     }
 
+    /**
+     * progress
+     * @param id
+     * @param sofar
+     * @param total
+     */
     public void showProgress(final int id, final int sofar, final int total) {
         final FileDownloadNotification notification = get(id);
 
@@ -66,6 +71,11 @@ class FileDownloadNotificationMgr {
         notification.update(sofar, total);
     }
 
+    /**
+     * paused/pending
+     * @param id
+     * @param status
+     */
     public void showNoProgress(final int id, int status) {
         final FileDownloadNotification notification = get(id);
 
@@ -77,6 +87,10 @@ class FileDownloadNotificationMgr {
         notification.show();
     }
 
+    /**
+     * warn/error/completed
+     * @param id
+     */
     public void cancel(final int id) {
         final FileDownloadNotification notification = get(id);
 
@@ -99,8 +113,8 @@ class FileDownloadNotificationMgr {
             this.sofar = model.getSoFar();
             this.total = model.getTotal();
 
-            this.title = model.getTitle();
-            this.desc = model.getDesc();
+//            this.title = model.getTitle();
+//            this.desc = model.getDesc();
         }
 
         public void show() {
@@ -113,29 +127,66 @@ class FileDownloadNotificationMgr {
                 manager.cancel(id);
             }
 
-            String tmpTitle = title;
+//            String tmpTitle = title;
 
-            switch (this.status) {
-                case FileDownloadStatus.paused:
-                    tmpTitle = String.format("%s %s",
-                            FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_pause),
-                            this.title);
-                    break;
-                case FileDownloadStatus.completed:
-                    tmpTitle = String.format("%s %s",
-                            FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_complete),
-                            this.title);
-                    break;
-                case FileDownloadStatus.error:
-                    tmpTitle = String.format("%s %s",
-                            this.title, FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_error));
-                    break;
-                case FileDownloadStatus.pending:
-                    tmpTitle = String.format("%s %s",
-                            this.title, "正在队列中");
-                    break;
-            }
+//            switch (this.status) {
+//                case FileDownloadStatus.paused:
+//                    tmpTitle = String.format("%s %s",
+//                            FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_pause),
+//                            this.title);
+//                    break;
+//                case FileDownloadStatus.completed:
+//                    tmpTitle = String.format("%s %s",
+//                            FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_complete),
+//                            this.title);
+//                    break;
+//                case FileDownloadStatus.error:
+//                    tmpTitle = String.format("%s %s",
+//                            this.title, FileDownloadHelper.getAppContext().getString(R.string.downloadfile_notification_title_error));
+//                    break;
+//                case FileDownloadStatus.pending:
+//                    tmpTitle = String.format("%s %s",
+//                            this.title, "正在队列中");
+//                    break;
+//            }
 
+
+//            Notification notification;
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//                Notification.Builder builder = new Notification.Builder(FileDownloadHelper.getAppContext());
+//                builder.setDefaults(Notification.DEFAULT_LIGHTS)
+//                        .setOngoing(true)
+//                        .setContentTitle(tmpTitle)
+//                        .setContentText(desc)
+//                        .setSmallIcon(R.mipmap.downloadfile_default_icon);
+//
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+//                    builder.setProgress(total, sofar, !isShowProgress);
+//                } else {
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//                        // always true, for build compile
+//                        builder.setContentText(String.format("%s %d/%d", desc, sofar, total));
+//                    }
+//                }
+//
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//                    notification = builder.build();
+//                } else {
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//                        // always true, for build compile
+//                        notification = builder.getNotification();
+//                    }
+//                }
+//
+//            } else {
+                // new notification
+//                notification = new Notification();
+//                notification.icon = R.mipmap.downloadfile_default_icon;
+//                notification.defaults = Notification.DEFAULT_LIGHTS;
+//                notification.tickerText = String.format("%s %s %d/%d", title, desc, sofar, total);
+
+//                notification.setLatestEventInfo(null, null, null, null);
+//            }
 
 //            Notification notification = new Notification.Builder(FileDownloadHelper.getAppContext()).setTicker(tmpTitle)
 //                    .setContentTitle(tmpTitle)

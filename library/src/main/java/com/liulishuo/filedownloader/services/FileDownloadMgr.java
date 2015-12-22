@@ -1,12 +1,7 @@
 package com.liulishuo.filedownloader.services;
 
 
-import com.liulishuo.filedownloader.event.DownloadEventPool;
-import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
-import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -32,31 +27,24 @@ import java.io.File;
  *
  * Created by Jacksgong on 9/24/15.
  */
-class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
+class FileDownloadMgr{
     private IFileDownloadDBHelper mHelper;
 
     // TODO 对OkHttpClient，看如何可以有效利用OkHttpClient进行相关优化，进行有关封装
     private OkHttpClient client;
 
-    private DownloadEventSampleListener mListener;
     private FileDownloadThreadPool mThreadPool = new FileDownloadThreadPool();
-
-    private FileDownloadNotificationMgr mNotificationMgr;
 
     public FileDownloadMgr() {
         mHelper = new FileDownloadDBHelper();
-        mListener = new DownloadEventSampleListener(this);
-        mNotificationMgr = new FileDownloadNotificationMgr();
 
         // init client
         client = new OkHttpClient();
         // TODO 设置超时
-
-        DownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, mListener);
     }
 
 
-    public synchronized int start(String url, String path, FileDownloadNotificationModel notificaitonData, int callbackProgressTimes) {
+    public synchronized int start(String url, String path, int callbackProgressTimes) {
         final int id = FileDownloadUtils.generateId(url, path);
 
         if (checkResume(id)) {
@@ -69,10 +57,6 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
         model.setPath(path);
         model.setCallbackProgressTimes(callbackProgressTimes);
 
-        model.setNeedNotification(notificaitonData.isNeed());
-        model.setTitle(notificaitonData.getTitle());
-        model.setDesc(notificaitonData.getDesc());
-
         model.setId(id);
         model.setSoFar(0);
         model.setTotal(0);
@@ -82,13 +66,6 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
         mHelper.update(model);
 
         mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper));
-
-        if (notificaitonData.isNeed()) {
-            if (mNotificationMgr.get(id) == null) {
-                mNotificationMgr.update(model);
-            }
-            mNotificationMgr.showNoProgress(id, FileDownloadStatus.pending);
-        }
 
         return id;
     }
@@ -234,7 +211,7 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
         return true;
     }
 
-    public int getSofar(final int id) {
+    public int getSoFar(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {
             return 0;
@@ -250,30 +227,6 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
         }
 
         return model.getTotal();
-    }
-
-    @Override
-    public boolean callback(IDownloadEvent event) {
-        if (event instanceof DownloadTransferEvent) {
-            switch (((DownloadTransferEvent) event).getTransfer().getStatus()) {
-                case FileDownloadStatus.error:
-                case FileDownloadStatus.completed:
-                    mNotificationMgr.showNoProgress(((DownloadTransferEvent) event).getTransfer().getDownloadId(),
-                            ((DownloadTransferEvent) event).getTransfer().getStatus());
-                    mNotificationMgr.cancel(((DownloadTransferEvent) event).getTransfer().getDownloadId());
-                    break;
-                case FileDownloadStatus.progress:
-                    mNotificationMgr.showProgress(((DownloadTransferEvent) event).getTransfer().getDownloadId(),
-                            ((DownloadTransferEvent) event).getTransfer().getSoFarBytes(),
-                            ((DownloadTransferEvent) event).getTransfer().getTotalBytes());
-                    break;
-                case FileDownloadStatus.pending:
-                case FileDownloadStatus.paused:
-                    mNotificationMgr.showNoProgress(((DownloadTransferEvent) event).getTransfer().getDownloadId(), ((DownloadTransferEvent) event).getTransfer().getStatus());
-                    break;
-            }
-        }
-        return false;
     }
 }
 

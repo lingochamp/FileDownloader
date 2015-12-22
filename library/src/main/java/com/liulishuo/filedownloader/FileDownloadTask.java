@@ -5,7 +5,6 @@ import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
-import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -92,7 +91,6 @@ class FileDownloadTask extends BaseDownloadTask {
                 startDownloader(
                         getUrl(),
                         getPath(),
-                        new FileDownloadNotificationModel(isNeedNotification(), getNotificationTitle(), getNotificationDesc()),
                         getCallbackProgressTimes());
 
         if (result != 0) {

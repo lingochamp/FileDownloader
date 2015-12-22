@@ -41,10 +41,7 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
                                 "%s INTEGER PRIMARY KEY, " + // id
                                 "%s VARCHAR, " + //url
                                 "%s VARCHAR, " + // path
-                                "%s TINYINT, " + // needNotification 0(false)
-                                "%s VARCHAR, " + // title
-                                "%s VARCHAR, " + // desc
-                                "%s INTEGER, " + // setCallbackProgressTimes
+                                "%s INTEGER, " + // callbackProgressTimes
                                 "%s SMALLINT, " + // status
                                 "%s INTEGER, " + // so far
                                 "%s INTEGER, " + // total
@@ -54,9 +51,6 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
                         FileDownloadModel.ID,
                         FileDownloadModel.URL,
                         FileDownloadModel.PATH,
-                        FileDownloadModel.NEED_NOTIFICATION,
-                        FileDownloadModel.TITLE,
-                        FileDownloadModel.DESC,
                         FileDownloadModel.CALLBACK_PROGRESS_TIMES,
                         FileDownloadModel.STATUS,
                         FileDownloadModel.SOFAR,

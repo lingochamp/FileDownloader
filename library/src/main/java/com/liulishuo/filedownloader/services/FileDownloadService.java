@@ -8,7 +8,6 @@ import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
-import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 
 /**
@@ -97,8 +96,8 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
         }
 
         @Override
-        public int start(String url, String path, FileDownloadNotificationModel notificaitonData, int callbackProgressTimes) throws RemoteException {
-            final int downloadId = downloadManager.start(url, path, notificaitonData, callbackProgressTimes);
+        public int start(String url, String path, int callbackProgressTimes) throws RemoteException {
+            final int downloadId = downloadManager.start(url, path, callbackProgressTimes);
 
             return downloadId;
         }
@@ -120,7 +119,7 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
 
         @Override
         public int getSofar(int downloadId) throws RemoteException {
-            return downloadManager.getSofar(downloadId);
+            return downloadManager.getSoFar(downloadId);
         }
 
         @Override

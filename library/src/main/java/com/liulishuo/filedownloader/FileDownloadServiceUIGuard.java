@@ -7,7 +7,6 @@ import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
-import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService;
@@ -73,7 +72,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         }
     }
 
-    public int startDownloader(final String url, final String path, final FileDownloadNotificationModel notificationData, final int progressCallbackTimes) {
+    public int startDownloader(final String url, final String path, final int callbackProgressTimes) {
         int result = 0;
 
         if (getService() == null) {
@@ -81,7 +80,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         }
 
         try {
-            result = getService().start(url, path, notificationData, progressCallbackTimes);
+            result = getService().start(url, path, callbackProgressTimes);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
