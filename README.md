@@ -32,6 +32,7 @@
 
 ## I. 效果
 
+
 ## II. 使用
 
 #### 全局初始化在`Application.onCreate`中
