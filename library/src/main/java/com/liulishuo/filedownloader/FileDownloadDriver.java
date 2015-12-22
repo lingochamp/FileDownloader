@@ -14,11 +14,10 @@ class FileDownloadDriver implements IFileDownloadMessage {
         this.download = download;
     }
 
-    // 启动 from FileDownloadList, to addListener ---------------
+    // 启动 from FileDownloadList, to addEventListener ---------------
     @Override
     public void notifyStarted() {
         FileDownloadLog.d(this, "notify started %s", download);
-        download.addEventListener();
 
         download.begin();
     }
@@ -28,7 +27,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyPending() {
         FileDownloadLog.d(this, "notify pending %s", download);
 
-        DownloadEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(download)
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
                 .pending());
 
         download.ing();
@@ -37,8 +36,13 @@ class FileDownloadDriver implements IFileDownloadMessage {
     @Override
     public void notifyProgress() {
         FileDownloadLog.d(this, "notify progress %s %d %d", download, download.getSoFarBytes(), download.getTotalBytes());
+        if (download.getCallbackProgressTimes() <= 0) {
+            // 只有可能存在一次，是在首次获得总大小的时候
+            FileDownloadLog.d(this, "notify progress but client not request notify %s", download);
+            return;
+        }
 
-        DownloadEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(download).
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent().
                 progress());
 
         download.ing();
@@ -51,7 +55,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyBlockComplete() {
         FileDownloadLog.d(this, "notify block completed %s %s", download, Thread.currentThread().getName());
 
-        DownloadEventPool.getImpl().publish(new FileDownloadEvent(download).preCompleteOnNewThread());
+        DownloadEventPool.getImpl().publish(download.getIngEvent().blockComplete());
         download.ing();
     }
 
@@ -59,9 +63,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     @Override
     public void notifyWarn() {
         FileDownloadLog.d(this, "notify warn %s", download);
-        DownloadEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(download).
-                warn().
-                callback(download.getOverCallback()));
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
+                warn());
 
         download.over();
     }
@@ -70,9 +73,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyError() {
         FileDownloadLog.e(this, download.getEx(), "notify error %s", download);
 
-        DownloadEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(download).
-                error().
-                callback(download.getOverCallback()));
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
+                error());
 
         download.over();
     }
@@ -81,9 +83,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyPaused() {
         FileDownloadLog.d(this, "notify paused %s", download);
 
-        DownloadEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(download).
-                pause().
-                callback(download.getOverCallback()));
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
+                pause());
 
         download.over();
     }
@@ -92,9 +93,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyCompleted() {
         FileDownloadLog.d(this, "notify completed %s", download);
 
-        DownloadEventPool.getImpl().asyncPublishInMain(new FileDownloadEvent(download).
-                complete().
-                callback(download.getOverCallback()));
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
+                complete());
 
         download.over();
     }

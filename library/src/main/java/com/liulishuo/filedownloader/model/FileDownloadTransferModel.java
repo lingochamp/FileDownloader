@@ -6,24 +6,50 @@ import android.os.Parcelable;
 
 /**
  * Created by Jacksgong on 9/23/15.
- *
+ * <p/>
  * ui进程与:downloader进程 相互通信对象
  */
 public class FileDownloadTransferModel implements Parcelable {
-    // TODO 名称修改
 
     private int status;
     private int downloadId;
-    private int sofarBytes;
-    private int totalBytes;
+    private int soFarBytes;
 
+    // ----  只有在连接上的时候带回
+    // 总大小
+    private int totalBytes;
+    // 是否是断点续传
+    private boolean isContinue;
+    // ETag
+    private String etag;
+    // ----
+
+    // ---- 只在错误的时候带回
+    // 错误
     private Throwable throwable;
 
     public FileDownloadTransferModel(final FileDownloadModel model) {
         this.status = model.getStatus();
         this.downloadId = model.getId();
-        this.sofarBytes = model.getSoFar();
+        this.soFarBytes = model.getSoFar();
         this.totalBytes = model.getTotal();
+        this.etag = model.getETag();
+    }
+
+    public boolean isContinue() {
+        return isContinue;
+    }
+
+    public void setIsContinue(boolean isContinue) {
+        this.isContinue = isContinue;
+    }
+
+    public String getEtag() {
+        return etag;
+    }
+
+    public void setEtag(String etag) {
+        this.etag = etag;
     }
 
     public int getStatus() {
@@ -42,12 +68,12 @@ public class FileDownloadTransferModel implements Parcelable {
         this.downloadId = downloadId;
     }
 
-    public int getSofarBytes() {
-        return sofarBytes;
+    public int getSoFarBytes() {
+        return soFarBytes;
     }
 
-    public void setSofarBytes(int sofarBytes) {
-        this.sofarBytes = sofarBytes;
+    public void setSoFarBytes(int soFarBytes) {
+        this.soFarBytes = soFarBytes;
     }
 
     public int getTotalBytes() {
@@ -74,21 +100,62 @@ public class FileDownloadTransferModel implements Parcelable {
         return 0;
     }
 
+    /**
+     * @param dest
+     * @param flags
+     * @see com.liulishuo.filedownloader.FileDownloadTask.FileDownloadInternalLis
+     */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(this.status);
         dest.writeInt(this.downloadId);
-        dest.writeInt(this.sofarBytes);
-        dest.writeInt(this.totalBytes);
-        dest.writeSerializable(this.throwable);
+
+        // 为了频繁拷贝的时候不带上
+        if (this.status != FileDownloadStatus.completed) {
+            dest.writeInt(this.soFarBytes);
+        }
+
+        if (this.status == FileDownloadStatus.error) {
+            dest.writeSerializable(this.throwable);
+        }
+
+        if (this.status == FileDownloadStatus.pending) {
+            dest.writeInt(this.totalBytes);
+        }
+
+        if (this.status == FileDownloadStatus.connected) {
+            dest.writeInt(this.totalBytes);
+            dest.writeString(this.etag);
+            dest.writeByte(isContinue ? (byte) 1 : (byte) 0);
+        }
     }
 
+    /**
+     * @param in
+     * @see com.liulishuo.filedownloader.FileDownloadTask.FileDownloadInternalLis
+     */
     protected FileDownloadTransferModel(Parcel in) {
         this.status = in.readInt();
         this.downloadId = in.readInt();
-        this.sofarBytes = in.readInt();
-        this.totalBytes = in.readInt();
-        this.throwable = (Throwable) in.readSerializable();
+
+        // 为了频繁拷贝的时候不带上
+        if (this.status != FileDownloadStatus.completed) {
+            this.soFarBytes = in.readInt();
+        }
+
+        if (this.status == FileDownloadStatus.error) {
+            this.throwable = (Throwable) in.readSerializable();
+        }
+
+        if (this.status == FileDownloadStatus.pending) {
+            this.totalBytes = in.readInt();
+        }
+
+        if (this.status == FileDownloadStatus.connected) {
+            this.totalBytes = in.readInt();
+            this.etag = in.readString();
+            this.isContinue = in.readByte() != 0;
+        }
     }
 
     public static final Creator<FileDownloadTransferModel> CREATOR = new Creator<FileDownloadTransferModel>() {

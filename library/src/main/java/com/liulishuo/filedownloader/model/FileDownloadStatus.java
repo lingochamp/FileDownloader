@@ -7,14 +7,15 @@ package com.liulishuo.filedownloader.model;
  */
 public interface FileDownloadStatus {
     int pending = 1;
-    int progress = 2;
-    int preCompleteOnNewThread = 3;
+    int connected = 2;
+    int progress = 3;
+    int blockComplete = 4;
     int error = -1;
     int paused = -2;
     int completed = -3;
     int warn = -4;
 
-    int MAX_INT = 3;
+    int MAX_INT = 4;
     int MIN_INT = -4;
     int INVALID_STATUS = 0;
 }

@@ -71,10 +71,10 @@ class FileDownloadRunnable implements Runnable {
 
         downloadTransfer.setDownloadId(model.getId());
         downloadTransfer.setStatus(model.getStatus());
-        downloadTransfer.setSofarBytes(model.getSoFar());
+        downloadTransfer.setSoFarBytes(model.getSoFar());
         downloadTransfer.setTotalBytes(model.getTotal());
 
-        maxNotifyNums = model.getProgressCallbackTimes();
+        maxNotifyNums = model.getCallbackProgressTimes();
         maxNotifyNums = maxNotifyNums <= 0 ? 0 : maxNotifyNums;
 
         this.isContinueDownloadAvailable = false;
@@ -139,15 +139,15 @@ class FileDownloadRunnable implements Runnable {
 
             if (isSucceedStart || isSucceedContinue) {
                 int total = downloadTransfer.getTotalBytes();
-                int sofar = 0;
+                int soFar = 0;
                 if (isSucceedStart || total == 0) {
                     // TODO 目前没有对 2^31-1bit以上大小支持，未来会开发一个对应的库
                     total = (int) response.body().contentLength();
                 }
 
                 if (isSucceedContinue) {
-                    sofar = downloadTransfer.getSofarBytes();
-                    FileDownloadLog.d(this, "add range %d %d", downloadTransfer.getSofarBytes(), downloadTransfer.getTotalBytes());
+                    soFar = downloadTransfer.getSoFarBytes();
+                    FileDownloadLog.d(this, "add range %d %d", downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
                 }
 
                 InputStream inputStream = null;
@@ -157,9 +157,9 @@ class FileDownloadRunnable implements Runnable {
                     byte[] buff = new byte[BUFFER_SIZE];
                     maxNotifyBytes = maxNotifyNums <= 0 ? -1 : total / maxNotifyNums;
 
-                    onProcess(sofar, total);
-
                     updateHeader(response);
+                    onConnected(isSucceedContinue, soFar, total);
+
 
                     do {
                         int readed = inputStream.read(buff);
@@ -170,13 +170,13 @@ class FileDownloadRunnable implements Runnable {
                         accessFile.write(buff, 0, readed);
 
                         //write buff
-                        sofar += readed;
-                        if (accessFile.length() < sofar) {
+                        soFar += readed;
+                        if (accessFile.length() < soFar) {
                             // 文件大小必须会等于正在写入的大小
-                            onError(new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), sofar)));
+                            onError(new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar)));
                             return;
                         } else {
-                            onProcess(sofar, total);
+                            onProcess(soFar, total);
                         }
 
                         if (isCancelled()) {
@@ -187,11 +187,11 @@ class FileDownloadRunnable implements Runnable {
                     } while (true);
 
 
-                    if (sofar == total) {
+                    if (soFar == total) {
                         onComplete(total);
                     } else {
                         onError(new RuntimeException(
-                                String.format("sofar[%d] not equal total[%d]", sofar, total)
+                                String.format("sofar[%d] not equal total[%d]", soFar, total)
                         ));
                     }
                 } finally {
@@ -218,7 +218,7 @@ class FileDownloadRunnable implements Runnable {
     private void addHeader(Request.Builder builder) {
         if (isContinueDownloadAvailable) {
             builder.addHeader("If-Match", this.etag);
-            builder.addHeader("Range", String.format("bytes=%d-", downloadTransfer.getSofarBytes()));
+            builder.addHeader("Range", String.format("bytes=%d-", downloadTransfer.getSoFarBytes()));
         }
     }
 
@@ -240,16 +240,33 @@ class FileDownloadRunnable implements Runnable {
         }
 
         if (needRefresh) {
+            this.etag = newEtag;
             helper.updateHeader(downloadTransfer.getDownloadId(), newEtag);
         }
 
+    }
+
+    private DownloadTransferEvent event = new DownloadTransferEvent(null);
+
+    private void onConnected(final boolean isContinue, final int soFar, final int total) {
+        final FileDownloadTransferModel downloadTransfer = new FileDownloadTransferModel();
+        downloadTransfer.setDownloadId(getId());
+        downloadTransfer.setSoFarBytes(soFar);
+        downloadTransfer.setTotalBytes(total);
+        downloadTransfer.setEtag(this.etag);
+        downloadTransfer.setIsContinue(isContinue);
+        downloadTransfer.setStatus(FileDownloadStatus.connected);
+
+        helper.update(downloadTransfer.getDownloadId(), FileDownloadStatus.connected, soFar, total);
+
+        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
 
     private long lastNotifiedSoFar = 0;
 
     private void onProcess(final int soFar, final int total) {
         if (soFar != total) {
-            downloadTransfer.setSofarBytes(soFar);
+            downloadTransfer.setSoFarBytes(soFar);
             downloadTransfer.setTotalBytes(total);
             downloadTransfer.setStatus(FileDownloadStatus.progress);
 
@@ -259,11 +276,13 @@ class FileDownloadRunnable implements Runnable {
         if (maxNotifyBytes < 0 || soFar - lastNotifiedSoFar < maxNotifyBytes) {
             return;
         }
+
         lastNotifiedSoFar = soFar;
         FileDownloadLog.d(this, "On progress %d %d %d", downloadTransfer.getDownloadId(), soFar, total);
 
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+
     }
 
     private void onError(Throwable ex) {
@@ -281,7 +300,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updateError(downloadTransfer.getDownloadId(), ex.getMessage());
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
 
     private void onComplete(final int total) {
@@ -290,11 +309,11 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updateComplete(downloadTransfer.getDownloadId(), total);
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
 
     private void onPause() {
-        FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(), downloadTransfer.getSofarBytes(), downloadTransfer.getTotalBytes());
+        FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(), downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
         downloadTransfer.setStatus(FileDownloadStatus.paused);
 
         helper.updatePause(downloadTransfer.getDownloadId());
@@ -306,11 +325,12 @@ class FileDownloadRunnable implements Runnable {
     public void onResume() {
         FileDownloadLog.d(this, "On resume %d", downloadTransfer.getDownloadId());
         downloadTransfer.setStatus(FileDownloadStatus.pending);
+
         this.isPending = true;
 
         helper.updatePending(downloadTransfer.getDownloadId());
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(downloadTransfer));
+        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
 
     private boolean isCancelled() {
@@ -340,7 +360,7 @@ class FileDownloadRunnable implements Runnable {
 
         RandomAccessFile outFd = new RandomAccessFile(file, "rw");
         if (append) {
-            outFd.seek(downloadTransfer.getSofarBytes());
+            outFd.seek(downloadTransfer.getSoFarBytes());
         }
         return outFd;
 //        return new FileOutputStream(file, append);
@@ -350,14 +370,14 @@ class FileDownloadRunnable implements Runnable {
         File file = new File(path);
         if (file.exists()) {
             final long fileLength = file.length();
-            if (fileLength >= downloadTransfer.getSofarBytes() && this.etag != null && fileLength < downloadTransfer.getTotalBytes()) {
+            if (fileLength >= downloadTransfer.getSoFarBytes() && this.etag != null && fileLength < downloadTransfer.getTotalBytes()) {
                 // 如果fileLength >= total bytes 视为脏数据，从头开始下载
-                FileDownloadLog.d(this, "adjust sofar old[%d] new[%d]", downloadTransfer.getSofarBytes(), fileLength);
+                FileDownloadLog.d(this, "adjust sofar old[%d] new[%d]", downloadTransfer.getSoFarBytes(), fileLength);
 
                 this.isContinueDownloadAvailable = true;
             } else {
                 final boolean result = file.delete();
-                FileDownloadLog.d(this, "delete file for dirty file %B, fileLength[%d], sofar[%d] total[%d] etag", result, fileLength, downloadTransfer.getSofarBytes(), downloadTransfer.getTotalBytes());
+                FileDownloadLog.d(this, "delete file for dirty file %B, fileLength[%d], sofar[%d] total[%d] etag", result, fileLength, downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
             }
         }
     }

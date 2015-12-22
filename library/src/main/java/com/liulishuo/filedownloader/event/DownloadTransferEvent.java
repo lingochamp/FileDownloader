@@ -19,6 +19,11 @@ public class DownloadTransferEvent extends IDownloadEvent {
 
     private FileDownloadTransferModel transfer;
 
+    public DownloadTransferEvent setTransfer(final FileDownloadTransferModel transfer) {
+        this.transfer = transfer;
+        return this;
+    }
+
     public FileDownloadTransferModel getTransfer() {
         return transfer;
     }

@@ -32,9 +32,9 @@ public class SingleTaskActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 downloadId1 = FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[2])
-                        .savePath(savePath1)
-                        .progressCallbackTimes(500)
-                        .addListener(new FileDownloadSampleListener() {
+                        .setPath(savePath1)
+                        .setCallbackProgressTimes(500)
+                        .setListener(new FileDownloadSampleListener() {
                             @Override
                             protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                                 super.progress(task, soFarBytes, totalBytes);
@@ -46,7 +46,7 @@ public class SingleTaskActivity extends AppCompatActivity {
                             protected void completed(BaseDownloadTask task) {
                                 super.completed(task);
                                 progressBar1.setProgress(task.getSoFarBytes());
-                                Toast.makeText(SingleTaskActivity.this, String.format("completed 1 %s", task.getSavePath()), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskActivity.this, String.format("completed 1 %s", task.getPath()), Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
@@ -89,9 +89,9 @@ public class SingleTaskActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 downloadId2 = FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[3])
-                        .savePath(savePath2)
-                        .progressCallbackTimes(500)
-                        .addListener(new FileDownloadSampleListener() {
+                        .setPath(savePath2)
+                        .setCallbackProgressTimes(500)
+                        .setListener(new FileDownloadSampleListener() {
                             @Override
                             protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                                 super.progress(task, soFarBytes, totalBytes);
@@ -103,7 +103,7 @@ public class SingleTaskActivity extends AppCompatActivity {
                             protected void completed(BaseDownloadTask task) {
                                 super.completed(task);
                                 progressBar2.setProgress(task.getSoFarBytes());
-                                Toast.makeText(SingleTaskActivity.this, String.format("completed 2 %s", task.getSavePath()), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskActivity.this, String.format("completed 2 %s", task.getPath()), Toast.LENGTH_SHORT).show();
                             }
 
                             @Override

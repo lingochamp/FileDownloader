@@ -45,8 +45,8 @@ class FileDownloadEvent extends IDownloadEvent {
         return this;
     }
 
-    public FileDownloadEvent preCompleteOnNewThread() {
-        this.status = FileDownloadStatus.preCompleteOnNewThread;
+    public FileDownloadEvent blockComplete() {
+        this.status = FileDownloadStatus.blockComplete;
         return this;
     }
 

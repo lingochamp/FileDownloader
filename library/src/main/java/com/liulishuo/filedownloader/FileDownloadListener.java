@@ -48,7 +48,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
                         downloaderEvent.getDownloader().getTotalBytes());
                 break;
 
-            case FileDownloadStatus.preCompleteOnNewThread:
+            case FileDownloadStatus.blockComplete:
                 blockComplete(downloaderEvent.getDownloader());
                 break;
             case FileDownloadStatus.completed:
@@ -71,7 +71,6 @@ public abstract class FileDownloadListener extends IDownloadListener {
     protected abstract void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     protected abstract void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
-
 
     /**
      * block completed in new thread

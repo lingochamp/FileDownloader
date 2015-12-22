@@ -11,7 +11,7 @@ interface IFileDownloadIPCService {
 
     FileDownloadTransferModel checkReuse(String url, String path);
     boolean checkDownloading(String url, String path);
-    int start(String url, String path, in FileDownloadNotificationModel notificaitonModel, int progressCallbackTimes);
+    int start(String url, String path, in FileDownloadNotificationModel notificaitonModel, int callbackProgressTimes);
     boolean resume(int downloadId);
     boolean pause(int downloadId);
     boolean remove(int downloadId);

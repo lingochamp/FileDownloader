@@ -69,7 +69,7 @@ public class MixTestActivity extends AppCompatActivity {
         updateDisplay(String.format("点击 单任务下载 %s", Constant.BIG_FILE_URLS[0]));
         totalCounts++;
         FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[0])
-                .addListener(createListener())
+                .setListener(createListener())
                 .setTag(1)
                 .start();
     }
@@ -89,8 +89,8 @@ public class MixTestActivity extends AppCompatActivity {
         for (String url : Constant.URLS) {
             totalCounts++;
             FileDownloader.getImpl().create(url)
-                    .addListener(parallelTarget)
-                    .progressCallbackTimes(3)
+                    .setListener(parallelTarget)
+                    .setCallbackProgressTimes(3)
                     .setTag(++i)
                     .ready();
         }
@@ -113,8 +113,8 @@ public class MixTestActivity extends AppCompatActivity {
         for (String url : Constant.URLS) {
             totalCounts++;
             FileDownloader.getImpl().create(url)
-                    .addListener(serialTarget)
-                    .progressCallbackTimes(3)
+                    .setListener(serialTarget)
+                    .setCallbackProgressTimes(3)
                     .setTag(++i)
                     .ready();
         }

@@ -31,7 +31,7 @@ final public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public boolean addListener(final String eventId, final IDownloadListener listener) {
-        FileDownloadLog.v(this, "addListener %s", eventId);
+        FileDownloadLog.v(this, "setListener %s", eventId);
         Assert.assertNotNull("EventPoolImpl.add", listener);
         LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null) {

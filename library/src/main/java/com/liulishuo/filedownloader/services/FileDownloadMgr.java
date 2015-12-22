@@ -42,7 +42,7 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
     }
 
 
-    public synchronized int start(String url, String path, FileDownloadNotificationModel notificaitonData, int progressCallbackTimes) {
+    public synchronized int start(String url, String path, FileDownloadNotificationModel notificaitonData, int callbackProgressTimes) {
         final int id = FileDownloadUtils.generateId(url, path);
 
         if (checkResume(id)) {
@@ -53,7 +53,7 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
         final FileDownloadModel model = new FileDownloadModel();
         model.setUrl(url);
         model.setPath(path);
-        model.setProgressCallbackTimes(progressCallbackTimes);
+        model.setCallbackProgressTimes(callbackProgressTimes);
 
         model.setNeedNotification(notificaitonData.isNeed());
         model.setTitle(notificaitonData.getTitle());
@@ -250,7 +250,7 @@ class FileDownloadMgr implements DownloadEventSampleListener.IEventListener {
                     break;
                 case FileDownloadStatus.progress:
                     mNotificationMgr.showProgress(((DownloadTransferEvent) event).getTransfer().getDownloadId(),
-                            ((DownloadTransferEvent) event).getTransfer().getSofarBytes(),
+                            ((DownloadTransferEvent) event).getTransfer().getSoFarBytes(),
                             ((DownloadTransferEvent) event).getTransfer().getTotalBytes());
                     break;
                 case FileDownloadStatus.pending:

@@ -64,7 +64,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setNeedNotification(c.getInt(c.getColumnIndex(FileDownloadModel.NEED_NOTIFICATION)) != 0);
                 model.setTitle(c.getString(c.getColumnIndex(FileDownloadModel.TITLE)));
                 model.setDesc(c.getString(c.getColumnIndex(FileDownloadModel.DESC)));
-                model.setProgressCallbackTimes(c.getInt(c.getColumnIndex(FileDownloadModel.PROGRESS_CALLBACK_TIMES)));
+                model.setCallbackProgressTimes(c.getInt(c.getColumnIndex(FileDownloadModel.CALLBACK_PROGRESS_TIMES)));
                 model.setStatus(c.getInt(c.getColumnIndex(FileDownloadModel.STATUS)));
                 model.setSoFar(c.getInt(c.getColumnIndex(FileDownloadModel.SOFAR)));
                 model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
@@ -74,7 +74,8 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 if (model.getStatus() == FileDownloadStatus.pending) {
                     //脏数据 在数据库中是pending或是progress，说明是之前
                     dirtyList.add(model.getId());
-                } else if (model.getStatus() == FileDownloadStatus.progress) {
+                } else if (model.getStatus() == FileDownloadStatus.progress ||
+                        model.getStatus() == FileDownloadStatus.connected) {
                     // 保证断点续传可以覆盖到
                     model.setStatus(FileDownloadStatus.paused);
                 }

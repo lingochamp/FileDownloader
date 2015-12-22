@@ -6,7 +6,6 @@ import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadNotificationModel;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -33,8 +32,8 @@ class FileDownloadTask extends BaseDownloadTask {
 
 
     @Override
-    public void clearBasic() {
-        super.clearBasic();
+    public void clear() {
+        super.clear();
         synchronized (NEED_RESTART_LIST) {
             NEED_RESTART_LIST.remove(this);
         }
@@ -50,39 +49,37 @@ class FileDownloadTask extends BaseDownloadTask {
     }
 
     @Override
-    protected boolean checkDownloading(final String url, final String path) {
+    protected boolean _checkDownloading(final String url, final String path) {
         return FileDownloadServiceUIGuard.getImpl().checkIsDownloading(url, path);
     }
 
     @Override
-    protected boolean checkCanReuse() {
+    protected boolean _checkCanReuse() {
 
 
         if (isForceReDownload()) {
             return false;
         }
 
-        final FileDownloadTransferModel model = FileDownloadServiceUIGuard.getImpl().checkReuse(getUrl(), getSavePath());
+        final FileDownloadTransferModel model = FileDownloadServiceUIGuard.getImpl().checkReuse(getUrl(), getPath());
         if (model == null) {
-            return super.checkCanReuse();
+            return super._checkCanReuse();
         }
 
-        setDownloadId(model.getDownloadId());
-        setSoFarBytes(model.getSofarBytes());
+        setSoFarBytes(model.getSoFarBytes());
         setTotalBytes(model.getTotalBytes());
-        setStatus(model.getStatus());
         return true;
 
     }
 
     @Override
-    protected int startExecute() {
+    protected int _startExecute() {
         final int result = FileDownloadServiceUIGuard.getImpl().
                 startDownloader(
                         getUrl(),
-                        getSavePath(),
+                        getPath(),
                         new FileDownloadNotificationModel(isNeedNotification(), getNotificationTitle(), getNotificationDesc()),
-                        getProgressCallbackTimes());
+                        getCallbackProgressTimes());
 
         if (result != 0) {
             synchronized (NEED_RESTART_LIST) {
@@ -94,7 +91,7 @@ class FileDownloadTask extends BaseDownloadTask {
     }
 
     @Override
-    protected boolean checkCanStart() {
+    protected boolean _checkCanStart() {
         synchronized (NEED_RESTART_LIST) {
             if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
                 // 没有连上 服务
@@ -121,7 +118,7 @@ class FileDownloadTask extends BaseDownloadTask {
     }
 
     @Override
-    protected boolean pauseExecute() {
+    protected boolean _pauseExecute() {
         return FileDownloadServiceUIGuard.getImpl().pauseDownloader(getDownloadId());
     }
 
@@ -157,7 +154,6 @@ class FileDownloadTask extends BaseDownloadTask {
                             fileDownloadInternal.clear();
                         }
                     }
-
                 }
 
                 return false;
@@ -166,80 +162,27 @@ class FileDownloadTask extends BaseDownloadTask {
 
             if (event instanceof DownloadTransferEvent) {
 
+                /**
+                 * 注意!! 为了优化有部分数据在某些情况下是没有带回来的
+                 */
                 final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
-                final BaseDownloadTask downloadInternal = FileDownloadList.getImpl().get(transfer.getDownloadId());
+                final BaseDownloadTask task = FileDownloadList.getImpl().get(transfer.getDownloadId());
 
 
                 // UI线程第二手转包到目标listener
-                if (downloadInternal != null) {
-                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", downloadInternal.getDownloadId(), downloadInternal.getStatus(), transfer.getStatus());
-                    switch (transfer.getStatus()) {
-                        case FileDownloadStatus.progress:
-                            if (downloadInternal.getStatus() == FileDownloadStatus.progress && transfer.getSofarBytes() == downloadInternal.getSoFarBytes() && transfer.getTotalBytes() == downloadInternal.getTotalBytes()) {
-
-                                FileDownloadLog.w(FileDownloadTask.class, "unused values! by process callback");
-                                break;
-                            }
-
-                            copyStatus(transfer, downloadInternal);
-                            downloadInternal.getDriver().notifyProgress();
-
-                            break;
-                        case FileDownloadStatus.completed:
-                            if (downloadInternal.getStatus() == FileDownloadStatus.completed) {
-                                FileDownloadLog.w(FileDownloadTask.class, "already completed , callback by process whith same transfer");
-                                break;
-                            }
-
-                            copyStatus(transfer, downloadInternal);
-                            FileDownloadList.getImpl().removeByCompleted(downloadInternal);
-
-                            break;
-                        case FileDownloadStatus.error:
-                            if (downloadInternal.getStatus() == FileDownloadStatus.error) {
-                                FileDownloadLog.w(FileDownloadTask.class, "already err , callback by other status same transfer");
-                                break;
-                            }
-
-                            copyStatus(transfer, downloadInternal);
-                            downloadInternal.setEx(transfer.getThrowable());
-
-                            FileDownloadList.getImpl().removeByError(downloadInternal);
-
-                            break;
-                        case FileDownloadStatus.paused:
-                            // 由调BaseFileDownloadInternal#pause直接根据回调结果处理
-//                            if (downloadInternal.getStatus() == FileDownloadStatus.paused) {
-//                                FileDownloadLog.w(FileDownloadInternal.class, "already paused , callback by other status same transfer");
-//                                break;
-//                            }
-//                            downloadInternal.setSoFarBytes(transfer.getSofarBytes());
-//                            downloadInternal.notifyPaused();
-                            break;
-                        case FileDownloadStatus.pending:
-                            if (downloadInternal.getStatus() == FileDownloadStatus.paused && transfer.getSofarBytes() == downloadInternal.getSoFarBytes() && transfer.getTotalBytes() == downloadInternal.getTotalBytes()) {
-                                FileDownloadLog.w(FileDownloadTask.class, "already pending , callback by other status same transfer");
-                                break;
-                            }
-
-
-                            copyStatus(transfer, downloadInternal);
-                            downloadInternal.getDriver().notifyPending();
-                            break;
-                    }
+                if (task != null) {
+                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", task.getDownloadId(), task.getStatus(), transfer.getStatus());
+                    task.updateData(transfer);
                 } else {
-                    FileDownloadLog.d(this, "callback event transfer %s, but is contains false", transfer.getStatus());
+                    FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d, but is contains false", transfer.getStatus());
                 }
-
+                return true;
             }
+
             return false;
         }
 
-        private void copyStatus(final FileDownloadTransferModel transfer, final BaseDownloadTask downloadInternal) {
-            downloadInternal.setStatus(transfer.getStatus());
-            downloadInternal.setSoFarBytes(transfer.getSofarBytes());
-            downloadInternal.setTotalBytes(transfer.getTotalBytes());
-        }
     }
+
 
 }
