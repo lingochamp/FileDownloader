@@ -124,14 +124,21 @@ public class MixTestActivity extends AppCompatActivity {
 
     private FileDownloadListener createListener() {
         return new FileDownloadListener() {
-            @Override
-            protected void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
-                updateDisplay(String.format("[progress] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
-            }
 
             @Override
             protected void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 updateDisplay(String.format("[pending] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
+            }
+
+            @Override
+            protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+                super.connected(task, etag, isContinue, soFarBytes, totalBytes);
+                updateDisplay(String.format("[connected] id[%d] %s %B %d/%d", task.getDownloadId(), etag, isContinue, soFarBytes, totalBytes));
+            }
+
+            @Override
+            protected void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
+                updateDisplay(String.format("[progress] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
             }
 
             @Override

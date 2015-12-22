@@ -45,6 +45,11 @@ class FileDownloadEvent extends IDownloadEvent {
         return this;
     }
 
+    public FileDownloadEvent connected() {
+        this.status = FileDownloadStatus.connected;
+        return this;
+    }
+
     public FileDownloadEvent blockComplete() {
         this.status = FileDownloadStatus.blockComplete;
         return this;

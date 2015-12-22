@@ -8,7 +8,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 /**
  * Created by Jacksgong on 9/7/15.
  * <p/>
- * normal chain {@link #pending} -> {@link #progress}  -> {@link #blockComplete} -> {@link #completed}
+ * normal chain {@link #pending} -> {@link #connected} -> {@link #progress}  -> {@link #blockComplete} -> {@link #completed}
  * may final width {@link #paused}/{@link #completed}/{@link #error}/{@link #warn}
  * if reuse just {@link #blockComplete} ->{@link #completed}
  */
@@ -34,6 +34,13 @@ public abstract class FileDownloadListener extends IDownloadListener {
         switch (downloaderEvent.getStatus()) {
             case FileDownloadStatus.pending:
                 pending(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getSoFarBytes(),
+                        downloaderEvent.getDownloader().getTotalBytes());
+                break;
+            case FileDownloadStatus.connected:
+                connected(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getEtag(),
+                        downloaderEvent.getDownloader().isContinue(),
                         downloaderEvent.getDownloader().getSoFarBytes(),
                         downloaderEvent.getDownloader().getTotalBytes());
                 break;
@@ -69,6 +76,19 @@ public abstract class FileDownloadListener extends IDownloadListener {
 
 
     protected abstract void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
+
+    /**
+     * 连接上
+     *
+     * @param task
+     * @param etag       ETag
+     * @param isContinue 是否是断点续传继续下载
+     * @param soFarBytes 已经下载了多少
+     * @param totalBytes 总大小
+     */
+    protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue, final int soFarBytes, final int totalBytes) {
+
+    }
 
     protected abstract void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 

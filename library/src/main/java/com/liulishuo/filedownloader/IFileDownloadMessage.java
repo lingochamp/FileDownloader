@@ -13,6 +13,8 @@ interface IFileDownloadMessage {
     // 中间态
     void notifyPending();
 
+    void notifyConnected();
+
     void notifyProgress();
 
     void notifyBlockComplete();

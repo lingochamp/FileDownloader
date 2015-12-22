@@ -605,7 +605,8 @@ public abstract class BaseDownloadTask {
                 this.isContinue = transfer.isContinue();
                 this.etag = transfer.getEtag();
 
-                // 目前没有消息通知
+                // 抛通知
+                getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
                 if (getStatus() == FileDownloadStatus.progress && transfer.getSoFarBytes() == getSoFarBytes()) {
@@ -620,7 +621,7 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyProgress();
                 break;
             case FileDownloadStatus.blockComplete:
-                // 该事件不是由transfer抛回来的
+                // 该事件是在complete消息处理(FileDownloadList中根据complete之前回调这个消息)
                 break;
             case FileDownloadStatus.error:
                 if (getStatus() == FileDownloadStatus.error) {
