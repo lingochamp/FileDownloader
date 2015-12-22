@@ -2,7 +2,7 @@ package com.liulishuo.filedownloader.event;
 
 /**
  * Created by Jacksgong on 15/6/23.
- * <p/>
+ *
  * 不同进程相互独立
  */
 public class DownloadEventPool {

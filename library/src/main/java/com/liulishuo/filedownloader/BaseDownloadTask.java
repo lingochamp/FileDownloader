@@ -14,13 +14,13 @@ import java.io.IOException;
 
 /**
  * Copyright (c) 2015 LingoChamp Inc.
- * <p/>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -218,7 +218,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * 停止任务, 对于线程而言会直接关闭，清理所有相关数据，不会hold住任何东西
-     * <p/>
+     *
      * 如果重新启动，默认会断点续传，所以为pause
      *
      * @return
@@ -678,7 +678,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * @return for OkHttpTag/ queue tag
-     * <p/>
+     *
      * As in same queue has same chainKey
      */
     protected int getChainKey() {
