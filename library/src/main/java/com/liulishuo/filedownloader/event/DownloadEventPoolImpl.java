@@ -19,11 +19,11 @@ import java.util.concurrent.Executors;
  */
 final public class DownloadEventPoolImpl implements IDownloadEventPool {
 
-    private ExecutorService threadPool = Executors.newFixedThreadPool(8);
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(8);
 
     private final HashMap<String, LinkedList<IDownloadListener>> listenersMap = new HashMap<>();
 
-    private Handler handler;
+    private final Handler handler;
 
     public DownloadEventPoolImpl() {
         handler = new Handler(Looper.getMainLooper());
@@ -46,7 +46,7 @@ final public class DownloadEventPoolImpl implements IDownloadEventPool {
     public boolean removeListener(final String eventId, final IDownloadListener listener) {
         FileDownloadLog.v(this, "removeListener %s", eventId);
 //        Assert.assertNotNull("EventPoolImpl.remove", listener);
-        LinkedList<IDownloadListener> container = listenersMap.get(eventId);
+        final LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null || listener == null) {
             return false;
         }

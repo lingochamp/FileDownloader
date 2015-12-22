@@ -42,12 +42,12 @@ import java.net.SocketTimeoutException;
 class FileDownloadRunnable implements Runnable {
 
     private static final int BUFFER_SIZE = 1024 * 4;
-    private FileDownloadTransferModel downloadTransfer;
+    private final FileDownloadTransferModel downloadTransfer;
 
-    private String url;
-    private String path;
+    private final String url;
+    private final String path;
 
-    private IFileDownloadDBHelper helper;
+    private final IFileDownloadDBHelper helper;
 
     private int maxNotifyBytes;
 
@@ -60,7 +60,7 @@ class FileDownloadRunnable implements Runnable {
     // etag
     private String etag;
 
-    private final FileDownloadModel downloadModel;
+    private FileDownloadModel downloadModel;
 
     public int getId() {
         return downloadModel.getId();
@@ -69,7 +69,7 @@ class FileDownloadRunnable implements Runnable {
     private volatile boolean isRunning = false;
     private volatile boolean isPending = false;
 
-    private OkHttpClient client;
+    private final OkHttpClient client;
 
     public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model, final IFileDownloadDBHelper helper) {
         isPending = true;
@@ -112,6 +112,8 @@ class FileDownloadRunnable implements Runnable {
 
             if (model == null) {
                 FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
+
+                this.downloadModel = helper.find(getId());
 
                 if (this.downloadModel == null) {
                     FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", getId());
@@ -260,7 +262,7 @@ class FileDownloadRunnable implements Runnable {
 
     }
 
-    private DownloadTransferEvent event = new DownloadTransferEvent(null);
+    private final DownloadTransferEvent event = new DownloadTransferEvent(null);
 
     private void onConnected(final boolean isContinue, final int soFar, final int total) {
         final FileDownloadTransferModel downloadTransfer = new FileDownloadTransferModel();

@@ -27,13 +27,14 @@ class FileDownloadThreadPool {
     private SparseArray<FileDownloadRunnable> poolRunnables = new SparseArray<>();
 
     // TODO 对用户开放线程池大小，全局并行下载数
-    private ExecutorService threadPool = Executors.newFixedThreadPool(3);
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(3);
 
     public void execute(FileDownloadRunnable runnable) {
         runnable.onResume();
         threadPool.execute(runnable);
         poolRunnables.put(runnable.getId(), runnable);
 
+        final int CHECK_THRESHOLD_VALUE = 600;
         if (mIgnoreCheckTimes >= CHECK_THRESHOLD_VALUE) {
             checkNoExist();
             mIgnoreCheckTimes = 0;
@@ -43,7 +44,6 @@ class FileDownloadThreadPool {
     }
 
 
-    private final int CHECK_THRESHOLD_VALUE = 600;
     private int mIgnoreCheckTimes = 0;
 
     private synchronized void checkNoExist() {

@@ -25,7 +25,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  */
 public class FileDownloadNotificationHelper <T extends FileDownloadNotificationHelper.FileDownloadNotification>{
 
-    private SparseArray<T> notificationMap = new SparseArray<>();
+    private final SparseArray<T> notificationMap = new SparseArray<>();
 
     /**
      * @param id Download id
@@ -46,7 +46,7 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
             return n;
         }
 
-        return n;
+        return null;
     }
 
     /**

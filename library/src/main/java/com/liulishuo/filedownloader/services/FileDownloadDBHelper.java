@@ -35,16 +35,14 @@ import java.util.Set;
  */
 class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
-    // TODO thread safe? update ? get?
-    private FileDownloadDBOpenHelper openHelper;
-    private SQLiteDatabase db;
+    private final SQLiteDatabase db;
 
     public final static String TABLE_NAME = "filedownloader";
 
-    private Map<Integer, FileDownloadModel> downloaderModelMap = new HashMap<>();
+    private final Map<Integer, FileDownloadModel> downloaderModelMap = new HashMap<>();
 
     public FileDownloadDBHelper() {
-        openHelper = new FileDownloadDBOpenHelper(FileDownloadHelper.getAppContext());
+        FileDownloadDBOpenHelper openHelper = new FileDownloadDBOpenHelper(FileDownloadHelper.getAppContext());
 
         db = openHelper.getWritableDatabase();
 
@@ -80,7 +78,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setSoFar(c.getInt(c.getColumnIndex(FileDownloadModel.SOFAR)));
                 model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
-                model.seteTag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
+                model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
 
                 if (model.getStatus() == FileDownloadStatus.pending) {
                     //脏数据 在数据库中是pending或是progress，说明是之前
@@ -153,8 +151,6 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
     private long lastRefreshUpdate = 0;
 
-    private final int MIN_REFRESH_DURATION_2_DB = 10;
-
     @Override
     public void update(int id, int status, int soFar, int total) {
         final FileDownloadModel downloadModel = find(id);
@@ -164,6 +160,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
             downloadModel.setTotal(total);
 
             boolean needRefresh2DB = false;
+            final int MIN_REFRESH_DURATION_2_DB = 10;
             if (System.currentTimeMillis() - lastRefreshUpdate > MIN_REFRESH_DURATION_2_DB) {
                 needRefresh2DB = true;
                 lastRefreshUpdate = System.currentTimeMillis();
@@ -187,7 +184,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     public void updateHeader(int id, String etag) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
-            downloadModel.seteTag(etag);
+            downloadModel.setETag(etag);
 
             //db
             ContentValues cv = new ContentValues();

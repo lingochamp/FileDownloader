@@ -10,6 +10,7 @@ import android.widget.Toast;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadSampleListener;
 import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
 
@@ -23,8 +24,8 @@ public class SingleTaskActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single);
 
-        savePath1 = getExternalCacheDir().getAbsolutePath() + File.separator + "tmp1";
-        savePath2 = getExternalCacheDir().getAbsolutePath() + File.separator + "tmp2";
+        savePath1 = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "tmp1";
+        savePath2 = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "tmp2";
 
         assignViews();
 

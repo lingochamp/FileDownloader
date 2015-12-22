@@ -30,17 +30,17 @@ class FileDownloadList {
         private final static FileDownloadList INSTANCE = new FileDownloadList();
     }
 
-    public static FileDownloadList getImpl() {
+    static FileDownloadList getImpl() {
         return HolderClass.INSTANCE;
     }
 
-    private ArrayList<BaseDownloadTask> list;
+    private final ArrayList<BaseDownloadTask> list;
 
     private FileDownloadList() {
         list = new ArrayList<>();
     }
 
-    public BaseDownloadTask get(final int id) {
+    BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
                 // TODO 这里只处理第一个的通知，后面这里需要改id为BaseFileDownloadInternal#toString，有可能第二个error，可能性极低
@@ -53,11 +53,11 @@ class FileDownloadList {
         return null;
     }
 
-    public boolean contains(final BaseDownloadTask download) {
+    boolean contains(final BaseDownloadTask download) {
         return list.contains(download);
     }
 
-    public BaseDownloadTask[] copy() {
+    BaseDownloadTask[] copy() {
         synchronized (list) {
             // 防止size变化
             BaseDownloadTask[] copy = new BaseDownloadTask[list.size()];
@@ -68,7 +68,7 @@ class FileDownloadList {
     /**
      * 为了某些目的转移，别忘了回调了
      */
-    public void divert(final List<BaseDownloadTask> destination) {
+    void divert(final List<BaseDownloadTask> destination) {
         synchronized (list) {
             synchronized (destination) {
                 destination.addAll(list);
@@ -78,19 +78,19 @@ class FileDownloadList {
         }
     }
 
-    public boolean removeByWarn(final BaseDownloadTask willRemoveDownload) {
+    boolean removeByWarn(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.warn);
     }
 
-    public boolean removeByError(final BaseDownloadTask willRemoveDownload) {
+    boolean removeByError(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.error);
     }
 
-    public boolean removeByPaused(final BaseDownloadTask willRemoveDownload) {
+    boolean removeByPaused(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.paused);
     }
 
-    public boolean removeByCompleted(final BaseDownloadTask willRemoveDownload) {
+    boolean removeByCompleted(final BaseDownloadTask willRemoveDownload) {
         return remove(willRemoveDownload, FileDownloadStatus.completed);
     }
 
@@ -102,7 +102,7 @@ class FileDownloadList {
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#error}
      * @return
      */
-    public boolean remove(final BaseDownloadTask willRemoveDownload, final int removeByStatus) {
+    boolean remove(final BaseDownloadTask willRemoveDownload, final int removeByStatus) {
         boolean succeed;
         synchronized (list) {
             succeed = list.remove(willRemoveDownload);
@@ -145,14 +145,14 @@ class FileDownloadList {
         return succeed;
     }
 
-    public void add(final BaseDownloadTask downloadInternal) {
+    void add(final BaseDownloadTask downloadInternal) {
         ready(downloadInternal);
 
         // 抛消息
         downloadInternal.getDriver().notifyStarted();
     }
 
-    public void ready(final BaseDownloadTask downloadInternal) {
+    void ready(final BaseDownloadTask downloadInternal) {
         synchronized (list) {
             if (list.contains(downloadInternal)) {
                 FileDownloadLog.w(this, "already has %s", downloadInternal);

@@ -70,9 +70,8 @@ public class FileDownloader {
 
         final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
         final List<Integer> ids = new ArrayList<>();
-        for (int i = 0; i < downloadList.length; i++) {
-            final BaseDownloadTask downloadInternal = downloadList[i];
-            if (downloadInternal.getListener() == listener) {
+        for (final BaseDownloadTask downloadTask : downloadList) {
+            if (downloadTask.getListener() == listener) {
 
                 if (threadPool != null) {
                     // 串行处理
@@ -83,12 +82,12 @@ public class FileDownloader {
 
                         @Override
                         public void run() {
-                            if (!FileDownloadList.getImpl().contains(downloadInternal)) {
+                            if (!FileDownloadList.getImpl().contains(downloadTask)) {
                                 // paused?
                                 return;
                             }
 
-                            downloadInternal.setFinishListener(new BaseDownloadTask.FinishListener() {
+                            downloadTask.setFinishListener(new BaseDownloadTask.FinishListener() {
                                 @Override
                                 public void over() {
                                     isFinal = true;
@@ -117,7 +116,7 @@ public class FileDownloader {
                     });
 
                 } else {
-                    ids.add(downloadInternal.start());
+                    ids.add(downloadTask.start());
                 }
             }
         }

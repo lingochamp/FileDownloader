@@ -28,7 +28,7 @@ class FileDownloadEvent extends IDownloadEvent {
         this.downloader = downloader;
     }
 
-    private BaseDownloadTask downloader;
+    private final BaseDownloadTask downloader;
 
     private int status;
 

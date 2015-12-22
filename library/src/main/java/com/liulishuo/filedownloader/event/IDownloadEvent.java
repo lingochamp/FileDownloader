@@ -15,7 +15,7 @@ public abstract class IDownloadEvent {
         this.order = order;
     }
 
-    protected String id;
+    protected final String id;
     protected boolean order;
 
     public final String getId() {

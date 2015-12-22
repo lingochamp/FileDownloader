@@ -27,13 +27,13 @@ import java.io.File;
  *
  * Created by Jacksgong on 9/24/15.
  */
-class FileDownloadMgr{
-    private IFileDownloadDBHelper mHelper;
+class FileDownloadMgr {
+    private final IFileDownloadDBHelper mHelper;
 
     // TODO 对OkHttpClient，看如何可以有效利用OkHttpClient进行相关优化，进行有关封装
-    private OkHttpClient client;
+    private final OkHttpClient client;
 
-    private FileDownloadThreadPool mThreadPool = new FileDownloadThreadPool();
+    private final FileDownloadThreadPool mThreadPool = new FileDownloadThreadPool();
 
     public FileDownloadMgr() {
         mHelper = new FileDownloadDBHelper();
@@ -138,7 +138,7 @@ class FileDownloadMgr{
 
             if (model.getSoFar() != model.getTotal()) {
                 // 脏数据
-                FileDownloadLog.w(this, "sofar[%d] not equal total[%d] %s", model.getSoFar(), model.getTotal(), url);
+                FileDownloadLog.w(this, "soFar[%d] not equal total[%d] %s", model.getSoFar(), model.getTotal(), url);
                 break;
             }
 

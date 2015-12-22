@@ -16,7 +16,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="Start"
+            android:text="@string/start"
             android:textColor="#000000"
             android:textSize="14sp" />
 
@@ -25,7 +25,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="Pause"
+            android:text="@string/pause"
             android:textColor="#000000"
             android:textSize="14sp" />
 
@@ -34,7 +34,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="Delete"
+            android:text="@string/delete"
             android:textColor="#000000"
             android:textSize="14sp" />
     </LinearLayout>
@@ -57,7 +57,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="Start"
+            android:text="@string/start"
             android:textColor="#000000"
             android:textSize="14sp" />
 
@@ -66,7 +66,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="Pause"
+            android:text="@string/pause"
             android:textColor="#000000"
             android:textSize="14sp" />
 
@@ -75,7 +75,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="Delete"
+            android:text="@string/delete"
             android:textColor="#000000"
             android:textSize="14sp" />
     </LinearLayout>

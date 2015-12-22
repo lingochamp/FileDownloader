@@ -119,7 +119,7 @@ public class FileDownloadModel implements Parcelable {
         return eTag;
     }
 
-    public void seteTag(String eTag) {
+    public void setETag(String eTag) {
         this.eTag = eTag;
     }
 

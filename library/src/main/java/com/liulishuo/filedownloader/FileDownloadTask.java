@@ -32,9 +32,9 @@ import java.util.List;
 class FileDownloadTask extends BaseDownloadTask {
 
     private static DownloadEventSampleListener DOWNLOAD_INTERNAL_LIS;
-    private static List<BaseDownloadTask> NEED_RESTART_LIST = new ArrayList<>();
+    private static final List<BaseDownloadTask> NEED_RESTART_LIST = new ArrayList<>();
 
-    public FileDownloadTask(String url) {
+    FileDownloadTask(String url) {
         super(url);
         if (DOWNLOAD_INTERNAL_LIS == null) {
             DOWNLOAD_INTERNAL_LIS = new DownloadEventSampleListener(new FileDownloadInternalLis());
@@ -147,14 +147,10 @@ class FileDownloadTask extends BaseDownloadTask {
                         NEED_RESTART_LIST.clear();
                     }
 
-                    if (needRestartList == null) {
-                        // 不可能!
-                        FileDownloadLog.e(FileDownloadTask.class, "need restart list == null!");
-                    } else {
-                        for (Object o : needRestartList) {
-                            ((FileDownloadTask) o).start();
-                        }
+                    for (Object o : needRestartList) {
+                        ((FileDownloadTask) o).start();
                     }
+
                 } else {
                     // 断开了连接
                     // TODO 做多重特定引擎支持的时候，这里需要特殊处理

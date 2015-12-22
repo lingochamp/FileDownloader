@@ -69,7 +69,7 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
     protected class FileDownloadServiceBinder extends IFileDownloadIPCService.Stub {
 
 
-        private FileDownloadMgr downloadManager;
+        private final FileDownloadMgr downloadManager;
 
         private FileDownloadServiceBinder() {
             downloadManager = new FileDownloadMgr();
@@ -110,11 +110,6 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
         @Override
         public boolean pause(int downloadId) throws RemoteException {
             return downloadManager.pause(downloadId);
-        }
-
-        @Override
-        public boolean remove(int downloadId) throws RemoteException {
-            return downloadManager.remove(downloadId);
         }
 
         @Override

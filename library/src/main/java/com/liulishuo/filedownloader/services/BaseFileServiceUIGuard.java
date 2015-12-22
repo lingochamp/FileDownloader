@@ -36,11 +36,11 @@ import java.util.List;
  */
 public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE extends IInterface> implements ServiceConnection {
 
-    private CALLBACK callback;
+    private final CALLBACK callback;
     private INTERFACE service;
-    private Class<?> serviceClass;
+    private final Class<?> serviceClass;
 
-    private HashMap<String, Object> uiCacheMap = new HashMap<>();
+    private final HashMap<String, Object> uiCacheMap = new HashMap<>();
 
     protected CALLBACK getCallback() {
         return this.callback;
@@ -91,7 +91,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
                         DownloadServiceConnectChangedEvent.ConnectStatus.disconnected, serviceClass));
     }
 
-    private List<Context> BIND_CONTEXTS = new ArrayList<>();
+    private final List<Context> BIND_CONTEXTS = new ArrayList<>();
 
     public void bindStartByContext(final Context context) {
         FileDownloadLog.d(this, "bindStartByContext %s", context.getClass().getSimpleName());

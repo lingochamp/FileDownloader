@@ -172,18 +172,4 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
 
         return val;
     }
-
-    public boolean removeDownloader(final int downloadId) {
-        if (getService() == null) {
-            return false;
-        }
-
-        try {
-            return getService().remove(downloadId);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
 }

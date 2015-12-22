@@ -17,7 +17,7 @@ package com.liulishuo.filedownloader.event;
  * Created by Jacksgong on 15/6/23.
  */
 public class DownloadEventSampleListener extends IDownloadListener {
-    public IEventListener i;
+    private final IEventListener i;
 
     public DownloadEventSampleListener(IEventListener i) {
         this(0, i);
@@ -30,7 +30,7 @@ public class DownloadEventSampleListener extends IDownloadListener {
 
     @Override
     public boolean callback(IDownloadEvent event) {
-        return i != null ? i.callback(event) : false;
+        return i != null && i.callback(event);
     }
 
     public interface IEventListener {

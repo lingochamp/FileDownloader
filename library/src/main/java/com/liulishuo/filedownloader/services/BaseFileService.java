@@ -109,11 +109,4 @@ public abstract class BaseFileService<CALLBACK extends IInterface, BINDER extend
      */
     protected abstract boolean handleCallback(final int cmd, final CALLBACK callback, Object... objects) throws RemoteException;
 
-    public static boolean isEmChatProcess(final String processName) {
-        return processName == null ? false : processName.endsWith(":emchat");
-    }
-
-    public static boolean isScoreProcess(final String processName) {
-        return processName == null ? false : processName.endsWith(":scorer");
-    }
 }

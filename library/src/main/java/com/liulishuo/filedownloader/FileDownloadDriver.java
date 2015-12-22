@@ -22,7 +22,7 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
  */
 class FileDownloadDriver implements IFileDownloadMessage {
 
-    private BaseDownloadTask download;
+    private final BaseDownloadTask download;
 
     FileDownloadDriver(final BaseDownloadTask download) {
         this.download = download;

@@ -10,7 +10,6 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Copyright (c) 2015 LingoChamp Inc.
@@ -33,15 +32,11 @@ public abstract class BaseDownloadTask {
 
     private int downloadId;
 
-    private String url;
+    private final String url;
     private String path;
 
     private FileDownloadListener listener;
     private FinishListener finishListener;
-
-    private boolean isNeedNotification;
-    private String notificationTitle;
-    private String notificationDesc;
 
     private Object tag;
     private Throwable ex;
@@ -65,9 +60,9 @@ public abstract class BaseDownloadTask {
      */
     private boolean isReusedOldFile = false;
 
-    private FileDownloadDriver driver;
+    private final FileDownloadDriver driver;
 
-    public BaseDownloadTask(final String url) {
+    BaseDownloadTask(final String url) {
         this.url = url;
         driver = new FileDownloadDriver(this);
     }
@@ -143,35 +138,6 @@ public abstract class BaseDownloadTask {
         return this;
     }
 
-    // TODO 通知需要对外支持，而不依赖v4等
-
-    /**
-     * Need notify & Default Notification Title is AppName
-     *
-     * @return
-     */
-    public BaseDownloadTask setNeedNotification() {
-        return setNotification(null, null);
-    }
-
-    public BaseDownloadTask setNotification(final String title) {
-        return setNotification(title, null);
-    }
-
-    /**
-     * Need notify
-     *
-     * @param title
-     * @param desc
-     * @return
-     */
-    public BaseDownloadTask setNotification(final String title, final String desc) {
-        this.isNeedNotification = true;
-        this.notificationTitle = title;
-        this.notificationDesc = desc;
-        FileDownloadLog.d(this, "needNotification %s, %s", title, desc);
-        return this;
-    }
     // -------- 结束符 ------
 
     /**
@@ -196,21 +162,16 @@ public abstract class BaseDownloadTask {
      * @return Download id
      */
     public int start() {
-        FileDownloadLog.v(this, "begin call start url[%s], setPath[%s]," +
-                        " listener[%s], isNeedNotification[%B]," +
-                        " notificationTitle[%s], notificationDesc[%s]," +
-                        " tag[%s]", url, path, listener, isNeedNotification,
-                notificationTitle, notificationDesc, tag);
+        FileDownloadLog.v(this, "begin call start " +
+                        "url[%s], setPath[%s] listener[%s], tag[%s]",
+                url, path, listener, tag);
 
         _adjust();
         _start();
 
-        FileDownloadLog.v(this, "end call start url[%s], setPath[%s]," +
-                        " listener[%s], isNeedNotification[%B]," +
-                        " notificationTitle[%s], notificationDesc[%s]," +
-                        "tag[%s]", url, path, listener, isNeedNotification,
-                notificationTitle, notificationDesc,
-                tag);
+        FileDownloadLog.v(this, "end call start " +
+                        "url[%s], setPath[%s], listener[%s], tag[%s]",
+                url, path, listener, tag);
 
         return getDownloadId();
     }
@@ -286,27 +247,6 @@ public abstract class BaseDownloadTask {
      */
     public FileDownloadListener getListener() {
         return listener;
-    }
-
-    /**
-     * @return 是否需要通知
-     */
-    public boolean isNeedNotification() {
-        return isNeedNotification;
-    }
-
-    /**
-     * @return 通知的标题
-     */
-    public String getNotificationTitle() {
-        return notificationTitle;
-    }
-
-    /**
-     * @return 通知的描述
-     */
-    public String getNotificationDesc() {
-        return notificationDesc;
     }
 
     /**
@@ -399,17 +339,15 @@ public abstract class BaseDownloadTask {
         }
     }
 
-    private boolean _checkFile(final String path) throws IOException {
+    private void _checkFile(final String path) {
         File file = new File(path);
         if (file.exists()) {
-            return true;
+            return;
         }
 
         if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }
-
-        return false;
     }
 
     protected boolean _checkCanStart() {
@@ -436,12 +374,6 @@ public abstract class BaseDownloadTask {
         if (path == null) {
             path = FileDownloadUtils.getDefaultSaveFilePath(url);
             FileDownloadLog.e(this, "save path is null to %s", path);
-        }
-
-
-        if (isNeedNotification) {
-            // TODO 替换app name
-            notificationTitle = notificationTitle == null ? "app name" : notificationTitle;
         }
     }
 
@@ -523,18 +455,18 @@ public abstract class BaseDownloadTask {
 
     // --------------------------------------- 以下 内部协作接口 --------------------------------------------------
 
-    public FileDownloadEvent getOverEvent() {
+    FileDownloadEvent getOverEvent() {
         // 结束以后做好清理
         return new FileDownloadEvent(this).callback(_getOverCallback());
     }
 
-    public FileDownloadEvent getIngEvent() {
+    FileDownloadEvent getIngEvent() {
         return new FileDownloadEvent(this);
     }
     // ----------
 
     // 清理资源
-    public void clear() {
+    void clear() {
         _removeEventListener();
         FileDownloadLog.d(this, "clear");
     }
@@ -542,27 +474,27 @@ public abstract class BaseDownloadTask {
     /**
      * @return 确保以当前Downloader为单位唯一
      */
-    public String generateEventId() {
+    String generateEventId() {
         return toString();
     }
 
     // 错误内容
-    public void setEx(Throwable ex) {
+    void setEx(Throwable ex) {
         this.ex = ex;
     }
 
     // 下载进度变化
-    protected void setSoFarBytes(int soFarBytes) {
+    void setSoFarBytes(int soFarBytes) {
         this.soFarBytes = soFarBytes;
     }
 
     // 总大小变化
-    protected void setTotalBytes(int totalBytes) {
+    void setTotalBytes(int totalBytes) {
         this.totalBytes = totalBytes;
     }
 
     // 状态变化，在入队/出队/通知 之前改变
-    protected void setStatus(int status) {
+    void setStatus(int status) {
         if (status > FileDownloadStatus.MAX_INT ||
                 status < FileDownloadStatus.MIN_INT) {
             throw new RuntimeException(String.format("status undefined, %d", status));
@@ -571,22 +503,22 @@ public abstract class BaseDownloadTask {
     }
 
     // 驱动器
-    public FileDownloadDriver getDriver() {
+    FileDownloadDriver getDriver() {
         return this.driver;
     }
 
     // ------------------
     // 开始进入队列
-    public void begin() {
+    void begin() {
         _addEventListener();
     }
 
     // 进行中任意回调
-    public void ing() {
+    void ing() {
     }
 
     // 结束
-    public void over() {
+    void over() {
         if (finishListener != null) {
             finishListener.over();
         }
@@ -595,7 +527,7 @@ public abstract class BaseDownloadTask {
     /**
      * @param transfer 为了优化有部分数据在某些情况下是没有带回来的
      */
-    public void update(final FileDownloadTransferModel transfer) {
+    void update(final FileDownloadTransferModel transfer) {
         switch (transfer.getStatus()) {
             case FileDownloadStatus.pending:
                 if (getStatus() == FileDownloadStatus.pending) {
@@ -657,7 +589,7 @@ public abstract class BaseDownloadTask {
                 break;
             case FileDownloadStatus.completed:
                 if (getStatus() == FileDownloadStatus.completed) {
-                    FileDownloadLog.w(this, "already completed , callback by process whith same transfer");
+                    FileDownloadLog.w(this, "already completed , callback by process with same transfer");
                     break;
                 }
 

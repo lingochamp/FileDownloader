@@ -40,7 +40,11 @@ public class FileDownloadUtils {
     }
 
     public static String getDefaultSaveRootPath() {
-        return FileDownloadHelper.getAppContext().getExternalCacheDir().getAbsolutePath();
+        if (FileDownloadHelper.getAppContext().getExternalCacheDir() == null) {
+            return FileDownloadHelper.getAppContext().getCacheDir().getAbsolutePath();
+        } else {
+            return FileDownloadHelper.getAppContext().getExternalCacheDir().getAbsolutePath();
+        }
     }
 
     public static String getDefaultSaveFilePath(final String url) {

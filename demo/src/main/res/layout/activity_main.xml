@@ -12,6 +12,6 @@
     <Button
         style="@style/DemoButton"
         android:onClick="onClickSingle"
-        android:text="单任务测试" />
+        android:text="@string/single_task_test" />
 
 </LinearLayout>

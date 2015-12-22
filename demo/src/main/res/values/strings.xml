@@ -7,4 +7,8 @@
     <string name="mix_test_title">混合测试(请重复点击启动任意下来进行简单压测)</string>
     <string name="app_github">GITHUB</string>
     <string name="app_github_url">https://github.com/lingochamp/FileDownloader</string>
+    <string name="single_task_test">单任务测试</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="delete">Delete</string>
 </resources>

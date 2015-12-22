@@ -28,7 +28,7 @@ public class DownloadServiceConnectChangedEvent extends IDownloadEvent {
         this.serviceClass = serviceClass;
     }
 
-    private ConnectStatus status;
+    private final ConnectStatus status;
 
     public enum ConnectStatus {
         connected, disconnected
@@ -39,14 +39,11 @@ public class DownloadServiceConnectChangedEvent extends IDownloadEvent {
     }
 
 
-    private Class<?> serviceClass;
+    private final Class<?> serviceClass;
 
     public boolean isSuchService(final Class<?> serviceClass) {
-        if (serviceClass == null) {
-            return false;
-        }
-
-        return this.serviceClass.getName().equals(serviceClass.getName());
+        return this.serviceClass != null &&
+                this.serviceClass.getName().equals(serviceClass.getName());
 
     }
 }
