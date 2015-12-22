@@ -189,7 +189,7 @@ if(parallel){
 | setListener(listener:FileDownloadListener) | 设置监听，可以以相同监听组成队列
 | setCallbackProgressTimes(times:int) | 设置progress最大回调次数
 | setTag(tag:Object) | 内部不会使用，在回调的时候用户自己使用
-| setForceReDownload(void) | 强制重新下载，将会忽略检测文件是否健在
+| setForceReDownload(isForceReDownload:boolean) | 强制重新下载，将会忽略检测文件是否健在
 | setFinishListener(listener:FinishListener) | 结束监听，仅包含结束(over(void))的监听 
 | ready(void) | 用于队列下载的单任务的结束符(见上面:启动多任务下载的案例)
 | start(void) | 启动下载任务
@@ -223,7 +223,7 @@ pending -> connected -> (progress <->progress) -> blockComplete -> completed
 paused / completed / error / warn
 ```
 
-##### 如果检测存在已经下载完成的文件(可以通过`isReusedOldFile`进行决策是否是该情况) :
+##### 如果检测存在已经下载完成的文件(可以通过`isReusedOldFile`进行决策是否是该情况)(也可以通过`setForceReDownload(true)`来避免该情况):
 
 ```
 blockComplete -> completed
