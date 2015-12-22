@@ -261,8 +261,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-[mix_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/mix.gif
-[parallel_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/parallel.gif
-[serial_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/serial.gif
-[single_progress_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/single_progress.gif
-[single_gif]: https://git.llsapp.com/Jacksgong/FileDownloader/raw/master/art/single.gif
+[mix_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/mix.gif
+[parallel_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/parallel.gif
+[serial_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/serial.gif
+[single_progress_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single_progress.gif
+[single_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single.gif
