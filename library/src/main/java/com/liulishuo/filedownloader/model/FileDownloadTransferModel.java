@@ -117,7 +117,7 @@ public class FileDownloadTransferModel implements Parcelable {
     /**
      * @param dest
      * @param flags
-     * @see com.liulishuo.filedownloader.FileDownloadTask.FileDownloadInternalLis
+     * @see com.liulishuo.filedownloader.BaseDownloadTask#update(FileDownloadTransferModel)
      */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
@@ -125,50 +125,60 @@ public class FileDownloadTransferModel implements Parcelable {
         dest.writeInt(this.downloadId);
 
         // 为了频繁拷贝的时候不带上
-        if (this.status != FileDownloadStatus.completed) {
-            dest.writeInt(this.soFarBytes);
-        }
-
-        if (this.status == FileDownloadStatus.error) {
-            dest.writeSerializable(this.throwable);
-        }
-
-        if (this.status == FileDownloadStatus.pending) {
-            dest.writeInt(this.totalBytes);
-        }
-
-        if (this.status == FileDownloadStatus.connected) {
-            dest.writeInt(this.totalBytes);
-            dest.writeString(this.etag);
-            dest.writeByte(isContinue ? (byte) 1 : (byte) 0);
+        switch (this.status) {
+            case FileDownloadStatus.pending:
+                dest.writeInt(this.soFarBytes);
+                dest.writeInt(this.totalBytes);
+                break;
+            case FileDownloadStatus.connected:
+                dest.writeInt(this.soFarBytes);
+                dest.writeInt(this.totalBytes);
+                dest.writeString(this.etag);
+                dest.writeByte(isContinue ? (byte) 1 : (byte) 0);
+                break;
+            case FileDownloadStatus.progress:
+                dest.writeInt(this.soFarBytes);
+                break;
+            case FileDownloadStatus.error:
+                dest.writeInt(this.soFarBytes);
+                dest.writeSerializable(this.throwable);
+                break;
+            case FileDownloadStatus.completed:
+                dest.writeInt(this.totalBytes);
+                break;
         }
     }
 
     /**
      * @param in
-     * @see com.liulishuo.filedownloader.FileDownloadTask.FileDownloadInternalLis
+     * @see com.liulishuo.filedownloader.BaseDownloadTask#update(FileDownloadTransferModel)
      */
     protected FileDownloadTransferModel(Parcel in) {
         this.status = in.readInt();
         this.downloadId = in.readInt();
 
         // 为了频繁拷贝的时候不带上
-        if (this.status != FileDownloadStatus.completed) {
-            this.soFarBytes = in.readInt();
-        }
-
-        if (this.status == FileDownloadStatus.error) {
-            this.throwable = (Throwable) in.readSerializable();
-        }
-
-        if (this.status == FileDownloadStatus.pending) {
-            this.totalBytes = in.readInt();
-        }
-
-        if (this.status == FileDownloadStatus.connected) {
-            this.totalBytes = in.readInt();
-            this.etag = in.readString();
-            this.isContinue = in.readByte() != 0;
+        switch (this.status) {
+            case FileDownloadStatus.pending:
+                this.soFarBytes = in.readInt();
+                this.totalBytes = in.readInt();
+                break;
+            case FileDownloadStatus.connected:
+                this.soFarBytes = in.readInt();
+                this.totalBytes = in.readInt();
+                this.etag = in.readString();
+                this.isContinue = in.readByte() == 1;
+                break;
+            case FileDownloadStatus.progress:
+                this.soFarBytes = in.readInt();
+                break;
+            case FileDownloadStatus.error:
+                this.soFarBytes = in.readInt();
+                this.throwable = (Throwable) in.readSerializable();
+                break;
+            case FileDownloadStatus.completed:
+                this.totalBytes = in.readInt();
+                break;
         }
     }
 

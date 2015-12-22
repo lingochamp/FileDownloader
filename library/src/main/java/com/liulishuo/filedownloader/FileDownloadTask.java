@@ -80,7 +80,7 @@ class FileDownloadTask extends BaseDownloadTask {
             return super._checkCanReuse();
         }
 
-        setSoFarBytes(model.getSoFarBytes());
+        setSoFarBytes(model.getTotalBytes());
         setTotalBytes(model.getTotalBytes());
         return true;
 
