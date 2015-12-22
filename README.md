@@ -35,8 +35,8 @@
 ![][mix_gif]
 ![][parallel_gif]
 ![][serial_gif]
-![][single_progress_gif]
 ![][single_gif]
+![][single_progress_gif]
 
 
 ## II. 使用
