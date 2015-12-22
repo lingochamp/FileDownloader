@@ -6,4 +6,5 @@
     <string name="del_cache_files">删除所有已下载文件</string>
     <string name="mix_test_title">混合测试(请重复点击启动任意下来进行简单压测)</string>
     <string name="app_github">GITHUB</string>
+    <string name="app_github_url">https://github.com/lingochamp/FileDownloader</string>
 </resources>
