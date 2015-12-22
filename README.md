@@ -223,7 +223,7 @@ pending -> connected -> (progress <->progress) -> blockComplete -> completed
 paused / completed / error / warn
 ```
 
-##### 如果检测存在已经下载完成的文件 :
+##### 如果检测存在已经下载完成的文件(可以通过`isReusedOldFile`进行决策是否是该情况) :
 
 ```
 blockComplete -> completed
