@@ -95,7 +95,13 @@ public class MixTestActivity extends AppCompatActivity {
                     .ready();
         }
 
-        FileDownloader.getImpl().start(parallelTarget, false);
+        // 这里需要确定的是是否是在内部管理抛非ui线程
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                FileDownloader.getImpl().start(parallelTarget, false);
+            }
+        }).start();
     }
 
     /**
