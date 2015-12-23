@@ -9,17 +9,17 @@
 
 > 总之，你负责大胆高并发高频率的往下载引擎里面以队列(请求需要并行处理/串行处理)/单任务的形式放任务，引擎负责给你达预期稳定、高效的结果输出
 
-#### 1. 稳定: 
+#### 1. 稳定:
 
 - 高并发: 兼容高频率不断入队 并行任务队列/串行任务队列/单一下载任务，甚至其中包含大量重复任务(url与path都相同)，不同队列独立运作，不同任务相对独立运作，互不干涉
 - 独立进程: 在需要下载时，启动独立进程，减小对应用本身的影响，相比较`android.app.DownloadManager`，`FileDownloader`采用AIDL基于Binder更加高效，并且不会受到其他应用下载的影响。
 
 
-#### 2. 冗余低: 
+#### 2. 冗余低:
 
-- **默认**通过__文件有效性检测__已经下载并且下载完成的任务不重复启动下载 
-- 通过__实时监控已启动的任务或排队中的任务__，校对准备进入的任务是否是重复任务(url与path相同)，以`warn`抛出用户层，防止重复任务冗余下载
-- 通过__本地数据库及自动断点续传__结合相关脏数据矫正，保证任务下载进度尽可能的被快照，只要后端带有`etag`(七牛默认会带)，无论是进程被杀，还是其他任何异常情况，下次启动自动从上次有效位置开始续传，不重复下载
+- **默认** 通过 __文件有效性检测__ 已经下载并且下载完成的任务不重复启动下载
+- 通过 __实时监控已启动的任务或排队中的任务__ ，校对准备进入的任务是否是重复任务(url与path相同)，以`warn`抛出用户层，防止重复任务冗余下载
+- 通过 __本地数据库及自动断点续传__ 结合相关脏数据矫正，保证任务下载进度尽可能的被快照，只要后端带有`etag`(七牛默认会带)，无论是进程被杀，还是其他任何异常情况，下次启动自动从上次有效位置开始续传，不重复下载
 
 
 #### 3. 需要注意
@@ -43,6 +43,14 @@
 
 ## II. 使用
 
+在项目中引用:
+
+```
+compile 'com.liulishuo.filedownloader:library:0.0.8'
+```
+
+> 假如发现IDE没有自动绑定源码到拉下来的`.class`，请下载[library-0.0.8-sources.jar][library_last_source_jar]，然后主动`Choose Sources...`进行绑定，这样方便阅读与debug。有任何问题，提issue即可。
+
 #### 全局初始化在`Application.onCreate`中
 
 ```
@@ -55,7 +63,7 @@ public XXApplication extends Application{
         // 不耗时，做一些简单初始化准备工作，不会启动下载进程
         FileDownloader.init(this);
     }
-    
+
     ...
 }
 
@@ -64,7 +72,7 @@ public XXApplication extends Application{
 #### 启动单任务下载
 
 ```
- 
+
 FileDownloader.getImpl().create(url)
         .setPath(path)
         .setListener(new FileDownloadListener() {
@@ -105,7 +113,7 @@ FileDownloader.getImpl().create(url)
 #### 启动多任务下载
 
 ```
- 
+
 final FileDownloadListener queueTarget = new FileDownloadListener() {
             @Override
             protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
@@ -147,7 +155,7 @@ final FileDownloadListener queueTarget = new FileDownloadListener() {
 
             }
         };
-        
+
 for (String url : URLS) {
     FileDownloader.getImpl().create(url)
             .setListener(queueTarget)
@@ -192,7 +200,7 @@ if(parallel){
 | setCallbackProgressTimes(times:int) | 设置progress最大回调次数
 | setTag(tag:Object) | 内部不会使用，在回调的时候用户自己使用
 | setForceReDownload(isForceReDownload:boolean) | 强制重新下载，将会忽略检测文件是否健在
-| setFinishListener(listener:FinishListener) | 结束监听，仅包含结束(over(void))的监听 
+| setFinishListener(listener:FinishListener) | 结束监听，仅包含结束(over(void))的监听
 | ready(void) | 用于队列下载的单任务的结束符(见上面:启动多任务下载的案例)
 | start(void) | 启动下载任务
 | pause(void) | 暂停下载任务(也可以理解为停止下载，但是在start的时候默认会断点续传)
@@ -237,12 +245,12 @@ blockComplete -> completed
 | --- | --- | ---
 | pending | 等待，已经进入下载队列 | 数据库中的soFarBytes与totalBytes
 | connected | 已经连接上 | ETag, 是否断点续传, soFarBytes, totalBytes
-| progress | 下载进度回调 | soFarBytes 
+| progress | 下载进度回调 | soFarBytes
 | blockComplete | 在完成前同步调用该方法，此时已经下载完成 | -
 | completed | 完成整个下载过程 | -
 | paused | 暂停下载 | soFarBytes
 | error | 下载出现错误 | 抛出的Throwable
-| warn | 在下载队列中(正在等待/正在下载)已经存在相同下载连接与相同存储路径的任务 | - 
+| warn | 在下载队列中(正在等待/正在下载)已经存在相同下载连接与相同存储路径的任务 | -
 
 
 ## III. LICENSE
@@ -270,3 +278,4 @@ limitations under the License.
 [single_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single.gif
 [bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
+[library_last_source_jar]: https://bintray.com/artifact/download/jacksgong/maven/com/liulishuo/filedownloader/library/0.0.8/library-0.0.8-sources.jar
