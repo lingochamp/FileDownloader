@@ -3,6 +3,8 @@ package com.liulishuo.filedownloader;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
+import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -67,6 +69,22 @@ public abstract class BaseDownloadTask {
         driver = new FileDownloadDriver(this);
     }
 
+    // --------------------------------------- 以下 初始化 -----------------------------------------------
+
+    static {
+        DownloadEventPool.getImpl().addListener(DownloadTaskEvent.ID, new IDownloadListener(Integer.MAX_VALUE) {
+            @Override
+            public boolean callback(IDownloadEvent event) {
+                final DownloadTaskEvent taskEvent = (DownloadTaskEvent) event;
+                switch (taskEvent.getOperate()) {
+                    case DownloadTaskEvent.Operate.REQUEST_START:
+                        taskEvent.consume()._start();
+                        break;
+                }
+                return true;
+            }
+        });
+    }
     // --------------------------------------- 以下 对外接口 ----------------------------------------------
 
     /**
@@ -153,16 +171,31 @@ public abstract class BaseDownloadTask {
      * @return Download id
      */
     public int start() {
-        FileDownloadLog.v(this, "begin call start " +
+        FileDownloadLog.v(this, "call start " +
                         "url[%s], setPath[%s] listener[%s], tag[%s]",
                 url, path, listener, tag);
 
-        _adjust();
-        _start();
+        boolean ready = true;
 
-        FileDownloadLog.v(this, "end call start " +
-                        "url[%s], setPath[%s], listener[%s], tag[%s]",
-                url, path, listener, tag);
+        try {
+            _adjust();
+            _addEventListener();
+            _checkFile(path);
+        } catch (Throwable e) {
+            ready = false;
+
+            // 这里是特殊事件，唯一一个没有remove队列中的元素，因为还没有入队列
+            setStatus(FileDownloadStatus.error);
+            setEx(e);
+            FileDownloadList.getImpl().add(this);
+            FileDownloadList.getImpl().removeByError(this);
+        }
+
+        if (ready) {
+            DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTaskEvent(this)
+                    .requestStart());
+        }
+
 
         return getDownloadId();
     }
@@ -368,9 +401,6 @@ public abstract class BaseDownloadTask {
     private void _start() {
 
         try {
-            _addEventListener();
-
-            _checkFile(path);
 
             // 服务是否启动
             if (!_checkCanStart()) {
