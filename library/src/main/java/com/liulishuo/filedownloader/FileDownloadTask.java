@@ -31,16 +31,17 @@ import java.util.List;
  */
 class FileDownloadTask extends BaseDownloadTask {
 
-    private static DownloadEventSampleListener DOWNLOAD_INTERNAL_LIS;
+    private static final DownloadEventSampleListener DOWNLOAD_INTERNAL_LIS;
     private static final List<BaseDownloadTask> NEED_RESTART_LIST = new ArrayList<>();
+
+    static {
+        DOWNLOAD_INTERNAL_LIS = new DownloadEventSampleListener(new FileDownloadInternalLis());
+        DownloadEventPool.getImpl().addListener(DownloadServiceConnectChangedEvent.ID, DOWNLOAD_INTERNAL_LIS);
+        DownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, DOWNLOAD_INTERNAL_LIS);
+    }
 
     FileDownloadTask(String url) {
         super(url);
-        if (DOWNLOAD_INTERNAL_LIS == null) {
-            DOWNLOAD_INTERNAL_LIS = new DownloadEventSampleListener(new FileDownloadInternalLis());
-            DownloadEventPool.getImpl().addListener(DownloadServiceConnectChangedEvent.ID, DOWNLOAD_INTERNAL_LIS);
-            DownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, DOWNLOAD_INTERNAL_LIS);
-        }
     }
 
 
@@ -134,7 +135,7 @@ class FileDownloadTask extends BaseDownloadTask {
         return FileDownloadServiceUIGuard.getImpl().pauseDownloader(getDownloadId());
     }
 
-    private class FileDownloadInternalLis implements DownloadEventSampleListener.IEventListener {
+    private static class FileDownloadInternalLis implements DownloadEventSampleListener.IEventListener {
 
         @Override
         public boolean callback(IDownloadEvent event) {
