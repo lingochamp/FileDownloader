@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2015 LingoChamp Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.liulishuo.filedownloader;
 
 import android.text.TextUtils;
@@ -14,20 +30,6 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import java.io.File;
 
 /**
- * Copyright (c) 2015 LingoChamp Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
  * Created by Jacksgong on 9/23/15.
  */
 public abstract class BaseDownloadTask {
@@ -204,7 +206,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * 停止任务, 对于线程而言会直接关闭，清理所有相关数据，不会hold住任何东西
-     *
+     * <p/>
      * 如果重新启动，默认会断点续传，所以为pause
      */
     public boolean pause() {
@@ -311,8 +313,8 @@ public abstract class BaseDownloadTask {
 
 
     /**
-     * @see #isReusedOldFile
      * @return 是否是使用了已经存在的有效文件，而非启动下载
+     * @see #isReusedOldFile
      */
     public boolean isReusedOldFile() {
         return isReusedOldFile;
@@ -629,7 +631,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * @return for OkHttpTag/ queue tag
-     *
+     * <p/>
      * As in same queue has same chainKey
      */
     protected int getChainKey() {

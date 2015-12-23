@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2015 LingoChamp Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.liulishuo.filedownloader.util;
 
 import android.app.NotificationManager;
@@ -7,23 +23,9 @@ import android.util.SparseArray;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
- * Copyright (c) 2015 LingoChamp Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
  * Created by Jacksgong on 9/28/15.
  */
-public class FileDownloadNotificationHelper <T extends FileDownloadNotificationHelper.FileDownloadNotification>{
+public class FileDownloadNotificationHelper<T extends FileDownloadNotificationHelper.FileDownloadNotification> {
 
     private final SparseArray<T> notificationMap = new SparseArray<>();
 
@@ -60,10 +62,10 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
 
     /**
      * progress
-     *
+     * <p/>
      * 显示一个有进度变化的notification
      *
-     * @param id download id
+     * @param id    download id
      * @param sofar 已经下载了的字节数
      * @param total 总字节数
      */
@@ -80,11 +82,11 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
 
     /**
      * pending/(paused)
-     *
-     *
+     * <p/>
+     * <p/>
      * 显示一个没有进度变化的notification
      *
-     * @param id download id
+     * @param id     download id
      * @param status 状态{@link FileDownloadStatus}
      */
     public void showNoProgress(final int id, int status) {
@@ -100,7 +102,7 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
 
     /**
      * warn/error/completed/(paused)
-     *
+     * <p/>
      * 已经结束下载过程
      *
      * @param id download id
@@ -130,7 +132,6 @@ public class FileDownloadNotificationHelper <T extends FileDownloadNotificationH
         }
 
         /**
-         *
          * @param isShowProgress 是否有进度变化，需要显示进度
          */
         public abstract void show(final boolean isShowProgress);
