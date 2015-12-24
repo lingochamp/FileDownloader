@@ -17,16 +17,19 @@
 package com.liulishuo.filedownloader;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 
 import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
+import junit.framework.Assert;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Jacksgong on 12/17/15.
@@ -62,71 +65,33 @@ public class FileDownloader {
      * @param isSerial 是否需要串行
      */
     public List<Integer> start(final FileDownloadListener listener, final boolean isSerial) {
-        ExecutorService threadPool = null;
-        if (isSerial) {
-            threadPool = Executors.newFixedThreadPool(1);
+
+        if (listener == null) {
+            return null;
         }
 
+        final List<Integer> ids = new ArrayList<>();
         final List<BaseDownloadTask> list = FileDownloadList.getImpl().copy(listener);
+        for (BaseDownloadTask task : list) {
+            ids.add(task.getDownloadId());
+        }
+
         FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(), listener, isSerial);
 
-        int index = 0;
-        final List<Integer> ids = new ArrayList<>();
-        for (final BaseDownloadTask downloadTask : list) {
-            if (downloadTask.getListener() == listener) {
-
-                if (threadPool != null) {
-                    // 串行处理
-                    threadPool.execute(new Runnable() {
-
-                        Runnable setIndex(int index){
-                            this.index = index;
-                            return this;
-                        }
-
-                        int index = 0;
-                        final Object lockThread = new Object();
-                        boolean isFinal = false;
-
-                        @Override
-                        public void run() {
-                            if (!FileDownloadList.getImpl().contains(downloadTask)) {
-                                FileDownloadLog.d(FileDownloader.class, "serial go on %d %s but, list not contain", index, downloadTask);
-                                // paused?
-                                return;
-                            }
-
-                            downloadTask.setFinishListener(new BaseDownloadTask.FinishListener() {
-                                @Override
-                                public void over() {
-                                    isFinal = true;
-                                    synchronized (lockThread) {
-                                        lockThread.notifyAll();
-                                    }
-                                }
-                            }).start();
-
-                            if (!isFinal) {
-                                synchronized (lockThread) {
-                                    try {
-                                        lockThread.wait();
-                                    } catch (InterruptedException e) {
-                                        // TODO 下载失败的方式抛出
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-
-                            FileDownloadLog.v(FileDownloader.class, "end task(index:%d) and go next %s", index, downloadTask);
-
-                        }
-                    }.setIndex(index++));
-
-                } else {
-                    ids.add(downloadTask.start());
-                }
+        if (isSerial) {
+            // serial
+            final Handler serialHandler = createSerialHandler(list);
+            Message msg = serialHandler.obtainMessage();
+            msg.what = WHAT_SERIAL_NEXT;
+            msg.arg1 = 0;
+            serialHandler.sendMessage(msg);
+        } else {
+            // parallel
+            for (final BaseDownloadTask downloadTask : list) {
+                ids.add(downloadTask.start());
             }
         }
+
 
         return ids;
     }
@@ -199,5 +164,81 @@ public class FileDownloader {
         }
     }
 
+    private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {
+        Assert.assertTrue("create serial handler list must not empty", serialTasks != null && serialTasks.size() > 0);
+
+
+        final HandlerThread serialThread = new HandlerThread(String.format("filedownloader serial thread %s",
+                serialTasks.get(0).getListener()));
+        serialThread.start();
+
+        final SerialHandlerCallback callback = new SerialHandlerCallback();
+        final Handler serialHandler = new Handler(serialThread.getLooper(), callback);
+        callback.setHandler(serialHandler);
+        callback.setList(serialTasks);
+
+        return serialHandler;
+    }
+
+
+    final static int WHAT_SERIAL_NEXT = 1;
+
+    private static class SerialHandlerCallback implements Handler.Callback {
+        private Handler handler;
+        private List<BaseDownloadTask> list;
+
+        public Handler.Callback setHandler(final Handler handler) {
+            this.handler = handler;
+            return this;
+        }
+
+        public Handler.Callback setList(List<BaseDownloadTask> list) {
+            this.list = list;
+            return this;
+        }
+
+        @Override
+        public boolean handleMessage(final Message msg) {
+            if (msg.what == WHAT_SERIAL_NEXT) {
+                if (msg.arg1 >= list.size()) {
+                    // final serial tasks
+                    if (this.handler != null && this.handler.getLooper() != null) {
+                        this.handler.getLooper().quit();
+                        this.handler = null;
+                        this.list = null;
+                    }
+
+                    FileDownloadLog.d(SerialHandlerCallback.class, "final serial %s %d",
+                            this.list == null ? null : this.list.get(0) == null ? null : this.list.get(0).getListener(),
+                            msg.arg1);
+                    return true;
+                }
+
+                list.get(msg.arg1)
+                        .setFinishListener(new BaseDownloadTask.FinishListener() {
+                            private int index;
+
+                            public BaseDownloadTask.FinishListener setIndex(int index) {
+                                this.index = index;
+                                return this;
+                            }
+
+                            @Override
+                            public void over() {
+                                Message nextMsg = SerialHandlerCallback.this.handler.obtainMessage();
+                                nextMsg.what = WHAT_SERIAL_NEXT;
+                                nextMsg.arg1 = this.index;
+                                FileDownloadLog.d(SerialHandlerCallback.class, "start next %s %s",
+                                        SerialHandlerCallback.this.list == null ? null : SerialHandlerCallback.this.list.get(0) == null ? null :
+                                                SerialHandlerCallback.this.list.get(0).getListener(), nextMsg.arg1);
+                                SerialHandlerCallback.this.handler.sendMessage(nextMsg);
+                            }
+                        }.setIndex(msg.arg1 + 1))
+                        .start();
+
+            }
+            return true;
+        }
+    }
 
 }

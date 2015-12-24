@@ -145,6 +145,7 @@ public abstract class BaseDownloadTask {
      * 任意的任务结束都会回调到这个回调，warn,error,paused,completed
      */
     public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
+        // TODO 新增addFinishListener，弃用该方法，由于内部也需要使用
         this.finishListener = finishListener;
         return this;
     }
