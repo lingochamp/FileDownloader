@@ -71,6 +71,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             e.printStackTrace();
         }
 
+        // 外面处理，未知耗时
         DownloadEventPool.getImpl().
                 asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
                         DownloadServiceConnectChangedEvent.ConnectStatus.connected, serviceClass));
@@ -88,6 +89,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         }
         FileDownloadLog.d(this, "onServiceDisconnected %s %s", name, this.service);
         this.service = null;
+        // 外面处理，未知耗时
         DownloadEventPool.getImpl().
                 asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
                         DownloadServiceConnectChangedEvent.ConnectStatus.disconnected, serviceClass));

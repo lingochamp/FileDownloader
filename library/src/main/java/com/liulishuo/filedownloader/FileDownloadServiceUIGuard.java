@@ -23,6 +23,7 @@ import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService;
@@ -69,7 +70,13 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
 
         @Override
         public void callback(FileDownloadTransferModel transfer) throws RemoteException {
-            DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(transfer));
+            if (transfer.getStatus() == FileDownloadStatus.completed) {
+                // 中间有一个blockComplete未知耗时
+                DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTransferEvent(transfer));
+            } else {
+                // 发出去以后在BaseDownloadTask#update中进行转包到UI线程，基本不耗时
+                DownloadEventPool.getImpl().asyncPublishInCelerityThread(new DownloadTransferEvent(transfer));
+            }
         }
     }
 

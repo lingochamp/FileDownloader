@@ -195,6 +195,7 @@ public abstract class BaseDownloadTask {
         }
 
         if (ready) {
+            // 在IPC的时候被block住等待Binder线程
             DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTaskEvent(this)
                     .requestStart());
         }
