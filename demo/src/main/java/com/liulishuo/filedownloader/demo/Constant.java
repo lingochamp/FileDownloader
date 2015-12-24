@@ -6,6 +6,7 @@ package com.liulishuo.filedownloader.demo;
 public interface Constant {
 
     String[] BIG_FILE_URLS = {
+            "http://7xjww9.com1.z0.glb.clouddn.com/20130221114001385.jpg",
             "http://dg.101.hk/1.rar",
             "https://static.pexels.com/photos/479/landscape-nature-sunset-trees.jpg",
             "http://7xjww9.com1.z0.glb.clouddn.com/Hopetoun_falls.jpg",
