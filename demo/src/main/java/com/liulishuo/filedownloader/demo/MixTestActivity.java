@@ -1,9 +1,12 @@
 package com.liulishuo.filedownloader.demo;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -22,15 +25,45 @@ import java.io.File;
 public class MixTestActivity extends AppCompatActivity {
 
     private final String TAG = "Demo.MixActivity";
+    private Handler uiHandler;
+    private final int WHAT_NEED_AUTO_2_BOTTOM = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mix);
 
+        uiHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                if (msg.what == WHAT_NEED_AUTO_2_BOTTOM) {
+                    needAuto2Bottom = true;
+                }
+                return false;
+            }
+        });
+
         assignViews();
-        scrollView.fullScroll(View.FOCUS_DOWN);
+        scrollView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    uiHandler.removeMessages(WHAT_NEED_AUTO_2_BOTTOM);
+                    needAuto2Bottom = false;
+                }
+
+                if (event.getAction() == MotionEvent.ACTION_UP ||
+                        event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    uiHandler.removeMessages(WHAT_NEED_AUTO_2_BOTTOM);
+                    uiHandler.sendEmptyMessageDelayed(WHAT_NEED_AUTO_2_BOTTOM, 1000);
+                }
+
+                return false;
+            }
+        });
     }
+
+    private boolean needAuto2Bottom = true;
 
     public void onClickDel(final View view) {
         File file = new File(FileDownloadUtils.getDefaultSaveRootPath());
@@ -60,7 +93,10 @@ public class MixTestActivity extends AppCompatActivity {
     private int totalCounts = 0;
     private int finalCounts = 0;
 
+    // =================================================== demo area ========================================================
     /**
+     * Start single download task
+     *
      * 启动单任务下载
      *
      * @param view
@@ -75,6 +111,8 @@ public class MixTestActivity extends AppCompatActivity {
     }
 
     /**
+     * Start multiple download tasks parallel
+     *
      * 启动并行多任务下载
      *
      * @param view
@@ -90,7 +128,7 @@ public class MixTestActivity extends AppCompatActivity {
             totalCounts++;
             FileDownloader.getImpl().create(url)
                     .setListener(parallelTarget)
-                    .setCallbackProgressTimes(3)
+                    .setCallbackProgressTimes(1)
                     .setTag(++i)
                     .ready();
         }
@@ -99,6 +137,8 @@ public class MixTestActivity extends AppCompatActivity {
     }
 
     /**
+     * Start multiple download tasks serial
+     *
      * 启动串行多任务下载
      *
      * @param view
@@ -114,7 +154,7 @@ public class MixTestActivity extends AppCompatActivity {
             totalCounts++;
             FileDownloader.getImpl().create(url)
                     .setListener(serialTarget)
-                    .setCallbackProgressTimes(3)
+                    .setCallbackProgressTimes(1)
                     .setTag(++i)
                     .ready();
         }
@@ -187,10 +227,17 @@ public class MixTestActivity extends AppCompatActivity {
         };
     }
 
+    // -------------------------------------------------------- something just for display ------------------------------------------------------
+
     private void updateDisplay(final CharSequence msg) {
+        if (downloadMsgTv.getLineCount() > 2500) {
+            downloadMsgTv.setText("");
+        }
         downloadMsgTv.append(String.format("\n %s", msg));
         tipMsgTv.setText(String.format("%d/%d", finalCounts, totalCounts));
-        scrollView.post(scroll2Bottom);
+        if (needAuto2Bottom) {
+            scrollView.post(scroll2Bottom);
+        }
     }
 
     private Runnable scroll2Bottom = new Runnable() {
