@@ -214,6 +214,14 @@ public class FileDownloader {
                     return true;
                 }
 
+                final BaseDownloadTask task = this.list.get(msg.arg1);
+                if (!FileDownloadList.getImpl().contains(task)) {
+                    // pause?
+                    FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", task, msg.arg1);
+                    goNext(msg.arg1 + 1);
+                    return true;
+                }
+
                 list.get(msg.arg1)
                         .setFinishListener(new BaseDownloadTask.FinishListener() {
                             private int index;
@@ -225,19 +233,28 @@ public class FileDownloader {
 
                             @Override
                             public void over() {
-                                Message nextMsg = SerialHandlerCallback.this.handler.obtainMessage();
-                                nextMsg.what = WHAT_SERIAL_NEXT;
-                                nextMsg.arg1 = this.index;
-                                FileDownloadLog.d(SerialHandlerCallback.class, "start next %s %s",
-                                        SerialHandlerCallback.this.list == null ? null : SerialHandlerCallback.this.list.get(0) == null ? null :
-                                                SerialHandlerCallback.this.list.get(0).getListener(), nextMsg.arg1);
-                                SerialHandlerCallback.this.handler.sendMessage(nextMsg);
+                                goNext(this.index);
                             }
                         }.setIndex(msg.arg1 + 1))
                         .start();
 
             }
             return true;
+        }
+
+        private void goNext(final int nextIndex) {
+            if (this.handler == null || this.list == null) {
+                FileDownloadLog.w(this, "need go next %d, but params is not ready %s %s", nextIndex, this.handler, this.list);
+                return;
+            }
+
+            Message nextMsg = this.handler.obtainMessage();
+            nextMsg.what = WHAT_SERIAL_NEXT;
+            nextMsg.arg1 = nextIndex;
+            FileDownloadLog.d(SerialHandlerCallback.class, "start next %s %s",
+                    this.list == null ? null : this.list.get(0) == null ? null :
+                            this.list.get(0).getListener(), nextMsg.arg1);
+            this.handler.sendMessage(nextMsg);
         }
     }
 

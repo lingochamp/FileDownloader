@@ -531,6 +531,7 @@ public abstract class BaseDownloadTask {
     // ------------------
     // 开始进入队列
     void begin() {
+        FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
         _addEventListener();
     }
 
@@ -540,7 +541,7 @@ public abstract class BaseDownloadTask {
 
     // 结束
     void over() {
-        FileDownloadLog.v(this, "%s over by %d ", toString(), getStatus());
+        FileDownloadLog.v(this, "filedownloader:lifecycle:over %s by %d ", toString(), getStatus());
 
         if (finishListener != null) {
             finishListener.over();
