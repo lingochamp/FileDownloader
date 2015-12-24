@@ -1,8 +1,10 @@
 # FileDownloader
+Android 文件下载引擎，稳定、高效、简单易用
 
 [ ![Download][bintray_svg] ][bintray_url]
+![][file_downloader_svg]
+![][license_2_svg]
 
-> Android 文件下载引擎，稳定、高效、简单易用
 > 本引擎目前基于口碑很好的okhttp
 
 ### 特点
@@ -271,6 +273,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+[license_2_svg]: https://img.shields.io/hexpm/l/plug.svg
+[android_platform_svg]: https://img.shields.io/badge/Platform-Android-brightgreen.svg
+[file_downloader_svg]: https://img.shields.io/badge/Android-FileDownloader-orange.svg
 [mix_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/mix.gif
 [parallel_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/parallel.gif
 [serial_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/serial.gif
