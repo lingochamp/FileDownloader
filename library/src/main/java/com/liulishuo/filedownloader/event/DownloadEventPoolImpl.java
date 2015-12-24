@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
  */
 final public class DownloadEventPoolImpl implements IDownloadEventPool {
 
+    // TODO 线程池大小的按照资源区分与优化
     private final ExecutorService threadPool = Executors.newFixedThreadPool(8);
 
     private final HashMap<String, LinkedList<IDownloadListener>> listenersMap = new HashMap<>();
