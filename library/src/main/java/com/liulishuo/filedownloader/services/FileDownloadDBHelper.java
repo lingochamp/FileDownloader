@@ -76,7 +76,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setUrl(c.getString(c.getColumnIndex(FileDownloadModel.URL)));
                 model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)));
                 model.setCallbackProgressTimes(c.getInt(c.getColumnIndex(FileDownloadModel.CALLBACK_PROGRESS_TIMES)));
-                model.setStatus(c.getInt(c.getColumnIndex(FileDownloadModel.STATUS)));
+                model.setStatus((byte) c.getShort(c.getColumnIndex(FileDownloadModel.STATUS)));
                 model.setSoFar(c.getInt(c.getColumnIndex(FileDownloadModel.SOFAR)));
                 model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
@@ -154,7 +154,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     private long lastRefreshUpdate = 0;
 
     @Override
-    public void update(int id, int status, int soFar, int total) {
+    public void update(int id, byte status, int soFar, int total) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(status);

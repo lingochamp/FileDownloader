@@ -42,7 +42,7 @@ public class FileDownloadModel implements Parcelable {
     private int callbackProgressTimes = DEFAULT_CALLBACK_PROGRESS_TIMES;
     public final static String CALLBACK_PROGRESS_TIMES = "callbackProgressTimes";
 
-    private int status;
+    private byte status;
     public final static String STATUS = "status";
 
     private int soFar;
@@ -73,7 +73,7 @@ public class FileDownloadModel implements Parcelable {
         this.path = path;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(byte status) {
         this.status = status;
     }
 
@@ -97,7 +97,7 @@ public class FileDownloadModel implements Parcelable {
         return path;
     }
 
-    public int getStatus() {
+    public byte getStatus() {
         return status;
     }
 
@@ -166,6 +166,7 @@ public class FileDownloadModel implements Parcelable {
         dest.writeString(this.url);
         dest.writeString(this.path);
         dest.writeInt(this.callbackProgressTimes);
+        dest.writeByte(this.status);
         dest.writeInt(this.status);
         dest.writeInt(this.soFar);
         dest.writeInt(this.total);
@@ -182,7 +183,7 @@ public class FileDownloadModel implements Parcelable {
         this.url = in.readString();
         this.path = in.readString();
         this.callbackProgressTimes = in.readInt();
-        this.status = in.readInt();
+        this.status = in.readByte();
         this.soFar = in.readInt();
         this.total = in.readInt();
         this.errMsg = in.readString();

@@ -22,16 +22,17 @@ package com.liulishuo.filedownloader.model;
  * @see com.liulishuo.filedownloader.IFileDownloadMessage
  */
 public interface FileDownloadStatus {
-    int pending = 1;
-    int connected = 2;
-    int progress = 3;
-    int blockComplete = 4;
-    int error = -1;
-    int paused = -2;
-    int completed = -3;
-    int warn = -4;
+    // [-2^7, 2^7 -1]
+    byte pending = 1;
+    byte connected = 2;
+    byte progress = 3;
+    byte blockComplete = 4;
+    byte error = -1;
+    byte paused = -2;
+    byte completed = -3;
+    byte warn = -4;
 
-    int MAX_INT = 4;
-    int MIN_INT = -4;
-    int INVALID_STATUS = 0;
+    byte MAX_INT = 4;
+    byte MIN_INT = -4;
+    byte INVALID_STATUS = 0;
 }

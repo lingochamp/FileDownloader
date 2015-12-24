@@ -44,7 +44,7 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
                                 "%s VARCHAR, " + //url
                                 "%s VARCHAR, " + // path
                                 "%s INTEGER, " + // callbackProgressTimes
-                                "%s SMALLINT, " + // status
+                                "%s TINYINT, " + // status ,ps SQlite will auto change to integer.
                                 "%s INTEGER, " + // so far
                                 "%s INTEGER, " + // total
                                 "%s VARCHAR, " + // err msg

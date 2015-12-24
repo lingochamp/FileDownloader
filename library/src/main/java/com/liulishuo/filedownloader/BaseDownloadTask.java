@@ -47,7 +47,7 @@ public abstract class BaseDownloadTask {
 
     private int soFarBytes;
     private int totalBytes;
-    private int status = FileDownloadStatus.INVALID_STATUS;
+    private byte status = FileDownloadStatus.INVALID_STATUS;
 
 
     private boolean isContinue;
@@ -293,7 +293,7 @@ public abstract class BaseDownloadTask {
      * @return 当前状态
      * @see FileDownloadStatus
      */
-    public int getStatus() {
+    public byte getStatus() {
         return status;
     }
 
@@ -514,7 +514,7 @@ public abstract class BaseDownloadTask {
     }
 
     // 状态变化，在入队/出队/通知 之前改变
-    void setStatus(int status) {
+    void setStatus(byte status) {
         if (status > FileDownloadStatus.MAX_INT ||
                 status < FileDownloadStatus.MIN_INT) {
             throw new RuntimeException(String.format("status undefined, %d", status));

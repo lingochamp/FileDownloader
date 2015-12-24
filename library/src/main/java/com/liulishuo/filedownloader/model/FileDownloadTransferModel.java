@@ -27,7 +27,7 @@ import android.os.Parcelable;
  */
 public class FileDownloadTransferModel implements Parcelable {
 
-    private int status;
+    private byte status;
     private int downloadId;
     private int soFarBytes;
 
@@ -68,11 +68,11 @@ public class FileDownloadTransferModel implements Parcelable {
         this.etag = etag;
     }
 
-    public int getStatus() {
+    public byte getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(byte status) {
         this.status = status;
     }
 
@@ -121,7 +121,7 @@ public class FileDownloadTransferModel implements Parcelable {
      */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(this.status);
+        dest.writeByte(this.status);
         dest.writeInt(this.downloadId);
 
         // 为了频繁拷贝的时候不带上
@@ -153,7 +153,7 @@ public class FileDownloadTransferModel implements Parcelable {
      * @see com.liulishuo.filedownloader.BaseDownloadTask#update(FileDownloadTransferModel)
      */
     protected FileDownloadTransferModel(Parcel in) {
-        this.status = in.readInt();
+        this.status = in.readByte();
         this.downloadId = in.readInt();
 
         // 为了频繁拷贝的时候不带上

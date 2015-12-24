@@ -103,7 +103,7 @@ class FileDownloadList {
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#completed}
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#error}
      */
-    boolean remove(final BaseDownloadTask willRemoveDownload, final int removeByStatus) {
+    boolean remove(final BaseDownloadTask willRemoveDownload, final byte removeByStatus) {
         boolean succeed;
         synchronized (list) {
             succeed = list.remove(willRemoveDownload);

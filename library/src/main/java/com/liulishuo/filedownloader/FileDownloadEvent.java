@@ -32,7 +32,7 @@ class FileDownloadEvent extends IDownloadEvent {
 
     private final BaseDownloadTask downloader;
 
-    private int status;
+    private byte status;
 
     public FileDownloadEvent progress() {
         this.status = FileDownloadStatus.progress;
@@ -85,7 +85,7 @@ class FileDownloadEvent extends IDownloadEvent {
         return this.downloader;
     }
 
-    public int getStatus() {
+    public byte getStatus() {
         return this.status;
     }
 }
