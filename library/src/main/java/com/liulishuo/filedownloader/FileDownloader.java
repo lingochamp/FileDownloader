@@ -67,21 +67,31 @@ public class FileDownloader {
             threadPool = Executors.newFixedThreadPool(1);
         }
 
-        final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
+        final List<BaseDownloadTask> list = FileDownloadList.getImpl().copy(listener);
+        FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(), listener, isSerial);
+
+        int index = 0;
         final List<Integer> ids = new ArrayList<>();
-        for (final BaseDownloadTask downloadTask : downloadList) {
+        for (final BaseDownloadTask downloadTask : list) {
             if (downloadTask.getListener() == listener) {
 
                 if (threadPool != null) {
                     // 串行处理
                     threadPool.execute(new Runnable() {
 
+                        Runnable setIndex(int index){
+                            this.index = index;
+                            return this;
+                        }
+
+                        int index = 0;
                         final Object lockThread = new Object();
                         boolean isFinal = false;
 
                         @Override
                         public void run() {
                             if (!FileDownloadList.getImpl().contains(downloadTask)) {
+                                FileDownloadLog.d(FileDownloader.class, "serial go on %d %s but, list not contain", index, downloadTask);
                                 // paused?
                                 return;
                             }
@@ -91,7 +101,7 @@ public class FileDownloader {
                                 public void over() {
                                     isFinal = true;
                                     synchronized (lockThread) {
-                                        lockThread.notify();
+                                        lockThread.notifyAll();
                                     }
                                 }
                             }).start();
@@ -105,14 +115,12 @@ public class FileDownloader {
                                         e.printStackTrace();
                                     }
                                 }
-
-                                if (!isFinal) {
-                                    // TODO 以错误的方式输出，这里不应该还没有结束
-                                }
                             }
 
+                            FileDownloadLog.v(FileDownloader.class, "end task(index:%d) and go next %s", index, downloadTask);
+
                         }
-                    });
+                    }.setIndex(index++));
 
                 } else {
                     ids.add(downloadTask.start());

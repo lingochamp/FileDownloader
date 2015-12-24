@@ -396,7 +396,7 @@ public abstract class BaseDownloadTask {
     private void _adjust() {
         if (path == null) {
             path = FileDownloadUtils.getDefaultSaveFilePath(url);
-            FileDownloadLog.e(this, "save path is null to %s", path);
+            FileDownloadLog.w(this, "save path is null to %s", path);
         }
     }
 
@@ -539,6 +539,8 @@ public abstract class BaseDownloadTask {
 
     // 结束
     void over() {
+        FileDownloadLog.v(this, "%s over by %d ", toString(), getStatus());
+
         if (finishListener != null) {
             finishListener.over();
         }

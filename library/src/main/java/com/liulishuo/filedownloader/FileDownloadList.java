@@ -59,6 +59,19 @@ class FileDownloadList {
         return list.contains(download);
     }
 
+    List<BaseDownloadTask> copy(final FileDownloadListener listener) {
+        final List<BaseDownloadTask> targetList = new ArrayList<>();
+        synchronized (list) {
+            // 防止size变化
+            for (BaseDownloadTask task : list) {
+                if (task.getListener() == listener) {
+                    targetList.add(task);
+                }
+            }
+            return targetList;
+        }
+    }
+
     BaseDownloadTask[] copy() {
         synchronized (list) {
             // 防止size变化
@@ -108,6 +121,7 @@ class FileDownloadList {
         synchronized (list) {
             succeed = list.remove(willRemoveDownload);
         }
+        FileDownloadLog.v(this, "remove %s left %d %d", willRemoveDownload, removeByStatus, list.size());
 
         if (succeed) {
             // 抛消息
@@ -153,12 +167,13 @@ class FileDownloadList {
         downloadInternal.getDriver().notifyStarted();
     }
 
-    void ready(final BaseDownloadTask downloadInternal) {
+    void ready(final BaseDownloadTask task) {
         synchronized (list) {
-            if (list.contains(downloadInternal)) {
-                FileDownloadLog.w(this, "already has %s", downloadInternal);
+            if (list.contains(task)) {
+                FileDownloadLog.w(this, "already has %s", task);
             } else {
-                list.add(downloadInternal);
+                list.add(task);
+                FileDownloadLog.v(this, "add list in all %s %d %d", task, task.getStatus(), list.size());
             }
         }
     }
