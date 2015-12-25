@@ -40,6 +40,12 @@ import java.io.File;
 public class PerformanceActivity extends AppCompatActivity {
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        pause();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_performance);
@@ -181,7 +187,9 @@ public class PerformanceActivity extends AppCompatActivity {
     private void stopTimer() {
         isStopTimer = true;
         final long consume = System.currentTimeMillis() - start;
-        timeConsumeTv.setText(String.valueOf(consume / 1000f));
+        if (timeConsumeTv != null) {
+            timeConsumeTv.setText(String.valueOf(consume / 1000f));
+        }
     }
 
     private FileDownloadListener createLis() {
