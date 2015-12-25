@@ -48,15 +48,12 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.1.0'
+compile 'com.liulishuo.filedownloader:library:0.1.1'
 ```
-
-> 假如发现IDE没有自动绑定源码到拉下来的`.class`，请下载[library-0.1.0-sources.jar][library_last_source_jar]，然后主动`Choose Sources...`进行绑定，这样方便阅读与debug。有任何问题，提issue即可。
 
 #### 全局初始化在`Application.onCreate`中
 
 ```
-
 public XXApplication extends Application{
 
     ...
@@ -68,13 +65,11 @@ public XXApplication extends Application{
 
     ...
 }
-
 ```
 
 #### 启动单任务下载
 
 ```
-
 FileDownloader.getImpl().create(url)
         .setPath(path)
         .setListener(new FileDownloadListener() {
@@ -119,7 +114,6 @@ FileDownloader.getImpl().create(url)
 #### 启动多任务下载
 
 ```
-
 final FileDownloadListener queueTarget = new FileDownloadListener() {
             @Override
             protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
@@ -287,4 +281,3 @@ limitations under the License.
 [single_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single.gif
 [bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
-[library_last_source_jar]: https://bintray.com/artifact/download/jacksgong/maven/com/liulishuo/filedownloader/library/0.1.0/library-0.1.0-sources.jar

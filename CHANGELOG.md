@@ -1,5 +1,10 @@
 # Change log
 
+### Version 0.1.1
+
+- event线程区分敏捷线程池与其他线程池，减少资源冗余强制、内部稳定性以及消化能力与性能，
+- 添加自动重试接口，新增用户指定如果失败自动重试的次数
+
 ### Version 0.1.0
 
 - FileDownloadStatus 由`int`改为`byte`，该参数会频繁的在IPC时被拷贝
