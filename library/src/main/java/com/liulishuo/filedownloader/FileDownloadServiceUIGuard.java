@@ -80,7 +80,14 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         }
     }
 
-    public int startDownloader(final String url, final String path, final int callbackProgressTimes) {
+    /**
+     * @param url                   for download
+     * @param path                  for save download file
+     * @param callbackProgressTimes for callback progress times
+     * @param autoRetryTimes        for auto retry times when error
+     * @return download id
+     */
+    public int startDownloader(final String url, final String path, final int callbackProgressTimes, final int autoRetryTimes) {
         int result = 0;
 
         if (getService() == null) {
@@ -88,7 +95,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         }
 
         try {
-            result = getService().start(url, path, callbackProgressTimes);
+            result = getService().start(url, path, callbackProgressTimes, autoRetryTimes);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -102,20 +109,6 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
 
         try {
             return getService().pause(downloadId);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public boolean resumeDownloader(final int downloadId) {
-        if (getService() == null) {
-            return false;
-        }
-
-        try {
-            return getService().resume(downloadId);
         } catch (RemoteException e) {
             e.printStackTrace();
         }

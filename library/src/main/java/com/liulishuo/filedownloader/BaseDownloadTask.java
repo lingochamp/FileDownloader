@@ -48,6 +48,9 @@ public abstract class BaseDownloadTask {
     private int soFarBytes;
     private int totalBytes;
     private byte status = FileDownloadStatus.INVALID_STATUS;
+    private int autoRetryTimes = 0;
+    // 当前重试的次数
+    private int retryingTimes = 0;
 
 
     private boolean isContinue;
@@ -147,6 +150,14 @@ public abstract class BaseDownloadTask {
     public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
         // TODO 新增addFinishListener，弃用该方法，由于内部也需要使用
         this.finishListener = finishListener;
+        return this;
+    }
+
+    /**
+     * @param autoRetryTimes 当请求或下载或写文件过程中存在错误时，自动重试次数，默认为0次
+     */
+    public BaseDownloadTask setAutoRetryTimes(int autoRetryTimes) {
+        this.autoRetryTimes = autoRetryTimes;
         return this;
     }
 
@@ -343,6 +354,20 @@ public abstract class BaseDownloadTask {
         return this.etag;
     }
 
+    /**
+     * @return 自动重试次数
+     */
+    public int getAutoRetryTimes() {
+        return this.autoRetryTimes;
+    }
+
+    /**
+     * @return 当前重试次数，这里是将要开始重试的时候，会将接下来是第几次重试赋值到这
+     */
+    public int getRetryingTimes() {
+        return this.retryingTimes;
+    }
+
     // --------------------------------------- 以上 对外接口 ----------------------------------------------
 
     // --------------------------------------- 以下 内部机制 --------------------------------------------------
@@ -473,6 +498,10 @@ public abstract class BaseDownloadTask {
         };
     }
 
+    private void _setRetryingTimes(final int times){
+        this.retryingTimes = times;
+    }
+
     // --------------------------------------- 以上 内部机制 --------------------------------------------------
 
     // --------------------------------------- 以下 内部协作接口 --------------------------------------------------
@@ -595,6 +624,19 @@ public abstract class BaseDownloadTask {
                 break;
             case FileDownloadStatus.blockComplete:
                 // 该事件是在complete消息处理(FileDownloadList中根据complete之前回调这个消息)
+                break;
+            case FileDownloadStatus.retry:
+                if (getStatus() == FileDownloadStatus.retry && getRetryingTimes() == transfer.getRetryingTimes()) {
+                    FileDownloadLog.w(this, "already retry! %d %d %s", getRetryingTimes(), getAutoRetryTimes(), transfer.getThrowable().getMessage());
+                    break;
+                }
+
+                setStatus(transfer.getStatus());
+                setSoFarBytes(transfer.getSoFarBytes());
+                setEx(transfer.getThrowable());
+                _setRetryingTimes(transfer.getRetryingTimes());
+
+                getDriver().notifyRetry();
                 break;
             case FileDownloadStatus.error:
                 if (getStatus() == FileDownloadStatus.error) {

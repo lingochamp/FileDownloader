@@ -46,10 +46,10 @@ class FileDownloadMgr {
     }
 
 
-    public synchronized int start(String url, String path, int callbackProgressTimes) {
+    public synchronized int start(String url, String path, int callbackProgressTimes, int autoRetryTimes) {
         final int id = FileDownloadUtils.generateId(url, path);
 
-        if (checkResume(id)) {
+        if (checkResume(id, autoRetryTimes)) {
             FileDownloadLog.d(this, "resume %d", id);
             return id;
         }
@@ -67,7 +67,7 @@ class FileDownloadMgr {
 
         mHelper.update(model);
 
-        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper));
+        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes));
 
         return id;
     }
@@ -158,11 +158,7 @@ class FileDownloadMgr {
         return transferModel;
     }
 
-    private boolean checkResume(final int downloadId) {
-        return resume(downloadId);
-    }
-
-    public boolean resume(final int id) {
+    public boolean checkResume(final int id, final int autoRetryTimes) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {
             return false;
@@ -175,7 +171,7 @@ class FileDownloadMgr {
         model.setIsCancel(false);
 
         FileDownloadLog.d(this, "start resume %d %d %d", id, model.getSoFar(), model.getTotal());
-        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper));
+        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes));
 
         return true;
     }

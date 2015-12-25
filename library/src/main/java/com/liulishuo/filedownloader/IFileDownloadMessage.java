@@ -36,6 +36,8 @@ interface IFileDownloadMessage {
 
     void notifyBlockComplete();
 
+    void notifyRetry();
+
     // 结束态，异或
     void notifyWarn();
 

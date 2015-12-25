@@ -68,8 +68,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
             return;
         }
 
-        DownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent().
-                progress());
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
+                .progress());
 
         download.ing();
     }
@@ -81,7 +81,18 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyBlockComplete() {
         FileDownloadLog.d(this, "notify block completed %s %s", download, Thread.currentThread().getName());
 
-        DownloadEventPool.getImpl().publish(download.getIngEvent().blockComplete());
+        DownloadEventPool.getImpl().publish(download.getIngEvent()
+                .blockComplete());
+        download.ing();
+    }
+
+    @Override
+    public void notifyRetry() {
+        FileDownloadLog.d(this, "notify retry %s %d %d %s", download, download.getAutoRetryTimes(), download.getRetryingTimes(), download.getEx());
+
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
+                .retry());
+
         download.ing();
     }
 
@@ -89,8 +100,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     @Override
     public void notifyWarn() {
         FileDownloadLog.d(this, "notify warn %s", download);
-        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
-                warn());
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+                .warn());
 
         download.over();
     }
@@ -99,8 +110,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyError() {
         FileDownloadLog.e(this, download.getEx(), "notify error %s", download);
 
-        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
-                error());
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+                .error());
 
         download.over();
     }
@@ -109,8 +120,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyPaused() {
         FileDownloadLog.d(this, "notify paused %s", download);
 
-        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
-                pause());
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+                .pause());
 
         download.over();
     }
@@ -119,8 +130,8 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyCompleted() {
         FileDownloadLog.d(this, "notify completed %s", download);
 
-        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent().
-                complete());
+        DownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+                .complete());
 
         download.over();
     }

@@ -40,7 +40,7 @@ import java.net.SocketTimeoutException;
 
 /**
  * Created by Jacksgong on 9/24/15.
- *
+ * <p/>
  * 这边所有的事件抛独立线程，都会在FileDownloadService捕获处理，虽然会起一个Binder线程进行IPC但这边的线程也会被hold，所以不为Celerity线程
  */
 class FileDownloadRunnable implements Runnable {
@@ -74,8 +74,9 @@ class FileDownloadRunnable implements Runnable {
     private volatile boolean isPending = false;
 
     private final OkHttpClient client;
+    private final int autoRetryTimes;
 
-    public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model, final IFileDownloadDBHelper helper) {
+    public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model, final IFileDownloadDBHelper helper, final int autoRetryTimes) {
         isPending = true;
         isRunning = false;
 
@@ -99,6 +100,8 @@ class FileDownloadRunnable implements Runnable {
 
         this.etag = model.getETag();
         this.downloadModel = model;
+
+        this.autoRetryTimes = autoRetryTimes;
     }
 
     public boolean isExist() {
@@ -109,129 +112,149 @@ class FileDownloadRunnable implements Runnable {
     public void run() {
         isPending = false;
         isRunning = true;
-        try {
-            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+        int retryingTimes = 0;
+        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-            FileDownloadModel model = this.downloadModel;
+        FileDownloadModel model = this.downloadModel;
 
-            if (model == null) {
-                FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
+        if (model == null) {
+            FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
 
-                this.downloadModel = helper.find(getId());
+            this.downloadModel = helper.find(getId());
 
-                if (this.downloadModel == null) {
-                    FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", getId());
+            if (this.downloadModel == null) {
+                FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", getId());
+                return;
+            }
+
+            model = this.downloadModel;
+        }
+
+        if (model.getStatus() != FileDownloadStatus.pending) {
+            FileDownloadLog.e(this, "start runnable but status err %s", model.getStatus());
+            // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
+            onError(new RuntimeException(String.format("start runnable but status err %s", model.getStatus())));
+
+            return;
+        }
+
+        // 进入下载
+        do {
+
+            int soFar = 0;
+            try {
+
+                if (model.isCanceled()) {
+                    FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
                     return;
                 }
 
-                model = this.downloadModel;
-            }
+                FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
 
-            if (model.getStatus() != FileDownloadStatus.pending) {
-                FileDownloadLog.e(this, "start runnable but status err %s", model.getStatus());
-                // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
-                onError(new RuntimeException(String.format("start runnable but status err %s", model.getStatus())));
+                checkIsContinueAvailable();
 
-                return;
-            }
+                Request.Builder headerBuilder = new Request.Builder().url(url);
+                addHeader(headerBuilder);
+                headerBuilder.tag(this.getId());
+                // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
+                headerBuilder.cacheControl(CacheControl.FORCE_NETWORK);
 
-            if (model.isCanceled()) {
-                FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
-                return;
-            }
+                Call call = client.newCall(headerBuilder.get().build());
 
-            FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
+                Response response = call.execute();
 
-            checkIsContinueAvailable();
+                final boolean isSucceedStart = response.code() == 200;
+                final boolean isSucceedContinue = response.code() == 206 && isContinueDownloadAvailable;
 
-            Request.Builder headerBuilder = new Request.Builder().url(url);
-            addHeader(headerBuilder);
-            headerBuilder.tag(this.getId());
-            // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
-            headerBuilder.cacheControl(CacheControl.FORCE_NETWORK);
+                if (isSucceedStart || isSucceedContinue) {
+                    int total = downloadTransfer.getTotalBytes();
+                    if (isSucceedStart || total == 0) {
+                        // TODO 目前没有对 2^31-1bit以上大小支持，未来会开发一个对应的库
+                        total = (int) response.body().contentLength();
+                    }
 
-            Call call = client.newCall(headerBuilder.get().build());
+                    if (isSucceedContinue) {
+                        soFar = downloadTransfer.getSoFarBytes();
+                        FileDownloadLog.d(this, "add range %d %d", downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
+                    }
 
-            Response response = call.execute();
+                    InputStream inputStream = null;
+                    RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue);
+                    try {
+                        inputStream = response.body().byteStream();
+                        byte[] buff = new byte[BUFFER_SIZE];
+                        maxNotifyBytes = maxNotifyNums <= 0 ? -1 : total / maxNotifyNums;
 
-            final boolean isSucceedStart = response.code() == 200;
-            final boolean isSucceedContinue = response.code() == 206 && isContinueDownloadAvailable;
-
-            if (isSucceedStart || isSucceedContinue) {
-                int total = downloadTransfer.getTotalBytes();
-                int soFar = 0;
-                if (isSucceedStart || total == 0) {
-                    // TODO 目前没有对 2^31-1bit以上大小支持，未来会开发一个对应的库
-                    total = (int) response.body().contentLength();
-                }
-
-                if (isSucceedContinue) {
-                    soFar = downloadTransfer.getSoFarBytes();
-                    FileDownloadLog.d(this, "add range %d %d", downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
-                }
-
-                InputStream inputStream = null;
-                RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue);
-                try {
-                    inputStream = response.body().byteStream();
-                    byte[] buff = new byte[BUFFER_SIZE];
-                    maxNotifyBytes = maxNotifyNums <= 0 ? -1 : total / maxNotifyNums;
-
-                    updateHeader(response);
-                    onConnected(isSucceedContinue, soFar, total);
+                        updateHeader(response);
+                        onConnected(isSucceedContinue, soFar, total);
 
 
-                    do {
-                        int readed = inputStream.read(buff);
-                        if (readed == -1) {
+                        do {
+                            int readed = inputStream.read(buff);
+                            if (readed == -1) {
+                                break;
+                            }
+
+                            accessFile.write(buff, 0, readed);
+
+                            //write buff
+                            soFar += readed;
+                            if (accessFile.length() < soFar) {
+                                // 文件大小必须会等于正在写入的大小
+                                throw new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar));
+                            } else {
+                                onProcess(soFar, total);
+                            }
+
+                            if (isCancelled()) {
+                                onPause();
+                                return;
+                            }
+
+                        } while (true);
+
+
+                        if (soFar == total) {
+                            onComplete(total);
+
+                            // 成功
                             break;
-                        }
-
-                        accessFile.write(buff, 0, readed);
-
-                        //write buff
-                        soFar += readed;
-                        if (accessFile.length() < soFar) {
-                            // 文件大小必须会等于正在写入的大小
-                            onError(new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar)));
-                            return;
                         } else {
-                            onProcess(soFar, total);
+                            throw new RuntimeException(
+                                    String.format("sofar[%d] not equal total[%d]", soFar, total));
+                        }
+                    } finally {
+                        if (inputStream != null) {
+                            inputStream.close();
                         }
 
-                        if (isCancelled()) {
-                            onPause();
-                            return;
+                        if (accessFile != null) {
+                            accessFile.close();
                         }
-
-                    } while (true);
-
-
-                    if (soFar == total) {
-                        onComplete(total);
-                    } else {
-                        onError(new RuntimeException(
-                                String.format("sofar[%d] not equal total[%d]", soFar, total)
-                        ));
-                    }
-                } finally {
-                    if (inputStream != null) {
-                        inputStream.close();
                     }
 
-                    if (accessFile != null) {
-                        accessFile.close();
-                    }
+
+                } else {
+                    throw new RuntimeException(String.format("response code error: %d", response.code()));
                 }
-            } else {
-                throw new RuntimeException(String.format("response code error: %d", response.code()));
-            }
-        } catch (Throwable ex) {
-            onError(ex);
-        } finally {
-            isRunning = false;
-        }
 
+
+            } catch (Throwable ex) {
+                // TODO 决策是否需要重试，是否是用户决定，或者根据错误码处理
+                if (autoRetryTimes > retryingTimes++) {
+                    // retry
+                    onRetry(ex, retryingTimes, soFar);
+                    continue;
+                } else {
+                    // error
+                    onError(ex);
+                    break;
+                }
+            }
+
+        } while (true);
+
+        isRunning = false;
 
     }
 
@@ -305,15 +328,26 @@ class FileDownloadRunnable implements Runnable {
 
     }
 
+    private void onRetry(Throwable ex, final int retryTimes, final int soFarBytes){
+        FileDownloadLog.e(this, ex, "On retry %d %s %d %d", downloadTransfer.getDownloadId(), ex.getMessage(), retryTimes, autoRetryTimes);
+
+        ex = exFiltrate(ex);
+        downloadTransfer.setStatus(FileDownloadStatus.retry);
+        downloadTransfer.setThrowable(ex);
+        downloadTransfer.setRetryingTimes(retryTimes);
+        downloadTransfer.setSoFarBytes(soFarBytes);
+        // TODO 目前是做断点续传，实际还需要看情况而定
+
+        helper.updateRetry(downloadTransfer.getDownloadId(), ex.getMessage(), retryTimes);
+
+        // 这里之所以同步是因为要保证retry已经被非下载线程接收到了才进行接下来操作，不至于被覆盖，或者顺序不对
+        DownloadEventPool.getImpl().publish(event.setTransfer(downloadTransfer));
+    }
+
     private void onError(Throwable ex) {
         FileDownloadLog.e(this, ex, "On error %d %s", downloadTransfer.getDownloadId(), ex.getMessage());
 
-        if (TextUtils.isEmpty(ex.getMessage())) {
-            if (ex instanceof SocketTimeoutException) {
-                ex = new RuntimeException(ex.getClass().getSimpleName(), ex);
-            }
-        }
-
+        ex = exFiltrate(ex);
         downloadTransfer.setStatus(FileDownloadStatus.error);
         downloadTransfer.setThrowable(ex);
 
@@ -400,5 +434,15 @@ class FileDownloadRunnable implements Runnable {
                 FileDownloadLog.d(this, "delete file for dirty file %B, fileLength[%d], sofar[%d] total[%d] etag", result, fileLength, downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
             }
         }
+    }
+
+    private Throwable exFiltrate(Throwable ex) {
+        if (TextUtils.isEmpty(ex.getMessage())) {
+            if (ex instanceof SocketTimeoutException) {
+                ex = new RuntimeException(ex.getClass().getSimpleName(), ex);
+            }
+        }
+
+        return ex;
     }
 }

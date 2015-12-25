@@ -65,21 +65,28 @@ public abstract class FileDownloadListener extends IDownloadListener {
                         downloaderEvent.getDownloader().getSoFarBytes(),
                         downloaderEvent.getDownloader().getTotalBytes());
                 break;
-            case FileDownloadStatus.paused:
-                paused(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getSoFarBytes(),
-                        downloaderEvent.getDownloader().getTotalBytes());
-                break;
 
             case FileDownloadStatus.blockComplete:
                 blockComplete(downloaderEvent.getDownloader());
                 break;
+            case FileDownloadStatus.retry:
+                retry(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getEx(),
+                        downloaderEvent.getDownloader().getRetryingTimes(),
+                        downloaderEvent.getDownloader().getSoFarBytes());
+                break;
+
             case FileDownloadStatus.completed:
                 completed(downloaderEvent.getDownloader());
                 break;
             case FileDownloadStatus.error:
                 error(downloaderEvent.getDownloader(),
                         downloaderEvent.getDownloader().getEx());
+                break;
+            case FileDownloadStatus.paused:
+                paused(downloaderEvent.getDownloader(),
+                        downloaderEvent.getDownloader().getSoFarBytes(),
+                        downloaderEvent.getDownloader().getTotalBytes());
                 break;
             case FileDownloadStatus.warn:
                 // already same url & path in pending/running list
@@ -126,6 +133,18 @@ public abstract class FileDownloadListener extends IDownloadListener {
      * @param task Current task
      */
     protected abstract void blockComplete(final BaseDownloadTask task);
+
+    /**
+     * 重试之前把将要重试是第几次回调回来
+     *
+     * @param task          Current task
+     * @param ex            why retry
+     * @param retryingTimes 将要重试是第几次
+     * @param soFarBytes    在下载了soFarBytes的时候出现的问题
+     */
+    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
+
+    }
 
     // final width below methods
 

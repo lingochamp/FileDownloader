@@ -44,12 +44,23 @@ public class FileDownloadTransferModel implements Parcelable {
     // 错误
     private Throwable throwable;
 
+    // 当前将要重试的次数[1, &]，在开始重试的时候回调将要重试的次数是第几次
+    private int retryingTimes;
+
     public FileDownloadTransferModel(final FileDownloadModel model) {
         this.status = model.getStatus();
         this.downloadId = model.getId();
         this.soFarBytes = model.getSoFar();
         this.totalBytes = model.getTotal();
         this.etag = model.getETag();
+    }
+
+    public int getRetryingTimes() {
+        return retryingTimes;
+    }
+
+    public void setRetryingTimes(int retryingTimes) {
+        this.retryingTimes = retryingTimes;
     }
 
     public boolean isContinue() {
@@ -143,6 +154,11 @@ public class FileDownloadTransferModel implements Parcelable {
                 dest.writeInt(this.soFarBytes);
                 dest.writeSerializable(this.throwable);
                 break;
+            case FileDownloadStatus.retry:
+                dest.writeInt(this.soFarBytes);
+                dest.writeSerializable(this.throwable);
+                dest.writeInt(this.retryingTimes);
+                break;
             case FileDownloadStatus.completed:
                 dest.writeInt(this.totalBytes);
                 break;
@@ -175,6 +191,10 @@ public class FileDownloadTransferModel implements Parcelable {
                 this.soFarBytes = in.readInt();
                 this.throwable = (Throwable) in.readSerializable();
                 break;
+            case FileDownloadStatus.retry:
+                this.soFarBytes = in.readInt();
+                this.throwable = (Throwable) in.readSerializable();
+                this.retryingTimes = in.readInt();
             case FileDownloadStatus.completed:
                 this.totalBytes = in.readInt();
                 break;

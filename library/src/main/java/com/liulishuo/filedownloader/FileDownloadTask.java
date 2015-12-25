@@ -94,7 +94,8 @@ class FileDownloadTask extends BaseDownloadTask {
                 startDownloader(
                         getUrl(),
                         getPath(),
-                        getCallbackProgressTimes());
+                        getCallbackProgressTimes(),
+                        getAutoRetryTimes());
 
         if (result != 0) {
             synchronized (NEED_RESTART_LIST) {

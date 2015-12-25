@@ -27,12 +27,13 @@ public interface FileDownloadStatus {
     byte connected = 2;
     byte progress = 3;
     byte blockComplete = 4;
+    byte retry = 5;
     byte error = -1;
     byte paused = -2;
     byte completed = -3;
     byte warn = -4;
 
-    byte MAX_INT = 4;
+    byte MAX_INT = 5;
     byte MIN_INT = -4;
     byte INVALID_STATUS = 0;
 }

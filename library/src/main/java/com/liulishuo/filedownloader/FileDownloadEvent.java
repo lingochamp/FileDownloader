@@ -71,6 +71,11 @@ class FileDownloadEvent extends IDownloadEvent {
         return this;
     }
 
+    public FileDownloadEvent retry(){
+        this.status = FileDownloadStatus.retry;
+        return this;
+    }
+
     public FileDownloadEvent warn() {
         this.status = FileDownloadStatus.warn;
         return this;
