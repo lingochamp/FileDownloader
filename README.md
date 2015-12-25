@@ -203,6 +203,7 @@ if(parallel){
 | setTag(tag:Object) | 内部不会使用，在回调的时候用户自己使用
 | setForceReDownload(isForceReDownload:boolean) | 强制重新下载，将会忽略检测文件是否健在
 | setFinishListener(listener:FinishListener) | 结束监听，仅包含结束(over(void))的监听
+| setAutoRetryTimes(autoRetryTimes:int) | 当请求或下载或写文件过程中存在错误时，自动重试次数，默认为0次
 | ready(void) | 用于队列下载的单任务的结束符(见上面:启动多任务下载的案例)
 | start(void) | 启动下载任务
 | pause(void) | 暂停下载任务(也可以理解为停止下载，但是在start的时候默认会断点续传)
@@ -220,6 +221,8 @@ if(parallel){
 | getTag(void):Object | 获取用户setTag进来的Object
 | isContinue(void):boolean | 是否成功断点续传
 | getEtag(void):String | 获取当前下载获取到的ETag
+| getAutoRetryTimes(void):int | 自动重试次数
+| getRetryingTimes(void):int | 当前重试次数。将要开始重试的时候，会将接下来是第几次
 
 #### 监听器(`FileDownloadListener`)说明
 
@@ -249,6 +252,7 @@ blockComplete -> completed
 | connected | 已经连接上 | ETag, 是否断点续传, soFarBytes, totalBytes
 | progress | 下载进度回调 | soFarBytes
 | blockComplete | 在完成前同步调用该方法，此时已经下载完成 | -
+| retry | 重试之前把将要重试是第几次回调回来 | 之所以重试遇到Throwable, 将要重试是第几次, soFarBytes
 | completed | 完成整个下载过程 | -
 | paused | 暂停下载 | soFarBytes
 | error | 下载出现错误 | 抛出的Throwable
