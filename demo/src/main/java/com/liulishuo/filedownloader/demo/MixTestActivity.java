@@ -192,6 +192,13 @@ public class MixTestActivity extends AppCompatActivity {
             }
 
             @Override
+            protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
+                super.retry(task, ex, retryingTimes, soFarBytes);
+                updateDisplay(String.format("[retry] id[%d] %s %d %d",
+                        task.getDownloadId(), ex.getMessage(), retryingTimes, soFarBytes));
+            }
+
+            @Override
             protected void completed(BaseDownloadTask task) {
                 finalCounts++;
                 updateDisplay(String.format("[completed] id[%d] oldFile[%B]",
