@@ -146,7 +146,7 @@ class FileDownloadRunnable implements Runnable {
 
                 if (model.isCanceled()) {
                     FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
-                    return;
+                    break;
                 }
 
                 FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
@@ -250,11 +250,12 @@ class FileDownloadRunnable implements Runnable {
                     onError(ex);
                     break;
                 }
+            } finally {
+                isRunning = false;
             }
 
         } while (true);
 
-        isRunning = false;
 
     }
 
@@ -367,6 +368,7 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private void onPause() {
+        this.isRunning = false;
         FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(), downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
         downloadTransfer.setStatus(FileDownloadStatus.paused);
 
