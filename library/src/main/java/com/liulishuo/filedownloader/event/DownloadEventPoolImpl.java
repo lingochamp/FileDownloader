@@ -29,13 +29,19 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Jacksgong on 15/6/23.
  */
 final public class DownloadEventPoolImpl implements IDownloadEventPool {
 
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(3);
+    private final ExecutorService threadPool = new ThreadPoolExecutor(3, 6,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
+
     // 处理一些敏捷快速的事件，通常耗时在1s以内,
     private final ExecutorService celerityThreadPool = Executors.newFixedThreadPool(2);
 
