@@ -95,6 +95,10 @@ FileDownloader.getImpl().create(url)
             }
 
             @Override
+            protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
+            }
+            
+            @Override
             protected void completed(BaseDownloadTask task) {
             }
 
@@ -119,42 +123,38 @@ FileDownloader.getImpl().create(url)
 final FileDownloadListener queueTarget = new FileDownloadListener() {
             @Override
             protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-
             }
 
             @Override
             protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
-
             }
 
             @Override
             protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-
             }
 
             @Override
             protected void blockComplete(BaseDownloadTask task) {
-
             }
 
             @Override
+            protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
+            }
+            
+            @Override
             protected void completed(BaseDownloadTask task) {
-
             }
 
             @Override
             protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-
             }
 
             @Override
             protected void error(BaseDownloadTask task, Throwable e) {
-
             }
 
             @Override
             protected void warn(BaseDownloadTask task) {
-
             }
         };
 
