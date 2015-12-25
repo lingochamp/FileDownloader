@@ -28,11 +28,17 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, SingleTaskActivity.class));
     }
 
+    public void onClickPerformanceMonitor(final View view) {
+        startActivity(new Intent(this, PerformanceActivity.class));
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

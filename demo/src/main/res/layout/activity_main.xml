@@ -14,4 +14,9 @@
         android:onClick="onClickSingle"
         android:text="@string/single_task_test" />
 
+    <Button
+        style="@style/DemoButton"
+        android:onClick="onClickPerformanceMonitor"
+        android:text="Performance Monitor" />
+
 </LinearLayout>

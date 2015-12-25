@@ -29,6 +29,11 @@
 
         <activity android:name=".SingleTaskActivity"
             android:label="@string/single_task_download_test"/>
+
+        <activity
+            android:name=".PerformanceActivity"
+            android:label="Performance Monitor" />
+
     </application>
 
 </manifest>
