@@ -7,6 +7,10 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 > 本引擎目前基于口碑很好的okhttp
 
+---
+#### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
+---
+
 ### 特点
 
 > 总之，你负责大胆高并发高频率的往下载引擎里面以队列(请求需要并行处理/串行处理)/单任务的形式放任务，引擎负责给你达预期稳定、高效的结果输出
