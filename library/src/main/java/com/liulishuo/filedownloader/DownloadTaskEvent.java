@@ -21,7 +21,7 @@ import com.liulishuo.filedownloader.event.IDownloadEvent;
 /**
  * Created by Jacksgong on 12/23/15.
  */
-class DownloadTaskEvent extends IDownloadEvent {
+public class DownloadTaskEvent extends IDownloadEvent {
 
     public final static String ID = "event.download.task";
 
@@ -39,6 +39,10 @@ class DownloadTaskEvent extends IDownloadEvent {
         final BaseDownloadTask task = this.task;
         this.task = null;
         return task;
+    }
+
+    public FileDownloadListener getTaskListener() {
+        return this.task == null ? null : this.task.getListener();
     }
 
     private int operate;

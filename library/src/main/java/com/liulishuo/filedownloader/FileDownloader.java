@@ -21,8 +21,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-import com.liulishuo.filedownloader.event.DownloadEventPool;
-import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
+import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
@@ -45,7 +44,6 @@ public class FileDownloader {
         // 下载进程与非下载进程都存一个
         FileDownloadLog.d(FileDownloader.class, "init Downloader");
         FileDownloadHelper.initAppContext(application);
-        DownloadEventPool.setImpl(new DownloadEventPoolImpl());
     }
 
     private final static class HolderClass {
@@ -102,20 +100,28 @@ public class FileDownloader {
      * @see #pause(int)
      */
     public void pause(final FileDownloadListener listener) {
-        final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
-        for (BaseDownloadTask baseDownloadTask : downloadList) {
-            if (baseDownloadTask.getListener() == listener) {
+        FileDownloadEventPool.getImpl().shutdownSendPool(listener);
+        final List<BaseDownloadTask> downloadList = FileDownloadList.getImpl().copy(listener);
+        synchronized (pauseLock) {
+            for (BaseDownloadTask baseDownloadTask : downloadList) {
                 baseDownloadTask.pause();
             }
         }
 
+
     }
 
+    private final static Object pauseLock = new Object();
+
     public void pauseAll() {
+        FileDownloadEventPool.getImpl().shutdownSendPool();
         final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
-        for (BaseDownloadTask baseDownloadTask : downloadList) {
-            baseDownloadTask.pause();
+        synchronized (pauseLock) {
+            for (BaseDownloadTask baseDownloadTask : downloadList) {
+                baseDownloadTask.pause();
+            }
         }
+
     }
 
     /**
@@ -215,12 +221,15 @@ public class FileDownloader {
                 }
 
                 final BaseDownloadTask task = this.list.get(msg.arg1);
-                if (!FileDownloadList.getImpl().contains(task)) {
-                    // pause?
-                    FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", task, msg.arg1);
-                    goNext(msg.arg1 + 1);
-                    return true;
+                synchronized (pauseLock) {
+                    if (!FileDownloadList.getImpl().contains(task)) {
+                        // pause?
+                        FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", task, msg.arg1);
+                        goNext(msg.arg1 + 1);
+                        return true;
+                    }
                 }
+
 
                 list.get(msg.arg1)
                         .setFinishListener(new BaseDownloadTask.FinishListener() {

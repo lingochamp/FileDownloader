@@ -19,7 +19,6 @@ package com.liulishuo.filedownloader.services;
 import android.os.Process;
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.event.DownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -293,8 +292,6 @@ class FileDownloadRunnable implements Runnable {
     private final DownloadTransferEvent event = new DownloadTransferEvent(null);
 
     private void onConnected(final boolean isContinue, final int soFar, final int total) {
-        final FileDownloadTransferModel downloadTransfer = new FileDownloadTransferModel();
-        downloadTransfer.setDownloadId(getId());
         downloadTransfer.setSoFarBytes(soFar);
         downloadTransfer.setTotalBytes(total);
         downloadTransfer.setEtag(this.etag);
@@ -303,7 +300,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.update(downloadTransfer.getDownloadId(), FileDownloadStatus.connected, soFar, total);
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer.copy()));
     }
 
     private long lastNotifiedSoFar = 0;
@@ -325,7 +322,7 @@ class FileDownloadRunnable implements Runnable {
         FileDownloadLog.d(this, "On progress %d %d %d", downloadTransfer.getDownloadId(), soFar, total);
 
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
 
     }
 
@@ -341,8 +338,10 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updateRetry(downloadTransfer.getDownloadId(), ex.getMessage(), retryTimes);
 
-        // 这里之所以同步是因为要保证retry已经被非下载线程接收到了才进行接下来操作，不至于被覆盖，或者顺序不对
-        DownloadEventPool.getImpl().publish(event.setTransfer(downloadTransfer));
+        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(
+                new DownloadTransferEvent(downloadTransfer
+                        .copy()// because we must make sure retry status no change by downloadTransfer reference
+                ));
     }
 
     private void onError(Throwable ex) {
@@ -355,7 +354,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updateError(downloadTransfer.getDownloadId(), ex.getMessage());
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
 
     private void onComplete(final int total) {
@@ -364,7 +363,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updateComplete(downloadTransfer.getDownloadId(), total);
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
 
     private void onPause() {
@@ -386,7 +385,7 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updatePending(downloadTransfer.getDownloadId());
 
-        DownloadEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
 
     private boolean isCancelled() {

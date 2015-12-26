@@ -201,6 +201,43 @@ public class FileDownloadTransferModel implements Parcelable {
         }
     }
 
+    public FileDownloadTransferModel copy() {
+        final FileDownloadTransferModel model = new FileDownloadTransferModel();
+
+        model.status = this.status;
+        model.downloadId = this.downloadId;
+
+        // 为了频繁拷贝的时候不带上
+        switch (this.status) {
+            case FileDownloadStatus.pending:
+                model.soFarBytes = this.soFarBytes;
+                model.totalBytes = this.totalBytes;
+                break;
+            case FileDownloadStatus.connected:
+                model.soFarBytes = this.soFarBytes;
+                model.totalBytes = this.totalBytes;
+                model.etag = this.etag;
+                model.isContinue = this.isContinue;
+                break;
+            case FileDownloadStatus.progress:
+                model.soFarBytes = this.soFarBytes;
+                break;
+            case FileDownloadStatus.error:
+                model.soFarBytes = this.soFarBytes;
+                model.throwable = this.throwable;
+                break;
+            case FileDownloadStatus.retry:
+                model.soFarBytes = this.soFarBytes;
+                model.throwable = this.throwable;
+                model.retryingTimes = this.retryingTimes;
+            case FileDownloadStatus.completed:
+                model.totalBytes = this.totalBytes;
+                break;
+        }
+
+        return model;
+    }
+
     public static final Creator<FileDownloadTransferModel> CREATOR = new Creator<FileDownloadTransferModel>() {
         public FileDownloadTransferModel createFromParcel(Parcel source) {
             return new FileDownloadTransferModel(source);

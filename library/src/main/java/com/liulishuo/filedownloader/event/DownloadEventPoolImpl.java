@@ -28,7 +28,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -36,14 +35,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Jacksgong on 15/6/23.
  */
-final public class DownloadEventPoolImpl implements IDownloadEventPool {
+public class DownloadEventPoolImpl implements IDownloadEventPool {
 
-    private final ExecutorService threadPool = new ThreadPoolExecutor(3, 6,
-            0L, TimeUnit.MILLISECONDS,
+    private final ExecutorService threadPool = new ThreadPoolExecutor(3, 30,
+            10, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>());
-
-    // 处理一些敏捷快速的事件，通常耗时在1s以内,
-    private final ExecutorService celerityThreadPool = Executors.newFixedThreadPool(2);
 
     private final HashMap<String, LinkedList<IDownloadListener>> listenersMap = new HashMap<>();
 
@@ -115,17 +111,6 @@ final public class DownloadEventPoolImpl implements IDownloadEventPool {
         Assert.assertNotNull("EventPoolImpl.asyncPublish event", event);
 
         threadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                DownloadEventPoolImpl.this.publish(event);
-            }
-        });
-    }
-
-    @Override
-    public void asyncPublishInCelerityThread(final IDownloadEvent event) {
-
-        celerityThreadPool.execute(new Runnable() {
             @Override
             public void run() {
                 DownloadEventPoolImpl.this.publish(event);

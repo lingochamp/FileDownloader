@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader.util;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.os.Environment;
 
 import java.io.File;
@@ -124,5 +126,18 @@ public class FileDownloadUtils {
             }
         }
         return t.toString();
+    }
+
+    public static boolean isDownloaderProcess(final Context context) {
+        int pid = android.os.Process.myPid();
+        final ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+
+        for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()) {
+            if (runningAppProcessInfo.pid == pid) {
+                return runningAppProcessInfo.processName.endsWith(":filedownloader");
+            }
+        }
+
+        return false;
     }
 }

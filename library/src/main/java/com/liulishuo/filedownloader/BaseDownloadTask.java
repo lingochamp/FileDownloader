@@ -18,7 +18,7 @@ package com.liulishuo.filedownloader;
 
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.event.DownloadEventPool;
+import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -77,7 +77,7 @@ public abstract class BaseDownloadTask {
     // --------------------------------------- 以下 初始化 -----------------------------------------------
 
     static {
-        DownloadEventPool.getImpl().addListener(DownloadTaskEvent.ID, new IDownloadListener(Integer.MAX_VALUE) {
+        FileDownloadEventPool.getImpl().addListener(DownloadTaskEvent.ID, new IDownloadListener(Integer.MAX_VALUE) {
             @Override
             public boolean callback(IDownloadEvent event) {
                 final DownloadTaskEvent taskEvent = (DownloadTaskEvent) event;
@@ -207,7 +207,7 @@ public abstract class BaseDownloadTask {
 
         if (ready) {
             // 在IPC的时候被block住等待Binder线程
-            DownloadEventPool.getImpl().asyncPublishInNewThread(new DownloadTaskEvent(this)
+            FileDownloadEventPool.getImpl().send2Service(new DownloadTaskEvent(this)
                     .requestStart());
         }
 
@@ -227,6 +227,8 @@ public abstract class BaseDownloadTask {
 
         final boolean result = _pauseExecute();
 
+        // For make sure already added event listener for receive paused event
+        FileDownloadList.getImpl().add(this);
         if (result) {
             FileDownloadList.getImpl().removeByPaused(this);
         } else {
@@ -377,7 +379,7 @@ public abstract class BaseDownloadTask {
     private void _addEventListener() {
         if (this.listener != null && !isAddedEventLst) {
             FileDownloadLog.d(this, "[_addEventListener] %s", generateEventId());
-            DownloadEventPool.getImpl().addListener(generateEventId(), this.listener);
+            FileDownloadEventPool.getImpl().addListener(generateEventId(), this.listener);
             isAddedEventLst = true;
         }
     }
@@ -385,7 +387,7 @@ public abstract class BaseDownloadTask {
     private void _removeEventListener() {
         if (this.listener != null) {
             FileDownloadLog.d(this, "[_removeEventListener] %s", generateEventId());
-            DownloadEventPool.getImpl().removeListener(generateEventId(), this.listener);
+            FileDownloadEventPool.getImpl().removeListener(generateEventId(), this.listener);
             isAddedEventLst = false;
         }
     }

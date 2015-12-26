@@ -35,11 +35,6 @@ public interface IDownloadEventPool {
 
     void asyncPublishInNewThread(final IDownloadEvent event);
 
-    /**
-     * 执行一些快速的业务
-     */
-    void asyncPublishInCelerityThread(final IDownloadEvent event);
-
     void asyncPublishInMain(final IDownloadEvent event);
 
 }
