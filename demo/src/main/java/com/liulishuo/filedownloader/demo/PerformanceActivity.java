@@ -128,6 +128,8 @@ public class PerformanceActivity extends AppCompatActivity {
             return false;
         }
 
+        taskCountSb.setEnabled(false);
+
         pendingPb.setMax(count);
         connectedPb.setMax(count);
         progressPb.setMax(count);
@@ -203,6 +205,7 @@ public class PerformanceActivity extends AppCompatActivity {
     private void pause() {
         FileDownloader.getImpl().pause(downloadListener);
         stopTimer();
+        taskCountSb.setEnabled(true);
     }
 
     private void stopTimer() {
@@ -338,6 +341,7 @@ public class PerformanceActivity extends AppCompatActivity {
             stopTimer();
             actionBtn.setTag(true);
             actionBtn.setText("Start");
+            taskCountSb.setEnabled(true);
         }
     }
 
