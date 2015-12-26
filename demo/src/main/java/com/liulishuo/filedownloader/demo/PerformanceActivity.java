@@ -131,6 +131,7 @@ public class PerformanceActivity extends AppCompatActivity {
         pendingPb.setMax(count);
         connectedPb.setMax(count);
         progressPb.setMax(count);
+        retryPb.setMax(count);
         errorPb.setMax(count);
         pausedPb.setMax(count);
         completedWidthOldPb.setMax(count);
@@ -140,6 +141,7 @@ public class PerformanceActivity extends AppCompatActivity {
         pendingPb.setProgress(0);
         connectedPb.setProgress(0);
         progressPb.setProgress(0);
+        retryPb.setProgress(0);
         errorPb.setProgress(0);
         pausedPb.setProgress(0);
         completedWidthOldPb.setProgress(0);
@@ -149,11 +151,28 @@ public class PerformanceActivity extends AppCompatActivity {
         pendingTv.setText("pending: " + 0);
         connectedTv.setText("connected: " + 0);
         progressTv.setText("progress: " + 0);
+        retryTv.setText("retry: " + 0);
         errorTv.setText("error: " + 0);
         pausedTv.setText("paused: " + 0);
         completedWidthOldTv.setText("completed reuse old file: " + 0);
         completedTv.setText("completed width download: " + 0);
         warnTv.setText("warn: " + 0);
+
+        pendingInfoTv.setText("");
+        connectedInfoTv.setText("");
+        retryInfoTv.setText("");
+        progressInfoTv.setText("");
+        errorInfoTv.setText("");
+        pausedInfoTv.setText("");
+        completedWidthOldInfoTv.setText("");
+        completedInfoTv.setText("");
+        warnInfoTv.setText("");
+
+
+        // 需要时再显示
+        retryInfoTv.setVisibility(View.GONE);
+        retryPb.setVisibility(View.GONE);
+        retryTv.setVisibility(View.GONE);
 
         overTaskPb.setMax(count);
         overTaskPb.setProgress(0);
@@ -163,6 +182,8 @@ public class PerformanceActivity extends AppCompatActivity {
             final String url = Constant.URLS[i];
             FileDownloader.getImpl().create(url)
                     .setListener(downloadListener)
+                    .setAutoRetryTimes(1)
+                    .setTag(i + 1)
                     .setCallbackProgressTimes(1)
                     .ready();
         }
@@ -197,11 +218,15 @@ public class PerformanceActivity extends AppCompatActivity {
 
             @Override
             protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                // 之所以加这句判断，是因为有些异步任务在pause以后，会持续回调pause回来，而有些任务在pause之前已经完成，
+                // 但是通知消息还在线程池中还未回调回来，这里可以优化
+                // 后面所有在回调中加这句都是这个原因
                 if (task.getListener() != downloadListener) {
                     return;
                 }
                 pendingPb.setProgress(pendingPb.getProgress() + 1);
                 pendingTv.setText("pending: " + pendingPb.getProgress());
+                pendingInfoTv.append((int) task.getTag() + " | ");
             }
 
             @Override
@@ -213,6 +238,7 @@ public class PerformanceActivity extends AppCompatActivity {
 
                 connectedPb.setProgress(connectedPb.getProgress() + 1);
                 connectedTv.setText("connected: " + connectedPb.getProgress());
+                connectedInfoTv.append((int) task.getTag() + " | ");
             }
 
             @Override
@@ -222,6 +248,7 @@ public class PerformanceActivity extends AppCompatActivity {
                 }
 //                progressPb.setProgress(progressPb.getProgress() + 1);
 //                progressTv.setText("progress: " + progressPb.getProgress());
+//                progressInfoTv.append((int)task.getTag() + " | ");
             }
 
             @Override
@@ -231,18 +258,36 @@ public class PerformanceActivity extends AppCompatActivity {
                 }
             }
 
+            @Override
+            protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
+                super.retry(task, ex, retryingTimes, soFarBytes);
+                if (task.getListener() != downloadListener) {
+                    return;
+                }
+
+                retryInfoTv.setVisibility(View.VISIBLE);
+                retryPb.setVisibility(View.VISIBLE);
+                retryTv.setVisibility(View.VISIBLE);
+
+                retryPb.setProgress(retryPb.getProgress() + 1);
+                retryTv.setText("retry: " + retryPb.getProgress());
+                retryInfoTv.append((int)task.getTag() + " | ");
+            }
 
             @Override
             protected void completed(BaseDownloadTask task) {
                 if (task.getListener() != downloadListener) {
                     return;
                 }
+
                 if (task.isReusedOldFile()) {
                     completedWidthOldPb.setProgress(completedWidthOldPb.getProgress() + 1);
                     completedWidthOldTv.setText("completed reuse old file: " + completedWidthOldPb.getProgress());
+                    completedWidthOldInfoTv.append((int) task.getTag() + " | ");
                 } else {
                     completedPb.setProgress(completedPb.getProgress() + 1);
                     completedTv.setText("completed width download: " + completedPb.getProgress());
+                    completedInfoTv.append((int) task.getTag() + " | ");
                 }
 
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
@@ -256,6 +301,7 @@ public class PerformanceActivity extends AppCompatActivity {
                 }
                 pausedPb.setProgress(pausedPb.getProgress() + 1);
                 pausedTv.setText("paused: " + pausedPb.getProgress());
+                pausedInfoTv.append((int) task.getTag() + " | ");
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
             }
 
@@ -266,6 +312,7 @@ public class PerformanceActivity extends AppCompatActivity {
                 }
                 errorPb.setProgress(errorPb.getProgress() + 1);
                 errorTv.setText("error: " + errorPb.getProgress());
+                errorInfoTv.append((int) task.getTag() + " | ");
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
                 checkEndAll();
             }
@@ -278,6 +325,7 @@ public class PerformanceActivity extends AppCompatActivity {
 
                 warnPb.setProgress(warnPb.getProgress() + 1);
                 warnTv.setText("warn: " + warnPb.getProgress());
+                warnInfoTv.append((int) task.getTag() + " | ");
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
                 checkEndAll();
             }
@@ -319,20 +367,31 @@ public class PerformanceActivity extends AppCompatActivity {
     private ProgressBar overTaskPb;
     private Button actionBtn;
     private TextView pendingTv;
+    private TextView pendingInfoTv;
     private ProgressBar pendingPb;
     private TextView connectedTv;
+    private TextView connectedInfoTv;
     private ProgressBar connectedPb;
     private TextView progressTv;
+    private TextView progressInfoTv;
     private ProgressBar progressPb;
+    private TextView retryTv;
+    private TextView retryInfoTv;
+    private ProgressBar retryPb;
     private TextView errorTv;
+    private TextView errorInfoTv;
     private ProgressBar errorPb;
     private TextView pausedTv;
+    private TextView pausedInfoTv;
     private ProgressBar pausedPb;
     private TextView completedWidthOldTv;
+    private TextView completedWidthOldInfoTv;
     private ProgressBar completedWidthOldPb;
     private TextView completedTv;
+    private TextView completedInfoTv;
     private ProgressBar completedPb;
     private TextView warnTv;
+    private TextView warnInfoTv;
     private ProgressBar warnPb;
     private Button deleteAllFileBtn;
 
@@ -346,20 +405,31 @@ public class PerformanceActivity extends AppCompatActivity {
         overTaskPb = (ProgressBar) findViewById(R.id.over_task_pb);
         actionBtn = (Button) findViewById(R.id.action_btn);
         pendingTv = (TextView) findViewById(R.id.pending_tv);
+        pendingInfoTv = (TextView) findViewById(R.id.pending_info_tv);
         pendingPb = (ProgressBar) findViewById(R.id.pending_pb);
         connectedTv = (TextView) findViewById(R.id.connected_tv);
+        connectedInfoTv = (TextView) findViewById(R.id.connected_info_tv);
         connectedPb = (ProgressBar) findViewById(R.id.connected_pb);
         progressTv = (TextView) findViewById(R.id.progress_tv);
+        progressInfoTv = (TextView) findViewById(R.id.progress_info_tv);
         progressPb = (ProgressBar) findViewById(R.id.progress_pb);
+        retryTv = (TextView) findViewById(R.id.retry_tv);
+        retryInfoTv = (TextView) findViewById(R.id.retry_info_tv);
+        retryPb = (ProgressBar) findViewById(R.id.retry_pb);
         errorTv = (TextView) findViewById(R.id.error_tv);
+        errorInfoTv = (TextView) findViewById(R.id.error_info_tv);
         errorPb = (ProgressBar) findViewById(R.id.error_pb);
         pausedTv = (TextView) findViewById(R.id.paused_tv);
+        pausedInfoTv = (TextView) findViewById(R.id.paused_info_tv);
         pausedPb = (ProgressBar) findViewById(R.id.paused_pb);
         completedWidthOldTv = (TextView) findViewById(R.id.completed_width_old_tv);
+        completedWidthOldInfoTv = (TextView) findViewById(R.id.completed_width_old_info_tv);
         completedWidthOldPb = (ProgressBar) findViewById(R.id.completed_width_old_pb);
         completedTv = (TextView) findViewById(R.id.completed_tv);
+        completedInfoTv = (TextView) findViewById(R.id.completed_info_tv);
         completedPb = (ProgressBar) findViewById(R.id.completed_pb);
         warnTv = (TextView) findViewById(R.id.warn_tv);
+        warnInfoTv = (TextView) findViewById(R.id.warn_info_tv);
         warnPb = (ProgressBar) findViewById(R.id.warn_pb);
         deleteAllFileBtn = (Button) findViewById(R.id.delete_all_file_btn);
     }

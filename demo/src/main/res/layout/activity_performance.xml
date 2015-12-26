@@ -107,10 +107,16 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
+
         <TextView
             android:id="@+id/pending_tv"
             style="@style/DemoInfoTextStyle"
             android:text="pendnig: " />
+
+        <TextView
+            android:id="@+id/pending_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:text="" />
 
         <ProgressBar
             android:id="@+id/pending_pb"
@@ -118,11 +124,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-
         <TextView
             android:id="@+id/connected_tv"
             style="@style/DemoInfoTextStyle"
             android:text="connected: " />
+
+        <TextView
+            android:id="@+id/connected_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:text="" />
 
         <ProgressBar
             android:id="@+id/connected_pb"
@@ -133,7 +143,15 @@
         <TextView
             android:id="@+id/progress_tv"
             style="@style/DemoInfoTextStyle"
+            android:layout_width="match_parent"
             android:text="progress: "
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/progress_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:layout_width="match_parent"
+            android:text=""
             android:visibility="gone" />
 
         <ProgressBar
@@ -144,9 +162,32 @@
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/retry_tv"
+            style="@style/DemoInfoTextStyle"
+            android:layout_width="match_parent"
+            android:text="retry: " />
+
+        <TextView
+            android:id="@+id/retry_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:layout_width="match_parent"
+            android:text="" />
+
+        <ProgressBar
+            android:id="@+id/retry_pb"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
             android:id="@+id/error_tv"
             style="@style/DemoInfoTextStyle"
             android:text="error: " />
+
+        <TextView
+            android:id="@+id/error_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:text="" />
 
         <ProgressBar
             android:id="@+id/error_pb"
@@ -159,6 +200,11 @@
             style="@style/DemoInfoTextStyle"
             android:text="paused: " />
 
+        <TextView
+            android:id="@+id/paused_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:text="" />
+
         <ProgressBar
             android:id="@+id/paused_pb"
             style="?android:attr/progressBarStyleHorizontal"
@@ -169,6 +215,11 @@
             android:id="@+id/completed_width_old_tv"
             style="@style/DemoInfoTextStyle"
             android:text="completed reuse old file: " />
+
+        <TextView
+            android:id="@+id/completed_width_old_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:text="" />
 
         <ProgressBar
             android:id="@+id/completed_width_old_pb"
@@ -181,6 +232,11 @@
             style="@style/DemoInfoTextStyle"
             android:text="completed width download: " />
 
+        <TextView
+            android:id="@+id/completed_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:text="" />
+
         <ProgressBar
             android:id="@+id/completed_pb"
             style="?android:attr/progressBarStyleHorizontal"
@@ -191,6 +247,11 @@
             android:id="@+id/warn_tv"
             style="@style/DemoInfoTextStyle"
             android:text="warn: " />
+
+        <TextView
+            android:id="@+id/warn_info_tv"
+            style="@style/DemoTasksTextStyle"
+            android:text="" />
 
         <ProgressBar
             android:id="@+id/warn_pb"
