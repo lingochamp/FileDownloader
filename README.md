@@ -1,7 +1,7 @@
 # FileDownloader
 Android 文件下载引擎，稳定、高效、简单易用
 
-[ ![Download][bintray_svg] ][bintray_url]
+[![Download][bintray_svg]][bintray_url]
 ![][file_downloader_svg]
 ![][license_2_svg]
 
@@ -51,7 +51,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.1.1'
+compile 'com.liulishuo.filedownloader:library:0.1.2'
 ```
 
 #### 全局初始化在`Application.onCreate`中
