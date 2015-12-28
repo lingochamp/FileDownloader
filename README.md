@@ -10,11 +10,6 @@ Android multi-task file download engine.
 
 > This project dependency on [square/okhttp](https://github.com/square/okhttp) 
 
----
-#### Version iterations: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
----
-
-
 ## DEMO
 
 ![][serial_tasks_demo_gif]
