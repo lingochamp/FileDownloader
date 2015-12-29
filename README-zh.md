@@ -218,7 +218,7 @@ if(parallel){
 ##### 一般的下载回调流程:
 
 ```
-pending -> connected -> (progress <->progress) -> blockComplete -> completed
+pending -> connected -> (progress <->progress) -> [retry] -> blockComplete -> completed
 ```
 
 ##### 可能会遇到以下回调而直接终止整个下载过程:
@@ -248,6 +248,8 @@ blockComplete -> completed
 | warn | 在下载队列中(正在等待/正在下载)已经存在相同下载连接与相同存储路径的任务 | -
 
 
+![][file_download_listener_callback_flow_png]
+
 ## III. LICENSE
 
 ```
@@ -275,4 +277,5 @@ limitations under the License.
 [single_task_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single_task_demo.gif
 [bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
+[file_download_listener_callback_flow_png]: https://github.com/lingochamp/FileDownloader/raw/master/art/filedownloadlistener_callback_flow.png
 

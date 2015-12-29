@@ -239,7 +239,10 @@ blockComplete -> completed
 | completed | Succeed download and completed | -
 | paused | Paused download and over | soFarBytes
 | error | Occur error and over | Throwable
-| warn | There is already same task(same url & path) being downloaded(pending/connected/process/retry) | -
+| warn | There is already an identical task(same url & same path) being downloaded(pending/connected/process/retry) | -
+
+
+![][file_download_listener_callback_flow_png]
 
 ## Attention
 
@@ -275,3 +278,4 @@ limitations under the License.
 [single_task_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single_task_demo.gif
 [bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
+[file_download_listener_callback_flow_png]: https://github.com/lingochamp/FileDownloader/raw/master/art/filedownloadlistener_callback_flow.png
