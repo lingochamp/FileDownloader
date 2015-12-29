@@ -200,7 +200,7 @@ if(parallel){
 | getSoFarBytes(void):int | Get already downloaded bytes
 | getTotalBytes(void):int | Get file total bytes
 | getStatus(void):int | Get current status
-| isForceReDownload(void):boolean | 
+| isForceReDownload(void):boolean | Force re-download,do not care about whether already downloaded or not
 | getEx(void):Throwable | Get throwable
 | isReusedOldFile(void):boolean | Is reused downloaded old file 
 | getTag(void):Object | Get the task's tag
