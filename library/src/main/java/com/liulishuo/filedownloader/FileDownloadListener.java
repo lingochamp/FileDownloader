@@ -99,22 +99,22 @@ public abstract class FileDownloadListener extends IDownloadListener {
 
 
     /**
-     * 进入队列
+     * Entry queue, and pending
      *
      * @param task       Current task
-     * @param soFarBytes 数据库中的当前已经下载了多少
-     * @param totalBytes 数据库中的总字节数
+     * @param soFarBytes Already downloaded bytes stored in the db
+     * @param totalBytes Total bytes stored in the db
      */
     protected abstract void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     /**
-     * 连接上
+     * Connected
      *
      * @param task       Current task
      * @param etag       ETag
-     * @param isContinue 是否是断点续传继续下载
-     * @param soFarBytes 已经下载了多少
-     * @param totalBytes 总大小
+     * @param isContinue Is resume from breakpoint
+     * @param soFarBytes Number of bytes download so far
+     * @param totalBytes Total size of the download in bytes
      */
     protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue, final int soFarBytes, final int totalBytes) {
 
@@ -122,25 +122,25 @@ public abstract class FileDownloadListener extends IDownloadListener {
 
     /**
      * @param task       Current task
-     * @param soFarBytes 已经下载了的字节数
-     * @param totalBytes 总字节数
+     * @param soFarBytes Number of bytes download so far
+     * @param totalBytes Total size of the download in bytes
      */
     protected abstract void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     /**
-     * block completed in new thread
+     * Block completed in new thread
      *
      * @param task Current task
      */
     protected abstract void blockComplete(final BaseDownloadTask task);
 
     /**
-     * 重试之前把将要重试是第几次回调回来
+     * Start Retry
      *
      * @param task          Current task
      * @param ex            why retry
-     * @param retryingTimes 将要重试是第几次
-     * @param soFarBytes    在下载了soFarBytes的时候出现的问题
+     * @param retryingTimes How many times will retry
+     * @param soFarBytes    Number of bytes download so far
      */
     protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
 
@@ -149,23 +149,23 @@ public abstract class FileDownloadListener extends IDownloadListener {
     // final width below methods
 
     /**
-     * succeed download
+     * Succeed download
      *
      * @param task Current task
      */
     protected abstract void completed(final BaseDownloadTask task);
 
     /**
-     * 下载被暂停
+     * Download paused
      *
      * @param task       Current task
-     * @param soFarBytes 已经下载了的字节数
-     * @param totalBytes 总字节数
+     * @param soFarBytes Number of bytes download so far
+     * @param totalBytes Total size of the download in bytes
      */
     protected abstract void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
 
     /**
-     * 下载出现错误
+     * Download error
      *
      * @param task Current task
      * @param e    Any throwable on download pipeline
@@ -173,9 +173,9 @@ public abstract class FileDownloadListener extends IDownloadListener {
     protected abstract void error(final BaseDownloadTask task, final Throwable e);
 
     /**
-     * 相同任务(url与path相同)已经在队列中(等待中/正在下载中）
+     * There is already an identical task being downloaded
      *
-     * @param task same download already start & pending/downloading
+     * @param task Current task
      */
     protected abstract void warn(final BaseDownloadTask task);
 

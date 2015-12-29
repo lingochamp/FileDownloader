@@ -51,7 +51,7 @@ public class FileDownloadNotificationHelper<T extends FileDownloadNotificationHe
     }
 
     /**
-     * add
+     * Add a notification object
      * 新增 一个通知对象
      */
     public void add(T notification) {
@@ -66,8 +66,8 @@ public class FileDownloadNotificationHelper<T extends FileDownloadNotificationHe
      * 显示一个有进度变化的notification
      *
      * @param id    download id
-     * @param sofar 已经下载了的字节数
-     * @param total 总字节数
+     * @param sofar Number of bytes download so far
+     * @param total Total bytes
      */
     public void showProgress(final int id, final int sofar, final int total) {
         final T notification = get(id);
@@ -87,7 +87,7 @@ public class FileDownloadNotificationHelper<T extends FileDownloadNotificationHe
      * 显示一个没有进度变化的notification
      *
      * @param id     download id
-     * @param status 状态{@link FileDownloadStatus}
+     * @param status {@link FileDownloadStatus}
      */
     public void showNoProgress(final int id, int status) {
         final FileDownloadNotification notification = get(id);
@@ -103,7 +103,7 @@ public class FileDownloadNotificationHelper<T extends FileDownloadNotificationHe
     /**
      * warn/error/completed/(paused)
      * <p/>
-     * 已经结束下载过程
+     * Has finished downloading
      *
      * @param id download id
      */
@@ -132,7 +132,7 @@ public class FileDownloadNotificationHelper<T extends FileDownloadNotificationHe
         }
 
         /**
-         * @param isShowProgress 是否有进度变化，需要显示进度
+         * @param isShowProgress Whether there is a need to show the progress schedule changes
          */
         public abstract void show(final boolean isShowProgress);
 

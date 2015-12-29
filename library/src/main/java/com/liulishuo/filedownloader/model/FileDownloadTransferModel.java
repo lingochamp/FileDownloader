@@ -31,20 +31,17 @@ public class FileDownloadTransferModel implements Parcelable {
     private int downloadId;
     private int soFarBytes;
 
-    // ----  只有在连接上的时候带回
-    // 总大小
+    // Total bytes
     private int totalBytes;
-    // 是否是断点续传
+    // Whether Resume from the breakpoint
     private boolean isContinue;
     // ETag
     private String etag;
-    // ----
 
-    // ---- 只在错误的时候带回
-    // 错误
+    // Error
     private Throwable throwable;
 
-    // 当前将要重试的次数[1, &]，在开始重试的时候回调将要重试的次数是第几次
+    // Number of times to try again, [1, &]
     private int retryingTimes;
 
     public FileDownloadTransferModel(final FileDownloadModel model) {
@@ -135,7 +132,7 @@ public class FileDownloadTransferModel implements Parcelable {
         dest.writeByte(this.status);
         dest.writeInt(this.downloadId);
 
-        // 为了频繁拷贝的时候不带上
+        // For fewer copies
         switch (this.status) {
             case FileDownloadStatus.pending:
                 dest.writeInt(this.soFarBytes);
@@ -172,7 +169,7 @@ public class FileDownloadTransferModel implements Parcelable {
         this.status = in.readByte();
         this.downloadId = in.readInt();
 
-        // 为了频繁拷贝的时候不带上
+        // For fewer copies
         switch (this.status) {
             case FileDownloadStatus.pending:
                 this.soFarBytes = in.readInt();
@@ -207,7 +204,7 @@ public class FileDownloadTransferModel implements Parcelable {
         model.status = this.status;
         model.downloadId = this.downloadId;
 
-        // 为了频繁拷贝的时候不带上
+        // For fewer copies
         switch (this.status) {
             case FileDownloadStatus.pending:
                 model.soFarBytes = this.soFarBytes;

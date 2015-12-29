@@ -30,7 +30,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
         this.download = download;
     }
 
-    // 启动 from FileDownloadList, to addEventListener ---------------
+    // Start state, from FileDownloadList, to addEventListener ---------------
     @Override
     public void notifyStarted() {
         FileDownloadLog.d(this, "notify started %s", download);
@@ -38,7 +38,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
         download.begin();
     }
 
-    // 中间层  from BaseDownloadTask#update, to user ---------------------------
+    // in-between state, from BaseDownloadTask#update, to user ---------------------------
     @Override
     public void notifyPending() {
         FileDownloadLog.d(this, "notify pending %s", download);
@@ -63,7 +63,6 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyProgress() {
         FileDownloadLog.d(this, "notify progress %s %d %d", download, download.getSoFarBytes(), download.getTotalBytes());
         if (download.getCallbackProgressTimes() <= 0) {
-            // 只有可能存在一次，是在首次获得总大小的时候
             FileDownloadLog.d(this, "notify progress but client not request notify %s", download);
             return;
         }
@@ -96,7 +95,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
         download.ing();
     }
 
-    // 结束层 from FileDownloadList, to user -----------------------------
+    // Over state, from FileDownloadList, to user -----------------------------
     @Override
     public void notifyWarn() {
         FileDownloadLog.d(this, "notify warn %s", download);

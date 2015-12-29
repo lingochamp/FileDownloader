@@ -36,12 +36,11 @@ import java.util.List;
 public class FileDownloader {
 
     /**
-     * 不耗时，做一些简单初始化准备工作，不会启动下载进程
+     * Just cache ApplicationContext
      * <p/>
-     * 建议在{@link Application#onCreate()}时调用
+     * Proposed call at{@link Application#onCreate()}
      */
     public static void init(final Application application) {
-        // 下载进程与非下载进程都存一个
         FileDownloadLog.d(FileDownloader.class, "init Downloader");
         FileDownloadHelper.initAppContext(application);
     }
@@ -54,13 +53,18 @@ public class FileDownloader {
         return HolderClass.INSTANCE;
     }
 
+    /**
+     * Create a download task
+     */
     public BaseDownloadTask create(final String url) {
         return new FileDownloadTask(url);
     }
 
     /**
+     * Start the download queue by the same listener
+     *
      * @param listener start download by same listener
-     * @param isSerial 是否需要串行
+     * @param isSerial is execute them linearly
      */
     public List<Integer> start(final FileDownloadListener listener, final boolean isSerial) {
 
@@ -96,6 +100,8 @@ public class FileDownloader {
 
 
     /**
+     * Pause the download queue by the same listener
+     *
      * @param listener paused download by same listener
      * @see #pause(int)
      */
@@ -113,6 +119,9 @@ public class FileDownloader {
 
     private final static Object pauseLock = new Object();
 
+    /**
+     * Pause all task
+     */
     public void pauseAll() {
         FileDownloadEventPool.getImpl().shutdownSendPool();
         final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
@@ -125,6 +134,8 @@ public class FileDownloader {
     }
 
     /**
+     * Pause the download task by the downloadId
+     *
      * @param downloadId pause download by download id
      * @see #pause(FileDownloadListener)
      */
@@ -137,6 +148,9 @@ public class FileDownloader {
         downloadTask.pause();
     }
 
+    /**
+     * Get downloaded so far bytes by the downloadId
+     */
     public int getSoFar(final int downloadId) {
         BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
         if (downloadTask == null) {
@@ -146,6 +160,9 @@ public class FileDownloader {
         return downloadTask.getSoFarBytes();
     }
 
+    /**
+     * Get file total bytes by the downloadId
+     */
     public int getTotal(final int downloadId) {
         BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
         if (downloadTask == null) {
@@ -156,7 +173,7 @@ public class FileDownloader {
     }
 
     /**
-     * 可以提前绑定服务，提高第一次启动下载的耗时
+     * Bind & start ':filedownloader' process manually(Do not need, will bind & start automatically by Download Engine if real need)
      */
     public void bindService() {
         if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
@@ -164,6 +181,9 @@ public class FileDownloader {
         }
     }
 
+    /**
+     * Unbind & stop ':filedownloader' process manually(Do not need, will unbind & stop automatically by System if leave unused period)
+     */
     public void unBindService() {
         if (FileDownloadServiceUIGuard.getImpl().isConnected()) {
             FileDownloadServiceUIGuard.getImpl().unbindByContext(FileDownloadHelper.getAppContext());

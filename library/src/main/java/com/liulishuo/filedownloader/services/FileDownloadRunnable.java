@@ -39,8 +39,6 @@ import java.net.SocketTimeoutException;
 
 /**
  * Created by Jacksgong on 9/24/15.
- * <p/>
- * 这边所有的事件抛独立线程，都会在FileDownloadService捕获处理，虽然会起一个Binder线程进行IPC但这边的线程也会被hold，所以不为Celerity线程
  */
 class FileDownloadRunnable implements Runnable {
 

@@ -49,7 +49,7 @@ public abstract class BaseDownloadTask {
     private int totalBytes;
     private byte status = FileDownloadStatus.INVALID_STATUS;
     private int autoRetryTimes = 0;
-    // 当前重试的次数
+    // Number of times to try again
     private int retryingTimes = 0;
 
 
@@ -74,7 +74,7 @@ public abstract class BaseDownloadTask {
         driver = new FileDownloadDriver(this);
     }
 
-    // --------------------------------------- 以下 初始化 -----------------------------------------------
+    // --------------------------------------- FOLLOWING FUNCTION FOR INIT -----------------------------------------------
 
     static {
         FileDownloadEventPool.getImpl().addListener(DownloadTaskEvent.ID, new IDownloadListener(Integer.MAX_VALUE) {
@@ -90,10 +90,10 @@ public abstract class BaseDownloadTask {
             }
         });
     }
-    // --------------------------------------- 以下 对外接口 ----------------------------------------------
+    // --------------------------------------- FOLLOWING FUNCTION FOR OUTSIDE ----------------------------------------------
 
     /**
-     * @param path Path for save download file
+     * @param path Absolute path for save the download file
      */
     public BaseDownloadTask setPath(final String path) {
         this.path = path;
@@ -102,7 +102,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @param listener 对外的监听，在队列中可 以listener为单位进行绑定为一个队列
+     * @param listener For callback download status(pending,connected,progress,blockComplete,retry,error,paused,completed,warn)
      */
     public BaseDownloadTask setListener(final FileDownloadListener listener) {
         if (this.listener != listener) {
@@ -115,8 +115,9 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @param callbackProgressTimes progress的回调次数，<=0将不会进行progress回调
-     * @see {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     * Set maximal callback times on callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     *
+     * @param callbackProgressTimes Maximal callback progress status times, Default 100, <=0 will not have any progress callback
      */
     public BaseDownloadTask setCallbackProgressTimes(int callbackProgressTimes) {
         this.callbackProgressTimes = callbackProgressTimes;
@@ -124,7 +125,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @param tag For cache something you want
+     * Sets the tag associated with this task, not be used by internal
      */
     public BaseDownloadTask setTag(final Object tag) {
         this.tag = tag;
@@ -135,9 +136,8 @@ public abstract class BaseDownloadTask {
 
     /**
      * Force re download whether already downloaded completed
-     * 强制重新下载不会，忽略文件是否是有效存在
      *
-     * @param isForceReDownload 是否强制重新下载
+     * @param isForceReDownload If set to true, will not check whether the file is downloaded by past, default false
      */
     public BaseDownloadTask setForceReDownload(final boolean isForceReDownload) {
         this.isForceReDownload = isForceReDownload;
@@ -145,25 +145,29 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * 任意的任务结束都会回调到这个回调，warn,error,paused,completed
+     * any status follow end，warn,error,paused,completed
      */
     public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
-        // TODO 新增addFinishListener，弃用该方法，由于内部也需要使用
+        // TODO replace by addFinishListener，deprecate this method
         this.finishListener = finishListener;
         return this;
     }
 
     /**
-     * @param autoRetryTimes 当请求或下载或写文件过程中存在错误时，自动重试次数，默认为0次
+     * Set the number of times to automatically retry when encounter any error
+     *
+     * @param autoRetryTimes default 0
      */
     public BaseDownloadTask setAutoRetryTimes(int autoRetryTimes) {
         this.autoRetryTimes = autoRetryTimes;
         return this;
     }
 
-    // -------- 结束符 ------
+    // -------- Following function for ending ------
 
     /**
+     * Ready task( For queue task )
+     * <p/>
      * 用于将几个task绑定为一个队列启动的结束符
      *
      * @return downloadId
@@ -180,6 +184,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * start download
+     * <p/>
      * 用于启动一个单独任务
      *
      * @return Download id
@@ -198,7 +203,6 @@ public abstract class BaseDownloadTask {
         } catch (Throwable e) {
             ready = false;
 
-            // 这里是特殊事件，唯一一个没有remove队列中的元素，因为还没有入队列
             setStatus(FileDownloadStatus.error);
             setEx(e);
             FileDownloadList.getImpl().add(this);
@@ -206,7 +210,6 @@ public abstract class BaseDownloadTask {
         }
 
         if (ready) {
-            // 在IPC的时候被block住等待Binder线程
             FileDownloadEventPool.getImpl().send2Service(new DownloadTaskEvent(this)
                     .requestStart());
         }
@@ -215,9 +218,11 @@ public abstract class BaseDownloadTask {
         return getDownloadId();
     }
 
-    // -------------- 其他操作 ---------------------
+    // -------------- Another Operations ---------------------
 
     /**
+     * Pause task
+     * <p/>
      * 停止任务, 对于线程而言会直接关闭，清理所有相关数据，不会hold住任何东西
      * <p/>
      * 如果重新启动，默认会断点续传，所以为pause
@@ -244,8 +249,10 @@ public abstract class BaseDownloadTask {
     // ------------------- get -----------------------
 
     /**
-     * @return 获得有效的对应当前download task的id
+     * Get download id (generate by url & path)
      * id生成与url和path相关
+     *
+     * @return 获得有效的对应当前download task的id
      */
     public int getDownloadId() {
         // TODO 这里和savePah有关，但是savePath如果为空在start以后会重新生成因此有坑
@@ -261,51 +268,51 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return 下载连接
+     * Get download url
+     *
+     * @return download url
      */
     public String getUrl() {
         return url;
     }
 
     /**
-     * @return progress 回调最多次数
+     * @return maximal callback times on callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
      */
     public int getCallbackProgressTimes() {
         return callbackProgressTimes;
     }
 
     /**
-     * @return 下载文件存储路径
+     * @return absolute path for save the download file
      */
     public String getPath() {
         return path;
     }
 
     /**
-     * @return 监听器，可作为绑定为一个队列的target
+     * @return Current FileDownloadListener
      */
     public FileDownloadListener getListener() {
         return listener;
     }
 
     /**
-     * @return 下载的进度
+     * @return Number of bytes download so far
      */
     public int getSoFarBytes() {
         return soFarBytes;
     }
 
     /**
-     * @return 下载文件的总大小
-     * 在启动第一次progress回调的时候获得，
-     * 这个是在连接上以后从头部获得
+     * @return Total bytes, available after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}/ already have in db
      */
     public int getTotalBytes() {
         return totalBytes;
     }
 
     /**
-     * @return 当前状态
+     * @return Current status
      * @see FileDownloadStatus
      */
     public byte getStatus() {
@@ -313,14 +320,14 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return 是否强制下载
+     * @return Force re-download,do not care about whether already downloaded or not
      */
     public boolean isForceReDownload() {
         return this.isForceReDownload;
     }
 
     /**
-     * @return 错误内容
+     * @return Throwable
      */
     public Throwable getEx() {
         return ex;
@@ -328,7 +335,7 @@ public abstract class BaseDownloadTask {
 
 
     /**
-     * @return 是否是使用了已经存在的有效文件，而非启动下载
+     * @return Is reused downloaded old file, 是否是使用了已经存在的有效文件，而非启动下载
      * @see #isReusedOldFile
      */
     public boolean isReusedOldFile() {
@@ -336,43 +343,43 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return 用户层级需要cache在task中的数据
+     * @return The task's tag
      */
     public Object getTag() {
         return this.tag;
     }
 
     /**
-     * @return 是否是成功断点续传，在{@link FileDownloadStatus#connected}上以后获得该值
+     * @return Is resume by breakpoint, available after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
      */
     public boolean isContinue() {
         return this.isContinue;
     }
 
     /**
-     * @return ETag
+     * @return ETag, available after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
      */
     public String getEtag() {
         return this.etag;
     }
 
     /**
-     * @return 自动重试次数
+     * @return The number of times to automatically retry
      */
     public int getAutoRetryTimes() {
         return this.autoRetryTimes;
     }
 
     /**
-     * @return 当前重试次数，这里是将要开始重试的时候，会将接下来是第几次重试赋值到这
+     * @return The current number of trey. available after {@link FileDownloadListener#retry(BaseDownloadTask, Throwable, int, int)}
      */
     public int getRetryingTimes() {
         return this.retryingTimes;
     }
 
-    // --------------------------------------- 以上 对外接口 ----------------------------------------------
+    // --------------------------------------- ABOVE FUNCTIONS FOR OUTSIDE ----------------------------------------------
 
-    // --------------------------------------- 以下 内部机制 --------------------------------------------------
+    // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL --------------------------------------------------
 
     private boolean isAddedEventLst = false;
 
@@ -408,20 +415,20 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return 是否本地有效文件可以直接复用，而不用启动下载
+     * @return Is can reuse old file
      */
     protected boolean _checkCanReuse() {
         return false;
     }
 
     /**
-     * @return 是否正在下载
+     * @return Is downloading/pending in download queue
      */
     protected boolean _checkDownloading(final String url, final String path) {
         return false;
     }
 
-    // 矫正一些没有初始化的数据
+    // Assign default value if need
     private void _adjust() {
         if (path == null) {
             path = FileDownloadUtils.getDefaultSaveFilePath(url);
@@ -433,18 +440,18 @@ public abstract class BaseDownloadTask {
 
         try {
 
-            // 服务是否启动
+            // Whether service was already started.
             if (!_checkCanStart()) {
-                // 没有准备好
+                // Not ready
                 return;
             }
 
             FileDownloadList.getImpl().add(this);
 
-            // 是否正在下载
+            // Whether already in download queue in download service.
             if (_checkDownloading(getUrl(), getPath())) {
-                // 正在下载
-                // 这里就直接结束了
+                // Already in download queue.
+                // End with Warn callback directly
                 FileDownloadLog.d(this, "Current is downloading %d", getDownloadId());
 
                 setStatus(FileDownloadStatus.warn);
@@ -479,10 +486,10 @@ public abstract class BaseDownloadTask {
 
     }
 
-    // 处理启动
+    // Execute start
     protected abstract int _startExecute();
 
-    // 处理暂停
+    // Execute pause
     protected abstract boolean _pauseExecute();
 
     private Runnable cacheRunnable;
@@ -500,16 +507,16 @@ public abstract class BaseDownloadTask {
         };
     }
 
-    private void _setRetryingTimes(final int times){
+    private void _setRetryingTimes(final int times) {
         this.retryingTimes = times;
     }
 
-    // --------------------------------------- 以上 内部机制 --------------------------------------------------
+    // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL --------------------------------------------------
 
-    // --------------------------------------- 以下 内部协作接口 --------------------------------------------------
+    // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
 
     FileDownloadEvent getOverEvent() {
-        // 结束以后做好清理
+        // Clean references after the end
         return new FileDownloadEvent(this).callback(_getOverCallback());
     }
 
@@ -518,35 +525,35 @@ public abstract class BaseDownloadTask {
     }
     // ----------
 
-    // 清理资源
+    // Clear References
     void clear() {
         _removeEventListener();
         FileDownloadLog.d(this, "clear");
     }
 
     /**
-     * @return 确保以当前Downloader为单位唯一
+     * @return Make sure one event to one task
      */
     String generateEventId() {
         return toString();
     }
 
-    // 错误内容
+    // Error cause
     void setEx(Throwable ex) {
         this.ex = ex;
     }
 
-    // 下载进度变化
+    // The number of download so far
     void setSoFarBytes(int soFarBytes) {
         this.soFarBytes = soFarBytes;
     }
 
-    // 总大小变化
+    // Total bytes
     void setTotalBytes(int totalBytes) {
         this.totalBytes = totalBytes;
     }
 
-    // 状态变化，在入队/出队/通知 之前改变
+    // Status, will changed before enqueue/dequeue/notify
     void setStatus(byte status) {
         if (status > FileDownloadStatus.MAX_INT ||
                 status < FileDownloadStatus.MIN_INT) {
@@ -555,23 +562,23 @@ public abstract class BaseDownloadTask {
         this.status = status;
     }
 
-    // 驱动器
+    // Driver
     FileDownloadDriver getDriver() {
         return this.driver;
     }
 
     // ------------------
-    // 开始进入队列
+    // Begin task execute
     void begin() {
         FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
         _addEventListener();
     }
 
-    // 进行中任意回调
+    // Being processed
     void ing() {
     }
 
-    // 结束
+    // End task
     void over() {
         FileDownloadLog.v(this, "filedownloader:lifecycle:over %s by %d ", toString(), getStatus());
 
@@ -581,7 +588,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @param transfer 为了优化有部分数据在某些情况下是没有带回来的
+     * @param transfer In order to optimize some of the data in some cases is not back
      */
     void update(final FileDownloadTransferModel transfer) {
         switch (transfer.getStatus()) {
@@ -594,7 +601,7 @@ public abstract class BaseDownloadTask {
                 this.setSoFarBytes(transfer.getSoFarBytes());
                 this.setTotalBytes(transfer.getTotalBytes());
 
-                // 抛通知
+                // notify
                 getDriver().notifyPending();
                 break;
             case FileDownloadStatus.connected:
@@ -609,7 +616,7 @@ public abstract class BaseDownloadTask {
                 this.isContinue = transfer.isContinue();
                 this.etag = transfer.getEtag();
 
-                // 抛通知
+                // notify
                 getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
@@ -621,11 +628,13 @@ public abstract class BaseDownloadTask {
                 setStatus(transfer.getStatus());
                 setSoFarBytes(transfer.getSoFarBytes());
 
-                // 抛通知
+                // notify
                 getDriver().notifyProgress();
                 break;
             case FileDownloadStatus.blockComplete:
-                // 该事件是在complete消息处理(FileDownloadList中根据complete之前回调这个消息)
+                /**
+                 * Handled by {@link FileDownloadList#removeByCompleted(BaseDownloadTask)}
+                 */
                 break;
             case FileDownloadStatus.retry:
                 if (getStatus() == FileDownloadStatus.retry && getRetryingTimes() == transfer.getRetryingTimes()) {
@@ -638,6 +647,7 @@ public abstract class BaseDownloadTask {
                 setEx(transfer.getThrowable());
                 _setRetryingTimes(transfer.getRetryingTimes());
 
+                // notify
                 getDriver().notifyRetry();
                 break;
             case FileDownloadStatus.error:
@@ -650,11 +660,14 @@ public abstract class BaseDownloadTask {
                 setEx(transfer.getThrowable());
                 setSoFarBytes(transfer.getSoFarBytes());
 
+                // to FileDownloadList
                 FileDownloadList.getImpl().removeByError(this);
 
                 break;
             case FileDownloadStatus.paused:
-                // 由#pause直接根据回调结果处理
+                /**
+                 * Handled by {@link #pause()}
+                 */
                 break;
             case FileDownloadStatus.completed:
                 if (getStatus() == FileDownloadStatus.completed) {
@@ -665,16 +678,18 @@ public abstract class BaseDownloadTask {
                 setStatus(transfer.getStatus());
                 setSoFarBytes(getTotalBytes());
 
-                // 抛给list处理
+                // to FileDownloadList
                 FileDownloadList.getImpl().removeByCompleted(this);
 
                 break;
             case FileDownloadStatus.warn:
-                // 由#start直接根据回调处理
+                /**
+                 * Handled by {@link #_start()}
+                 */
                 break;
         }
     }
-    // --------------------------------------- 以上 内部协作接口 --------------------------------------------------
+    // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
 
     // -------------------------------------------------
 

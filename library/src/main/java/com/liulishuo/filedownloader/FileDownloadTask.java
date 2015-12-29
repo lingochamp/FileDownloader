@@ -156,13 +156,12 @@ class FileDownloadTask extends BaseDownloadTask {
                     }
 
                 } else {
-                    // 断开了连接
-                    // TODO 做多重特定引擎支持的时候，这里需要特殊处理
+                    // Disconnected from service
+                    // TODO Multi-engine support, need to deal with similar situation
                     FileDownloadList.getImpl().divert(NEED_RESTART_LIST);
 
                     synchronized (NEED_RESTART_LIST) {
                         for (BaseDownloadTask fileDownloadInternal : NEED_RESTART_LIST) {
-                            // TODO 缺少通知用户的操作
                             fileDownloadInternal.clear();
                         }
                     }
@@ -174,14 +173,11 @@ class FileDownloadTask extends BaseDownloadTask {
 
             if (event instanceof DownloadTransferEvent) {
 
-                /**
-                 * 注意!! 为了优化有部分数据在某些情况下是没有带回来的
-                 */
+                // For fewer copies,do not carry all data in transfer model.
                 final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
                 final BaseDownloadTask task = FileDownloadList.getImpl().get(transfer.getDownloadId());
 
 
-                // UI线程第二手转包到目标listener
                 if (task != null) {
                     FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", task.getDownloadId(), task.getStatus(), transfer.getStatus());
                     task.update(transfer);

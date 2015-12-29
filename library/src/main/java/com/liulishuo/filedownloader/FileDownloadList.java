@@ -45,8 +45,7 @@ class FileDownloadList {
     BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
-                // TODO 这里只处理第一个的通知，后面这里需要改id为BaseFileDownloadInternal#toString，有可能第二个error，可能性极低
-                // 因为目前只有一种可能到这里，在判断是否第二个在队列是否重复的过程中，上一个还没有添加到下载池中
+                // TODO Another task with same id?
                 if (baseDownloadTask.getDownloadId() == id) {
                     return baseDownloadTask;
                 }
@@ -62,7 +61,7 @@ class FileDownloadList {
     List<BaseDownloadTask> copy(final FileDownloadListener listener) {
         final List<BaseDownloadTask> targetList = new ArrayList<>();
         synchronized (list) {
-            // 防止size变化
+            // Prevent size changing
             for (BaseDownloadTask task : list) {
                 if (task.getListener() == listener) {
                     targetList.add(task);
@@ -74,14 +73,14 @@ class FileDownloadList {
 
     BaseDownloadTask[] copy() {
         synchronized (list) {
-            // 防止size变化
+            // Prevent size changing
             BaseDownloadTask[] copy = new BaseDownloadTask[list.size()];
             return list.toArray(copy);
         }
     }
 
     /**
-     * 为了某些目的转移，别忘了回调了
+     * Divert all data in list 2 destination list
      */
     void divert(final List<BaseDownloadTask> destination) {
         synchronized (list) {
@@ -124,7 +123,7 @@ class FileDownloadList {
         FileDownloadLog.v(this, "remove %s left %d %d", willRemoveDownload, removeByStatus, list.size());
 
         if (succeed) {
-            // 抛消息
+            // Notify 2 Listener
             switch (removeByStatus) {
                 case FileDownloadStatus.warn:
                     willRemoveDownload.getDriver().notifyWarn();
@@ -163,7 +162,7 @@ class FileDownloadList {
     void add(final BaseDownloadTask downloadInternal) {
         ready(downloadInternal);
 
-        // 抛消息
+        // Notify 2 Listener
         downloadInternal.getDriver().notifyStarted();
     }
 

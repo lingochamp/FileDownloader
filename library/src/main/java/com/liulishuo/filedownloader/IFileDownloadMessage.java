@@ -24,10 +24,10 @@ package com.liulishuo.filedownloader;
 interface IFileDownloadMessage {
 
 
-    // 开始态，入队列
+    // Start state，Entry queue
     void notifyStarted();
 
-    // 中间态
+    // in-between state
     void notifyPending();
 
     void notifyConnected();
@@ -38,7 +38,7 @@ interface IFileDownloadMessage {
 
     void notifyRetry();
 
-    // 结束态，异或
+    // Over state, one of the following
     void notifyWarn();
 
     void notifyError();
