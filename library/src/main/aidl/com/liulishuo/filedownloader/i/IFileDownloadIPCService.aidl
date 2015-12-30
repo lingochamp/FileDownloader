@@ -5,8 +5,8 @@ import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 
 interface IFileDownloadIPCService {
 
-    void registerCallback(in IFileDownloadIPCCallback callback);
-    void unregisterCallback(in IFileDownloadIPCCallback callback);
+    oneway void registerCallback(in IFileDownloadIPCCallback callback);
+    oneway void unregisterCallback(in IFileDownloadIPCCallback callback);
 
     FileDownloadTransferModel checkReuse(String url, String path);
     boolean checkDownloading(String url, String path);
