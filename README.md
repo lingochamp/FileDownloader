@@ -1,5 +1,5 @@
 # FileDownloader
-Android multi-task file download engine. 
+Android multi-task file download engine.
 
 
 [![Download][bintray_svg]][bintray_url]
@@ -8,7 +8,7 @@ Android multi-task file download engine.
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
-> This project dependency on [square/okhttp](https://github.com/square/okhttp) 
+> This project dependency on [square/okhttp](https://github.com/square/okhttp)
 
 ## DEMO
 
@@ -42,7 +42,7 @@ public XXApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-        // Just cache ApplicationContext and initial EventPool Object
+        // Just cache ApplicationContext
         FileDownloader.init(this);
     }
 
@@ -75,7 +75,7 @@ FileDownloader.getImpl().create(url)
             @Override
             protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
             }
-            
+
             @Override
             protected void completed(BaseDownloadTask task) {
             }
@@ -119,7 +119,7 @@ final FileDownloadListener queueTarget = new FileDownloadListener() {
             @Override
             protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
             }
-            
+
             @Override
             protected void completed(BaseDownloadTask task) {
             }
@@ -165,7 +165,7 @@ if(parallel){
 
 | function | description
 | --- | ---
-| init(Application) |  Just cache ApplicationContext and initial EventPool Object
+| init(Application) |  Just cache ApplicationContext
 | create(url:String) | Create a download task
 | start(listener:FileDownloadListener, isSerial:boolean) | Start the download queue by the same listener
 | pause(listener:FileDownloadListener) | Pause the download queue by the same listener
@@ -202,7 +202,7 @@ if(parallel){
 | getStatus(void):int | Get current status
 | isForceReDownload(void):boolean | Force re-download,do not care about whether already downloaded or not
 | getEx(void):Throwable | Get throwable
-| isReusedOldFile(void):boolean | Is reused downloaded old file 
+| isReusedOldFile(void):boolean | Is reused downloaded old file
 | getTag(void):Object | Get the task's tag
 | isContinue(void):boolean | Is resume by breakpoint
 | getEtag(void):String | Get current ETag on header
