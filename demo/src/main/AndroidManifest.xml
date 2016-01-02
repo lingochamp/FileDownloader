@@ -28,7 +28,7 @@
             android:label="@string/hybrid_test_title"/>
 
         <activity android:name=".SingleTaskTestActivity"
-            android:label="@string/hybrid_test_single_task_title"/>
+            android:label="@string/single_task_test_title"/>
 
         <activity
             android:name=".MultitaskTestActivity"
