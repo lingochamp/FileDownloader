@@ -165,6 +165,14 @@ public class HybridTestActivity extends AppCompatActivity {
         return new FileDownloadListener() {
 
             @Override
+            public boolean callback(IDownloadEvent event) {
+                if (isFinishing()) {
+                    return false;
+                }
+                return super.callback(event);
+            }
+
+            @Override
             protected void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 updateDisplay(String.format("[pending] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
             }
