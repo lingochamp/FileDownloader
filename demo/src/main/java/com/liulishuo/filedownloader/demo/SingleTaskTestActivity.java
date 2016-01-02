@@ -17,7 +17,7 @@ import java.io.File;
 /**
  * Created by Jacksgong on 12/21/15.
  */
-public class SingleTaskActivity extends AppCompatActivity {
+public class SingleTaskTestActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,25 +47,25 @@ public class SingleTaskActivity extends AppCompatActivity {
                             protected void completed(BaseDownloadTask task) {
                                 super.completed(task);
                                 progressBar1.setProgress(task.getSoFarBytes());
-                                Toast.makeText(SingleTaskActivity.this, String.format("completed 1 %s", task.getPath()), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, String.format("completed 1 %s", task.getPath()), Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                                 super.paused(task, soFarBytes, totalBytes);
-                                Toast.makeText(SingleTaskActivity.this, "paused 1", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, "paused 1", Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             protected void warn(BaseDownloadTask task) {
                                 super.warn(task);
-                                Toast.makeText(SingleTaskActivity.this, "warn 1", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, "warn 1", Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             protected void error(BaseDownloadTask task, Throwable e) {
                                 super.error(task, e);
-                                Toast.makeText(SingleTaskActivity.this, "error 1", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, "error 1", Toast.LENGTH_SHORT).show();
                             }
                         })
                         .start();
@@ -104,25 +104,25 @@ public class SingleTaskActivity extends AppCompatActivity {
                             protected void completed(BaseDownloadTask task) {
                                 super.completed(task);
                                 progressBar2.setProgress(task.getSoFarBytes());
-                                Toast.makeText(SingleTaskActivity.this, String.format("completed 2 %s", task.getPath()), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, String.format("completed 2 %s", task.getPath()), Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                                 super.paused(task, soFarBytes, totalBytes);
-                                Toast.makeText(SingleTaskActivity.this, "paused 2", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, "paused 2", Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             protected void warn(BaseDownloadTask task) {
                                 super.warn(task);
-                                Toast.makeText(SingleTaskActivity.this, "warn 2", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, "warn 2", Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             protected void error(BaseDownloadTask task, Throwable e) {
                                 super.error(task, e);
-                                Toast.makeText(SingleTaskActivity.this, "error 2", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SingleTaskTestActivity.this, "error 2", Toast.LENGTH_SHORT).show();
                             }
                         })
                         .start();

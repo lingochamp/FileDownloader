@@ -37,7 +37,7 @@ import java.io.File;
 /**
  * Created by Jacksgong on 12/25/15.
  */
-public class PerformanceActivity extends AppCompatActivity {
+public class MultitaskTestActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
@@ -48,7 +48,7 @@ public class PerformanceActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_performance);
+        setContentView(R.layout.activity_mutitask_test);
         assignViews();
 
         actionBtn.setTag(true);
@@ -58,11 +58,11 @@ public class PerformanceActivity extends AppCompatActivity {
                 final boolean toStart = (boolean) actionBtn.getTag();
                 if (toStart) {
                     if (start()) {
-                        actionBtn.setText("Pause");
+                        actionBtn.setText(R.string.pause);
                         actionBtn.setTag(false);
                     }
                 } else {
-                    actionBtn.setText("Start");
+                    actionBtn.setText(R.string.start);
                     pause();
                     actionBtn.setTag(true);
                 }
@@ -113,7 +113,7 @@ public class PerformanceActivity extends AppCompatActivity {
 
                 } while (false);
 
-                Toast.makeText(PerformanceActivity.this, String.format("Complete delete %d files", count), Toast.LENGTH_LONG).show();
+                Toast.makeText(MultitaskTestActivity.this, String.format("Complete delete %d files", count), Toast.LENGTH_LONG).show();
 
             }
         });

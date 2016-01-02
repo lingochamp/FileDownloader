@@ -1,14 +1,25 @@
 <resources>
-    <string name="app_name">FileDownloader</string>
-    <string name="multi_parallel_download_test">多任务队列并行下载</string>
-    <string name="multi_serial_download_test">多任务队列串行下载</string>
-    <string name="single_task_download_test">单任务下载测试</string>
-    <string name="del_cache_files">删除所有已下载文件</string>
-    <string name="mix_test_title">混合测试(请重复点击启动任意下来进行简单压测)</string>
+    <string name="app_name">FileDownloader Demo</string>
     <string name="app_github">GITHUB</string>
     <string name="app_github_url">https://github.com/lingochamp/FileDownloader</string>
-    <string name="single_task_test">单任务测试</string>
     <string name="start">Start</string>
     <string name="pause">Pause</string>
     <string name="delete">Delete</string>
+
+    <string name="del_cache_files">Delete all downloaded files</string>
+    <string name="del_file_error_empty">Empty folder already</string>
+
+    <string name="single_task_test_title">Single task test</string>
+    <string name="multitask_test_title">Multiple tasks Test</string>
+
+
+    <string name="hybrid_test_title">Hybrid test</string>
+    <string name="hybrid_test_deleted_file" formatted="false">Deleted: %s</string>
+    <string name="hybrid_test_start_single_task" formatted="false">Start single task: %s</string>
+    <string name="hybrid_test_start_multiple_tasks_parallel" formatted="false">Start %d tasks to download in parallel</string>
+    <string name="hybrid_test_start_multiple_tasks_serial" formatted="false">Start %d tasks to download linearly</string>
+    <string name="hybrid_test_multiple_tasks_parallel_title">Execute multiple tasks in parallel</string>
+    <string name="hybrid_test_multiple_tasks_serial_title">Execute multiple tasks linearly</string>
+    <string name="hybrid_test_single_task_title">Execute single task</string>
+
 </resources>

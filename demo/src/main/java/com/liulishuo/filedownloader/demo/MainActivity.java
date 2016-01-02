@@ -20,24 +20,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    public void onClickMix(final View view) {
-        startActivity(new Intent(this, MixTestActivity.class));
+    public void onClickPerformanceTest(final View view) {
+        startActivity(new Intent(this, MultitaskTestActivity.class));
     }
 
     public void onClickSingle(final View view) {
-        startActivity(new Intent(this, SingleTaskActivity.class));
+        startActivity(new Intent(this, SingleTaskTestActivity.class));
     }
 
-    public void onClickPerformanceMonitor(final View view) {
-        startActivity(new Intent(this, PerformanceActivity.class));
+    public void onClickMix(final View view) {
+        startActivity(new Intent(this, HybridTestActivity.class));
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
-
 
 
     @Override

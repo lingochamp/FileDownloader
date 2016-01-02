@@ -1,0 +1,39 @@
+<!--
+  ~ Copyright (c) 2015 LingoChamp Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="app_name">文件下载引擎</string>
+
+    <string name="start">开始</string>
+    <string name="pause">暂停</string>
+    <string name="delete">删除</string>
+
+    <string name="del_file_error_empty">已经为空文件夹</string>
+    <string name="del_cache_files">删除所有已下载文件</string>
+
+
+    <string name="single_task_test_title">单任务测试</string>
+    <string name="multitask_test_title">多任务测试</string>
+
+    <string name="hybrid_test_title">混合测试</string>
+    <string name="hybrid_test_deleted_file" formatted="false">已删除: %s</string>
+    <string name="hybrid_test_start_single_task" formatted="false">启动单任务下载: %s</string>
+    <string name="hybrid_test_start_multiple_tasks_parallel" formatted="false">启动%d个任务并行下载</string>
+    <string name="hybrid_test_start_multiple_tasks_serial" formatted="false">启动%d个任务串行下载</string>
+    <string name="hybrid_test_multiple_tasks_parallel_title">多任务队列并行下载</string>
+    <string name="hybrid_test_multiple_tasks_serial_title">多任务队列串行下载</string>
+    <string name="hybrid_test_single_task_title">单任务下载测试</string>
+</resources>

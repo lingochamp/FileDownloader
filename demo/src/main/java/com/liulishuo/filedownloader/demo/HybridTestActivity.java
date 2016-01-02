@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -22,9 +23,9 @@ import java.io.File;
 /**
  * Created by Jacksgong on 12/19/15.
  */
-public class MixTestActivity extends AppCompatActivity {
+public class HybridTestActivity extends AppCompatActivity {
 
-    private final String TAG = "Demo.MixActivity";
+    private final String TAG = "Demo.HybridActivity";
     private Handler uiHandler;
     private final int WHAT_NEED_AUTO_2_BOTTOM = 1;
 
@@ -80,13 +81,13 @@ public class MixTestActivity extends AppCompatActivity {
         File[] files = file.listFiles();
 
         if (files == null) {
-            updateDisplay("已经为空文件夹");
+            updateDisplay(getString(R.string.del_file_error_empty));
             return;
         }
 
         for (File file1 : files) {
             file1.delete();
-            updateDisplay(String.format("delete: %s", file1.getName()));
+            updateDisplay(getString(R.string.hybrid_test_deleted_file, file1.getName()));
         }
     }
 
@@ -102,7 +103,7 @@ public class MixTestActivity extends AppCompatActivity {
      * @param view
      */
     public void onClickStartSingleDownload(final View view) {
-        updateDisplay(String.format("点击 单任务下载 %s", Constant.BIG_FILE_URLS[0]));
+        updateDisplay(getString(R.string.hybrid_test_start_single_task, Constant.BIG_FILE_URLS[0]));
         totalCounts++;
         FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[0])
                 .setListener(createListener())
@@ -118,8 +119,7 @@ public class MixTestActivity extends AppCompatActivity {
      * @param view
      */
     public void onClickMultiParallel(final View view) {
-        updateDisplay(String.format("点击 %d个不同的任务并行下载", Constant.URLS.length));
-        updateDisplay("以相同的listener作为target，将不同的下载任务绑定起来");
+        updateDisplay(getString(R.string.hybrid_test_start_multiple_tasks_parallel, Constant.URLS.length));
 
         // 以相同的listener作为target，将不同的下载任务绑定起来
         final FileDownloadListener parallelTarget = createListener();
@@ -144,8 +144,7 @@ public class MixTestActivity extends AppCompatActivity {
      * @param view
      */
     public void onClickMultiSerial(final View view) {
-        updateDisplay(String.format("点击 %d个不同的任务并行下载", Constant.URLS.length));
-        updateDisplay("以相同的listener作为target，将不同的下载任务绑定起来");
+        updateDisplay(getString(R.string.hybrid_test_start_multiple_tasks_serial, Constant.URLS.length));
 
         // 以相同的listener作为target，将不同的下载任务绑定起来
         final FileDownloadListener serialTarget = createListener();
