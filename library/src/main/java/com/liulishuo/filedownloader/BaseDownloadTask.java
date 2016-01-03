@@ -28,6 +28,7 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by Jacksgong on 9/23/15.
@@ -40,7 +41,6 @@ public abstract class BaseDownloadTask {
     private String path;
 
     private FileDownloadListener listener;
-    private FinishListener finishListener;
 
     private Object tag;
     private Throwable ex;
@@ -146,11 +146,27 @@ public abstract class BaseDownloadTask {
 
     /**
      * any status follow end，warn,error,paused,completed
+     * @deprecated Replace with {@link #addFinishListener(FinishListener)}
      */
     public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
-        // TODO replace by addFinishListener，deprecate this method
-        this.finishListener = finishListener;
+        addFinishListener(finishListener);
         return this;
+    }
+
+    private ArrayList<FinishListener> finishListenerList;
+    public BaseDownloadTask addFinishListener(final FinishListener finishListener) {
+        if (finishListenerList == null) {
+            finishListenerList = new ArrayList<>();
+        }
+
+        if (!finishListenerList.contains(finishListener)) {
+            finishListenerList.add(finishListener);
+        }
+        return this;
+    }
+
+    public boolean removeFinishListener(final FinishListener finishListener) {
+        return finishListenerList != null && finishListenerList.remove(finishListener);
     }
 
     /**
@@ -582,8 +598,13 @@ public abstract class BaseDownloadTask {
     void over() {
         FileDownloadLog.v(this, "filedownloader:lifecycle:over %s by %d ", toString(), getStatus());
 
-        if (finishListener != null) {
-            finishListener.over();
+        if (finishListenerList != null) {
+            final ArrayList<FinishListener> listenersCopy =
+                    (ArrayList<FinishListener>) finishListenerList.clone();
+            final int numListeners = listenersCopy.size();
+            for (int i = 0; i < numListeners; ++i) {
+                listenersCopy.get(i).over();
+            }
         }
     }
 
