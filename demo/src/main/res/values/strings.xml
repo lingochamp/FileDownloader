@@ -10,9 +10,12 @@
     <string name="del_file_error_empty">Empty folder already</string>
 
     <string name="single_task_test_title">Single task test</string>
-    <string name="multitask_test_title">Multiple tasks Test</string>
+    <string name="multitask_test_title">Multiple tasks test</string>
+    <string name="performance_test_title">Performance test</string>
+    <string name="performance_test_with_times_title" formatted="false">%d(times) Performance test</string>
 
 
+    <!-- hybrid test -->
     <string name="hybrid_test_title">Hybrid test</string>
     <string name="hybrid_test_deleted_file" formatted="false">Deleted: %s</string>
     <string name="hybrid_test_start_single_task" formatted="false">Start single task: %s</string>

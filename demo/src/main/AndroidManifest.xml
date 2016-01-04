@@ -24,16 +24,19 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".HybridTestActivity"
-            android:label="@string/hybrid_test_title"/>
+        <activity
+            android:name=".HybridTestActivity"
+            android:label="@string/hybrid_test_title" />
 
-        <activity android:name=".SingleTaskTestActivity"
-            android:label="@string/single_task_test_title"/>
+        <activity
+            android:name=".SingleTaskTestActivity"
+            android:label="@string/single_task_test_title" />
 
         <activity
             android:name=".MultitaskTestActivity"
             android:label="@string/multitask_test_title" />
 
+        <activity android:name=".performance.PerformanceTestActivity" />
     </application>
 
 </manifest>

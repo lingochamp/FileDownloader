@@ -8,6 +8,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.liulishuo.filedownloader.demo.performance.PerformanceTestActivity;
+
 /**
  * Created by Jacksgong on 12/17/15.
  */
@@ -20,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    public void onClickPerformanceTest(final View view) {
+    public void onClickMultitask(final View view) {
         startActivity(new Intent(this, MultitaskTestActivity.class));
     }
 
@@ -30,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickMix(final View view) {
         startActivity(new Intent(this, HybridTestActivity.class));
+    }
+
+    public void onClickPerformance(final View view){
+        startActivity(new Intent(this, PerformanceTestActivity.class));
     }
 
 

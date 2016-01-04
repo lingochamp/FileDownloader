@@ -6,7 +6,7 @@
 
     <Button
         style="@style/DemoButton"
-        android:onClick="onClickPerformanceTest"
+        android:onClick="onClickMultitask"
         android:text="@string/multitask_test_title" />
 
     <Button
@@ -18,6 +18,11 @@
         style="@style/DemoButton"
         android:onClick="onClickMix"
         android:text="@string/hybrid_test_title" />
+
+    <Button
+        style="@style/DemoButton"
+        android:onClick="onClickPerformance"
+        android:text="@string/performance_test_title" />
 
 
 </LinearLayout>
