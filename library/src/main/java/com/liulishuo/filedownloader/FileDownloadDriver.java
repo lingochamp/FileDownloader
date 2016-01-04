@@ -61,7 +61,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyProgress() {
-        FileDownloadLog.d(this, "notify progress %s %d %d", download, download.getSoFarBytes(), download.getTotalBytes());
+        FileDownloadLog.d(this, "notify progress %s %d %d", download, download.getLargeFileSoFarBytes(), download.getLargeFileTotalBytes());
         if (download.getCallbackProgressTimes() <= 0) {
             FileDownloadLog.d(this, "notify progress but client not request notify %s", download);
             return;

@@ -53,7 +53,7 @@ class FileDownloadRunnable implements Runnable {
     private long maxNotifyBytes;
 
 
-    private int maxNotifyNums = 0;
+    private int maxNotifyCounts = 0;
 
     //tmp
     private boolean isContinueDownloadAvailable;
@@ -90,8 +90,8 @@ class FileDownloadRunnable implements Runnable {
         downloadTransfer.setSoFarBytes(model.getSoFar());
         downloadTransfer.setTotalBytes(model.getTotal());
 
-        maxNotifyNums = model.getCallbackProgressTimes();
-        maxNotifyNums = maxNotifyNums <= 0 ? 0 : maxNotifyNums;
+        maxNotifyCounts = model.getCallbackProgressTimes();
+        maxNotifyCounts = maxNotifyCounts <= 0 ? 0 : maxNotifyCounts;
 
         this.isContinueDownloadAvailable = false;
 
@@ -179,22 +179,22 @@ class FileDownloadRunnable implements Runnable {
                     try {
                         inputStream = response.body().byteStream();
                         byte[] buff = new byte[BUFFER_SIZE];
-                        maxNotifyBytes = maxNotifyNums <= 0 ? -1 : total / maxNotifyNums;
+                        maxNotifyBytes = maxNotifyCounts <= 0 ? -1 : total / maxNotifyCounts;
 
                         updateHeader(response);
                         onConnected(isSucceedContinue, soFar, total);
 
 
                         do {
-                            int readed = inputStream.read(buff);
-                            if (readed == -1) {
+                            int byteCount = inputStream.read(buff);
+                            if (byteCount == -1) {
                                 break;
                             }
 
-                            accessFile.write(buff, 0, readed);
+                            accessFile.write(buff, 0, byteCount);
 
                             //write buff
-                            soFar += readed;
+                            soFar += byteCount;
                             if (accessFile.length() < soFar) {
                                 // 文件大小必须会等于正在写入的大小
                                 throw new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar));
@@ -392,7 +392,7 @@ class FileDownloadRunnable implements Runnable {
     // ----------------------------------
     private RandomAccessFile getRandomAccessFile(final boolean append) throws Throwable {
         if (TextUtils.isEmpty(path)) {
-            throw new RuntimeException(String.format("found invalid internal destination path, empty"));
+            throw new RuntimeException("found invalid internal destination path, empty");
         }
 
         if (!FileDownloadUtils.isFilenameValid(path)) {

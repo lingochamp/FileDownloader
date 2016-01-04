@@ -455,6 +455,7 @@ public abstract class BaseDownloadTask {
         }
 
         if (!file.getParentFile().exists()) {
+            //TODO file check really
             file.getParentFile().mkdirs();
         }
     }
@@ -674,7 +675,7 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
-                if (getStatus() == FileDownloadStatus.progress && transfer.getSoFarBytes() == getSoFarBytes()) {
+                if (getStatus() == FileDownloadStatus.progress && transfer.getSoFarBytes() == getLargeFileSoFarBytes()) {
                     FileDownloadLog.w(this, "unused values! by process callback");
                     break;
                 }
@@ -730,7 +731,7 @@ public abstract class BaseDownloadTask {
                 }
 
                 setStatus(transfer.getStatus());
-                setSoFarBytes(getTotalBytes());
+                setSoFarBytes(getLargeFileSoFarBytes());
 
                 // to FileDownloadList
                 FileDownloadList.getImpl().removeByCompleted(this);

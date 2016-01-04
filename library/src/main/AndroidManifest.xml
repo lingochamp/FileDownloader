@@ -5,7 +5,7 @@
     <application>
         <service
             android:name=".services.FileDownloadService"
-            android:process=":filedownloader"></service>
+            android:process=":filedownloader"/>
     </application>
 
 </manifest>

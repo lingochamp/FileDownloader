@@ -100,27 +100,27 @@ public class FileDownloadUtils {
     }
 
     public static String getStack(final boolean printLine) {
-        StackTraceElement[] stes = new Throwable().getStackTrace();
-        return getStack(stes, printLine);
+        StackTraceElement[] stackTrace = new Throwable().getStackTrace();
+        return getStack(stackTrace, printLine);
     }
 
-    public static String getStack(final StackTraceElement[] stes, final boolean printLine) {
-        if ((stes == null) || (stes.length < 4)) {
+    public static String getStack(final StackTraceElement[] stackTrace, final boolean printLine) {
+        if ((stackTrace == null) || (stackTrace.length < 4)) {
             return "";
         }
 
         StringBuilder t = new StringBuilder();
 
-        for (int i = 3; i < stes.length; i++) {
-            if (!stes[i].getClassName().contains("com.liulishuo.filedownloader")) {
+        for (int i = 3; i < stackTrace.length; i++) {
+            if (!stackTrace[i].getClassName().contains("com.liulishuo.filedownloader")) {
                 continue;
             }
             t.append("[");
-            t.append(stes[i].getClassName().substring("com.liulishuo.filedownloader".length()));
+            t.append(stackTrace[i].getClassName().substring("com.liulishuo.filedownloader".length()));
             t.append(":");
-            t.append(stes[i].getMethodName());
+            t.append(stackTrace[i].getMethodName());
             if (printLine) {
-                t.append("(" + stes[i].getLineNumber() + ")]");
+                t.append("(").append(stackTrace[i].getLineNumber()).append(")]");
             } else {
                 t.append("]");
             }
@@ -152,17 +152,13 @@ public class FileDownloadUtils {
         }
 
         // (Integer.MAX_VALUE, Integer.MAX_VALUE - Integer.MIN_VALUE]
-        if (size > Integer.MAX_VALUE && size <= ((long)(Integer.MAX_VALUE + (-Integer.MIN_VALUE)))) {
+        if (size > Integer.MAX_VALUE && size <= (Integer.MAX_VALUE + (long) (-Integer.MIN_VALUE))) {
             return (int) (size + Integer.MIN_VALUE);
         }
 
         return Integer.MAX_VALUE;
     }
 
-    /**
-     * @param size
-     * @return
-     */
     public static long decodeInt2Long(final int size, final boolean useNegative) {
         if (useNegative) {
             return size + (long)(-Integer.MIN_VALUE);

@@ -252,7 +252,7 @@ public class FileDownloader {
 
 
                 list.get(msg.arg1)
-                        .setFinishListener(new BaseDownloadTask.FinishListener() {
+                        .addFinishListener(new BaseDownloadTask.FinishListener() {
                             private int index;
 
                             public BaseDownloadTask.FinishListener setIndex(int index) {

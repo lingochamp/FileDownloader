@@ -96,11 +96,11 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
         }
     }
 
-    private boolean isShutDownThread(final DownloadTaskEvent evente) {
+    private boolean isShutDownThread(final DownloadTaskEvent event) {
         boolean result = false;
         ShutDownItem item = null;
         for (ShutDownItem shutDownItem : needShutdownList) {
-            if (shutDownItem.checkAndConsume(evente)) {
+            if (shutDownItem.checkAndConsume(event)) {
                 item = shutDownItem;
                 result = true;
                 break;

@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
  */
 class FileDownloadThreadPool {
 
-    private SparseArray<FileDownloadRunnable> poolRunnables = new SparseArray<>();
+    private SparseArray<FileDownloadRunnable> runnablePool = new SparseArray<>();
 
     // TODO 对用户开放线程池大小，全局并行下载数
     private final ExecutorService threadPool = Executors.newFixedThreadPool(3);
@@ -34,7 +34,7 @@ class FileDownloadThreadPool {
     public void execute(FileDownloadRunnable runnable) {
         runnable.onResume();
         threadPool.execute(runnable);
-        poolRunnables.put(runnable.getId(), runnable);
+        runnablePool.put(runnable.getId(), runnable);
 
         final int CHECK_THRESHOLD_VALUE = 600;
         if (mIgnoreCheckTimes >= CHECK_THRESHOLD_VALUE) {
@@ -49,20 +49,20 @@ class FileDownloadThreadPool {
     private int mIgnoreCheckTimes = 0;
 
     private synchronized void checkNoExist() {
-        SparseArray<FileDownloadRunnable> newRunnables = new SparseArray<>();
-        for (int i = 0; i < poolRunnables.size(); i++) {
-            final int key = poolRunnables.keyAt(i);
-            final FileDownloadRunnable runnable = poolRunnables.get(key);
+        SparseArray<FileDownloadRunnable> correctedRunnablePool = new SparseArray<>();
+        for (int i = 0; i < runnablePool.size(); i++) {
+            final int key = runnablePool.keyAt(i);
+            final FileDownloadRunnable runnable = runnablePool.get(key);
             if (runnable.isExist()) {
-                newRunnables.put(key, runnable);
+                correctedRunnablePool.put(key, runnable);
             }
         }
-        poolRunnables = newRunnables;
+        runnablePool = correctedRunnablePool;
 
     }
 
     public boolean isInThreadPool(final int downloadId) {
-        final FileDownloadRunnable runnable = poolRunnables.get(downloadId);
+        final FileDownloadRunnable runnable = runnablePool.get(downloadId);
         return runnable != null && runnable.isExist();
     }
 }
