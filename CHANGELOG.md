@@ -1,25 +1,33 @@
 # Change log
 
+> [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
+
+### Version 0.1.3
+
+- Enhancement: no longer subject to the upper bound of 1.99G, add `FileDownloadLargeFileListener`, `getLargeFileSoFarBytes()`,`getLargeFileTotalBytes()`.
+- Performance optimization: some ipc transaction just need one-way call(async), not block(sync).
+- Upgrade dependency okhttp from 2.7.0 to 2.7.1.
+
 ### Version 0.1.2
 
-- 优化线程消化能力
-- 修复大队列任务暂停可能部分无效的问题
-- 修复大队列并行下载时一定概率下载已经完成回调囤积延后回调的问题
+- Optimize thread digestion([map](https://github.com/lingochamp/FileDownloader/raw/master/art/filedownload_sample_description.png).
+- Fix: may `pause()` invalid in large queue task.
+- Fix: large queue task parallel download, may download has been completed but the callback
 
 ### Version 0.1.1
 
-- event线程区分敏捷线程池与其他线程池，减少资源冗余强制、内部稳定性以及消化能力与性能，
-- 添加自动重试接口，新增用户指定如果失败自动重试的次数
+- Optimization of internal performance, according to the time split thread pool.
+- Add auto retry feature.
 
 ### Version 0.1.0
 
-- FileDownloadStatus 由`int`改为`byte`，该参数会频繁的在IPC时被拷贝
-- 优化串行or并行任务时，筛选task在准备数据时就筛选好，减少冗余操作，更加安全
-- 优化串行任务执行保证使用更可靠的方式
+- The `FileDownloadStatus` parameter type is changed from `int` to `byte`, which is frequently copied in IPC.
+- Optimization of multi task queue filtering time.
+- Optimizing serial task execution mechanism.
 
 ### Version 0.0.9
 
-- 将调用start(启动任务)抛独立线程处理，其中的线程是通过共享非下载进程EventPool中的线程池(可并行8个线程)
+- The start operation into independent thread processing, sharing thread pool in EventPool.
 
 ### Version 0.0.8
 

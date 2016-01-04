@@ -24,7 +24,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.1.2'
+    compile 'com.liulishuo.filedownloader:library:0.1.3'
 }
 ```
 
@@ -246,7 +246,7 @@ blockComplete -> completed
 
 ## Attention
 
-- For the vast majority of the use of performance considerations, limited to the range of int, FileDownloader engine maximum support for the download file size does not exceed 1.99G(`2^31-1=2_147_483_647`)
+- Using `FileDownloadLargeFileListener` instance instead of `FileDownloadListener`, when file size maybe greater than 1.99G(`2^31-1=2_147_483_647`)(The same use: `getLargeFileSoFarBytes()` and `getLargeFileTotalBytes()`).
 - Default by okhttp: retryOnConnectionFailure: Unreachable IP addresses/Stale pooled connections/Unreachable proxy servers
 - Default by okhttp: connection/read/write time out 10s
 
