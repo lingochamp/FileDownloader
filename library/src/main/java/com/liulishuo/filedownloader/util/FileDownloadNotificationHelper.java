@@ -83,7 +83,6 @@ public class FileDownloadNotificationHelper<T extends FileDownloadNotificationHe
     /**
      * pending/(paused)
      * <p/>
-     * <p/>
      * 显示一个没有进度变化的notification
      *
      * @param id     download id
