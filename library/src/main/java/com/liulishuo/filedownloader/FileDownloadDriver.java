@@ -43,20 +43,22 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyPending() {
         FileDownloadLog.d(this, "notify pending %s", download);
 
+        download.ing();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
                 .pending());
 
-        download.ing();
     }
 
     @Override
     public void notifyConnected() {
         FileDownloadLog.d(this, "notify connected %s", download);
 
+        download.ing();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
                 .connected());
 
-        download.ing();
     }
 
     @Override
@@ -67,10 +69,11 @@ class FileDownloadDriver implements IFileDownloadMessage {
             return;
         }
 
+        download.ing();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
                 .progress());
 
-        download.ing();
     }
 
     /**
@@ -80,58 +83,62 @@ class FileDownloadDriver implements IFileDownloadMessage {
     public void notifyBlockComplete() {
         FileDownloadLog.d(this, "notify block completed %s %s", download, Thread.currentThread().getName());
 
+        download.ing();
+
         FileDownloadEventPool.getImpl().publish(download.getIngEvent()
                 .blockComplete());
-        download.ing();
     }
 
     @Override
     public void notifyRetry() {
         FileDownloadLog.d(this, "notify retry %s %d %d %s", download, download.getAutoRetryTimes(), download.getRetryingTimes(), download.getEx());
 
+        download.ing();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
                 .retry());
 
-        download.ing();
     }
 
     // Over state, from FileDownloadList, to user -----------------------------
     @Override
     public void notifyWarn() {
         FileDownloadLog.d(this, "notify warn %s", download);
+
+        download.over();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
                 .warn());
 
-        download.over();
     }
 
     @Override
     public void notifyError() {
         FileDownloadLog.e(this, download.getEx(), "notify error %s", download);
 
+        download.over();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
                 .error());
-
-        download.over();
     }
 
     @Override
     public void notifyPaused() {
         FileDownloadLog.d(this, "notify paused %s", download);
 
+        download.over();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
                 .pause());
-
-        download.over();
     }
 
     @Override
     public void notifyCompleted() {
         FileDownloadLog.d(this, "notify completed %s", download);
 
+        download.over();
+
         FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
                 .complete());
-
-        download.over();
     }
 }

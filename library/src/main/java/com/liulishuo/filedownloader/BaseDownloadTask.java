@@ -578,7 +578,10 @@ public abstract class BaseDownloadTask {
     // Clear References
     void clear() {
         _removeEventListener();
-        FileDownloadLog.d(this, "clear");
+        if (finishListenerList != null) {
+            finishListenerList.clear();
+        }
+        FileDownloadLog.d(this, "clear %s", this);
     }
 
     /**
