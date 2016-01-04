@@ -45,8 +45,8 @@ public abstract class BaseDownloadTask {
     private Object tag;
     private Throwable ex;
 
-    private int soFarBytes;
-    private int totalBytes;
+    private long soFarBytes;
+    private long totalBytes;
     private byte status = FileDownloadStatus.INVALID_STATUS;
     private int autoRetryTimes = 0;
     // Number of times to try again
@@ -146,6 +146,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * any status follow end，warn,error,paused,completed
+     *
      * @deprecated Replace with {@link #addFinishListener(FinishListener)}
      */
     public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
@@ -154,6 +155,7 @@ public abstract class BaseDownloadTask {
     }
 
     private ArrayList<FinishListener> finishListenerList;
+
     public BaseDownloadTask addFinishListener(final FinishListener finishListener) {
         if (finishListenerList == null) {
             finishListenerList = new ArrayList<>();
@@ -315,15 +317,46 @@ public abstract class BaseDownloadTask {
 
     /**
      * @return Number of bytes download so far
+     * @deprecated replace with {@link #getSmallFileSoFarBytes()}}}}
      */
     public int getSoFarBytes() {
+        return getSmallFileSoFarBytes();
+    }
+
+    /**
+     * @return The downloaded so far bytes which size is less than or equal to 1.99G
+     */
+    public int getSmallFileSoFarBytes() {
+        if (soFarBytes > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) soFarBytes;
+    }
+
+    public long getLargeFileSoFarBytes() {
         return soFarBytes;
     }
 
     /**
      * @return Total bytes, available after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}/ already have in db
+     * @deprecated replace with {@link #getSmallFileTotalBytes()}}
      */
     public int getTotalBytes() {
+        return getSmallFileTotalBytes();
+    }
+
+    /**
+     * @return The total bytes which size is less than or equal to 1.99G
+     */
+    public int getSmallFileTotalBytes() {
+        if (totalBytes > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+
+        return (int) totalBytes;
+    }
+
+    public long getLargeFileTotalBytes() {
         return totalBytes;
     }
 
@@ -560,12 +593,12 @@ public abstract class BaseDownloadTask {
     }
 
     // The number of download so far
-    void setSoFarBytes(int soFarBytes) {
+    void setSoFarBytes(long soFarBytes) {
         this.soFarBytes = soFarBytes;
     }
 
     // Total bytes
-    void setTotalBytes(int totalBytes) {
+    void setTotalBytes(long totalBytes) {
         this.totalBytes = totalBytes;
     }
 

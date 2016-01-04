@@ -193,7 +193,7 @@ class FileDownloadMgr {
         return true;
     }
 
-    public int getSoFar(final int id) {
+    public long getSoFar(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {
             return 0;
@@ -202,7 +202,7 @@ class FileDownloadMgr {
         return model.getSoFar();
     }
 
-    public int getTotal(final int id) {
+    public long getTotal(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {
             return 0;

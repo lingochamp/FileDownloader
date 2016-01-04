@@ -45,8 +45,8 @@ public class FileDownloadModel implements Parcelable {
     private byte status;
     public final static String STATUS = "status";
 
-    private int soFar;
-    private int total;
+    private long soFar;
+    private long total;
 
     public final static String SOFAR = "sofar";
     public final static String TOTAL = "total";
@@ -77,11 +77,11 @@ public class FileDownloadModel implements Parcelable {
         this.status = status;
     }
 
-    public void setSoFar(int soFar) {
+    public void setSoFar(long soFar) {
         this.soFar = soFar;
     }
 
-    public void setTotal(int total) {
+    public void setTotal(long total) {
         this.total = total;
     }
 
@@ -101,11 +101,11 @@ public class FileDownloadModel implements Parcelable {
         return status;
     }
 
-    public int getSoFar() {
+    public long getSoFar() {
         return soFar;
     }
 
-    public int getTotal() {
+    public long getTotal() {
         return total;
     }
 
@@ -168,8 +168,8 @@ public class FileDownloadModel implements Parcelable {
         dest.writeInt(this.callbackProgressTimes);
         dest.writeByte(this.status);
         dest.writeInt(this.status);
-        dest.writeInt(this.soFar);
-        dest.writeInt(this.total);
+        dest.writeLong(this.soFar);
+        dest.writeLong(this.total);
         dest.writeString(this.errMsg);
         dest.writeString(this.eTag);
         dest.writeByte(isCanceled ? (byte) 1 : (byte) 0);
@@ -184,8 +184,8 @@ public class FileDownloadModel implements Parcelable {
         this.path = in.readString();
         this.callbackProgressTimes = in.readInt();
         this.status = in.readByte();
-        this.soFar = in.readInt();
-        this.total = in.readInt();
+        this.soFar = in.readLong();
+        this.total = in.readLong();
         this.errMsg = in.readString();
         this.eTag = in.readString();
         this.isCanceled = in.readByte() != 0;

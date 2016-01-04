@@ -154,7 +154,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     private long lastRefreshUpdate = 0;
 
     @Override
-    public void update(int id, byte status, int soFar, int total) {
+    public void update(int id, byte status, long soFar, long total) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(status);
@@ -226,7 +226,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateComplete(int id, final int total) {
+    public void updateComplete(int id, final long total) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(FileDownloadStatus.completed);

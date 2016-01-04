@@ -13,6 +13,6 @@ interface IFileDownloadIPCService {
     int start(String url, String path, int callbackProgressTimes, int autoRetryTimes);
     boolean pause(int downloadId);
 
-    int getSofar(int downloadId);
-    int getTotal(int downloadId);
+    long getSofar(int downloadId);
+    long getTotal(int downloadId);
 }

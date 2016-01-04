@@ -137,8 +137,8 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         return false;
     }
 
-    public int getSofar(final int downloadId) {
-        int val = 0;
+    public long getSofar(final int downloadId) {
+        long val = 0;
         if (getService() == null) {
             return val;
         }
@@ -152,8 +152,8 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         return val;
     }
 
-    public int getTotal(final int downloadId) {
-        int val = 0;
+    public long getTotal(final int downloadId) {
+        long val = 0;
         if (getService() == null) {
             return val;
         }

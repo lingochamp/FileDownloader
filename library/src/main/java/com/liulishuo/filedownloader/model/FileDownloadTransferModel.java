@@ -29,10 +29,10 @@ public class FileDownloadTransferModel implements Parcelable {
 
     private byte status;
     private int downloadId;
-    private int soFarBytes;
+    private long soFarBytes;
 
     // Total bytes
-    private int totalBytes;
+    private long totalBytes;
     // Whether Resume from the breakpoint
     private boolean isContinue;
     // ETag
@@ -92,19 +92,19 @@ public class FileDownloadTransferModel implements Parcelable {
         this.downloadId = downloadId;
     }
 
-    public int getSoFarBytes() {
+    public long getSoFarBytes() {
         return soFarBytes;
     }
 
-    public void setSoFarBytes(int soFarBytes) {
+    public void setSoFarBytes(long soFarBytes) {
         this.soFarBytes = soFarBytes;
     }
 
-    public int getTotalBytes() {
+    public long getTotalBytes() {
         return totalBytes;
     }
 
-    public void setTotalBytes(int totalBytes) {
+    public void setTotalBytes(long totalBytes) {
         this.totalBytes = totalBytes;
     }
 
@@ -135,29 +135,29 @@ public class FileDownloadTransferModel implements Parcelable {
         // For fewer copies
         switch (this.status) {
             case FileDownloadStatus.pending:
-                dest.writeInt(this.soFarBytes);
-                dest.writeInt(this.totalBytes);
+                dest.writeLong(this.soFarBytes);
+                dest.writeLong(this.totalBytes);
                 break;
             case FileDownloadStatus.connected:
-                dest.writeInt(this.soFarBytes);
-                dest.writeInt(this.totalBytes);
+                dest.writeLong(this.soFarBytes);
+                dest.writeLong(this.totalBytes);
                 dest.writeString(this.etag);
                 dest.writeByte(isContinue ? (byte) 1 : (byte) 0);
                 break;
             case FileDownloadStatus.progress:
-                dest.writeInt(this.soFarBytes);
+                dest.writeLong(this.soFarBytes);
                 break;
             case FileDownloadStatus.error:
-                dest.writeInt(this.soFarBytes);
+                dest.writeLong(this.soFarBytes);
                 dest.writeSerializable(this.throwable);
                 break;
             case FileDownloadStatus.retry:
-                dest.writeInt(this.soFarBytes);
+                dest.writeLong(this.soFarBytes);
                 dest.writeSerializable(this.throwable);
                 dest.writeInt(this.retryingTimes);
                 break;
             case FileDownloadStatus.completed:
-                dest.writeInt(this.totalBytes);
+                dest.writeLong(this.totalBytes);
                 break;
         }
     }
@@ -172,28 +172,28 @@ public class FileDownloadTransferModel implements Parcelable {
         // For fewer copies
         switch (this.status) {
             case FileDownloadStatus.pending:
-                this.soFarBytes = in.readInt();
-                this.totalBytes = in.readInt();
+                this.soFarBytes = in.readLong();
+                this.totalBytes = in.readLong();
                 break;
             case FileDownloadStatus.connected:
-                this.soFarBytes = in.readInt();
-                this.totalBytes = in.readInt();
+                this.soFarBytes = in.readLong();
+                this.totalBytes = in.readLong();
                 this.etag = in.readString();
                 this.isContinue = in.readByte() == 1;
                 break;
             case FileDownloadStatus.progress:
-                this.soFarBytes = in.readInt();
+                this.soFarBytes = in.readLong();
                 break;
             case FileDownloadStatus.error:
-                this.soFarBytes = in.readInt();
+                this.soFarBytes = in.readLong();
                 this.throwable = (Throwable) in.readSerializable();
                 break;
             case FileDownloadStatus.retry:
-                this.soFarBytes = in.readInt();
+                this.soFarBytes = in.readLong();
                 this.throwable = (Throwable) in.readSerializable();
                 this.retryingTimes = in.readInt();
             case FileDownloadStatus.completed:
-                this.totalBytes = in.readInt();
+                this.totalBytes = in.readLong();
                 break;
         }
     }

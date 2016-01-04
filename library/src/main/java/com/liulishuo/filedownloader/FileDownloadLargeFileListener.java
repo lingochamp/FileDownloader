@@ -16,29 +16,24 @@
 
 package com.liulishuo.filedownloader;
 
-
 import com.liulishuo.filedownloader.event.IDownloadEvent;
-import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
- * Created by Jacksgong on 9/7/15.
- * <p/>
- * normal chain {@link #pending} -> {@link #connected} -> {@link #progress}  -> {@link #blockComplete} -> {@link #completed}
- * may final width {@link #paused}/{@link #completed}/{@link #error}/{@link #warn}
- * if reuse just {@link #blockComplete} ->{@link #completed}
+ * Created by Jacksgong on 1/4/16.
  *
- * @see FileDownloadLargeFileListener
+ * For file size greater than 1.99G
  */
-public abstract class FileDownloadListener extends IDownloadListener {
+public abstract class FileDownloadLargeFileListener extends FileDownloadListener {
 
-    public FileDownloadListener() {
+    public FileDownloadLargeFileListener() {
         this(0);
     }
 
-    public FileDownloadListener(int priority) {
+    public FileDownloadLargeFileListener(int priority) {
         super(priority);
     }
+
 
     @Override
     public boolean callback(IDownloadEvent event) {
@@ -52,20 +47,20 @@ public abstract class FileDownloadListener extends IDownloadListener {
         switch (downloaderEvent.getStatus()) {
             case FileDownloadStatus.pending:
                 pending(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getSmallFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getSmallFileTotalBytes());
+                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
+                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
                 break;
             case FileDownloadStatus.connected:
                 connected(downloaderEvent.getDownloader(),
                         downloaderEvent.getDownloader().getEtag(),
                         downloaderEvent.getDownloader().isContinue(),
-                        downloaderEvent.getDownloader().getSmallFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getSmallFileTotalBytes());
+                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
+                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
                 break;
             case FileDownloadStatus.progress:
                 progress(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getSmallFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getSmallFileTotalBytes());
+                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
+                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
                 break;
 
             case FileDownloadStatus.blockComplete:
@@ -75,7 +70,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
                 retry(downloaderEvent.getDownloader(),
                         downloaderEvent.getDownloader().getEx(),
                         downloaderEvent.getDownloader().getRetryingTimes(),
-                        downloaderEvent.getDownloader().getSmallFileSoFarBytes());
+                        downloaderEvent.getDownloader().getLargeFileSoFarBytes());
                 break;
 
             case FileDownloadStatus.completed:
@@ -87,8 +82,8 @@ public abstract class FileDownloadListener extends IDownloadListener {
                 break;
             case FileDownloadStatus.paused:
                 paused(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getSmallFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getSmallFileTotalBytes());
+                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
+                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
                 break;
             case FileDownloadStatus.warn:
                 // already same url & path in pending/running list
@@ -107,7 +102,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
      * @param soFarBytes Already downloaded bytes stored in the db
      * @param totalBytes Total bytes stored in the db
      */
-    protected abstract void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
+    protected abstract void pending(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
 
     /**
      * Connected
@@ -118,7 +113,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      */
-    protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue, final int soFarBytes, final int totalBytes) {
+    protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue, final long soFarBytes, final long totalBytes) {
 
     }
 
@@ -127,7 +122,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      */
-    protected abstract void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
+    protected abstract void progress(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
 
     /**
      * Block completed in new thread
@@ -144,7 +139,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
      * @param retryingTimes How many times will retry
      * @param soFarBytes    Number of bytes download so far
      */
-    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
+    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final long soFarBytes) {
 
     }
 
@@ -164,7 +159,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      */
-    protected abstract void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes);
+    protected abstract void paused(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
 
     /**
      * Download error

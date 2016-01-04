@@ -140,4 +140,34 @@ public class FileDownloadUtils {
 
         return false;
     }
+
+    public static int encodeLong2Int(final long size) {
+        if (size < 0) {
+            return 0;
+        }
+
+        // (0, Integer.MAX_VALUE]
+        if (size <= Integer.MAX_VALUE) {
+            return (int) size;
+        }
+
+        // (Integer.MAX_VALUE, Integer.MAX_VALUE - Integer.MIN_VALUE]
+        if (size > Integer.MAX_VALUE && size <= ((long)(Integer.MAX_VALUE + (-Integer.MIN_VALUE)))) {
+            return (int) (size + Integer.MIN_VALUE);
+        }
+
+        return Integer.MAX_VALUE;
+    }
+
+    /**
+     * @param size
+     * @return
+     */
+    public static long decodeInt2Long(final int size, final boolean useNegative) {
+        if (useNegative) {
+            return size + (long)(-Integer.MIN_VALUE);
+        }
+
+        return size;
+    }
 }

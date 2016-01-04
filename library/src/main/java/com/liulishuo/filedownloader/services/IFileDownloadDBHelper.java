@@ -44,7 +44,7 @@ interface IFileDownloadDBHelper {
 
     void remove(final int id);
 
-    void update(final int id, final byte status, final int soFar, final int total);
+    void update(final int id, final byte status, final long soFar, final long total);
 
     void updateHeader(final int id, final String etag);
 
@@ -52,7 +52,7 @@ interface IFileDownloadDBHelper {
 
     void updateRetry(final int id, final String errMsg, final int retryingTimes);
 
-    void updateComplete(final int id, final int total);
+    void updateComplete(final int id, final long total);
 
     void updatePause(final int id);
 
