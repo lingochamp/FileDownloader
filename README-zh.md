@@ -7,7 +7,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
 
-> 本引擎依赖okhttp
+> 本引擎依赖okhttp 2.7.1
 
 ---
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
@@ -87,7 +87,7 @@ FileDownloader.getImpl().create(url)
             @Override
             protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
             }
-            
+
             @Override
             protected void completed(BaseDownloadTask task) {
             }
@@ -129,7 +129,7 @@ final FileDownloadListener queueTarget = new FileDownloadListener() {
             @Override
             protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
             }
-            
+
             @Override
             protected void completed(BaseDownloadTask task) {
             }
@@ -278,4 +278,3 @@ limitations under the License.
 [bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
 [file_download_listener_callback_flow_png]: https://github.com/lingochamp/FileDownloader/raw/master/art/filedownloadlistener_callback_flow.png
-

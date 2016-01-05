@@ -8,7 +8,7 @@ Android multi-task file download engine.
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
-> This project dependency on [square/okhttp](https://github.com/square/okhttp)
+> This project dependency on [square/okhttp 2.7.1](https://github.com/square/okhttp)
 
 ## DEMO
 
