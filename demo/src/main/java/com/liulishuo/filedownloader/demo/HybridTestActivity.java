@@ -32,7 +32,7 @@ public class HybridTestActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_mix);
+        setContentView(R.layout.activity_hybrid_test);
 
         uiHandler = new Handler(new Handler.Callback() {
             @Override
