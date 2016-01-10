@@ -250,6 +250,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
                 tag.updateNotDownloaded(FileDownloadStatus.error, task.getLargeFileSoFarBytes()
                         , task.getLargeFileTotalBytes());
+                TasksManager.getImpl().removeTaskForViewHolder(task.getDownloadId());
             }
 
             @Override
@@ -262,6 +263,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
                 tag.updateNotDownloaded(FileDownloadStatus.paused, soFarBytes, totalBytes);
                 tag.taskStatusTv.setText(R.string.tasks_manager_demo_status_paused);
+                TasksManager.getImpl().removeTaskForViewHolder(task.getDownloadId());
             }
 
             @Override
@@ -273,7 +275,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
                 }
 
                 tag.updateDownloaded();
-
+                TasksManager.getImpl().removeTaskForViewHolder(task.getDownloadId());
             }
         };
         private View.OnClickListener taskActionOnClickListener = new View.OnClickListener() {
@@ -464,6 +466,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
         public void onDestroy() {
             FileDownloader.getImpl().removeServiceConnectListener(listener);
             listener = null;
+            releaseTask();
         }
 
         public boolean isReady() {
