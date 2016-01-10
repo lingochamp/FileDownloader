@@ -28,7 +28,6 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import junit.framework.Assert;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,17 +66,13 @@ public class FileDownloader {
      * @param listener start download by same listener
      * @param isSerial is execute them linearly
      */
-    public List<Integer> start(final FileDownloadListener listener, final boolean isSerial) {
+    public void start(final FileDownloadListener listener, final boolean isSerial) {
 
         if (listener == null) {
-            return null;
+            return;
         }
 
-        final List<Integer> ids = new ArrayList<>();
         final List<BaseDownloadTask> list = FileDownloadList.getImpl().copy(listener);
-        for (BaseDownloadTask task : list) {
-            ids.add(task.getDownloadId());
-        }
 
         FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(), listener, isSerial);
 
@@ -91,12 +86,9 @@ public class FileDownloader {
         } else {
             // parallel
             for (final BaseDownloadTask downloadTask : list) {
-                ids.add(downloadTask.start());
+                downloadTask.start();
             }
         }
-
-
-        return ids;
     }
 
 
