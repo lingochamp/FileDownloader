@@ -71,6 +71,12 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             e.printStackTrace();
         }
 
+        final List<Runnable> runnableList = (List<Runnable>) connectedRunnableList.clone();
+        connectedRunnableList.clear();
+        for (Runnable runnable : runnableList) {
+            runnable.run();
+        }
+
         FileDownloadEventPool.getImpl().
                 asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
                         DownloadServiceConnectChangedEvent.ConnectStatus.connected, serviceClass));
@@ -95,11 +101,21 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     }
 
     private final List<Context> BIND_CONTEXTS = new ArrayList<>();
+    private final ArrayList<Runnable> connectedRunnableList = new ArrayList<>();
 
     public void bindStartByContext(final Context context) {
+        bindStartByContext(context, null);
+    }
+
+    public void bindStartByContext(final Context context, final Runnable connectedRunnable) {
         FileDownloadLog.d(this, "bindStartByContext %s", context.getClass().getSimpleName());
 
         Intent i = new Intent(context, serviceClass);
+        if (connectedRunnable != null) {
+            if (!connectedRunnableList.contains(connectedRunnable)) {
+                connectedRunnableList.add(connectedRunnable);
+            }
+        }
 
         if (!BIND_CONTEXTS.contains(context)) {
             // 对称,只有一次remove，防止内存泄漏
