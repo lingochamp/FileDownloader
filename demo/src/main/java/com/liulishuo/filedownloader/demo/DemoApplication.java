@@ -1,6 +1,7 @@
 package com.liulishuo.filedownloader.demo;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -9,9 +10,12 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
  * Created by Jacksgong on 12/17/15.
  */
 public class DemoApplication extends Application {
+    public static Context CONTEXT;
     @Override
     public void onCreate() {
         super.onCreate();
+        // for demo
+        CONTEXT = this;
 
         // 下面这句为了测试，正常使用的时候不用添加
         FileDownloadLog.NEED_LOG = BuildConfig.DOWNLOAD_NEED_LOG;

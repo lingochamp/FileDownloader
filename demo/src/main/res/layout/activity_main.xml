@@ -16,8 +16,13 @@
 
     <Button
         style="@style/DemoButton"
-        android:onClick="onClickMix"
+        android:onClick="onClickHybridTest"
         android:text="@string/hybrid_test_title" />
+
+    <Button
+        style="@style/DemoButton"
+        android:onClick="onClickTasksManager"
+        android:text="@string/tasks_manager_demo_title" />
 
     <Button
         style="@style/DemoButton"

@@ -30,14 +30,17 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, SingleTaskTestActivity.class));
     }
 
-    public void onClickMix(final View view) {
+    public void onClickHybridTest(final View view) {
         startActivity(new Intent(this, HybridTestActivity.class));
     }
 
-    public void onClickPerformance(final View view){
-        startActivity(new Intent(this, PerformanceTestActivity.class));
+    public void onClickTasksManager(final View view) {
+        startActivity(new Intent(this, TasksManagerDemoActivity.class));
     }
 
+    public void onClickPerformance(final View view) {
+        startActivity(new Intent(this, PerformanceTestActivity.class));
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
