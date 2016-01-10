@@ -21,6 +21,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
+import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -176,7 +177,7 @@ public class FileDownloader {
      * Bind & start ':filedownloader' process manually(Do not need, will bind & start automatically by Download Engine if real need)
      */
     public void bindService() {
-        if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
+        if (!isServiceConnected()) {
             FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
         }
     }
@@ -185,9 +186,35 @@ public class FileDownloader {
      * Unbind & stop ':filedownloader' process manually(Do not need, will unbind & stop automatically by System if leave unused period)
      */
     public void unBindService() {
-        if (FileDownloadServiceUIGuard.getImpl().isConnected()) {
+        if (isServiceConnected()) {
             FileDownloadServiceUIGuard.getImpl().unbindByContext(FileDownloadHelper.getAppContext());
         }
+    }
+
+    /**
+     * @return has connected File Download service
+     */
+    public boolean isServiceConnected() {
+        return FileDownloadServiceUIGuard.getImpl().isConnected();
+    }
+
+    /**
+     * @param listener add listener for listening File Download connect/disconnect moment
+     * @see #removeServiceConnectListener(FileDownloadConnectListener)
+     */
+    public void addServiceConnectListener(final FileDownloadConnectListener listener) {
+        FileDownloadEventPool.getImpl().addListener(DownloadServiceConnectChangedEvent.ID
+                , listener);
+    }
+
+    /**
+     * @param listener remove listener which has been
+     *                 added by {@link #addServiceConnectListener(FileDownloadConnectListener)}
+     * @see #addServiceConnectListener(FileDownloadConnectListener)
+     */
+    public void removeServiceConnectListener(final FileDownloadConnectListener listener) {
+        FileDownloadEventPool.getImpl().removeListener(DownloadServiceConnectChangedEvent.ID
+                , listener);
     }
 
     private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {
