@@ -116,5 +116,10 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
         public long getTotal(int downloadId) throws RemoteException {
             return downloadManager.getTotal(downloadId);
         }
+
+        @Override
+        public int getStatus(int downloadId) throws RemoteException {
+            return downloadManager.getStatus(downloadId);
+        }
     }
 }

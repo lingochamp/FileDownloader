@@ -174,6 +174,25 @@ public class FileDownloader {
     }
 
     /**
+     * @param downloadId Download Id
+     * @return download status,
+     * if service has not connected,
+     * will be {@link com.liulishuo.filedownloader.model.FileDownloadStatus#INVALID_STATUS}
+     * if already has over(error,paused,completed,warn),
+     * will come from File Download Service
+     * if there are no data in File Download Service ,
+     * will be {@link com.liulishuo.filedownloader.model.FileDownloadStatus#INVALID_STATUS}
+     */
+    public int getStatus(final int downloadId) {
+        BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
+        if (downloadTask == null) {
+            return FileDownloadServiceUIGuard.getImpl().getStatus(downloadId);
+        }
+
+        return downloadTask.getStatus();
+    }
+
+    /**
      * Bind & start ':filedownloader' process manually(Do not need, will bind & start automatically by Download Engine if real need)
      */
     public void bindService() {

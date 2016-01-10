@@ -23,6 +23,7 @@ import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService;
@@ -165,5 +166,20 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         }
 
         return val;
+    }
+
+    public int getStatus(final int downloadId){
+        int status = FileDownloadStatus.INVALID_STATUS;
+        if (getService() == null) {
+            return status;
+        }
+
+        try {
+            status = getService().getStatus(downloadId);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return status;
     }
 }

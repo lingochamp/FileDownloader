@@ -210,5 +210,14 @@ class FileDownloadMgr {
 
         return model.getTotal();
     }
+
+    public int getStatus(final int id){
+        final FileDownloadModel model = mHelper.find(id);
+        if (model == null) {
+            return FileDownloadStatus.INVALID_STATUS;
+        }
+
+        return model.getStatus();
+    }
 }
 
