@@ -141,8 +141,9 @@ class FileDownloadRunnable implements Runnable {
             long soFar = 0;
             try {
 
-                if (model.isCanceled()) {
+                if (isCancelled()) {
                     FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
+                    onPause();
                     break;
                 }
 
