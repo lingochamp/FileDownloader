@@ -118,6 +118,7 @@ public class FileDownloader {
 
     }
 
+    private Runnable pauseAllRunnable;
     private final static Object pauseLock = new Object();
 
     /**
@@ -130,6 +131,21 @@ public class FileDownloader {
             for (BaseDownloadTask baseDownloadTask : downloadList) {
                 baseDownloadTask.pause();
             }
+        }
+        // double check, for case: File Download progress alive but ui progress has died and relived,
+        // so FileDownloadList not always contain all running task exactly.
+        if (FileDownloadServiceUIGuard.getImpl().isConnected()) {
+            FileDownloadServiceUIGuard.getImpl().pauseAllTasks();
+        } else {
+            if (pauseAllRunnable == null) {
+                pauseAllRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        FileDownloadServiceUIGuard.getImpl().pauseAllTasks();
+                    }
+                };
+            }
+            FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext(), pauseAllRunnable);
         }
 
     }

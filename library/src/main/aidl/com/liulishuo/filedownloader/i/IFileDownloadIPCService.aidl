@@ -12,6 +12,7 @@ interface IFileDownloadIPCService {
     boolean checkDownloading(String url, String path);
     int start(String url, String path, int callbackProgressTimes, int autoRetryTimes);
     boolean pause(int downloadId);
+    void pauseAllTasks();
 
     long getSofar(int downloadId);
     long getTotal(int downloadId);

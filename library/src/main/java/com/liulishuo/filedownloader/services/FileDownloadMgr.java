@@ -25,6 +25,7 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Created by Jacksgong on 9/24/15.
@@ -191,6 +192,19 @@ class FileDownloadMgr {
         // 之所以注释掉，不想这里回调error，okHttp中会根据okHttp所在被cancel的情况抛error
 //        client.cancel(id);
         return true;
+    }
+
+    /**
+     * Pause all running task
+     */
+    public void pauseAll(){
+        List<Integer> list = mThreadPool.getAllExactRunningDownladIds();
+
+        FileDownloadLog.d(this, "pause all tasks %d", list.size());
+        
+        for (Integer id : list) {
+            pause(id);
+        }
     }
 
     public long getSoFar(final int id) {

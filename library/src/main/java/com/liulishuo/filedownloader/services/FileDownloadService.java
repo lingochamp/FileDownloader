@@ -108,6 +108,11 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
         }
 
         @Override
+        public void pauseAllTasks() throws RemoteException {
+            downloadManager.pauseAll();
+        }
+
+        @Override
         public long getSofar(int downloadId) throws RemoteException {
             return downloadManager.getSoFar(downloadId);
         }

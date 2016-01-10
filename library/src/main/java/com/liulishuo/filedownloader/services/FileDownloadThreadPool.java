@@ -18,6 +18,8 @@ package com.liulishuo.filedownloader.services;
 
 import android.util.SparseArray;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,7 +36,9 @@ class FileDownloadThreadPool {
     public void execute(FileDownloadRunnable runnable) {
         runnable.onResume();
         threadPool.execute(runnable);
-        runnablePool.put(runnable.getId(), runnable);
+        synchronized (this){
+            runnablePool.put(runnable.getId(), runnable);
+        }
 
         final int CHECK_THRESHOLD_VALUE = 600;
         if (mIgnoreCheckTimes >= CHECK_THRESHOLD_VALUE) {
@@ -64,5 +68,16 @@ class FileDownloadThreadPool {
     public boolean isInThreadPool(final int downloadId) {
         final FileDownloadRunnable runnable = runnablePool.get(downloadId);
         return runnable != null && runnable.isExist();
+    }
+
+    public synchronized List<Integer> getAllExactRunningDownladIds() {
+        checkNoExist();
+
+        List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < runnablePool.size(); i++) {
+            list.add(runnablePool.get(runnablePool.keyAt(i)).getId());
+        }
+
+        return list;
     }
 }

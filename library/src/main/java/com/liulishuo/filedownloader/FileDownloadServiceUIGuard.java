@@ -182,4 +182,16 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
 
         return status;
     }
+
+    public void pauseAllTasks(){
+        if (getService() == null) {
+            return;
+        }
+
+        try {
+            getService().pauseAllTasks();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 }
