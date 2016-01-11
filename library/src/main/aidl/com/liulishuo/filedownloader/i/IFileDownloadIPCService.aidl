@@ -9,6 +9,7 @@ interface IFileDownloadIPCService {
     oneway void unregisterCallback(in IFileDownloadIPCCallback callback);
 
     FileDownloadTransferModel checkReuse(String url, String path);
+    FileDownloadTransferModel checkReuse2(int id);
     boolean checkDownloading(String url, String path);
     oneway void start(String url, String path, int callbackProgressTimes, int autoRetryTimes);
     boolean pause(int downloadId);

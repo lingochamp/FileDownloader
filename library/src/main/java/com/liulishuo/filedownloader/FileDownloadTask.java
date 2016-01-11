@@ -83,7 +83,7 @@ class FileDownloadTask extends BaseDownloadTask {
             return false;
         }
 
-        final FileDownloadTransferModel model = FileDownloadServiceUIGuard.getImpl().checkReuse(getUrl(), getPath());
+        final FileDownloadTransferModel model = FileDownloadServiceUIGuard.getImpl().checkReuse(getDownloadId());
         if (model != null) {
             FileDownloadEventPool.getImpl().publish(new DownloadTransferEvent(model));
 

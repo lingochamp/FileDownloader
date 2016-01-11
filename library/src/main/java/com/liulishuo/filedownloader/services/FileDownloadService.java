@@ -24,6 +24,7 @@ import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 /**
  * Created by Jacksgong on 9/23/15.
@@ -88,7 +89,12 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
 
         @Override
         public FileDownloadTransferModel checkReuse(String url, String path) throws RemoteException {
-            return downloadManager.checkReuse(url, path);
+            return downloadManager.checkReuse(FileDownloadUtils.generateId(url, path));
+        }
+
+        @Override
+        public FileDownloadTransferModel checkReuse2(int id) throws RemoteException {
+            return downloadManager.checkReuse(id);
         }
 
         @Override

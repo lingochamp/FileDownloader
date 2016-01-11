@@ -133,43 +133,49 @@ class FileDownloadMgr {
 
     }
 
+    public FileDownloadTransferModel checkReuse(final int downloadId) {
+        return checkReuse(downloadId, mHelper.find(downloadId));
+    }
+
     /**
      * @return Already succeed & exists
      */
-    public FileDownloadTransferModel checkReuse(String url, String path) {
-        final int downloadId = FileDownloadUtils.generateId(url, path);
-        final FileDownloadModel model = mHelper.find(downloadId);
+    public static FileDownloadTransferModel checkReuse(final int downloadId, final FileDownloadModel model) {
         FileDownloadTransferModel transferModel = null;
-        // 这个方法判断应该在checkDownloading之后，如果在下载中，那么这些判断都将产生错误。 存在小概率事件，有可能，此方法判断过程中，刚好下载完成, 这里需要对同一DownloadId的Runnable与该方法同步
+        // 这个方法判断应该在checkDownloading之后，如果在下载中，那么这些判断都将产生错误。
+        // 存在小概率事件，有可能，此方法判断过程中，刚好下载完成, 这里需要对同一DownloadId的Runnable与该方法同步
         do {
             if (model == null) {
                 // 数据不存在
-                FileDownloadLog.w(this, "model not exist %s", url);
+                FileDownloadLog.w(FileDownloadMgr.class, "model not exist %d", downloadId);
                 break;
             }
 
             if (model.getStatus() != FileDownloadStatus.completed) {
                 // 数据状态没完成
-                FileDownloadLog.w(this, "status not completed %s %s", model.getStatus(), url);
+                FileDownloadLog.w(FileDownloadMgr.class, "status not completed %s %d",
+                        model.getStatus(), downloadId);
                 break;
             }
 
-            final File file = new File(path);
+            final File file = new File(model.getPath());
             if (!file.exists() || !file.isFile()) {
                 // 文件不存在
-                FileDownloadLog.w(this, "file not exists %s", url);
+                FileDownloadLog.w(FileDownloadMgr.class, "file not exists %d", downloadId);
                 break;
             }
 
             if (model.getSoFar() != model.getTotal()) {
                 // 脏数据
-                FileDownloadLog.w(this, "soFar[%d] not equal total[%d] %s", model.getSoFar(), model.getTotal(), url);
+                FileDownloadLog.w(FileDownloadMgr.class, "soFar[%d] not equal total[%d] %d",
+                        model.getSoFar(), model.getTotal(), downloadId);
                 break;
             }
 
             if (file.length() != model.getTotal()) {
                 // 无效文件
-                FileDownloadLog.w(this, "file length[%d] not equal total[%d] %s", file.length(), model.getTotal(), url);
+                FileDownloadLog.w(FileDownloadMgr.class, "file length[%d] not equal total[%d] %d",
+                        file.length(), model.getTotal(), downloadId);
                 break;
             }
 
@@ -178,7 +184,8 @@ class FileDownloadMgr {
         } while (false);
 
 
-        FileDownloadLog.d(this, "check reuse %d enable(%B)", downloadId, transferModel != null);
+        FileDownloadLog.d(FileDownloadMgr.class, "check reuse %d enable(%B)",
+                model.getId(), transferModel != null);
         return transferModel;
     }
 
@@ -257,7 +264,7 @@ class FileDownloadMgr {
         return model.getStatus();
     }
 
-    public boolean isIdle(){
+    public boolean isIdle() {
         return mThreadPool.exactSize() <= 0;
     }
 }

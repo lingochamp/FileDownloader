@@ -124,6 +124,20 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         return null;
     }
 
+    public FileDownloadTransferModel checkReuse(final int id) {
+        if (getService() == null) {
+            return null;
+        }
+
+        try {
+            return getService().checkReuse2(id);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public boolean checkIsDownloading(final String url, final String path) {
         if (getService() == null) {
             return false;
