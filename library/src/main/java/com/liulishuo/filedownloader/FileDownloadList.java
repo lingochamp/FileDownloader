@@ -51,7 +51,8 @@ class FileDownloadList {
     BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
-                // TODO Another task with same id?
+                // TODO Another task with same id?, has already filtered out
+                // when FileDownloadMgr#checkDownloading
                 if (baseDownloadTask.getDownloadId() == id) {
                     return baseDownloadTask;
                 }

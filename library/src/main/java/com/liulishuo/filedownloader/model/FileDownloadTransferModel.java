@@ -44,6 +44,9 @@ public class FileDownloadTransferModel implements Parcelable {
     // Number of times to try again, [1, &]
     private int retryingTimes;
 
+    // reused old file
+    private boolean useOldFile;
+
     public FileDownloadTransferModel(final FileDownloadModel model) {
         this.status = model.getStatus();
         this.downloadId = model.getId();
@@ -116,6 +119,14 @@ public class FileDownloadTransferModel implements Parcelable {
         this.throwable = throwable;
     }
 
+    public boolean isUseOldFile() {
+        return useOldFile;
+    }
+
+    public void setUseOldFile(boolean useOldFile) {
+        this.useOldFile = useOldFile;
+    }
+
     public FileDownloadTransferModel() {
     }
 
@@ -158,6 +169,7 @@ public class FileDownloadTransferModel implements Parcelable {
                 break;
             case FileDownloadStatus.completed:
                 dest.writeLong(this.totalBytes);
+                dest.writeByte(useOldFile ? (byte) 1 : (byte) 0);
                 break;
         }
     }
@@ -192,8 +204,10 @@ public class FileDownloadTransferModel implements Parcelable {
                 this.soFarBytes = in.readLong();
                 this.throwable = (Throwable) in.readSerializable();
                 this.retryingTimes = in.readInt();
+                break;
             case FileDownloadStatus.completed:
                 this.totalBytes = in.readLong();
+                this.useOldFile = in.readByte() == 1;
                 break;
         }
     }
@@ -227,8 +241,10 @@ public class FileDownloadTransferModel implements Parcelable {
                 model.soFarBytes = this.soFarBytes;
                 model.throwable = this.throwable;
                 model.retryingTimes = this.retryingTimes;
+                break;
             case FileDownloadStatus.completed:
                 model.totalBytes = this.totalBytes;
+                model.useOldFile = this.useOldFile;
                 break;
         }
 

@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.services;
 
 
+import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -47,14 +48,48 @@ class FileDownloadMgr {
     }
 
 
-    public synchronized int start(String url, String path, int callbackProgressTimes, int autoRetryTimes) {
+    // synchronize for safe: check downloading, check resume, update data, execute runnable
+    public synchronized void start(String url, String path, int callbackProgressTimes,
+                                   int autoRetryTimes, boolean forceRedownload) {
         final int id = FileDownloadUtils.generateId(url, path);
 
-        if (checkResume(id, autoRetryTimes)) {
-            FileDownloadLog.d(this, "resume %d", id);
-            return id;
+        // check is already in download pool
+        if (checkDownloading(url, path)) {
+            FileDownloadLog.d(this, "has already started download %d", id);
+            // warn
+            final FileDownloadTransferModel warnModel = new FileDownloadTransferModel();
+            warnModel.setDownloadId(id);
+            warnModel.setStatus(FileDownloadStatus.warn);
+
+            FileDownloadProcessEventPool.getImpl()
+                    .asyncPublishInNewThread(new DownloadTransferEvent(warnModel));
+            return;
         }
 
+        // check reuse
+        if (!forceRedownload) {
+            final FileDownloadTransferModel reuseModel = checkReuse(url, path);
+            if (reuseModel != null) {
+                // completed
+                FileDownloadProcessEventPool.getImpl()
+                        .asyncPublishInNewThread(new DownloadTransferEvent(reuseModel));
+                return;
+            }
+        } else {
+            FileDownloadLog.d(this, "force reDownload %d", id);
+        }
+
+
+        // check resume
+        if (checkResume(id, autoRetryTimes)) {
+            FileDownloadLog.d(this, "resume %d", id);
+            return;
+        }
+
+
+        // real start
+
+        // - create model
         final FileDownloadModel model = new FileDownloadModel();
         model.setUrl(url);
         model.setPath(path);
@@ -66,11 +101,12 @@ class FileDownloadMgr {
         model.setStatus(FileDownloadStatus.pending);
         model.setIsCancel(false);
 
+        // - update model to db
         mHelper.update(model);
 
+        // - execute
         mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes));
 
-        return id;
     }
 
     public boolean checkDownloading(String url, String path) {
@@ -152,6 +188,7 @@ class FileDownloadMgr {
             }
 
             transferModel = new FileDownloadTransferModel(model);
+            transferModel.setUseOldFile(true);
         } while (false);
 
 
@@ -197,11 +234,11 @@ class FileDownloadMgr {
     /**
      * Pause all running task
      */
-    public void pauseAll(){
-        List<Integer> list = mThreadPool.getAllExactRunningDownladIds();
+    public void pauseAll() {
+        List<Integer> list = mThreadPool.getAllExactRunningDownloadIds();
 
         FileDownloadLog.d(this, "pause all tasks %d", list.size());
-        
+
         for (Integer id : list) {
             pause(id);
         }
@@ -225,7 +262,7 @@ class FileDownloadMgr {
         return model.getTotal();
     }
 
-    public int getStatus(final int id){
+    public int getStatus(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {
             return FileDownloadStatus.INVALID_STATUS;

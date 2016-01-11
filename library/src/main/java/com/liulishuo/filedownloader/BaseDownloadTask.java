@@ -464,20 +464,6 @@ public abstract class BaseDownloadTask {
         return true;
     }
 
-    /**
-     * @return Is can reuse old file
-     */
-    protected boolean _checkCanReuse() {
-        return false;
-    }
-
-    /**
-     * @return Is downloading/pending in download queue
-     */
-    protected boolean _checkDownloading(final String url, final String path) {
-        return false;
-    }
-
     // Assign default value if need
     private void _adjust() {
         if (path == null) {
@@ -498,33 +484,11 @@ public abstract class BaseDownloadTask {
 
             FileDownloadList.getImpl().add(this);
 
-            // Whether already in download queue in download service.
-            if (_checkDownloading(getUrl(), getPath())) {
-                // Already in download queue.
-                // End with Warn callback directly
-                FileDownloadLog.d(this, "Current is downloading %d", getDownloadId());
+            FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
 
-                setStatus(FileDownloadStatus.warn);
-                FileDownloadList.getImpl().removeByWarn(this);
-
-                return;
-            }
-
-            if (_checkCanReuse()) {
-                FileDownloadLog.d(this, "reuse downloaded file %s", getUrl());
-                this.isReusedOldFile = true;
-
-                setStatus(FileDownloadStatus.completed);
-                FileDownloadList.getImpl().removeByCompleted(this);
-
-            } else {
-                FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
-                this.isReusedOldFile = false;
-
-                if (_startExecute() == 0) {
-                    setEx(new RuntimeException("not run download, not got download id"));
-                    FileDownloadList.getImpl().removeByError(this);
-                }
+            if (!_startExecute()) {
+                setEx(new RuntimeException("not run download, not got download id"));
+                FileDownloadList.getImpl().removeByError(this);
             }
 
         } catch (Throwable e) {
@@ -536,8 +500,12 @@ public abstract class BaseDownloadTask {
 
     }
 
-    // Execute start
-    protected abstract int _startExecute();
+    /**
+     * Execute start
+     *
+     * @return succeed
+     */
+    protected abstract boolean _startExecute();
 
     // Execute pause
     protected abstract boolean _pauseExecute();
@@ -733,6 +701,7 @@ public abstract class BaseDownloadTask {
                     break;
                 }
 
+                this.isReusedOldFile = transfer.isUseOldFile();
                 setStatus(transfer.getStatus());
                 setSoFarBytes(getLargeFileSoFarBytes());
 
@@ -741,9 +710,15 @@ public abstract class BaseDownloadTask {
 
                 break;
             case FileDownloadStatus.warn:
-                /**
-                 * Handled by {@link #_start()}
-                 */
+                if (getStatus() == FileDownloadStatus.warn) {
+                    FileDownloadLog.w(this, "already warn , callback by process with same transfer");
+                    break;
+                }
+
+                setStatus(transfer.getStatus());
+
+                // to FileDownloadList
+                FileDownloadList.getImpl().removeByWarn(this);
                 break;
         }
     }

@@ -65,45 +65,22 @@ class FileDownloadTask extends BaseDownloadTask {
     }
 
     @Override
-    protected boolean _checkDownloading(final String url, final String path) {
-        return FileDownloadServiceUIGuard.getImpl().checkIsDownloading(url, path);
-    }
-
-    @Override
-    protected boolean _checkCanReuse() {
-
-
-        if (isForceReDownload()) {
-            return false;
-        }
-
-        final FileDownloadTransferModel model = FileDownloadServiceUIGuard.getImpl().checkReuse(getUrl(), getPath());
-        if (model == null) {
-            return super._checkCanReuse();
-        }
-
-        setSoFarBytes(model.getTotalBytes());
-        setTotalBytes(model.getTotalBytes());
-        return true;
-
-    }
-
-    @Override
-    protected int _startExecute() {
-        final int result = FileDownloadServiceUIGuard.getImpl().
+    protected boolean _startExecute() {
+        final boolean succeed = FileDownloadServiceUIGuard.getImpl().
                 startDownloader(
                         getUrl(),
                         getPath(),
                         getCallbackProgressTimes(),
-                        getAutoRetryTimes());
+                        getAutoRetryTimes(),
+                        isForceReDownload());
 
-        if (result != 0) {
+        if (succeed) {
             synchronized (NEED_RESTART_LIST) {
                 NEED_RESTART_LIST.remove(this);
             }
         }
 
-        return result;
+        return succeed;
     }
 
     @Override
