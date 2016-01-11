@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.demo.performance.PerformanceTestActivity;
 
 /**
@@ -64,5 +65,12 @@ public class MainActivity extends AppCompatActivity {
         Uri uri = Uri.parse(getString(R.string.app_github_url));
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // unbind and stop service manually if idle
+        FileDownloader.getImpl().unBindServiceIfIdle();
     }
 }
