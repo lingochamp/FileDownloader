@@ -85,6 +85,11 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
+        FileDownloadLog.d(this, "onServiceDisconnected %s %s", name, this.service);
+        releaseConnect();
+    }
+
+    private void releaseConnect(){
         if (this.service != null) {
             try {
                 unregisterCallback(this.service, this.callback);
@@ -92,7 +97,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
                 e.printStackTrace();
             }
         }
-        FileDownloadLog.d(this, "onServiceDisconnected %s %s", name, this.service);
+        FileDownloadLog.d(this, "release connect resources %s", this.service);
         this.service = null;
 
         FileDownloadEventPool.getImpl().
@@ -135,8 +140,12 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
 
         BIND_CONTEXTS.remove(context);
 
-        Intent i = new Intent(context, serviceClass);
 
+        if (BIND_CONTEXTS.isEmpty()) {
+            releaseConnect();
+        }
+
+        Intent i = new Intent(context, serviceClass);
         context.unbindService(this);
         context.stopService(i);
     }
