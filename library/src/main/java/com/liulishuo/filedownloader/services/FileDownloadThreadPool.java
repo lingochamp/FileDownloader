@@ -70,7 +70,12 @@ class FileDownloadThreadPool {
         return runnable != null && runnable.isExist();
     }
 
-    public synchronized List<Integer> getAllExactRunningDownladIds() {
+    public synchronized int exactSize(){
+        checkNoExist();
+        return runnablePool.size();
+    }
+
+    public synchronized List<Integer> getAllExactRunningDownloadIds() {
         checkNoExist();
 
         List<Integer> list = new ArrayList<>();

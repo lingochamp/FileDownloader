@@ -42,6 +42,12 @@ class FileDownloadList {
         list = new ArrayList<>();
     }
 
+    boolean isEmpty(){
+        synchronized (list) {
+            return list.isEmpty();
+        }
+    }
+
     BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {

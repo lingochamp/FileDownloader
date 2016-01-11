@@ -69,6 +69,7 @@ public abstract class BaseFileService<CALLBACK extends IInterface, BINDER extend
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         FileDownloadLog.d(this, "onStartCommand");
+        // TODO change command when no task in thread
         return START_STICKY;
     }
 

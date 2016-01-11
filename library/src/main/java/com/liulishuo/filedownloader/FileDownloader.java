@@ -218,6 +218,21 @@ public class FileDownloader {
         }
     }
 
+    public boolean unBindServiceIfIdle() {
+        // check idle
+        if (!isServiceConnected()) {
+            return false;
+        }
+
+        if (FileDownloadList.getImpl().isEmpty()
+                && FileDownloadServiceUIGuard.getImpl().isIdle()) {
+            unBindService();
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @return has connected File Download service
      */

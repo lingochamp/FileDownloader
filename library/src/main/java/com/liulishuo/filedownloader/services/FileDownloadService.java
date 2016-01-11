@@ -126,5 +126,10 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
         public int getStatus(int downloadId) throws RemoteException {
             return downloadManager.getStatus(downloadId);
         }
+
+        @Override
+        public boolean isIdle() throws RemoteException {
+            return downloadManager.isIdle();
+        }
     }
 }

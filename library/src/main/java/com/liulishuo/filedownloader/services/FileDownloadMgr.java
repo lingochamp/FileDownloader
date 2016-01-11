@@ -233,5 +233,9 @@ class FileDownloadMgr {
 
         return model.getStatus();
     }
+
+    public boolean isIdle(){
+        return mThreadPool.exactSize() <= 0;
+    }
 }
 

@@ -17,4 +17,5 @@ interface IFileDownloadIPCService {
     long getSofar(int downloadId);
     long getTotal(int downloadId);
     int getStatus(int downloadId);
+    boolean isIdle();
 }

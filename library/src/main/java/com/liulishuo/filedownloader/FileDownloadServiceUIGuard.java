@@ -194,4 +194,21 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
             e.printStackTrace();
         }
     }
+
+    /**
+     * @return any error, will return true
+     */
+    public boolean isIdle(){
+        if (getService() == null) {
+            return true;
+        }
+
+        try {
+            getService().isIdle();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
 }
