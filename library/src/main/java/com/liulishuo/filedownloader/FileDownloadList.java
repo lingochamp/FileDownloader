@@ -67,7 +67,6 @@ class FileDownloadList {
     BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
-                // TODO Another task with same id?, has already filtered out
                 // when FileDownloadMgr#checkDownloading
                 if (baseDownloadTask.getDownloadId() == id) {
                     return baseDownloadTask;
@@ -75,6 +74,19 @@ class FileDownloadList {
             }
         }
         return null;
+    }
+
+    List<BaseDownloadTask> getList(final int id) {
+        final List<BaseDownloadTask> list = new ArrayList<>();
+        synchronized (this.list) {
+            for (BaseDownloadTask baseDownloadTask : this.list) {
+                if (baseDownloadTask.getDownloadId() == id) {
+                    list.add(baseDownloadTask);
+                }
+            }
+        }
+
+        return list;
     }
 
     boolean contains(final BaseDownloadTask download) {

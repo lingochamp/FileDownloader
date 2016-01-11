@@ -21,6 +21,7 @@ import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -139,12 +140,27 @@ class FileDownloadTask extends BaseDownloadTask {
 
                 // For fewer copies,do not carry all data in transfer model.
                 final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
-                final BaseDownloadTask task = FileDownloadList.getImpl().get(transfer.getDownloadId());
+                final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getList(transfer.getDownloadId());
 
 
-                if (task != null) {
-                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", task.getDownloadId(), task.getStatus(), transfer.getStatus());
-                    task.update(transfer);
+                if (taskList.size() > 0) {
+
+                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d", transfer.getDownloadId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
+
+                    if (transfer.getStatus() == FileDownloadStatus.warn) {
+                        // just update one task, another will be maintained to receive other status
+                        final BaseDownloadTask task = taskList.get(0);
+                        task.update(transfer);
+                    } else {
+                        // guarantee: 1. BaseDownloadTask#update pass no change status.
+                        //  2. FileDownloadList#remove only notify in case of remove succeed.
+                        for (BaseDownloadTask task : taskList) {
+                            task.update(transfer);
+                        }
+                    }
+
+
+
                 } else {
                     FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d, but is contains false", transfer.getStatus());
                 }
