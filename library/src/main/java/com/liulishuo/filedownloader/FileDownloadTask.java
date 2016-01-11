@@ -34,7 +34,7 @@ import java.util.List;
 class FileDownloadTask extends BaseDownloadTask {
 
     private static final DownloadEventSampleListener DOWNLOAD_INTERNAL_LIS;
-    private static final List<BaseDownloadTask> NEED_RESTART_LIST = new ArrayList<>();
+    private static final ArrayList<BaseDownloadTask> NEED_RESTART_LIST = new ArrayList<>();
 
     static {
         DOWNLOAD_INTERNAL_LIS = new DownloadEventSampleListener(new FileDownloadInternalLis());
@@ -50,18 +50,14 @@ class FileDownloadTask extends BaseDownloadTask {
     @Override
     public void clear() {
         super.clear();
-        synchronized (NEED_RESTART_LIST) {
-            NEED_RESTART_LIST.remove(this);
-        }
+        handleNoNeedRestart();
     }
 
     @Override
     public void over() {
         super.over();
 
-        synchronized (NEED_RESTART_LIST) {
-            NEED_RESTART_LIST.remove(this);
-        }
+        handleNoNeedRestart();
     }
 
     @Override
@@ -75,9 +71,7 @@ class FileDownloadTask extends BaseDownloadTask {
                         isForceReDownload());
 
         if (succeed) {
-            synchronized (NEED_RESTART_LIST) {
-                NEED_RESTART_LIST.remove(this);
-            }
+            handleNoNeedRestart();
         }
 
         return succeed;
@@ -85,19 +79,20 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     protected boolean _checkCanStart() {
-        synchronized (NEED_RESTART_LIST) {
-            if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
-                // 没有连上 服务
-                FileDownloadLog.d(this, "no connect service !! %s", getDownloadId());
-                FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
-                NEED_RESTART_LIST.add(this);
-                return false;
+        if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
+            synchronized (NEED_RESTART_LIST) {
+                if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
+                    // 没有连上 服务
+                    FileDownloadLog.d(this, "no connect service !! %s", getDownloadId());
+                    FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
+                    NEED_RESTART_LIST.add(this);
+                    return false;
+                }
             }
         }
 
-        synchronized (NEED_RESTART_LIST) {
-            NEED_RESTART_LIST.remove(this);
-        }
+        handleNoNeedRestart();
+
         return true;
     }
 
@@ -110,6 +105,22 @@ class FileDownloadTask extends BaseDownloadTask {
         return super.pause();
     }
 
+    private void handleNoNeedRestart() {
+
+        // connected
+        if (NEED_RESTART_LIST.size() > 0) {
+            synchronized (NEED_RESTART_LIST) {
+                NEED_RESTART_LIST.remove(this);
+            }
+        } else {
+            // safe
+            // 1. only relate with  FileDownloadList, which will be invoked before this, so if empty
+            // will be safe to pass
+            // 2. this method will be invoked one by one in the task with task lifecycle
+        }
+
+    }
+
     @Override
     protected boolean _pauseExecute() {
         return FileDownloadServiceUIGuard.getImpl().pauseDownloader(getDownloadId());
@@ -119,17 +130,33 @@ class FileDownloadTask extends BaseDownloadTask {
 
         @Override
         public boolean callback(IDownloadEvent event) {
+            if (event instanceof DownloadTransferEvent) {
+
+                // For fewer copies,do not carry all data in transfer model.
+                final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
+                final BaseDownloadTask task = FileDownloadList.getImpl().get(transfer.getDownloadId());
+
+
+                if (task != null) {
+                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", task.getDownloadId(), task.getStatus(), transfer.getStatus());
+                    task.update(transfer);
+                } else {
+                    FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d, but is contains false", transfer.getStatus());
+                }
+                return true;
+            }
+
             if (event instanceof DownloadServiceConnectChangedEvent) {
                 FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s", ((DownloadServiceConnectChangedEvent) event).getStatus());
                 if (((DownloadServiceConnectChangedEvent) event).getStatus() == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
-                    Object[] needRestartList;
+                    List<BaseDownloadTask> needRestartList;
                     synchronized (NEED_RESTART_LIST) {
-                        needRestartList = NEED_RESTART_LIST.toArray();
+                        needRestartList = (List<BaseDownloadTask>) NEED_RESTART_LIST.clone();
                         NEED_RESTART_LIST.clear();
                     }
 
-                    for (Object o : needRestartList) {
-                        ((FileDownloadTask) o).start();
+                    for (BaseDownloadTask o : needRestartList) {
+                        o.start();
                     }
 
                 } else {
@@ -146,22 +173,6 @@ class FileDownloadTask extends BaseDownloadTask {
 
                 return false;
 
-            }
-
-            if (event instanceof DownloadTransferEvent) {
-
-                // For fewer copies,do not carry all data in transfer model.
-                final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
-                final BaseDownloadTask task = FileDownloadList.getImpl().get(transfer.getDownloadId());
-
-
-                if (task != null) {
-                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s]", task.getDownloadId(), task.getStatus(), transfer.getStatus());
-                    task.update(transfer);
-                } else {
-                    FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d, but is contains false", transfer.getStatus());
-                }
-                return true;
             }
 
             return false;
