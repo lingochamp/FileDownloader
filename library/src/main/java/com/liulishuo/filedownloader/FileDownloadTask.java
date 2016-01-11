@@ -68,14 +68,30 @@ class FileDownloadTask extends BaseDownloadTask {
                         getUrl(),
                         getPath(),
                         getCallbackProgressTimes(),
-                        getAutoRetryTimes(),
-                        isForceReDownload());
+                        getAutoRetryTimes());
 
         if (succeed) {
             handleNoNeedRestart();
         }
 
         return succeed;
+    }
+
+    @Override
+    protected boolean _checkCanReuse() {
+        if (isForceReDownload()) {
+            return false;
+        }
+
+        final FileDownloadTransferModel model = FileDownloadServiceUIGuard.getImpl().checkReuse(getUrl(), getPath());
+        if (model != null) {
+            FileDownloadEventPool.getImpl().publish(new DownloadTransferEvent(model));
+
+            return true;
+        }
+
+
+        return super._checkCanReuse();
     }
 
     @Override
@@ -99,9 +115,7 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     public boolean pause() {
-        synchronized (NEED_RESTART_LIST) {
-            NEED_RESTART_LIST.remove(this);
-        }
+        handleNoNeedRestart();
 
         return super.pause();
     }

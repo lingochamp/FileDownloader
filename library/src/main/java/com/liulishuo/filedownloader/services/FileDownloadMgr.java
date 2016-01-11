@@ -50,7 +50,7 @@ class FileDownloadMgr {
 
     // synchronize for safe: check downloading, check resume, update data, execute runnable
     public synchronized void start(String url, String path, int callbackProgressTimes,
-                                   int autoRetryTimes, boolean forceRedownload) {
+                                   int autoRetryTimes) {
         final int id = FileDownloadUtils.generateId(url, path);
 
         // check is already in download pool
@@ -62,23 +62,9 @@ class FileDownloadMgr {
             warnModel.setStatus(FileDownloadStatus.warn);
 
             FileDownloadProcessEventPool.getImpl()
-                    .asyncPublishInNewThread(new DownloadTransferEvent(warnModel));
+                    .publish(new DownloadTransferEvent(warnModel));
             return;
         }
-
-        // check reuse
-        if (!forceRedownload) {
-            final FileDownloadTransferModel reuseModel = checkReuse(url, path);
-            if (reuseModel != null) {
-                // completed
-                FileDownloadProcessEventPool.getImpl()
-                        .asyncPublishInNewThread(new DownloadTransferEvent(reuseModel));
-                return;
-            }
-        } else {
-            FileDownloadLog.d(this, "force reDownload %d", id);
-        }
-
 
         // check resume
         if (checkResume(id, autoRetryTimes)) {

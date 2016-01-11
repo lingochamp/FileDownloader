@@ -80,14 +80,13 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
      * @param callbackProgressTimes for callback progress times
      * @param autoRetryTimes        for auto retry times when error
      */
-    public boolean startDownloader(final String url, final String path, final int callbackProgressTimes, final int autoRetryTimes,
-                                   final boolean forceRedownoad) {
+    public boolean startDownloader(final String url, final String path, final int callbackProgressTimes, final int autoRetryTimes) {
         if (getService() == null) {
             return false;
         }
 
         try {
-            getService().start(url, path, callbackProgressTimes, autoRetryTimes, forceRedownoad);
+            getService().start(url, path, callbackProgressTimes, autoRetryTimes);
         } catch (RemoteException e) {
             e.printStackTrace();
 

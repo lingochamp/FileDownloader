@@ -10,7 +10,7 @@ interface IFileDownloadIPCService {
 
     FileDownloadTransferModel checkReuse(String url, String path);
     boolean checkDownloading(String url, String path);
-    oneway void start(String url, String path, int callbackProgressTimes, int autoRetryTimes, boolean isForceRedownload);
+    oneway void start(String url, String path, int callbackProgressTimes, int autoRetryTimes);
     boolean pause(int downloadId);
     void pauseAllTasks();
 

@@ -464,6 +464,10 @@ public abstract class BaseDownloadTask {
         return true;
     }
 
+    protected boolean _checkCanReuse(){
+        return false;
+    }
+
     // Assign default value if need
     private void _adjust() {
         if (path == null) {
@@ -483,6 +487,9 @@ public abstract class BaseDownloadTask {
             }
 
             FileDownloadList.getImpl().add(this);
+            if (_checkCanReuse()) {
+                return;
+            }
 
             FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
 
