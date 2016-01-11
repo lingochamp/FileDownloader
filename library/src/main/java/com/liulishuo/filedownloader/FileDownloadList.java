@@ -48,6 +48,22 @@ class FileDownloadList {
         }
     }
 
+    /**
+     * @param id download id
+     * @return get counts os same id
+     */
+    int count(final int id) {
+        int size = 0;
+        synchronized (list) {
+            for (BaseDownloadTask baseDownloadTask : list) {
+                if (baseDownloadTask.getDownloadId() == id) {
+                    size++;
+                }
+            }
+        }
+        return size;
+    }
+
     BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {

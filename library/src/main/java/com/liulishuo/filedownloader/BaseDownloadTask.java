@@ -715,6 +715,25 @@ public abstract class BaseDownloadTask {
                     break;
                 }
 
+                final int count = FileDownloadList.getImpl().count(getDownloadId());
+                if (count <= 1) {
+                    // 1. this progress kill by sys and relive,
+                    // for add at least one listener
+                    // or 2. pre downloading task has already completed/error/paused
+                    // request status
+                    final int currentStatus = FileDownloader.getImpl().getStatus(getDownloadId());
+                    FileDownloadLog.w(this, "warn, but no listener to receive progress, " +
+                            "switch to pending %d %d", getDownloadId(), currentStatus);
+
+                    if (currentStatus != FileDownloadStatus.warn
+                            && !FileDownloadStatus.isOver(currentStatus)) {
+                        setStatus(FileDownloadStatus.pending);
+                        getDriver().notifyPending();
+                        break;
+                    }
+
+                }
+
                 setStatus(transfer.getStatus());
 
                 // to FileDownloadList

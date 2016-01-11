@@ -21,19 +21,23 @@ package com.liulishuo.filedownloader.model;
  *
  * @see com.liulishuo.filedownloader.IFileDownloadMessage
  */
-public interface FileDownloadStatus {
+public class FileDownloadStatus {
     // [-2^7, 2^7 -1]
-    byte pending = 1;
-    byte connected = 2;
-    byte progress = 3;
-    byte blockComplete = 4;
-    byte retry = 5;
-    byte error = -1;
-    byte paused = -2;
-    byte completed = -3;
-    byte warn = -4;
+    public final static byte pending = 1;
+    public final static byte connected = 2;
+    public final static byte progress = 3;
+    public final static byte blockComplete = 4;
+    public final static byte retry = 5;
+    public final static byte error = -1;
+    public final static byte paused = -2;
+    public final static byte completed = -3;
+    public final static byte warn = -4;
 
-    byte MAX_INT = 5;
-    byte MIN_INT = -4;
-    byte INVALID_STATUS = 0;
+    public final static byte MAX_INT = 5;
+    public final static byte MIN_INT = -4;
+    public final static byte INVALID_STATUS = 0;
+
+    public static boolean isOver(final int status) {
+        return status < 0;
+    }
 }
