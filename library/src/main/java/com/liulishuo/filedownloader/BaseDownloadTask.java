@@ -510,6 +510,7 @@ public abstract class BaseDownloadTask {
     // Execute pause
     protected abstract boolean _pauseExecute();
 
+    protected abstract int _getStatusFromServer(final int downloadId);
     private Runnable cacheRunnable;
 
     private Runnable _getOverCallback() {
@@ -721,15 +722,19 @@ public abstract class BaseDownloadTask {
                     // for add at least one listener
                     // or 2. pre downloading task has already completed/error/paused
                     // request status
-                    final int currentStatus = FileDownloader.getImpl().getStatus(getDownloadId());
+                    final int currentStatus = _getStatusFromServer(downloadId);
                     FileDownloadLog.w(this, "warn, but no listener to receive progress, " +
-                            "switch to pending %d %d", getDownloadId(), currentStatus);
+                                "switch to pending %d %d", getDownloadId(), currentStatus);
 
-                    if (currentStatus != FileDownloadStatus.warn
-                            && !FileDownloadStatus.isOver(currentStatus)) {
+                    if (FileDownloadStatus.isIng(currentStatus)) {
+                        // ing, has callbacks
+                        // keep and wait callback
+
                         setStatus(FileDownloadStatus.pending);
                         getDriver().notifyPending();
                         break;
+                    } else {
+                        // already over and no callback
                     }
 
                 }

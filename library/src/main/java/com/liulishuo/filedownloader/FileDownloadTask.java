@@ -126,6 +126,11 @@ class FileDownloadTask extends BaseDownloadTask {
         return FileDownloadServiceUIGuard.getImpl().pauseDownloader(getDownloadId());
     }
 
+    @Override
+    protected int _getStatusFromServer(final int downloadId) {
+        return FileDownloadServiceUIGuard.getImpl().getStatus(downloadId);
+    }
+
     private static class FileDownloadInternalLis implements DownloadEventSampleListener.IEventListener {
 
         @Override

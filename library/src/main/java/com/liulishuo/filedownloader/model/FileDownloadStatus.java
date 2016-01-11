@@ -40,4 +40,8 @@ public class FileDownloadStatus {
     public static boolean isOver(final int status) {
         return status < 0;
     }
+
+    public static boolean isIng(final int status) {
+        return status >= pending && status <= retry;
+    }
 }
