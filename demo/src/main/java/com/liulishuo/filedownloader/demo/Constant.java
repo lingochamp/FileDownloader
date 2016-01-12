@@ -5,6 +5,11 @@ package com.liulishuo.filedownloader.demo;
  */
 public interface Constant {
 
+    String[] CHUNKED_TRANSFER_ENCODING_DATAS = {
+            "http://www.funonsite.com/funarea/ringtones/download-ringtone-953-funonsite.com.mp3",
+            "http://www.funonsite.com/funarea/ringtones/download-ringtone-951-funonsite.com.mp3"
+    };
+
     String[] BIG_FILE_URLS = {
             "http://7xjww9.com1.z0.glb.clouddn.com/20130221114001385.jpg",
             "http://dg.101.hk/1.rar",
