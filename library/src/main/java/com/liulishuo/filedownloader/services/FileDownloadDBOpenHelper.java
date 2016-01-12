@@ -43,7 +43,7 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
                                 "%s INTEGER PRIMARY KEY, " + // id
                                 "%s VARCHAR, " + //url
                                 "%s VARCHAR, " + // path
-                                "%s INTEGER, " + // callbackProgressTimes
+                                "%s INTEGER, " + // callbackProgressTimes // no need store, but SQLite not support remove a column
                                 "%s TINYINT, " + // status ,ps SQLite will auto change to integer.
                                 "%s INTEGER, " + // so far
                                 "%s INTEGER, " + // total

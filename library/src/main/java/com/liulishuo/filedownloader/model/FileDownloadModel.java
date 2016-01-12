@@ -146,7 +146,7 @@ public class FileDownloadModel implements Parcelable {
         cv.put(ID, id);
         cv.put(URL, url);
         cv.put(PATH, path);
-        cv.put(CALLBACK_PROGRESS_TIMES, callbackProgressTimes);
+//        cv.put(CALLBACK_PROGRESS_TIMES, callbackProgressTimes);
         cv.put(STATUS, status);
         cv.put(SOFAR, soFar);
         cv.put(TOTAL, total);

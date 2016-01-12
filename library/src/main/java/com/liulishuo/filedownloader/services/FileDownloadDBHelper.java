@@ -66,6 +66,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     public void refreshDataFromDB() {
         // TODO 优化，分段加载，数据多了以后
         // TODO 自动清理一个月前的数据
+        long start = System.currentTimeMillis();
         Cursor c = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
 
         List<Integer> dirtyList = new ArrayList<>();
@@ -75,7 +76,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setId(c.getInt(c.getColumnIndex(FileDownloadModel.ID)));
                 model.setUrl(c.getString(c.getColumnIndex(FileDownloadModel.URL)));
                 model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)));
-                model.setCallbackProgressTimes(c.getInt(c.getColumnIndex(FileDownloadModel.CALLBACK_PROGRESS_TIMES)));
+//                model.setCallbackProgressTimes(c.getInt(c.getColumnIndex(FileDownloadModel.CALLBACK_PROGRESS_TIMES)));
                 model.setStatus((byte) c.getShort(c.getColumnIndex(FileDownloadModel.STATUS)));
                 model.setSoFar(c.getInt(c.getColumnIndex(FileDownloadModel.SOFAR)));
                 model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
@@ -103,9 +104,12 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
             if (dirtyList.size() > 0) {
                 String args = TextUtils.join(", ", dirtyList);
                 FileDownloadLog.d(this, "delete %s", args);
-                db.execSQL(String.format("DELETE FROM %s WHERE %s IN (%s);", TABLE_NAME, FileDownloadModel.ID, args));
+                db.execSQL(String.format("DELETE FROM %s WHERE %s IN (%s);",
+                        TABLE_NAME, FileDownloadModel.ID, args));
             }
 
+            FileDownloadLog.d(this, "refresh data %d , will delete: %d consume %d",
+                    downloaderModelMap.size(), dirtyList.size(), System.currentTimeMillis() - start);
         }
 
     }
