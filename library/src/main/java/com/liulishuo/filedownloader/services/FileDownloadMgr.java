@@ -17,6 +17,8 @@
 package com.liulishuo.filedownloader.services;
 
 
+import android.text.TextUtils;
+
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -66,29 +68,35 @@ class FileDownloadMgr {
             return;
         }
 
-        // check resume
-        if (checkResume(id, autoRetryTimes)) {
-            FileDownloadLog.d(this, "resume %d", id);
-            return;
-        }
-
-
         // real start
 
         // - create model
-        final FileDownloadModel model = new FileDownloadModel();
-        model.setUrl(url);
-        model.setPath(path);
-        model.setCallbackProgressTimes(callbackProgressTimes);
+        FileDownloadModel model = mHelper.find(id);
+        boolean needUpdate2DB;
+        if (model != null && model.getStatus() == FileDownloadStatus.paused) {
+            // TODO pending data is no use, if not resume by break point
+            needUpdate2DB = false;
+        } else {
+            if (model == null) {
+                model = new FileDownloadModel();
+            }
+            model.setUrl(url);
+            model.setPath(path);
 
-        model.setId(id);
-        model.setSoFar(0);
-        model.setTotal(0);
-        model.setStatus(FileDownloadStatus.pending);
+            model.setId(id);
+            model.setSoFar(0);
+            model.setTotal(0);
+            model.setStatus(FileDownloadStatus.pending);
+            needUpdate2DB = true;
+        }
+
+        model.setCallbackProgressTimes(callbackProgressTimes);
         model.setIsCancel(false);
 
         // - update model to db
-        mHelper.update(model);
+        if (needUpdate2DB) {
+            mHelper.update(model);
+        }
 
         // - execute
         mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes));
@@ -133,78 +141,120 @@ class FileDownloadMgr {
 
     }
 
+    /**
+     * @return can resume by break point
+     */
+    public static boolean checkBreakpointAvailable(final int downloadId, final FileDownloadModel model) {
+        boolean result = false;
+
+        do {
+            if (model == null) {
+                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d model == null", downloadId);
+                break;
+            }
+
+            if (model.getStatus() != FileDownloadStatus.paused
+                    && model.getStatus() != FileDownloadStatus.retry
+                    && model.getStatus() != FileDownloadStatus.pending // may pending in case of enqueue
+                    ) {
+                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d status[%d] isn't paused",
+                        downloadId, model.getStatus());
+                break;
+            }
+
+            if (TextUtils.isEmpty(model.getETag())) {
+                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d etag is empty", downloadId);
+                break;
+            }
+
+
+            File file = new File(model.getPath());
+            final boolean isExists = file.exists();
+            final boolean isDirectory = file.isDirectory();
+
+            if (!isExists || isDirectory) {
+                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d file not suit, exists[%B], directory[%B]",
+                        downloadId, isExists, isDirectory);
+                break;
+            }
+
+            final long fileLength = file.length();
+
+            if (fileLength < model.getSoFar()
+                    || fileLength >= model.getTotal()) {
+                // 脏数据
+                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data fileLength[%d] sofar[%d] total[%d]",
+                        downloadId, fileLength, model.getSoFar(), model.getTotal());
+                break;
+
+            }
+
+            result = true;
+        } while (false);
+
+
+        return result;
+    }
+
     public FileDownloadTransferModel checkReuse(final int downloadId) {
-        return checkReuse(downloadId, mHelper.find(downloadId));
+        FileDownloadTransferModel transferModel = null;
+
+        final FileDownloadModel model = mHelper.find(downloadId);
+        final boolean canReuse = checkReuse(downloadId, model);
+        if (canReuse) {
+            transferModel = new FileDownloadTransferModel(model);
+            transferModel.setUseOldFile(true);
+        }
+
+        return transferModel;
     }
 
     /**
      * @return Already succeed & exists
      */
-    public static FileDownloadTransferModel checkReuse(final int downloadId, final FileDownloadModel model) {
-        FileDownloadTransferModel transferModel = null;
+    public static boolean checkReuse(final int downloadId, final FileDownloadModel model) {
+        boolean result = false;
         // 这个方法判断应该在checkDownloading之后，如果在下载中，那么这些判断都将产生错误。
         // 存在小概率事件，有可能，此方法判断过程中，刚好下载完成, 这里需要对同一DownloadId的Runnable与该方法同步
         do {
             if (model == null) {
                 // 数据不存在
-                FileDownloadLog.w(FileDownloadMgr.class, "model not exist %d", downloadId);
+                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d model not exist", downloadId);
                 break;
             }
 
             if (model.getStatus() != FileDownloadStatus.completed) {
                 // 数据状态没完成
-                FileDownloadLog.w(FileDownloadMgr.class, "status not completed %s %d",
-                        model.getStatus(), downloadId);
+                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d status not completed %s",
+                        downloadId, model.getStatus());
                 break;
             }
 
             final File file = new File(model.getPath());
             if (!file.exists() || !file.isFile()) {
                 // 文件不存在
-                FileDownloadLog.w(FileDownloadMgr.class, "file not exists %d", downloadId);
+                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d file not exists", downloadId);
                 break;
             }
 
             if (model.getSoFar() != model.getTotal()) {
                 // 脏数据
-                FileDownloadLog.w(FileDownloadMgr.class, "soFar[%d] not equal total[%d] %d",
-                        model.getSoFar(), model.getTotal(), downloadId);
+                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d soFar[%d] not equal total[%d] %d",
+                        downloadId, model.getSoFar(), model.getTotal());
                 break;
             }
 
             if (file.length() != model.getTotal()) {
                 // 无效文件
-                FileDownloadLog.w(FileDownloadMgr.class, "file length[%d] not equal total[%d] %d",
-                        file.length(), model.getTotal(), downloadId);
+                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d file length[%d] not equal total[%d]",
+                        downloadId, file.length(), model.getTotal());
                 break;
             }
 
-            transferModel = new FileDownloadTransferModel(model);
-            transferModel.setUseOldFile(true);
+            result = true;
         } while (false);
 
-
-        FileDownloadLog.d(FileDownloadMgr.class, "check reuse %d enable(%B)",
-                model.getId(), transferModel != null);
-        return transferModel;
-    }
-
-    public boolean checkResume(final int id, final int autoRetryTimes) {
-        final FileDownloadModel model = mHelper.find(id);
-        if (model == null) {
-            return false;
-        }
-
-        if (model.getStatus() != FileDownloadStatus.paused) {
-            return false;
-        }
-
-        model.setIsCancel(false);
-
-        FileDownloadLog.d(this, "start resume %d %d %d", id, model.getSoFar(), model.getTotal());
-        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes));
-
-        return true;
+        return result;
     }
 
     public boolean pause(final int id) {

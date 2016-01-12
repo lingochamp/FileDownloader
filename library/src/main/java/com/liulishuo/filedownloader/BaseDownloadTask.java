@@ -62,7 +62,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * 如果{@link #isForceReDownload}为false
-     * 并且检查文件是正确的{@link com.liulishuo.filedownloader.services.FileDownloadMgr#checkReuse(String, String)}
+     * 并且检查文件是正确的{@link com.liulishuo.filedownloader.services.FileDownloadMgr#checkReuse(int, FileDownloadModel)}
      * 则不启动下载直接成功返回，此时该变量为true
      */
     private boolean isReusedOldFile = false;

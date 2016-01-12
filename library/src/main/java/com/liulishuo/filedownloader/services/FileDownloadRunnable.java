@@ -272,7 +272,7 @@ class FileDownloadRunnable implements Runnable {
         final String oldEtag = this.etag;
         final String newEtag = response.header("Etag");
 
-        FileDownloadLog.w(this, "etag find by header %s", newEtag);
+        FileDownloadLog.w(this, "etag find by header %d %s", getId(), newEtag);
 
         if (oldEtag == null && newEtag != null) {
             needRefresh = true;
@@ -420,18 +420,13 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private void checkIsContinueAvailable() {
-        File file = new File(path);
-        if (file.exists()) {
-            final long fileLength = file.length();
-            if (fileLength >= downloadTransfer.getSoFarBytes() && this.etag != null && fileLength < downloadTransfer.getTotalBytes()) {
-                // 如果fileLength >= total bytes 视为脏数据，从头开始下载
-                FileDownloadLog.d(this, "adjust sofar old[%d] new[%d]", downloadTransfer.getSoFarBytes(), fileLength);
-
-                this.isContinueDownloadAvailable = true;
-            } else {
-                final boolean result = file.delete();
-                FileDownloadLog.d(this, "delete file for dirty file %B, fileLength[%d], sofar[%d] total[%d] etag", result, fileLength, downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
-            }
+        if (FileDownloadMgr.checkBreakpointAvailable(getId(), this.downloadModel)) {
+            this.isContinueDownloadAvailable = true;
+        } else {
+            this.isContinueDownloadAvailable = false;
+            // delete dirty file
+            File file = new File(path);
+            file.delete();
         }
     }
 
