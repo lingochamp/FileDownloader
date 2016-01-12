@@ -166,8 +166,28 @@ class FileDownloadRunnable implements Runnable {
 
                 if (isSucceedStart || isSucceedContinue) {
                     long total = downloadTransfer.getTotalBytes();
-                    if (isSucceedStart || total == 0) {
-                        total = response.body().contentLength();
+                    final String transferEncoding = response.header("Transfer-Encoding");
+
+
+                    if (isSucceedStart || total <= 0) {
+                        if (transferEncoding == null) {
+                            total = response.body().contentLength();
+                        } else {
+                            // if transfer not nil, ignore content-length
+                            total = -1;
+                        }
+                    }
+
+                    // TODO consider if not is chunked & http 1.0/(>=http1.1 & connect not be keep live) may not give content-length
+
+                    if (total < 0) {
+                        // invalid total length
+                        final boolean isEncodingChunked = transferEncoding != null
+                                && transferEncoding.equals("chunked");
+                        if (!isEncodingChunked) {
+                            // not chunked transfer encoding data
+                            throw new GiveUpRetryException("can't know size, and not chunk transfer encoding");
+                        }
                     }
 
                     if (isSucceedContinue) {
@@ -184,7 +204,6 @@ class FileDownloadRunnable implements Runnable {
 
                         updateHeader(response);
                         onConnected(isSucceedContinue, soFar, total);
-
 
                         do {
                             int byteCount = inputStream.read(buff);
@@ -210,6 +229,10 @@ class FileDownloadRunnable implements Runnable {
 
                         } while (true);
 
+
+                        if (total == -1) {
+                            total = soFar;
+                        }
 
                         if (soFar == total) {
                             onComplete(total);
@@ -238,7 +261,8 @@ class FileDownloadRunnable implements Runnable {
 
             } catch (Throwable ex) {
                 // TODO 决策是否需要重试，是否是用户决定，或者根据错误码处理
-                if (autoRetryTimes > retryingTimes++) {
+                if (autoRetryTimes > retryingTimes++
+                        && !(ex instanceof GiveUpRetryException)) {
                     // retry
                     onRetry(ex, retryingTimes, soFar);
                     continue;
@@ -324,7 +348,7 @@ class FileDownloadRunnable implements Runnable {
 
     }
 
-    private void onRetry(Throwable ex, final int retryTimes, final long soFarBytes){
+    private void onRetry(Throwable ex, final int retryTimes, final long soFarBytes) {
         FileDownloadLog.e(this, ex, "On retry %d %s %d %d", downloadTransfer.getDownloadId(), ex.getMessage(), retryTimes, autoRetryTimes);
 
         ex = exFiltrate(ex);
@@ -360,6 +384,9 @@ class FileDownloadRunnable implements Runnable {
         downloadTransfer.setStatus(FileDownloadStatus.completed);
 
         helper.updateComplete(downloadTransfer.getDownloadId(), total);
+        downloadTransfer.setUseOldFile(false);
+        downloadTransfer.setSoFarBytes(total);
+        downloadTransfer.setTotalBytes(total);
 
         FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
     }
@@ -438,5 +465,11 @@ class FileDownloadRunnable implements Runnable {
         }
 
         return ex;
+    }
+
+    public static class GiveUpRetryException extends RuntimeException {
+        public GiveUpRetryException(final String detailMessage) {
+            super(detailMessage);
+        }
     }
 }

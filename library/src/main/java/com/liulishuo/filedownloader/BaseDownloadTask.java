@@ -711,7 +711,9 @@ public abstract class BaseDownloadTask {
 
                 this.isReusedOldFile = transfer.isUseOldFile();
                 setStatus(transfer.getStatus());
-                setSoFarBytes(getLargeFileSoFarBytes());
+                // only carry total data back
+                setSoFarBytes(transfer.getTotalBytes());
+                setTotalBytes(transfer.getTotalBytes());
 
                 // to FileDownloadList
                 FileDownloadList.getImpl().removeByCompleted(this);
