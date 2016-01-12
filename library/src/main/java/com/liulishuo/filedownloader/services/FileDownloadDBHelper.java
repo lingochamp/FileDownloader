@@ -82,14 +82,21 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
                 model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
-
-                if (model.getStatus() == FileDownloadStatus.pending) {
-                    //脏数据 在数据库中是pending或是progress，说明是之前
-                    dirtyList.add(model.getId());
-                } else if (model.getStatus() == FileDownloadStatus.progress ||
+                if (model.getStatus() == FileDownloadStatus.progress ||
                         model.getStatus() == FileDownloadStatus.connected) {
                     // 保证断点续传可以覆盖到
                     model.setStatus(FileDownloadStatus.paused);
+                }
+
+                // consider check in new thread, but SQLite lock | file lock aways effect, so sync
+                if (model.getStatus() == FileDownloadStatus.pending) {
+                    //脏数据 在数据库中是pending或是progress，说明是之前
+                    dirtyList.add(model.getId());
+                } else if (!FileDownloadMgr.checkReuse(model.getId(), model)
+                        && !FileDownloadMgr.checkBreakpointAvailable(model.getId(), model)) {
+                    // can't use to reuse old file & can't use to resume form break point
+                    // = dirty
+                    dirtyList.add(model.getId());
                 }
                 downloaderModelMap.put(model.getId(), model);
             }
@@ -108,6 +115,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                         TABLE_NAME, FileDownloadModel.ID, args));
             }
 
+            // 566 data consumes about 140ms
             FileDownloadLog.d(this, "refresh data %d , will delete: %d consume %d",
                     downloaderModelMap.size(), dirtyList.size(), System.currentTimeMillis() - start);
         }
