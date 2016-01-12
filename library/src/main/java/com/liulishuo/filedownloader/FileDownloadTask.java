@@ -163,7 +163,7 @@ class FileDownloadTask extends BaseDownloadTask {
 
                     if (transfer.getStatus() == FileDownloadStatus.warn) {
                         // just update one task, another will be maintained to receive other status
-                        final BaseDownloadTask task = taskList.get(0);
+                        final BaseDownloadTask task = taskList.get(taskList.size() - 1);
                         task.update(transfer);
                     } else {
                         // guarantee: 1. BaseDownloadTask#update pass no change status.
