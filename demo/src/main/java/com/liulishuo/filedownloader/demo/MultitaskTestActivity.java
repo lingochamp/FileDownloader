@@ -186,7 +186,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
                     .setListener(downloadListener)
                     .setAutoRetryTimes(1)
                     .setTag(i + 1)
-                    .setCallbackProgressTimes(1)
+                    .setCallbackProgressTimes(0)
                     .ready();
         }
 
