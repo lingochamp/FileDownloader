@@ -24,7 +24,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.1.3'
+    compile 'com.liulishuo.filedownloader:library:0.1.4'
 }
 ```
 
@@ -139,6 +139,7 @@ final FileDownloadListener queueTarget = new FileDownloadListener() {
 
 for (String url : URLS) {
     FileDownloader.getImpl().create(url)
+            .setCallbackProgressTimes(0) // why do this? in here i assume do not need callback each task's `FileDownloadListener#progress`, so in this way reduce ipc will be effective optimization
             .setListener(queueTarget)
             .ready();
 }
@@ -167,14 +168,17 @@ if(parallel){
 | --- | ---
 | init(Application) |  Just cache ApplicationContext
 | create(url:String) | Create a download task
-| start(listener:FileDownloadListener, isSerial:boolean) | Start the download queue by the same listener
+| start(listener:FileDownloadListener, isSerial:boolean) | Start the download queue by the same listener(maybe do not need callback each task's `FileDownloadListener#progress` in this case, then set `setCallbackProgressTimes(0)` is effective optimization)
 | pause(listener:FileDownloadListener) | Pause the download queue by the same listener
 | pauseAll(void) | Pause all task
 | pause(downloadId) | Pause the download task by the downloadId
 | getSoFar(downloadId) | Get downloaded so far bytes by the downloadId
 | getTotal(downloadId) | Get file total bytes by the downloadId
 | bindService(void) | Bind & start `:filedownloader` process manually(Do not need, will bind & start automatically by Download Engine if real need)
-| unBindService(void) | Unbind & stop `:filedownloader` process manually(Do not need, will unbind & stop automatically by System if leave unused period)
+| unBindService(void) | Unbind & stop `:filedownloader` process manually
+| unBindServiceIfIdle(void) | If there is no active task in the `:filedownloader` progress currently , then unbind & stop `:filedownloader` process
+| isServiceConnected(void) | Whether started and connected to the `:filedownloader` progress(ps: Please refer to [Tasks Manager demo](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/TasksManagerDemoActivity.java))
+| getStatus(downloadId) | Get download status by the downloadId(ps: Please refer to [Tasks Manager demo](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/TasksManagerDemoActivity.java))
 
 #### `FileDownloadTask`
 
@@ -250,6 +254,14 @@ blockComplete -> completed
 - Default by okhttp: retryOnConnectionFailure: Unreachable IP addresses/Stale pooled connections/Unreachable proxy servers
 - Default by okhttp: connection/read/write time out 10s
 
+#### Low Memory?
+
+We covered all low memory cases follow [Processes and Threads](http://developer.android.com/guide/components/processes-and-threads.html), just feel free to use the FileDownloader, it will be follow your expect.
+
+
+#### Chunked transfer encoding data?
+
+Has supported, just use as normal task, but recommend to glance at demo on [Single Task Test](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/SingleTaskTestActivity.java).
 
 ## LICENSE
 

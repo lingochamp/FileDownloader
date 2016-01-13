@@ -43,7 +43,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.1.3'
+compile 'com.liulishuo.filedownloader:library:0.1.4'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -150,6 +150,7 @@ final FileDownloadListener queueTarget = new FileDownloadListener() {
 for (String url : URLS) {
     FileDownloader.getImpl().create(url)
             .setListener(queueTarget)
+            .setCallbackProgressTimes(0) // 由于是队列任务, 这里是我们假设了现在不需要每个任务都回调`FileDownloadListener#progress`, 所以这里这样设置可以很有效的减少ipc.
             .ready();
 }
 
@@ -180,7 +181,10 @@ if(parallel){
 | getSoFar(downloadId) | 获得下载Id为downloadId的soFarBytes
 | getTotal(downloadId) | 获得下载Id为downloadId的totalBytes
 | bindService(void) | 主动启动下载进程(可事先调用该方法(可以不调用)，保证第一次下载的时候没有启动进程的速度消耗)
-| unBindService(void) | 主动停止下载进程(如果不调用该方法，进程闲置一段时间以后，系统调度会自动将其回收)
+| unBindService(void) | 主动关停下载进程
+| unBindServiceIfIdle(void) | 如果目前下载进程没有任务正在执行，则关停下载进程
+| isServiceConnected(void) | 是否已经启动并且连接上下载进程(可参考任务管理demo中的使用)
+| getStatus(downloadId) | 获取下载Id为downloadId的状态(可参考任务管理demo中的使用)
 
 #### Task接口说明
 
@@ -250,7 +254,33 @@ blockComplete -> completed
 
 ![][file_download_listener_callback_flow_png]
 
-## III. LICENSE
+## III. 低内存情况
+
+### 非下载进程(一般是UI进程):
+
+> 这边的数据并不多，只是一些队列数据，用不了多少内存。
+
+#### [前台进程](http://developer.android.com/intl/zh-cn/guide/components/processes-and-threads.html)数据被回收:
+
+如果在前台的时候这个数据都被回收了, 你的应用应该也挂了。极低概率事件。
+
+#### [后台进程](http://developer.android.com/intl/zh-cn/guide/components/processes-and-threads.html)数据被回收:
+
+一般事件, 如果是你的下载是UI进程启动的，如果你的UI进程处于`后台进程`(可以理解为应用被退到后台)状态，在内存不足的情况下会被回收(回收优先级高于`服务进程`)，此时分两种情况:
+
+1. 是串行队列任务，在回收掉UI进程内存以后，下载进程会继续下载完已经pending到下载进程的那个任务，而还未pending到下载进程的任务会中断下载(由于任务驱动线性执行的是在UI进程); 有损体验: 下次进入应用重启启动整个队列，会继续上次的下载。
+
+2. 是并行队列任务，在回收掉UI进程内存以后，下载进程会继续下载所有任务(所有已经pending到下载进程的任务，由于这里的pending速度是很快的，因此几乎是点击并行下载，所有任务在很短的时间内都已经pending到下载进程了)，而UI进程由于被回收，将不会收到所有的监听; 有损体验: 下次进入应用重新启动整个队列，就会和正常的下载启动一致，收到所有情况的监听。
+
+### 下载进程:
+
+> 对内存有一定的占用，但是并不多，每次启动进程会根据数据的有效性进行清理冗余数据，被回收是低概率事件
+
+由于下载不断有不同的buffer占用内存，但是由于在下载时，是活跃的`服务进程`，因此被回收是低概率事件(会先回收完所有`空进程`、`后台进程`(后台应用)以后，如果内存还不够，才会回收该进程)。
+
+即使被回收，也不会有任何问题。由于我们使用的是`START_STICKY`(如果不希望被重启可主动调用`FileDownloader#unBindService`/`FileDownloader#unBindServiceIfIdle`)，因此在内存足够的时候，下载进程会尝试重启(系统调度)，非下载进程(一般是UI进程) 接收到下载进程的连接，会继续下载与继续接收回调，下载进程也会断点续传没有下载完的所有任务(无论并行与串行)，不会影响体验。
+
+## IV. LICENSE
 
 ```
 Copyright (c) 2015 LingoChamp Inc.
