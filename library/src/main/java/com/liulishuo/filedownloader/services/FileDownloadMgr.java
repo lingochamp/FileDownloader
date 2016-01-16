@@ -25,10 +25,11 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
-import com.squareup.okhttp.OkHttpClient;
 
 import java.io.File;
 import java.util.List;
+
+import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 9/24/15.

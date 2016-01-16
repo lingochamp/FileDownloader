@@ -19,7 +19,7 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp:okhttp:2.7.1'
+    compile 'com.squareup.okhttp3:okhttp:3.0.1'
 }
 
 apply from: 'https://raw.githubusercontent.com/Jacksgong/JCenter/master/license.gradle'
