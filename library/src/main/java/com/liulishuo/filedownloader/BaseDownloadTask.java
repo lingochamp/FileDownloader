@@ -202,7 +202,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * We have already handled etag, and will add 'If-Match' & 'Range' value if valid.
+     * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
      * @see okhttp3.Headers.Builder#add(String, String)
      */
@@ -213,7 +213,7 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * We have already handled etag, and will add 'If-Match' & 'Range' value if valid.
+     * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
      * @see okhttp3.Headers.Builder#add(String, String)
      */
