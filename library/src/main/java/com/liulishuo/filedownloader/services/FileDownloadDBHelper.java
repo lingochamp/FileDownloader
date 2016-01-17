@@ -83,7 +83,8 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
                 model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
                 if (model.getStatus() == FileDownloadStatus.progress ||
-                        model.getStatus() == FileDownloadStatus.connected) {
+                        model.getStatus() == FileDownloadStatus.connected ||
+                        model.getStatus() == FileDownloadStatus.error) {
                     // 保证断点续传可以覆盖到
                     model.setStatus(FileDownloadStatus.paused);
                 }

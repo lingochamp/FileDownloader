@@ -75,7 +75,11 @@ class FileDownloadMgr {
         // - create model
         FileDownloadModel model = mHelper.find(id);
         boolean needUpdate2DB;
-        if (model != null && model.getStatus() == FileDownloadStatus.paused) {
+        if (model != null &&
+                (model.getStatus() == FileDownloadStatus.paused ||
+                        model.getStatus() == FileDownloadStatus.error) // FileDownloadRunnable invoke
+            // #checkBreakpointAvailable  to determine whether it is really invalid.
+                ) {
             // TODO pending data is no use, if not resume by break point
             needUpdate2DB = false;
         } else {

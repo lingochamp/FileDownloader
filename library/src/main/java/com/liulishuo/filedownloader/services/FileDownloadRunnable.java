@@ -115,10 +115,11 @@ class FileDownloadRunnable implements Runnable {
 
     @Override
     public void run() {
+        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
         isPending = false;
         isRunning = true;
         int retryingTimes = 0;
-        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
         FileDownloadModel model = this.downloadModel;
 
