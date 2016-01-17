@@ -23,7 +23,7 @@ import okhttp3.Headers;
 import okhttp3.Request;
 
 /**
- * We have already handle etag, and will add 'If-Match' & 'Range' if it in effect.
+ * We have already handled etag, and will add 'If-Match' & 'Range' value if valid.
  * <p/>
  * Created by Jacksgong on 1/17/16.
  */
@@ -35,7 +35,7 @@ public class FileDownloadHeader implements Parcelable {
     private String[] namesAndValues;
 
     /**
-     * We have already handle etag, and will add 'If-Match' & 'Range' if it in effect.
+     * We have already handled etag, and will add 'If-Match' & 'Range' value if valid.
      *
      * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(Request.Builder)
      * @see okhttp3.Headers.Builder#add(String, String)
@@ -49,7 +49,7 @@ public class FileDownloadHeader implements Parcelable {
     }
 
     /**
-     * We have already handle etag, and will add 'If-Match' & 'Range' if it in effect.
+     * We have already handled etag, and will add 'If-Match' & 'Range' value if valid.
      *
      * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(Request.Builder)
      * @see okhttp3.Headers.Builder#add(String, String)
