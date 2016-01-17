@@ -7,7 +7,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
 
-> 本引擎依赖okhttp 2.7.1
+> 本引擎依赖okhttp 3.0.1
 
 ---
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
@@ -43,7 +43,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.1.4'
+compile 'com.liulishuo.filedownloader:library:0.1.5'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -192,11 +192,15 @@ if(parallel){
 | --- | ---
 | setPath(path:String) | 下载文件的存储绝对路径
 | setListener(listener:FileDownloadListener) | 设置监听，可以以相同监听组成队列
-| setCallbackProgressTimes(times:int) | 设置progress最大回调次数
+| setCallbackProgressTimes(times:int) | 设置FileDownloadListener#progress最大回调次数
 | setTag(tag:Object) | 内部不会使用，在回调的时候用户自己使用
+| setTag(key:int, tag:Object) | 用于存储任意的变量方便回调中使用，以key作为索引
 | setForceReDownload(isForceReDownload:boolean) | 强制重新下载，将会忽略检测文件是否健在
 | setFinishListener(listener:FinishListener) | 结束监听，仅包含结束(over(void))的监听
 | setAutoRetryTimes(autoRetryTimes:int) | 当请求或下载或写文件过程中存在错误时，自动重试次数，默认为0次
+| addHeader(name:String, value:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
+| addHeader(line:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
+| removeAllHeaders(name:String) | 删除由自定义添加上去请求参数为`{name}`的所有键对
 | ready(void) | 用于队列下载的单任务的结束符(见上面:启动多任务下载的案例)
 | start(void) | 启动下载任务
 | pause(void) | 暂停下载任务(也可以理解为停止下载，但是在start的时候默认会断点续传)
@@ -212,6 +216,7 @@ if(parallel){
 | getEx(void):Throwable | 获取下载过程抛出的Throwable
 | isReusedOldFile(void):boolean | 判断是否是直接使用了旧文件(检测是有效文件)，没有启动下载
 | getTag(void):Object | 获取用户setTag进来的Object
+| getTag(key:int):Object | 根据key获取存储在task中的变量
 | isContinue(void):boolean | 是否成功断点续传
 | getEtag(void):String | 获取当前下载获取到的ETag
 | getAutoRetryTimes(void):int | 自动重试次数

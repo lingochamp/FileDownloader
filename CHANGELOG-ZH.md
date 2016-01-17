@@ -1,6 +1,34 @@
 # Change log
 
-### Version 0.1.4
+## Version 0.1.5
+
+_2016-01-17_
+
+#### 新接口
+
+- `BaseDownloadTask#setTag(key:int, tag:Object)`: 用于存储任意的变量方便回调中使用，以key作为索引。
+- `BaseDownloadTask#getTag(key:int)`: 根据key获取存储在task中的变量。
+- `BaseDownloadTask#addHeader(name:String, value:String)`: 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误。
+- `BaseDownloadTask#addHeader(line:String)`: 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误。
+- `BaseDownloadTask#removeAllHeaders(name:String)`: 删除由自定义添加上去请求参数为`{name}`的所有键对。
+
+#### 性能与提高
+
+- 提高性能: 在未打开Log的情况下，屏蔽了所有Log生成的代码。
+- 提高可调试性: 重新过滤所有的日志级别，减少高级别日志输出，并且默认将会打出`Warn`、`Error`、`Assert`级别的log以便于用户在未打开日志的情况下也可以定位到基本的组件异常。
+
+#### 修复
+
+- 修复在一些高并发的情况下，有可能内部队列存在残留任务的bug，此bug可能可能引发回调被旧的任务吞掉的问题。
+- 修复了出现网络错误，或者其他错误，重新下载无法自动断点续传的bug。
+
+#### 其他
+
+- 所依赖的okhttp从`2.7.1`升到`3.0.1`。
+
+## Version 0.1.4
+
+_2016-01-13_
 
 #### 新接口
 
@@ -22,33 +50,45 @@
 - 修复: 主动调用`FileDownloader#unBinderService`，没有释放连接相关资源的bug。
 - 修复: ui进程被干掉，下载进程健还有活跃的并行任务正在下载，ui进程启动以后启动相同的队列列表，无法收到进度只收到warn的bug。
 
-### Version 0.1.3
+## Version 0.1.3
+
+_2016-01-04_
 
 - 不再受到1.99G限制;如果是大于1.99G的文件，请使用`FileDownloadLargeFileListener`作为监听器，使用对应的`getLargeFileSoFarBytes()`与`getLargeFileTotalBytes()`接口
 - 性能优化: 部分接口跨进程通信不受binder thread 阻塞。
-- 依赖okhttp，从2.7.0 升到2.7.1
+- 依赖okhttp，从`2.7.0`升到`2.7.1`
 
-### Version 0.1.2
+## Version 0.1.2
+
+_2015-12-27_
 
 - 优化线程消化能力
 - 修复大队列任务暂停可能部分无效的问题
 - 修复大队列并行下载时一定概率下载已经完成回调囤积延后回调的问题
 
-### Version 0.1.1
+## Version 0.1.1
+
+_2015-12-25_
 
 - event线程区分敏捷线程池与其他线程池，减少资源冗余强制、内部稳定性以及消化能力与性能，
 - 添加自动重试接口，新增用户指定如果失败自动重试的次数
 
-### Version 0.1.0
+## Version 0.1.0
+
+_2015-12-24_
 
 - FileDownloadStatus 由`int`改为`byte`，该参数会频繁的在IPC时被拷贝
 - 优化串行or并行任务时，筛选task在准备数据时就筛选好，减少冗余操作，更加安全
 - 优化串行任务执行保证使用更可靠的方式
 
-### Version 0.0.9
+## Version 0.0.9
+
+_2015-12-23_
 
 - 将调用start(启动任务)抛独立线程处理，其中的线程是通过共享非下载进程EventPool中的线程池(可并行8个线程)
 
-### Version 0.0.8
+## Version 0.0.8
+
+_2015-12-22_
 
 - initial release

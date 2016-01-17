@@ -8,7 +8,7 @@ Android multi-task file download engine.
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
-> This project dependency on [square/okhttp 2.7.1](https://github.com/square/okhttp)
+> This project dependency on [square/okhttp 3.0.1](https://github.com/square/okhttp)
 
 ## DEMO
 
@@ -24,7 +24,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.1.4'
+    compile 'com.liulishuo.filedownloader:library:0.1.5'
 }
 ```
 
@@ -190,9 +190,13 @@ if(parallel){
 | setListener(listener:FileDownloadListener) | For callback download status(pending,connected,progress,blockComplete,retry,error,paused,completed,warn)
 | setCallbackProgressTimes(times:int) | Set maximal callback times on callback `FileDownloadListener#progress`
 | setTag(tag:Object) | Sets the tag associated with this task, not be used by internal
+| setTag(key:int, tag:Object) | Sets a tag associated with this task. If the key already existed, the old tag will be replaced
 | setForceReDownload(isForceReDownload:boolean) | If set to true, will not check whether the file is downloaded by past, default false
 | setFinishListener(listener:FinishListener) | -
 | setAutoRetryTimes(autoRetryTimes:int) | Set the number of times to automatically retry when encounter any error, default 0
+| addHeader(name:String, values:String) | Add custom request header to the task. Attention: We have already handled ETag, and will add `If-Match` & `Range` value if it works
+| addHeader(line:String) | Add custom request header to the task. Attention: We have already handled ETag, and will add `If-Match` & `Range` value if it works
+| removeAllHeaders(name:String) | Remove all custom request header bind with the `{name}`
 | ready(void) | Ready task( For queue task )
 | start(void) | Start task
 | pause(void) | Pause task
@@ -208,6 +212,7 @@ if(parallel){
 | getEx(void):Throwable | Get throwable
 | isReusedOldFile(void):boolean | Is reused downloaded old file
 | getTag(void):Object | Get the task's tag
+| getTag(key:int):Object | Get the object stored in the task as a tag, or null if not set.
 | isContinue(void):boolean | Is resume by breakpoint
 | getEtag(void):String | Get current ETag on header
 | getAutoRetryTimes(void):int | Get the number of times to automatically retry
