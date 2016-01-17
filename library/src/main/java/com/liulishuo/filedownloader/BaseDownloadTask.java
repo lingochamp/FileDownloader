@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader;
 
 import android.text.TextUtils;
+import android.util.SparseArray;
 
 import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
@@ -42,6 +43,7 @@ public abstract class BaseDownloadTask {
 
     private FileDownloadListener listener;
 
+    private SparseArray<Object> keyedTags;
     private Object tag;
     private Throwable ex;
 
@@ -125,11 +127,26 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * Sets the tag associated with this task, not be used by internal
+     * Sets the tag associated with this task, not be used by internal.
      */
     public BaseDownloadTask setTag(final Object tag) {
         this.tag = tag;
         FileDownloadLog.d(this, "setTag %s", tag);
+        return this;
+    }
+
+    /**
+     * Set a tag associated with this task, not be used by internal.
+     *
+     * @param key The key of identifying the tag.
+     *            If the key already exists, the old data will be replaced.
+     * @param tag An Object to tag the task with
+     */
+    public BaseDownloadTask setTag(final int key, final Object tag) {
+        if (keyedTags == null) {
+            keyedTags = new SparseArray<>(2);
+        }
+        keyedTags.put(key, tag);
         return this;
     }
 
@@ -396,6 +413,19 @@ public abstract class BaseDownloadTask {
      */
     public Object getTag() {
         return this.tag;
+    }
+
+    /**
+     * Returns the tag associated with this task and the specified key.
+     *
+     * @param key The key identifying the tag
+     * @return the object stored in this take as a tag, or {@code null} if not
+     * set
+     * @see #setTag(int, Object)
+     * @see #getTag()
+     */
+    public Object getTag(int key) {
+        return keyedTags == null ? null : keyedTags.get(key);
     }
 
     /**
