@@ -23,6 +23,7 @@ import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -103,8 +104,9 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
         }
 
         @Override
-        public void start(String url, String path, int callbackProgressTimes, int autoRetryTimes) throws RemoteException {
-            downloadManager.start(url, path, callbackProgressTimes, autoRetryTimes);
+        public void start(String url, String path, int callbackProgressTimes, int autoRetryTimes,
+                          FileDownloadHeader header) throws RemoteException {
+            downloadManager.start(url, path, callbackProgressTimes, autoRetryTimes, header);
         }
 
         @Override

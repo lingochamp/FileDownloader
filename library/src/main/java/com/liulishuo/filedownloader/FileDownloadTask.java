@@ -68,7 +68,8 @@ class FileDownloadTask extends BaseDownloadTask {
                         getUrl(),
                         getPath(),
                         getCallbackProgressTimes(),
-                        getAutoRetryTimes());
+                        getAutoRetryTimes(),
+                        getHeader());
 
         if (succeed) {
             handleNoNeedRestart();

@@ -23,6 +23,7 @@ import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
@@ -79,14 +80,17 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
      * @param path                  for save download file
      * @param callbackProgressTimes for callback progress times
      * @param autoRetryTimes        for auto retry times when error
+     * @param header                for http header
      */
-    public boolean startDownloader(final String url, final String path, final int callbackProgressTimes, final int autoRetryTimes) {
+    public boolean startDownloader(final String url, final String path,
+                                   final int callbackProgressTimes, final int autoRetryTimes,
+                                   final FileDownloadHeader header) {
         if (getService() == null) {
             return false;
         }
 
         try {
-            getService().start(url, path, callbackProgressTimes, autoRetryTimes);
+            getService().start(url, path, callbackProgressTimes, autoRetryTimes, header);
         } catch (RemoteException e) {
             e.printStackTrace();
 

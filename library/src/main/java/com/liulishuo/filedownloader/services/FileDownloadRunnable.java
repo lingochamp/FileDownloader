@@ -20,6 +20,7 @@ import android.os.Process;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -34,6 +35,7 @@ import java.net.SocketTimeoutException;
 
 import okhttp3.CacheControl;
 import okhttp3.Call;
+import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -74,12 +76,17 @@ class FileDownloadRunnable implements Runnable {
     private final OkHttpClient client;
     private final int autoRetryTimes;
 
-    public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model, final IFileDownloadDBHelper helper, final int autoRetryTimes) {
+    private final FileDownloadHeader header;
+
+    public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model,
+                                final IFileDownloadDBHelper helper, final int autoRetryTimes,
+                                final FileDownloadHeader header) {
         isPending = true;
         isRunning = false;
 
         this.client = client;
         this.helper = helper;
+        this.header = header;
 
         this.url = model.getUrl();
         this.path = model.getPath();
@@ -152,13 +159,16 @@ class FileDownloadRunnable implements Runnable {
 
                 checkIsContinueAvailable();
 
-                Request.Builder headerBuilder = new Request.Builder().url(url);
-                addHeader(headerBuilder);
-                headerBuilder.tag(this.getId());
+                Request.Builder requestBuilder = new Request.Builder().url(url);
+                addHeader(requestBuilder);
+                requestBuilder.tag(this.getId());
                 // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
-                headerBuilder.cacheControl(CacheControl.FORCE_NETWORK);
+                requestBuilder.cacheControl(CacheControl.FORCE_NETWORK);
 
-                Call call = client.newCall(headerBuilder.get().build());
+                final Request request = requestBuilder.get().build();
+                FileDownloadLog.d(this, "%s request header %s", getId(), request.headers());
+
+                Call call = client.newCall(request);
 
                 Response response = call.execute();
 
@@ -193,7 +203,6 @@ class FileDownloadRunnable implements Runnable {
 
                     if (isSucceedContinue) {
                         soFar = downloadTransfer.getSoFarBytes();
-                        FileDownloadLog.d(this, "add range %d %d", downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
                     }
 
                     InputStream inputStream = null;
@@ -256,7 +265,7 @@ class FileDownloadRunnable implements Runnable {
 
 
                 } else {
-                    throw new RuntimeException(String.format("response code error: %d", response.code()));
+                    throw new HttpRequestException(request, response);
                 }
 
 
@@ -282,6 +291,11 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private void addHeader(Request.Builder builder) {
+        if (header != null && header.getNamesAndValues() != null) {
+            FileDownloadLog.v(this, "%d add outside header: %s", getId(), header);
+            builder.headers(Headers.of(header.getNamesAndValues()));
+        }
+
         if (isContinueDownloadAvailable) {
             builder.addHeader("If-Match", this.etag);
             builder.addHeader("Range", String.format("bytes=%d-", downloadTransfer.getSoFarBytes()));
@@ -471,6 +485,13 @@ class FileDownloadRunnable implements Runnable {
     public static class GiveUpRetryException extends RuntimeException {
         public GiveUpRetryException(final String detailMessage) {
             super(detailMessage);
+        }
+    }
+
+    public static class HttpRequestException extends RuntimeException {
+        public HttpRequestException(final Request request, final Response response) {
+            super(String.format("response code error: %d, \n request headers: %s \n " +
+                    "response headers: %s", response.code(), request.headers(), response.headers()));
         }
     }
 }

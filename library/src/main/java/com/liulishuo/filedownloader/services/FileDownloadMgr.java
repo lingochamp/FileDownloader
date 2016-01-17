@@ -20,6 +20,7 @@ package com.liulishuo.filedownloader.services;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -52,8 +53,8 @@ class FileDownloadMgr {
 
 
     // synchronize for safe: check downloading, check resume, update data, execute runnable
-    public synchronized void start(String url, String path, int callbackProgressTimes,
-                                   int autoRetryTimes) {
+    public synchronized void start(final String url, final String path, final int callbackProgressTimes,
+                                   final int autoRetryTimes, final FileDownloadHeader header) {
         final int id = FileDownloadUtils.generateId(url, path);
 
         // check is already in download pool
@@ -100,7 +101,7 @@ class FileDownloadMgr {
         }
 
         // - execute
-        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes));
+        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes, header));
 
     }
 

@@ -22,6 +22,7 @@ import android.util.SparseArray;
 import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.event.IDownloadListener;
+import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
@@ -40,6 +41,8 @@ public abstract class BaseDownloadTask {
 
     private final String url;
     private String path;
+
+    private FileDownloadHeader header;
 
     private FileDownloadListener listener;
 
@@ -197,6 +200,47 @@ public abstract class BaseDownloadTask {
         this.autoRetryTimes = autoRetryTimes;
         return this;
     }
+
+    /**
+     * We have already handle etag, and will add 'If-Match' & 'Range' automatically if it in effect.
+     *
+     * @see okhttp3.Headers.Builder#add(String, String)
+     */
+    public BaseDownloadTask addHeader(final String name, final String value) {
+        checkAndCreateHeader();
+        header.add(name, value);
+        return this;
+    }
+
+    /**
+     * We have already handle etag, and will add 'If-Match' & 'Range' automatically if it in effect.
+     *
+     * @see okhttp3.Headers.Builder#add(String, String)
+     */
+    public BaseDownloadTask addHeader(final String line) {
+        checkAndCreateHeader();
+        header.add(line);
+        return this;
+    }
+
+    /**
+     * @see okhttp3.Headers.Builder#removeAll(String)
+     */
+    public BaseDownloadTask removeAll(final String name) {
+        if (header == null) {
+            synchronized (headerCreateLock) {
+                // maybe invoking checkAndCreateHear and will to be available.
+                if (header == null) {
+                    return this;
+                }
+            }
+        }
+
+
+        header.removeAll(name);
+        return this;
+    }
+
 
     // -------- Following function for ending ------
 
@@ -568,6 +612,17 @@ public abstract class BaseDownloadTask {
         this.retryingTimes = times;
     }
 
+
+    private final Object headerCreateLock = new Object();
+    private void checkAndCreateHeader() {
+        if (header == null) {
+            synchronized (headerCreateLock) {
+                if (header == null) {
+                    header = new FileDownloadHeader();
+                }
+            }
+        }
+    }
     // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL --------------------------------------------------
 
     // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
@@ -596,6 +651,10 @@ public abstract class BaseDownloadTask {
      */
     String generateEventId() {
         return toString();
+    }
+
+    FileDownloadHeader getHeader() {
+        return this.header;
     }
 
     // Error cause
