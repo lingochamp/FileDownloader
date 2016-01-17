@@ -59,7 +59,9 @@ class FileDownloadMgr {
 
         // check is already in download pool
         if (checkDownloading(url, path)) {
-            FileDownloadLog.d(this, "has already started download %d", id);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "has already started download %d", id);
+            }
             // warn
             final FileDownloadTransferModel warnModel = new FileDownloadTransferModel();
             warnModel.setDownloadId(id);
@@ -155,7 +157,9 @@ class FileDownloadMgr {
 
         do {
             if (model == null) {
-                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d model == null", downloadId);
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d model == null", downloadId);
+                }
                 break;
             }
 
@@ -163,13 +167,17 @@ class FileDownloadMgr {
                     && model.getStatus() != FileDownloadStatus.retry
                     && model.getStatus() != FileDownloadStatus.pending // may pending in case of enqueue
                     ) {
-                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d status[%d] isn't paused",
-                        downloadId, model.getStatus());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d status[%d] isn't paused",
+                            downloadId, model.getStatus());
+                }
                 break;
             }
 
             if (TextUtils.isEmpty(model.getETag())) {
-                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d etag is empty", downloadId);
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d etag is empty", downloadId);
+                }
                 break;
             }
 
@@ -179,8 +187,10 @@ class FileDownloadMgr {
             final boolean isDirectory = file.isDirectory();
 
             if (!isExists || isDirectory) {
-                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d file not suit, exists[%B], directory[%B]",
-                        downloadId, isExists, isDirectory);
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d file not suit, exists[%B], directory[%B]",
+                            downloadId, isExists, isDirectory);
+                }
                 break;
             }
 
@@ -190,8 +200,10 @@ class FileDownloadMgr {
                     || (model.getTotal() != -1  // not chunk transfer encoding data
                     && fileLength >= model.getTotal())) {
                 // 脏数据
-                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data fileLength[%d] sofar[%d] total[%d]",
-                        downloadId, fileLength, model.getSoFar(), model.getTotal());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data fileLength[%d] sofar[%d] total[%d]",
+                            downloadId, fileLength, model.getSoFar(), model.getTotal());
+                }
                 break;
 
             }
@@ -226,35 +238,45 @@ class FileDownloadMgr {
         do {
             if (model == null) {
                 // 数据不存在
-                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d model not exist", downloadId);
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d model not exist", downloadId);
+                }
                 break;
             }
 
             if (model.getStatus() != FileDownloadStatus.completed) {
                 // 数据状态没完成
-                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d status not completed %s",
-                        downloadId, model.getStatus());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d status not completed %s",
+                            downloadId, model.getStatus());
+                }
                 break;
             }
 
             final File file = new File(model.getPath());
             if (!file.exists() || !file.isFile()) {
                 // 文件不存在
-                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d file not exists", downloadId);
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d file not exists", downloadId);
+                }
                 break;
             }
 
             if (model.getSoFar() != model.getTotal()) {
                 // 脏数据
-                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d soFar[%d] not equal total[%d] %d",
-                        downloadId, model.getSoFar(), model.getTotal());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d soFar[%d] not equal total[%d] %d",
+                            downloadId, model.getSoFar(), model.getTotal());
+                }
                 break;
             }
 
             if (file.length() != model.getTotal()) {
                 // 无效文件
-                FileDownloadLog.w(FileDownloadMgr.class, "can't reuse %d file length[%d] not equal total[%d]",
-                        downloadId, file.length(), model.getTotal());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d file length[%d] not equal total[%d]",
+                            downloadId, file.length(), model.getTotal());
+                }
                 break;
             }
 
@@ -270,7 +292,9 @@ class FileDownloadMgr {
             return false;
         }
 
-        FileDownloadLog.d(this, "paused %d", id);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "paused %d", id);
+        }
         model.setIsCancel(true);
         /**
          * 耦合 by {@link FileDownloadRunnable#run()} 中的 {@link com.squareup.okhttp.Request.Builder#tag(Object)}
@@ -287,7 +311,9 @@ class FileDownloadMgr {
     public void pauseAll() {
         List<Integer> list = mThreadPool.getAllExactRunningDownloadIds();
 
-        FileDownloadLog.d(this, "pause all tasks %d", list.size());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "pause all tasks %d", list.size());
+        }
 
         for (Integer id : list) {
             pause(id);

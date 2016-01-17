@@ -63,7 +63,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     public void onServiceConnected(ComponentName name, IBinder service) {
         this.service = asInterface(service);
 
-        FileDownloadLog.d(this, "onServiceConnected %s %s", name, this.service);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "onServiceConnected %s %s", name, this.service);
+        }
 
         try {
             registerCallback(this.service, this.callback);
@@ -85,7 +87,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        FileDownloadLog.d(this, "onServiceDisconnected %s %s", name, this.service);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "onServiceDisconnected %s %s", name, this.service);
+        }
         releaseConnect();
     }
 
@@ -97,7 +101,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
                 e.printStackTrace();
             }
         }
-        FileDownloadLog.d(this, "release connect resources %s", this.service);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "release connect resources %s", this.service);
+        }
         this.service = null;
 
         FileDownloadEventPool.getImpl().
@@ -113,7 +119,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     }
 
     public void bindStartByContext(final Context context, final Runnable connectedRunnable) {
-        FileDownloadLog.d(this, "bindStartByContext %s", context.getClass().getSimpleName());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "bindStartByContext %s", context.getClass().getSimpleName());
+        }
 
         Intent i = new Intent(context, serviceClass);
         if (connectedRunnable != null) {
@@ -136,7 +144,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             return;
         }
 
-        FileDownloadLog.d(this, "unbindByContext %s", context);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "unbindByContext %s", context);
+        }
 
         BIND_CONTEXTS.remove(context);
 

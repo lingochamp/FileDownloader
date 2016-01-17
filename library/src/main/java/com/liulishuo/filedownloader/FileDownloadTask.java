@@ -101,7 +101,9 @@ class FileDownloadTask extends BaseDownloadTask {
             synchronized (NEED_RESTART_LIST) {
                 if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
                     // 没有连上 服务
-                    FileDownloadLog.d(this, "no connect service !! %s", getDownloadId());
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(this, "no connect service !! %s", getDownloadId());
+                    }
                     FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
                     NEED_RESTART_LIST.add(this);
                     return false;
@@ -160,7 +162,10 @@ class FileDownloadTask extends BaseDownloadTask {
 
                 if (taskList.size() > 0) {
 
-                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d", transfer.getDownloadId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d",
+                                transfer.getDownloadId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
+                    }
 
                     if (transfer.getStatus() == FileDownloadStatus.warn) {
                         // just update one task, another will be maintained to receive other status
@@ -177,13 +182,18 @@ class FileDownloadTask extends BaseDownloadTask {
 
 
                 } else {
-                    FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d, but is contains false", transfer.getStatus());
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d," +
+                                " but is contains false", transfer.getStatus());
+                    }
                 }
                 return true;
             }
 
             if (event instanceof DownloadServiceConnectChangedEvent) {
-                FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s", ((DownloadServiceConnectChangedEvent) event).getStatus());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s", ((DownloadServiceConnectChangedEvent) event).getStatus());
+                }
                 if (((DownloadServiceConnectChangedEvent) event).getStatus() == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
                     List<BaseDownloadTask> needRestartList;
                     synchronized (NEED_RESTART_LIST) {

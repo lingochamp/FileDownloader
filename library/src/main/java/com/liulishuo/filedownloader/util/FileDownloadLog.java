@@ -56,7 +56,8 @@ public class FileDownloadLog {
     }
 
     private static void log(int priority, Object o, Throwable throwable, String message, Object... args) {
-        if (!NEED_LOG) {
+        final boolean force = priority >= Log.WARN;
+        if (!force && !NEED_LOG) {
             return;
         }
 

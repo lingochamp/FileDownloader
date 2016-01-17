@@ -51,7 +51,9 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public boolean addListener(final String eventId, final IDownloadListener listener) {
-        FileDownloadLog.v(this, "setListener %s", eventId);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "setListener %s", eventId);
+        }
         Assert.assertNotNull("EventPoolImpl.add", listener);
         LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null) {
@@ -64,7 +66,9 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public boolean removeListener(final String eventId, final IDownloadListener listener) {
-        FileDownloadLog.v(this, "removeListener %s", eventId);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "removeListener %s", eventId);
+        }
 //        Assert.assertNotNull("EventPoolImpl.remove", listener);
         final LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null || listener == null) {
@@ -78,12 +82,16 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public boolean publish(final IDownloadEvent event) {
-        FileDownloadLog.v(this, "publish %s", event.getId());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "publish %s", event.getId());
+        }
         Assert.assertNotNull("EventPoolImpl.publish", event);
         String eventId = event.getId();
         LinkedList<IDownloadListener> listeners = listenersMap.get(eventId);
         if (listeners == null) {
-            FileDownloadLog.w(this, "No listener for this event %s", eventId);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "No listener for this event %s", eventId);
+            }
             return false;
         }
         trigger(listeners, event);
@@ -92,7 +100,9 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public void asyncPublish(final IDownloadEvent event, final Looper looper) {
-        FileDownloadLog.v(this, "asyncPublish %s", event.getId());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "asyncPublish %s", event.getId());
+        }
         Assert.assertNotNull("EventPoolImpl.asyncPublish event", event);
         Assert.assertNotNull("EventPoolImpl.asyncPublish looper", looper);
         Handler handler = new Handler(looper);
@@ -107,7 +117,9 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public void asyncPublishInNewThread(final IDownloadEvent event) {
-        FileDownloadLog.v(this, "asyncPublishInNewThread %s", event.getId());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "asyncPublishInNewThread %s", event.getId());
+        }
         Assert.assertNotNull("EventPoolImpl.asyncPublish event", event);
 
         threadPool.execute(new Runnable() {
@@ -160,7 +172,9 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public boolean hasListener(final IDownloadEvent event) {
-        FileDownloadLog.v(this, "hasListener %s", event.getId());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "hasListener %s", event.getId());
+        }
         Assert.assertNotNull("EventPoolImpl.hasListener", event);
         String eventId = event.getId();
         LinkedList<IDownloadListener> listeners = listenersMap.get(eventId);

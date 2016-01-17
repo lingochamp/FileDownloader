@@ -33,7 +33,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
     // Start state, from FileDownloadList, to addEventListener ---------------
     @Override
     public void notifyStarted() {
-        FileDownloadLog.d(this, "notify started %s", download);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify started %s", download);
+        }
 
         download.begin();
     }
@@ -41,7 +43,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
     // in-between state, from BaseDownloadTask#update, to user ---------------------------
     @Override
     public void notifyPending() {
-        FileDownloadLog.d(this, "notify pending %s", download);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify pending %s", download);
+        }
 
         download.ing();
 
@@ -52,7 +56,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyConnected() {
-        FileDownloadLog.d(this, "notify connected %s", download);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify connected %s", download);
+        }
 
         download.ing();
 
@@ -63,9 +69,14 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyProgress() {
-        FileDownloadLog.d(this, "notify progress %s %d %d", download, download.getLargeFileSoFarBytes(), download.getLargeFileTotalBytes());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify progress %s %d %d",
+                    download, download.getLargeFileSoFarBytes(), download.getLargeFileTotalBytes());
+        }
         if (download.getCallbackProgressTimes() <= 0) {
-            FileDownloadLog.d(this, "notify progress but client not request notify %s", download);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "notify progress but client not request notify %s", download);
+            }
             return;
         }
 
@@ -81,7 +92,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
      */
     @Override
     public void notifyBlockComplete() {
-        FileDownloadLog.d(this, "notify block completed %s %s", download, Thread.currentThread().getName());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify block completed %s %s", download, Thread.currentThread().getName());
+        }
 
         download.ing();
 
@@ -91,7 +104,10 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyRetry() {
-        FileDownloadLog.d(this, "notify retry %s %d %d %s", download, download.getAutoRetryTimes(), download.getRetryingTimes(), download.getEx());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify retry %s %d %d %s", download,
+                    download.getAutoRetryTimes(), download.getRetryingTimes(), download.getEx());
+        }
 
         download.ing();
 
@@ -103,7 +119,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
     // Over state, from FileDownloadList, to user -----------------------------
     @Override
     public void notifyWarn() {
-        FileDownloadLog.d(this, "notify warn %s", download);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify warn %s", download);
+        }
 
         download.over();
 
@@ -114,7 +132,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyError() {
-        FileDownloadLog.e(this, download.getEx(), "notify error %s", download);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify error %s %s", download, download.getEx());
+        }
 
         download.over();
 
@@ -124,7 +144,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyPaused() {
-        FileDownloadLog.d(this, "notify paused %s", download);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify paused %s", download);
+        }
 
         download.over();
 
@@ -134,7 +156,9 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
     @Override
     public void notifyCompleted() {
-        FileDownloadLog.d(this, "notify completed %s", download);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify completed %s", download);
+        }
 
         download.over();
 

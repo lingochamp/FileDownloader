@@ -111,14 +111,18 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
             // db
             if (dirtyList.size() > 0) {
                 String args = TextUtils.join(", ", dirtyList);
-                FileDownloadLog.d(this, "delete %s", args);
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(this, "delete %s", args);
+                }
                 db.execSQL(String.format("DELETE FROM %s WHERE %s IN (%s);",
                         TABLE_NAME, FileDownloadModel.ID, args));
             }
 
             // 566 data consumes about 140ms
-            FileDownloadLog.d(this, "refresh data %d , will delete: %d consume %d",
-                    downloaderModelMap.size(), dirtyList.size(), System.currentTimeMillis() - start);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "refresh data %d , will delete: %d consume %d",
+                        downloaderModelMap.size(), dirtyList.size(), System.currentTimeMillis() - start);
+            }
         }
 
     }
@@ -139,7 +143,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     @Override
     public void update(FileDownloadModel downloadModel) {
         if (downloadModel == null) {
-            FileDownloadLog.e(this, "update but model == null!");
+            FileDownloadLog.w(this, "update but model == null!");
             return;
         }
 

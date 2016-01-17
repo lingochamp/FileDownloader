@@ -155,7 +155,9 @@ class FileDownloadList {
         synchronized (list) {
             succeed = list.remove(willRemoveDownload);
         }
-        FileDownloadLog.v(this, "remove %s left %d %d", willRemoveDownload, removeByStatus, list.size());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "remove %s left %d %d", willRemoveDownload, removeByStatus, list.size());
+        }
 
         if (succeed) {
             // Notify 2 Listener
@@ -212,7 +214,9 @@ class FileDownloadList {
             } else {
                 task.markAdded2List();
                 list.add(task);
-                FileDownloadLog.v(this, "add list in all %s %d %d", task, task.getStatus(), list.size());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.v(this, "add list in all %s %d %d", task, task.getStatus(), list.size());
+                }
             }
         }
     }

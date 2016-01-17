@@ -56,7 +56,10 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
             @Override
             public void run() {
                 if (isShutDownThread(event)) {
-                    FileDownloadLog.v(FileDownloadEventPool.class, "pass event because: shutdown already. %s", event.getTaskListener());
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.v(FileDownloadEventPool.class, "pass event because:" +
+                                " shutdown already. %s", event.getTaskListener());
+                    }
                     return;
                 }
                 wait2SendThreadCount--;

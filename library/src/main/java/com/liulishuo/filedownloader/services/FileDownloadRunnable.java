@@ -138,6 +138,7 @@ class FileDownloadRunnable implements Runnable {
 
         if (model.getStatus() != FileDownloadStatus.pending) {
             FileDownloadLog.e(this, "start runnable but status err %s", model.getStatus());
+
             // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
             onError(new RuntimeException(String.format("start runnable but status err %s", model.getStatus())));
 
@@ -151,12 +152,16 @@ class FileDownloadRunnable implements Runnable {
             try {
 
                 if (isCancelled()) {
-                    FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
+                    }
                     onPause();
                     break;
                 }
 
-                FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
+                }
 
                 checkIsContinueAvailable();
 
@@ -167,7 +172,9 @@ class FileDownloadRunnable implements Runnable {
                 requestBuilder.cacheControl(CacheControl.FORCE_NETWORK);
 
                 final Request request = requestBuilder.get().build();
-                FileDownloadLog.d(this, "%s request header %s", getId(), request.headers());
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(this, "%s request header %s", getId(), request.headers());
+                }
 
                 Call call = client.newCall(request);
 
@@ -293,7 +300,9 @@ class FileDownloadRunnable implements Runnable {
 
     private void addHeader(Request.Builder builder) {
         if (header != null && header.getNamesAndValues() != null) {
-            FileDownloadLog.v(this, "%d add outside header: %s", getId(), header);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.v(this, "%d add outside header: %s", getId(), header);
+            }
             builder.headers(Headers.of(header.getNamesAndValues()));
         }
 
@@ -312,7 +321,9 @@ class FileDownloadRunnable implements Runnable {
         final String oldEtag = this.etag;
         final String newEtag = response.header("Etag");
 
-        FileDownloadLog.w(this, "etag find by header %d %s", getId(), newEtag);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "etag find by header %d %s", getId(), newEtag);
+        }
 
         if (oldEtag == null && newEtag != null) {
             needRefresh = true;
@@ -357,7 +368,9 @@ class FileDownloadRunnable implements Runnable {
         }
 
         lastNotifiedSoFar = soFar;
-        FileDownloadLog.d(this, "On progress %d %d %d", downloadTransfer.getDownloadId(), soFar, total);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "On progress %d %d %d", downloadTransfer.getDownloadId(), soFar, total);
+        }
 
 
         FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
@@ -365,7 +378,9 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private void onRetry(Throwable ex, final int retryTimes, final long soFarBytes) {
-        FileDownloadLog.e(this, ex, "On retry %d %s %d %d", downloadTransfer.getDownloadId(), ex.getMessage(), retryTimes, autoRetryTimes);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "On retry %d %s %d %d", downloadTransfer.getDownloadId(), ex, retryTimes, autoRetryTimes);
+        }
 
         ex = exFiltrate(ex);
         downloadTransfer.setStatus(FileDownloadStatus.retry);
@@ -383,7 +398,9 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private void onError(Throwable ex) {
-        FileDownloadLog.e(this, ex, "On error %d %s", downloadTransfer.getDownloadId(), ex.getMessage());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "On error %d %s", downloadTransfer.getDownloadId(), ex);
+        }
 
         ex = exFiltrate(ex);
         downloadTransfer.setStatus(FileDownloadStatus.error);
@@ -396,7 +413,9 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private void onComplete(final long total) {
-        FileDownloadLog.d(this, "On completed %d %d", downloadTransfer.getDownloadId(), total);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "On completed %d %d", downloadTransfer.getDownloadId(), total);
+        }
         downloadTransfer.setStatus(FileDownloadStatus.completed);
 
         helper.updateComplete(downloadTransfer.getDownloadId(), total);
@@ -409,7 +428,9 @@ class FileDownloadRunnable implements Runnable {
 
     private void onPause() {
         this.isRunning = false;
-        FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(), downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(), downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
+        }
         downloadTransfer.setStatus(FileDownloadStatus.paused);
 
         helper.updatePause(downloadTransfer.getDownloadId());
@@ -419,7 +440,9 @@ class FileDownloadRunnable implements Runnable {
     }
 
     public void onResume() {
-        FileDownloadLog.d(this, "On resume %d", downloadTransfer.getDownloadId());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "On resume %d", downloadTransfer.getDownloadId());
+        }
         downloadTransfer.setStatus(FileDownloadStatus.pending);
 
         this.isPending = true;

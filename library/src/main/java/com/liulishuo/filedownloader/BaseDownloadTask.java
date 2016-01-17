@@ -102,7 +102,9 @@ public abstract class BaseDownloadTask {
      */
     public BaseDownloadTask setPath(final String path) {
         this.path = path;
-        FileDownloadLog.d(this, "setPath %s", path);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "setPath %s", path);
+        }
         return this;
     }
 
@@ -115,7 +117,9 @@ public abstract class BaseDownloadTask {
         }
         this.listener = listener;
 
-        FileDownloadLog.d(this, "setListener %s", listener);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "setListener %s", listener);
+        }
         return this;
     }
 
@@ -134,7 +138,9 @@ public abstract class BaseDownloadTask {
      */
     public BaseDownloadTask setTag(final Object tag) {
         this.tag = tag;
-        FileDownloadLog.d(this, "setTag %s", tag);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "setTag %s", tag);
+        }
         return this;
     }
 
@@ -254,7 +260,9 @@ public abstract class BaseDownloadTask {
      */
     public int ready() {
 
-        FileDownloadLog.d(this, "ready 2 download %s", toString());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "ready 2 download %s", toString());
+        }
 
         FileDownloadList.getImpl().ready(this);
 
@@ -269,9 +277,11 @@ public abstract class BaseDownloadTask {
      * @return Download id
      */
     public int start() {
-        FileDownloadLog.v(this, "call start " +
-                        "url[%s], setPath[%s] listener[%s], tag[%s]",
-                url, path, listener, tag);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "call start " +
+                    "url[%s], setPath[%s] listener[%s], tag[%s]",
+                    url, path, listener, tag);
+        }
 
         boolean ready = true;
 
@@ -508,7 +518,9 @@ public abstract class BaseDownloadTask {
 
     private void _addEventListener() {
         if (this.listener != null && !isAddedEventLst) {
-            FileDownloadLog.d(this, "[_addEventListener] %s", generateEventId());
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "[_addEventListener] %s", generateEventId());
+            }
             FileDownloadEventPool.getImpl().addListener(generateEventId(), this.listener);
             isAddedEventLst = true;
         }
@@ -516,7 +528,9 @@ public abstract class BaseDownloadTask {
 
     private void _removeEventListener() {
         if (this.listener != null) {
-            FileDownloadLog.d(this, "[_removeEventListener] %s", generateEventId());
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "[_removeEventListener] %s", generateEventId());
+            }
             FileDownloadEventPool.getImpl().removeListener(generateEventId(), this.listener);
             isAddedEventLst = false;
         }
@@ -546,7 +560,9 @@ public abstract class BaseDownloadTask {
     private void _adjust() {
         if (path == null) {
             path = FileDownloadUtils.getDefaultSaveFilePath(url);
-            FileDownloadLog.w(this, "save path is null to %s", path);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "save path is null to %s", path);
+            }
         }
     }
 
@@ -566,7 +582,9 @@ public abstract class BaseDownloadTask {
                 return;
             }
 
-            FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
+            }
 
             if (!_startExecute()) {
                 setEx(new RuntimeException("not run download, not got download id"));
@@ -643,7 +661,9 @@ public abstract class BaseDownloadTask {
         if (finishListenerList != null) {
             finishListenerList.clear();
         }
-        FileDownloadLog.d(this, "clear %s", this);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "clear %s", this);
+        }
     }
 
     /**
@@ -689,7 +709,9 @@ public abstract class BaseDownloadTask {
     // ------------------
     // Begin task execute
     void begin() {
-        FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
+        }
         _addEventListener();
     }
 
@@ -699,7 +721,9 @@ public abstract class BaseDownloadTask {
 
     // End task
     void over() {
-        FileDownloadLog.v(this, "filedownloader:lifecycle:over %s by %d ", toString(), getStatus());
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "filedownloader:lifecycle:over %s by %d ", toString(), getStatus());
+        }
 
         if (finishListenerList != null) {
             final ArrayList<FinishListener> listenersCopy =
@@ -730,7 +754,7 @@ public abstract class BaseDownloadTask {
                 break;
             case FileDownloadStatus.connected:
                 if (getStatus() == FileDownloadStatus.connected) {
-                    FileDownloadLog.w(this, "already connected %d", transfer.getDownloadId());
+                    FileDownloadLog.w(this, "already connected %d", getDownloadId());
                     break;
                 }
 
@@ -744,8 +768,9 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
-                if (getStatus() == FileDownloadStatus.progress && transfer.getSoFarBytes() == getLargeFileSoFarBytes()) {
-                    FileDownloadLog.w(this, "unused values! by process callback");
+                if (getStatus() == FileDownloadStatus.progress &&
+                        transfer.getSoFarBytes() == getLargeFileSoFarBytes()) {
+                    FileDownloadLog.w(this, "%d unused values! by process callback", getDownloadId());
                     break;
                 }
 
@@ -761,8 +786,10 @@ public abstract class BaseDownloadTask {
                  */
                 break;
             case FileDownloadStatus.retry:
-                if (getStatus() == FileDownloadStatus.retry && getRetryingTimes() == transfer.getRetryingTimes()) {
-                    FileDownloadLog.w(this, "already retry! %d %d %s", getRetryingTimes(), getAutoRetryTimes(), transfer.getThrowable().getMessage());
+                if (getStatus() == FileDownloadStatus.retry &&
+                        getRetryingTimes() == transfer.getRetryingTimes()) {
+                    FileDownloadLog.w(this, "%d already retry! %d %d %s", getDownloadId(),
+                            getRetryingTimes(), getAutoRetryTimes(), transfer.getThrowable());
                     break;
                 }
 
@@ -776,7 +803,8 @@ public abstract class BaseDownloadTask {
                 break;
             case FileDownloadStatus.error:
                 if (getStatus() == FileDownloadStatus.error) {
-                    FileDownloadLog.w(this, "already err , callback by other status same transfer");
+                    FileDownloadLog.w(this, "%d already err(%s) , callback by other status same transfer",
+                            getDownloadId(), getEx());
                     break;
                 }
 
@@ -795,7 +823,8 @@ public abstract class BaseDownloadTask {
                 break;
             case FileDownloadStatus.completed:
                 if (getStatus() == FileDownloadStatus.completed) {
-                    FileDownloadLog.w(this, "already completed , callback by process with same transfer");
+                    FileDownloadLog.w(this, "%d already completed , callback by process with same transfer",
+                            getDownloadId());
                     break;
                 }
 
@@ -811,7 +840,8 @@ public abstract class BaseDownloadTask {
                 break;
             case FileDownloadStatus.warn:
                 if (getStatus() == FileDownloadStatus.warn) {
-                    FileDownloadLog.w(this, "already warn , callback by process with same transfer");
+                    FileDownloadLog.w(this, "%d already warn , callback by process with same transfer",
+                            getDownloadId());
                     break;
                 }
 
@@ -823,7 +853,7 @@ public abstract class BaseDownloadTask {
                     // request status
                     final int currentStatus = _getStatusFromServer(downloadId);
                     FileDownloadLog.w(this, "warn, but no listener to receive progress, " +
-                                "switch to pending %d %d", getDownloadId(), currentStatus);
+                            "switch to pending %d %d", getDownloadId(), currentStatus);
 
                     if (FileDownloadStatus.isIng(currentStatus)) {
                         // ing, has callbacks

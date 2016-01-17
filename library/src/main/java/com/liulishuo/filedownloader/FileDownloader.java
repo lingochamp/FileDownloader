@@ -41,7 +41,9 @@ public class FileDownloader {
      * Proposed call at{@link Application#onCreate()}
      */
     public static void init(final Application application) {
-        FileDownloadLog.d(FileDownloader.class, "init Downloader");
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(FileDownloader.class, "init Downloader");
+        }
         FileDownloadHelper.initAppContext(application);
     }
 
@@ -74,7 +76,9 @@ public class FileDownloader {
 
         final List<BaseDownloadTask> list = FileDownloadList.getImpl().copy(listener);
 
-        FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(), listener, isSerial);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(), listener, isSerial);
+        }
 
         if (isSerial) {
             // serial
@@ -303,9 +307,11 @@ public class FileDownloader {
                         this.list = null;
                     }
 
-                    FileDownloadLog.d(SerialHandlerCallback.class, "final serial %s %d",
-                            this.list == null ? null : this.list.get(0) == null ? null : this.list.get(0).getListener(),
-                            msg.arg1);
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(SerialHandlerCallback.class, "final serial %s %d",
+                                this.list == null ? null : this.list.get(0) == null ? null : this.list.get(0).getListener(),
+                                msg.arg1);
+                    }
                     return true;
                 }
 
@@ -313,7 +319,9 @@ public class FileDownloader {
                 synchronized (pauseLock) {
                     if (!FileDownloadList.getImpl().contains(task)) {
                         // pause?
-                        FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", task, msg.arg1);
+                        if (FileDownloadLog.NEED_LOG) {
+                            FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", task, msg.arg1);
+                        }
                         goNext(msg.arg1 + 1);
                         return true;
                     }
@@ -342,16 +350,19 @@ public class FileDownloader {
 
         private void goNext(final int nextIndex) {
             if (this.handler == null || this.list == null) {
-                FileDownloadLog.w(this, "need go next %d, but params is not ready %s %s", nextIndex, this.handler, this.list);
+                FileDownloadLog.w(this, "need go next %d, but params is not ready %s %s",
+                        nextIndex, this.handler, this.list);
                 return;
             }
 
             Message nextMsg = this.handler.obtainMessage();
             nextMsg.what = WHAT_SERIAL_NEXT;
             nextMsg.arg1 = nextIndex;
-            FileDownloadLog.d(SerialHandlerCallback.class, "start next %s %s",
-                    this.list == null ? null : this.list.get(0) == null ? null :
-                            this.list.get(0).getListener(), nextMsg.arg1);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(SerialHandlerCallback.class, "start next %s %s",
+                        this.list == null ? null : this.list.get(0) == null ? null :
+                                this.list.get(0).getListener(), nextMsg.arg1);
+            }
             this.handler.sendMessage(nextMsg);
         }
     }

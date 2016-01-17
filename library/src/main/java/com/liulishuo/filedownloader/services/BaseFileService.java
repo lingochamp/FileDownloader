@@ -40,14 +40,18 @@ public abstract class BaseFileService<CALLBACK extends IInterface, BINDER extend
     }
 
     protected void register(CALLBACK callback) {
-        FileDownloadLog.d(this, "register callback: %s", callback);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "register callback: %s", callback);
+        }
         if (callback != null) {
             callbackList.register(callback);
         }
     }
 
     protected void unregister(CALLBACK callback) {
-        FileDownloadLog.d(this, "un register callback: %s", callback);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "un register callback: %s", callback);
+        }
         if (callback != null) {
             callbackList.unregister(callback);
         }
@@ -56,32 +60,42 @@ public abstract class BaseFileService<CALLBACK extends IInterface, BINDER extend
     @Override
     public void onCreate() {
         super.onCreate();
-        FileDownloadLog.d(this, "onCreate");
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "onCreate");
+        }
         binder = createBinder();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        FileDownloadLog.d(this, "onDestroy");
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "onDestroy");
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        FileDownloadLog.d(this, "onStartCommand");
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "onStartCommand");
+        }
         // TODO change command when no task in thread
         return START_STICKY;
     }
 
     @Override
     public void onStart(Intent intent, int startId) {
-        FileDownloadLog.d(this, "onStart");
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "onStart");
+        }
         super.onStart(intent, startId);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        FileDownloadLog.d(this, "onBind %s", intent);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "onBind %s", intent);
+        }
         return getBinder();
     }
 
