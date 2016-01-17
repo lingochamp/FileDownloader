@@ -232,7 +232,7 @@ public abstract class BaseDownloadTask {
     /**
      * @see okhttp3.Headers.Builder#removeAll(String)
      */
-    public BaseDownloadTask removeAll(final String name) {
+    public BaseDownloadTask removeAllHeaders(final String name) {
         if (header == null) {
             synchronized (headerCreateLock) {
                 // maybe invoking checkAndCreateHear and will to be available.
