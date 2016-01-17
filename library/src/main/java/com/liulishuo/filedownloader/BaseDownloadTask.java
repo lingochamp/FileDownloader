@@ -488,6 +488,7 @@ public abstract class BaseDownloadTask {
 
             FileDownloadList.getImpl().add(this);
             if (_checkCanReuse()) {
+                // Will be removed when the complete message is received in #update
                 return;
             }
 
@@ -755,6 +756,20 @@ public abstract class BaseDownloadTask {
                 break;
         }
     }
+
+    // why this? thread not safe: update,ready, _start, pause, start which influence of this
+    // in the queue.
+    // whether it has been added, whether or not it is removed.
+    private volatile boolean isMarkedAdded2List = false;
+
+    void markAdded2List() {
+        isMarkedAdded2List = true;
+    }
+
+    boolean isMarkedAdded2List() {
+        return this.isMarkedAdded2List;
+    }
+
     // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
 
     // -------------------------------------------------

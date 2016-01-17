@@ -202,10 +202,15 @@ class FileDownloadList {
     }
 
     void ready(final BaseDownloadTask task) {
+        if (task.isMarkedAdded2List()) {
+            return;
+        }
+
         synchronized (list) {
             if (list.contains(task)) {
                 FileDownloadLog.w(this, "already has %s", task);
             } else {
+                task.markAdded2List();
                 list.add(task);
                 FileDownloadLog.v(this, "add list in all %s %d %d", task, task.getStatus(), list.size());
             }
