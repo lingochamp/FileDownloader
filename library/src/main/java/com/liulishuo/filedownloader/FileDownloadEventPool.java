@@ -89,6 +89,19 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     }
 
     void send2UIThread(final FileDownloadEvent event, boolean immediately) {
+        if (INTERVAL < 0) {
+            if (send2UIPollThread != null && send2UIPollThread.isAlive()) {
+                // handle  The INTERVAL is disabled when FileDownloader is active.
+                synchronized (send2UIPollThread) {
+                    if (send2UIPollThread != null && send2UIPollThread.isAlive()) {
+                        this.send2UIThreadRunnable.requestKillSelf();
+                    }
+                }
+
+                this.send2UIPollThread = null;
+            }
+        }
+
         if (INTERVAL < 0 || immediately) {
             asyncPublishInMain(event);
             return;
@@ -115,6 +128,7 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
         }
     }
 
+    // ----------------- WAIT AND FREE INTERNAL TECH，SPLIT AND SUB-PACKAGE TECH ----------------
     private Thread send2UIPollThread;
     private WaitingRunnable send2UIThreadRunnable;
     private final Object send2UIThreadLock = new Object();
@@ -134,6 +148,7 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
 
     private static final class WaitingRunnable implements Runnable {
 
+        private boolean isDead = false;
         private WeakReference<FileDownloadEventPool> wpool;
         private long lastTriggerMills;
 
@@ -156,10 +171,60 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
             requestNotify();
         }
 
+        public void requestKillSelf(){
+            this.isDead = true;
+            requestNotify();
+        }
+
         private void requestNotify() {
-            if (((System.currentTimeMillis() - lastTriggerMills > INTERVAL && waiting) ||
-                    FileDownloadList.getImpl().size() <= 0) &&
-                    isDigestedNotify) {
+            boolean notifyValid;
+            do {
+                // isn't digested the last notify.
+                // no need.
+                if (!isDigestedNotify) {
+                    notifyValid = false;
+                    break;
+                }
+
+                // already digested but not waiting,
+                // no need.
+                if (!waiting) {
+                    notifyValid = false;
+                    break;
+                }
+
+                // waiting............................................................
+
+                // already dead, need clear all event,
+                // will notify.
+                if (isDead) {
+                    notifyValid = true;
+                    break;
+                }
+
+                //already digested and is waiting, and already in the end.
+                // will notify.
+                if (FileDownloadList.getImpl().size() <= 0) {
+                    //particular case
+                    notifyValid = true;
+                    break;
+                }
+
+                // FileDownload is active(will request by others)......................
+
+                // already digested and FileDownload is active and is waiting, but wait
+                // interval isn't enough. no need.
+                if (System.currentTimeMillis() - lastTriggerMills <= INTERVAL) {
+                    notifyValid = false;
+                    break;
+                }
+
+                // already digested and FileDownload is active and is waiting, and wait
+                // interval is enough. will notify
+                notifyValid = true;
+            } while (false);
+
+            if (notifyValid) {
                 synchronized (this) {
                     isDigestedNotify = false;
                     notifyAll();
@@ -214,7 +279,8 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                     return false;
                 }
 
-                final ArrayList<FileDownloadEvent> copyQueue = (ArrayList<FileDownloadEvent>) waitQueue.clone();
+                final ArrayList<FileDownloadEvent> copyQueue =
+                        (ArrayList<FileDownloadEvent>) waitQueue.clone();
                 waitQueue.clear();
 
                 if (copyQueue.size() > SUB_PACKAGE_SIZE) {
@@ -249,7 +315,7 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
         }
     }
 
-    // ----------------------------------
+    // ---------------------------------------------------------------------------------------------
     synchronized void shutdownSendPool() {
         wait2SendThreadCount = 0;
         sendPool.shutdownNow();
