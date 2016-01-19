@@ -26,7 +26,7 @@ import android.os.IInterface;
 import android.os.RemoteException;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
-import com.liulishuo.filedownloader.event.FileDownloadEventPool;
+import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;

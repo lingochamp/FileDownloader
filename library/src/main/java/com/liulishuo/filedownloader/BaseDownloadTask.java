@@ -19,7 +19,6 @@ package com.liulishuo.filedownloader;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
-import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;

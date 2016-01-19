@@ -42,10 +42,12 @@ class FileDownloadList {
         list = new ArrayList<>();
     }
 
-    boolean isEmpty(){
-        synchronized (list) {
-            return list.isEmpty();
-        }
+    boolean isEmpty() {
+        return list.isEmpty();
+    }
+
+    int size() {
+        return list.size();
     }
 
     /**

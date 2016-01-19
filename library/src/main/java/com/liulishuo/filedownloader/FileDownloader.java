@@ -22,7 +22,6 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
-import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
@@ -53,6 +52,40 @@ public class FileDownloader {
 
     public static FileDownloader getImpl() {
         return HolderClass.INSTANCE;
+    }
+
+    /**
+     * For avoid dropped ui refresh frame.
+     * 避免掉帧
+     * <p/>
+     * Every {@link FileDownloadEventPool#INTERVAL} milliseconds post 1 message to the ui thread at most,
+     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events on the ui thread at most.
+     * <p/>
+     * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
+     * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
+     *
+     * @param intervalMillisecond interval for ui {@link Handler#post(Runnable)}
+     *                            default is 10ms
+     */
+    public static void setGlobalPost2UIInterval(final int intervalMillisecond) {
+        FileDownloadEventPool.INTERVAL = intervalMillisecond;
+    }
+
+    /**
+     * For avoid dropped ui refresh frame.
+     * 避免掉帧
+     * <p/>
+     * Every {@link FileDownloadEventPool#INTERVAL} milliseconds post 1 message to the ui thread at most,
+     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events on the ui thread at most.
+     * <p/>
+     * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
+     * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
+     *
+     * @param packageSize per sub-package size for handle event on 1 ui {@link Handler#post(Runnable)}
+     *                    default is 5
+     */
+    public static void setGlobalHandleSubPackageSize(final int packageSize) {
+        FileDownloadEventPool.SUB_PACKAGE_SIZE = packageSize;
     }
 
     /**

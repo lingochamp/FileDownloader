@@ -80,6 +80,12 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         }
     }
 
+    public boolean post2UI(final Runnable runnable) {
+        if (handler == null) {
+            return false;
+        }
+        return handler.post(runnable);
+    }
     @Override
     public boolean publish(final IDownloadEvent event) {
         if (FileDownloadLog.NEED_LOG) {
@@ -132,7 +138,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
     @Override
     public void asyncPublishInMain(final IDownloadEvent event) {
-        handler.post(new Runnable() {
+        post2UI(new Runnable() {
             @Override
             public void run() {
                 DownloadEventPoolImpl.this.publish(event);

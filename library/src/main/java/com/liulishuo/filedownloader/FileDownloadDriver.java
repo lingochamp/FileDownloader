@@ -16,7 +16,6 @@
 
 package com.liulishuo.filedownloader;
 
-import com.liulishuo.filedownloader.event.FileDownloadEventPool;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
@@ -49,7 +48,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
                 .pending());
 
     }
@@ -62,7 +61,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
                 .connected());
 
     }
@@ -82,7 +81,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
                 .progress());
 
     }
@@ -111,7 +110,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getIngEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
                 .retry());
 
     }
@@ -125,7 +124,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
                 .warn());
 
     }
@@ -138,7 +137,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
                 .error());
     }
 
@@ -150,7 +149,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
                 .pause());
     }
 
@@ -162,7 +161,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().asyncPublishInMain(download.getOverEvent()
+        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
                 .complete());
     }
 }
