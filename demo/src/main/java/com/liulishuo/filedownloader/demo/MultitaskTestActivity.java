@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader.demo;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -38,6 +39,8 @@ import java.io.File;
  * Created by Jacksgong on 12/25/15.
  */
 public class MultitaskTestActivity extends AppCompatActivity {
+
+    private final static String TAG = "MultitaskTestActivity";
 
     @Override
     protected void onDestroy() {
@@ -338,6 +341,10 @@ public class MultitaskTestActivity extends AppCompatActivity {
     private void checkEndAll() {
         final boolean isEndAll = overTaskPb.getProgress() >= Integer.valueOf(taskCountTv.getText().toString());
         if (isEndAll) {
+
+            Log.d(TAG, String.format("start[%d] over[%d]", GlobalMonitor.getImpl().getMarkStart(),
+                    GlobalMonitor.getImpl().getMarkOver()));
+
             stopTimer();
             actionBtn.setTag(true);
             actionBtn.setText("Start");

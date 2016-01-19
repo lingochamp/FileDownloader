@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.liulishuo.filedownloader.FileDownloadMonitor;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.demo.performance.PerformanceTestActivity;
 
@@ -21,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        FileDownloadMonitor.setGlobalMonitor(GlobalMonitor.getImpl());
     }
 
     public void onClickMultitask(final View view) {
@@ -72,5 +75,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         // unbind and stop service manually if idle
         FileDownloader.getImpl().unBindServiceIfIdle();
+
+        FileDownloadMonitor.releaseGlobalMonitor();
     }
 }
