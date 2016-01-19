@@ -277,6 +277,10 @@ public abstract class BaseDownloadTask {
      * @return Download id
      */
     public int start() {
+        if (FileDownloadMonitor.isValid()) {
+            FileDownloadMonitor.getMonitor().onRequestStart(this);
+        }
+
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "call start " +
                     "url[%s], setPath[%s] listener[%s], tag[%s]",
@@ -709,6 +713,10 @@ public abstract class BaseDownloadTask {
     // ------------------
     // Begin task execute
     void begin() {
+        if (FileDownloadMonitor.isValid()) {
+            FileDownloadMonitor.getMonitor().onTaskBegin(this);
+        }
+
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
         }
@@ -721,6 +729,10 @@ public abstract class BaseDownloadTask {
 
     // End task
     void over() {
+        if (FileDownloadMonitor.isValid()) {
+            FileDownloadMonitor.getMonitor().onTaskOver(this);
+        }
+
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "filedownloader:lifecycle:over %s by %d ", toString(), getStatus());
         }

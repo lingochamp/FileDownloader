@@ -76,6 +76,10 @@ public class FileDownloader {
 
         final List<BaseDownloadTask> list = FileDownloadList.getImpl().copy(listener);
 
+        if (FileDownloadMonitor.isValid()) {
+            FileDownloadMonitor.getMonitor().onRequestStart(list.size(), isSerial, listener);
+        }
+
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(), listener, isSerial);
         }
