@@ -48,8 +48,13 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
-                .pending());
+        final FileDownloadEvent event = download.getIngEvent().pending();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
 
     }
 
@@ -61,8 +66,13 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
-                .connected());
+        final FileDownloadEvent event = download.getIngEvent().connected();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
 
     }
 
@@ -81,8 +91,13 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
-                .progress());
+        final FileDownloadEvent event = download.getIngEvent().progress();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
 
     }
 
@@ -110,8 +125,13 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getIngEvent()
-                .retry());
+        final FileDownloadEvent event = download.getIngEvent().retry();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
 
     }
 
@@ -124,8 +144,13 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
-                .warn());
+        final FileDownloadEvent event = download.getOverEvent().warn();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
 
     }
 
@@ -137,8 +162,14 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
-                .error());
+        final FileDownloadEvent event = download.getOverEvent().error();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
+
     }
 
     @Override
@@ -149,8 +180,13 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
-                .pause());
+        final FileDownloadEvent event = download.getOverEvent().pause();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
     }
 
     @Override
@@ -161,7 +197,12 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.over();
 
-        FileDownloadEventPool.getImpl().send2UIThread(download.getOverEvent()
-                .complete());
+        final FileDownloadEvent event = download.getOverEvent().complete();
+
+        if (download.isSyncCallback()) {
+            FileDownloadEventPool.getImpl().publish(event);
+        } else {
+            FileDownloadEventPool.getImpl().send2UIThread(event);
+        }
     }
 }

@@ -60,6 +60,13 @@ public abstract class BaseDownloadTask {
     private boolean isContinue;
     private String etag;
 
+    /**
+     * 如果是true 会直接在下载线程回调，而不会调用{@link android.os.Handler#post(Runnable)} 抛到UI线程。
+     *
+     * if true will callback directly on the download thread(do not on post the message to the ui thread
+     * by {@link android.os.Handler#post(Runnable)}
+     */
+    private boolean syncCallback = false;
     private int callbackProgressTimes = FileDownloadModel.DEFAULT_CALLBACK_PROGRESS_TIMES;
 
     private boolean isForceReDownload = false;
@@ -108,7 +115,8 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @param listener For callback download status(pending,connected,progress,blockComplete,retry,error,paused,completed,warn)
+     * @param listener For callback download status(pending,connected,progress,
+     *                 blockComplete,retry,error,paused,completed,warn)
      */
     public BaseDownloadTask setListener(final FileDownloadListener listener) {
         if (this.listener != listener) {
@@ -123,9 +131,11 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * Set maximal callback times on callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     * Set maximal callback times on
+     * callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
      *
-     * @param callbackProgressTimes Maximal callback progress status times, Default 100, <=0 will not have any progress callback
+     * @param callbackProgressTimes Maximal callback progress status times,
+     *                              Default 100, <=0 will not have any progress callback
      */
     public BaseDownloadTask setCallbackProgressTimes(int callbackProgressTimes) {
         this.callbackProgressTimes = callbackProgressTimes;
@@ -162,7 +172,8 @@ public abstract class BaseDownloadTask {
     /**
      * Force re download whether already downloaded completed
      *
-     * @param isForceReDownload If set to true, will not check whether the file is downloaded by past, default false
+     * @param isForceReDownload If set to true, will not check whether the file is downloaded
+     *                          by past, default false
      */
     public BaseDownloadTask setForceReDownload(final boolean isForceReDownload) {
         this.isForceReDownload = isForceReDownload;
@@ -246,6 +257,14 @@ public abstract class BaseDownloadTask {
         return this;
     }
 
+    /**
+     * @param syncCallback if true will callback directly on the download thread(do not post
+     *                     the message to the ui thread by {@link android.os.Handler#post(Runnable)}
+     */
+    public BaseDownloadTask setSyncCallback(final boolean syncCallback) {
+        this.syncCallback = syncCallback;
+        return this;
+    }
 
     // -------- Following function for ending ------
 
@@ -369,7 +388,8 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return maximal callback times on callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     * @return maximal callback times on
+     * callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
      */
     public int getCallbackProgressTimes() {
         return callbackProgressTimes;
@@ -412,7 +432,8 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return Total bytes, available after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}/ already have in db
+     * @return Total bytes, available
+     * after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}/ already have in db
      * @deprecated replace with {@link #getSmallFileTotalBytes()}}
      */
     public int getTotalBytes() {
@@ -486,14 +507,16 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return Is resume by breakpoint, available after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
+     * @return Is resume by breakpoint, available
+     * after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
      */
     public boolean isContinue() {
         return this.isContinue;
     }
 
     /**
-     * @return ETag, available after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
+     * @return ETag, available
+     * after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
      */
     public String getEtag() {
         return this.etag;
@@ -507,10 +530,18 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return The current number of trey. available after {@link FileDownloadListener#retry(BaseDownloadTask, Throwable, int, int)}
+     * @return The current number of trey. available
+     * after {@link FileDownloadListener#retry(BaseDownloadTask, Throwable, int, int)}
      */
     public int getRetryingTimes() {
         return this.retryingTimes;
+    }
+
+    /**
+     * @return whether sync callback directly on the download thread, do not post to the ui thread.
+     */
+    public boolean isSyncCallback() {
+        return syncCallback;
     }
 
     // --------------------------------------- ABOVE FUNCTIONS FOR OUTSIDE ----------------------------------------------
