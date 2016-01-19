@@ -64,8 +64,13 @@ public class FileDownloader {
      * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
      * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
      *
+     * 默认值是10ms，当该值小于0时，每个回调都会立刻抛回ui线程，可能会对UI的Looper照成较大压力，也可能引发掉帧。
+     *
      * @param intervalMillisecond interval for ui {@link Handler#post(Runnable)}
      *                            default is 10ms
+     *                            if he value is less than 0, each callback will always
+     *                            {@link Handler#post(Runnable)} to ui thread immediately, may will
+     *                            cause drop frames, may will produce great pressure on the UI Looper
      */
     public static void setGlobalPost2UIInterval(final int intervalMillisecond) {
         FileDownloadEventPool.INTERVAL = intervalMillisecond;
@@ -85,6 +90,9 @@ public class FileDownloader {
      *                    default is 5
      */
     public static void setGlobalHandleSubPackageSize(final int packageSize) {
+        if (packageSize <= 0) {
+            throw new IllegalArgumentException("sub package size must more than 0");
+        }
         FileDownloadEventPool.SUB_PACKAGE_SIZE = packageSize;
     }
 
