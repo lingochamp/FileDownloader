@@ -89,20 +89,24 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     }
 
     void send2UIThread(final FileDownloadEvent event, boolean immediately) {
-        if (INTERVAL < 0) {
+        if (!isIntervalValid()) {
             if (send2UIPollThread != null && send2UIPollThread.isAlive()) {
                 // handle  The INTERVAL is disabled when FileDownloader is active.
-                synchronized (send2UIPollThread) {
+                synchronized (send2UIThreadLock) {
                     if (send2UIPollThread != null && send2UIPollThread.isAlive()) {
+                        this.send2UIPollThread.interrupt();
                         this.send2UIThreadRunnable.requestKillSelf();
+                        this.send2UIThreadRunnable = null;
+                        this.send2UIPollThread = null;
+                        asyncPublishInMain(event);
+                        return;
                     }
                 }
 
-                this.send2UIPollThread = null;
             }
         }
 
-        if (INTERVAL < 0 || immediately) {
+        if (!isIntervalValid() || immediately) {
             asyncPublishInMain(event);
             return;
         }
@@ -112,9 +116,22 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                 if (send2UIThreadRunnable == null) {
                     send2UIThreadRunnable = new WaitingRunnable(new WeakReference<>(this));
                 }
+
+                enqueue(event);
+                return;
             }
         }
 
+        enqueue(event);
+
+    }
+
+    public static boolean isIntervalValid() {
+        return INTERVAL > 0;
+    }
+
+
+    private void enqueue(final FileDownloadEvent event) {
         send2UIThreadRunnable.offer(event);
 
         if (send2UIPollThread == null || !send2UIPollThread.isAlive()) {
@@ -133,6 +150,9 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     private WaitingRunnable send2UIThreadRunnable;
     private final Object send2UIThreadLock = new Object();
 
+    public final static int DEFAULT_INTERVAL = 10;
+    public final static int DEFAULT_SUB_PACKAGE_SIZE = 5;
+
     /**
      * For avoid dropped ui refresh frame.
      * 避免掉帧
@@ -143,8 +163,9 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
      * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
      * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
      */
-    static int INTERVAL = 10;// 10ms, 0.01s, ui refresh 16ms per frame.
-    static int SUB_PACKAGE_SIZE = 5; // the size of one package for callback on the ui thread.
+    static int INTERVAL = DEFAULT_INTERVAL;// 10ms, 0.01s, ui refresh 16ms per frame.
+    static int SUB_PACKAGE_SIZE = DEFAULT_SUB_PACKAGE_SIZE; // the size of one package for callback on the ui thread.
+
 
     private static final class WaitingRunnable implements Runnable {
 
@@ -152,8 +173,8 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
         private WeakReference<FileDownloadEventPool> wpool;
         private long lastTriggerMills;
 
-        WaitingRunnable(final WeakReference<FileDownloadEventPool> wpool) {
-            this.wpool = wpool;
+        WaitingRunnable(final WeakReference<FileDownloadEventPool> wPool) {
+            this.wpool = wPool;
         }
 
         private ArrayList<FileDownloadEvent> waitQueue =
@@ -164,6 +185,9 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
         private volatile boolean isDigestedNotify = true;
 
         public void offer(FileDownloadEvent event) {
+            if (isDead) {
+                throw new IllegalArgumentException("already dead, can't digest events");
+            }
             synchronized (queueLock) {
                 waitQueue.add(event);
             }
@@ -171,7 +195,7 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
             requestNotify();
         }
 
-        public void requestKillSelf(){
+        public void requestKillSelf() {
             this.isDead = true;
             requestNotify();
         }
@@ -242,6 +266,10 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                                 FileDownloadList.getImpl().size(), waitQueue.size());
                     }
 
+                    if (isDead && waitQueue.size() <= 0) {
+                        break;
+                    }
+
                     if (wpool == null || wpool.get() == null) {
                         FileDownloadLog.e(WaitingRunnable.class, "trigger to callback 2 ui, but " +
                                 "event pool is nil %d", waitQueue.size());
@@ -254,12 +282,17 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                         }
                     });
 
+                    if (isDead && waitQueue.size() <= 0) {
+                        break;
+                    }
                     // take a break
                     try {
                         waiting = true;
                         wait();
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        if (waitQueue.size() <= 0) {
+                            break;
+                        }
                     }
 
                     waiting = false;
@@ -270,9 +303,9 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
 
         private boolean loopMessage() {
             ArrayList<FileDownloadEvent> toDealQueue = new ArrayList<>();
-            isDigestedNotify = true;
             boolean isNeedDealSubPackage = false;
             synchronized (queueLock) {
+                isDigestedNotify = true;
                 if (waitQueue.size() <= 0) {
                     FileDownloadLog.w(WaitingRunnable.class, "callback trigger to send 2 ui thread but" +
                             "wait queue is empty");
