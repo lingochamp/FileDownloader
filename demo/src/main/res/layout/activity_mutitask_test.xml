@@ -84,6 +84,17 @@
 
         </LinearLayout>
 
+        <CheckBox
+            android:id="@+id/avoid_miss_frame_cb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:checked="true"
+            android:text="@string/avoid_missing_screen_frames"
+            android:maxLines="1"
+            android:textColor="@color/colorAccent"
+            android:textSize="14sp" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

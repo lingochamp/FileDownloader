@@ -21,6 +21,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -121,6 +123,17 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
         });
 
+        avoidMissFrameCb.setChecked(FileDownloader.isEnabledAvoidDropFrame());
+        avoidMissFrameCb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    FileDownloader.enableAvoidDropFrame();
+                } else {
+                    FileDownloader.disableAvoidDropFrame();
+                }
+            }
+        });
     }
 
     private long start = 0;
@@ -375,6 +388,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
     private RadioGroup wayRgp;
     private RadioButton serialRbtn;
     private RadioButton parallelRbtn;
+    private CheckBox avoidMissFrameCb;
     private ProgressBar overTaskPb;
     private Button actionBtn;
     private TextView pendingTv;
@@ -413,6 +427,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
         wayRgp = (RadioGroup) findViewById(R.id.way_rgp);
         serialRbtn = (RadioButton) findViewById(R.id.serial_rbtn);
         parallelRbtn = (RadioButton) findViewById(R.id.parallel_rbtn);
+        avoidMissFrameCb = (CheckBox) findViewById(R.id.avoid_miss_frame_cb);
         overTaskPb = (ProgressBar) findViewById(R.id.over_task_pb);
         actionBtn = (Button) findViewById(R.id.action_btn);
         pendingTv = (TextView) findViewById(R.id.pending_tv);

@@ -48,4 +48,5 @@
     <string name="hybrid_test_multiple_tasks_parallel_title">多任务队列并行下载</string>
     <string name="hybrid_test_multiple_tasks_serial_title">多任务队列串行下载</string>
     <string name="hybrid_test_single_task_title">单任务下载测试</string>
+    <string name="avoid_missing_screen_frames">避免掉帧</string>
 </resources>
