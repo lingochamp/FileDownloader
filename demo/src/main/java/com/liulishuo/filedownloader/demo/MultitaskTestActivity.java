@@ -229,7 +229,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
         queueSet.disableCallbackProgressTimes(); // do not want each task's download progress's callback,
         // we just consider which task will completed.
 
-        // auto retry 1 time
+        // auto retry 1 time if download fail
         queueSet.setAutoRetryTimes(1);
 
         if (serialRbtn.isChecked()) {
