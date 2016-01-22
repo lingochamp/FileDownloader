@@ -64,7 +64,7 @@ public class FileDownloadUtils {
     }
 
     /**
-     * The path is used in the case of task without setting path.
+     * The path is used as Root Path in the case of task without setting path in the entire Download Engine
      * {@link com.liulishuo.filedownloader.BaseDownloadTask#setPath(String)}
      *
      * @param path default root path for save download file.

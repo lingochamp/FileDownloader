@@ -258,8 +258,9 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @param syncCallback if true will callback directly on the download thread(do not post
-     *                     the message to the ui thread by {@link android.os.Handler#post(Runnable)}
+     * @param syncCallback if true will invoke callbacks of {@link FileDownloadListener} directly
+     *                     on the download thread(do not post the message to the ui thread
+     *                     by {@link android.os.Handler#post(Runnable)}
      */
     public BaseDownloadTask setSyncCallback(final boolean syncCallback) {
         this.syncCallback = syncCallback;

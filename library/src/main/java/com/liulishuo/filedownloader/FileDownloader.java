@@ -59,7 +59,7 @@ public class FileDownloader {
      * 避免掉帧
      * <p/>
      * Every {@link FileDownloadEventPool#INTERVAL} milliseconds post 1 message to the ui thread at most,
-     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events on the ui thread at most.
+     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events(callbacks) on the ui thread.
      * <p/>
      * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
      * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
@@ -68,9 +68,9 @@ public class FileDownloader {
      *
      * @param intervalMillisecond interval for ui {@link Handler#post(Runnable)}
      *                            default is {@link FileDownloadEventPool#DEFAULT_INTERVAL}
-     *                            if he value is less than 0, each callback will always
+     *                            if the value is less than 0, each callback will always
      *                            {@link Handler#post(Runnable)} to ui thread immediately, may will
-     *                            cause drop frames, may will produce great pressure on the UI Looper
+     *                            cause drop frames, may will produce great pressure on the UI Thread Looper
      * @see #enableAvoidDropFrame()
      * @see #disableAvoidDropFrame()
      * @see #setGlobalHandleSubPackageSize(int)
@@ -84,7 +84,7 @@ public class FileDownloader {
      * 避免掉帧
      * <p/>
      * Every {@link FileDownloadEventPool#INTERVAL} milliseconds post 1 message to the ui thread at most,
-     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events on the ui thread at most.
+     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events(callbacks) on the ui thread.
      * <p/>
      * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
      * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
@@ -102,7 +102,7 @@ public class FileDownloader {
 
     /**
      * Avoid missing screen frames, but this leads to all callbacks in {@link FileDownloadListener}
-     * do not callback at once when the it achieve.
+     * do not  be invoked at once when it has already achieved.
      *
      * @see #isEnabledAvoidDropFrame()
      * @see #setGlobalPost2UIInterval(int)
@@ -112,7 +112,7 @@ public class FileDownloader {
     }
 
     /**
-     * Disable avoid missing screen frames, let all callbacks in {@link FileDownloadListener} callback
+     * Disable avoid missing screen frames, let all callbacks in {@link FileDownloadListener} will be invoked
      * at once when it achieve.
      *
      * @see #isEnabledAvoidDropFrame()
