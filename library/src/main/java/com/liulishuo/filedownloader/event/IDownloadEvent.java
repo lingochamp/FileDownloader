@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader.event;
 
+import com.liulishuo.filedownloader.util.FileDownloadLog;
+
 /**
  * Created by Jacksgong on 15/6/23.
  */
@@ -26,19 +28,20 @@ public abstract class IDownloadEvent {
         this.id = id;
     }
 
+    /**
+     * @see #IDownloadEvent(String)
+     * @deprecated do not handle ORDER any more.
+     */
     public IDownloadEvent(final String id, boolean order) {
         this.id = id;
-        this.order = order;
+        if (order) {
+            FileDownloadLog.w(this, "do not handle ORDER any more, %s", id);
+        }
     }
 
     protected final String id;
-    protected boolean order;
 
     public final String getId() {
         return this.id;
-    }
-
-    public boolean getOrder() {
-        return this.order;
     }
 }

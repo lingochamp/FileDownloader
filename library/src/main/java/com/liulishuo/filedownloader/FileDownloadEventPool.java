@@ -88,9 +88,26 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     @Override
     public boolean publish(IDownloadEvent event) {
         if (event instanceof FileDownloadEvent) {
-            ((FileDownloadEvent) event).getDownloader().getListener().callback(event);
+            final FileDownloadEvent fileDownloadEvent = (FileDownloadEvent) event;
+            if (fileDownloadEvent.getDownloader() == null) {
+                FileDownloadLog.e(FileDownloadEventPool.this, "can't invoke callback method %d," +
+                        " do not find downloader in event", event.getId());
+                return false;
+            }
+
+            if (fileDownloadEvent.getDownloader().getListener() == null) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadEventPool.this, "do not invoke  callback method %d, " +
+                            "no listener be found in task.", fileDownloadEvent.getId());
+                }
+
+                return false;
+            }
+
+            fileDownloadEvent.getDownloader().getListener().callback(event);
             return true;
         }
+
         return super.publish(event);
     }
 

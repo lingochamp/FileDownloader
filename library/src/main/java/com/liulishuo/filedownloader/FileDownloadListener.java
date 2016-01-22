@@ -37,6 +37,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
     }
 
     /**
+     * @see #FileDownloadListener()
      * @param priority
      * @deprecated not handle priority any more
      */
