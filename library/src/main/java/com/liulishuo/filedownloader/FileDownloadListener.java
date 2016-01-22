@@ -20,6 +20,7 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
  * Created by Jacksgong on 9/7/15.
@@ -33,11 +34,14 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 public abstract class FileDownloadListener extends IDownloadListener {
 
     public FileDownloadListener() {
-        this(0);
     }
 
+    /**
+     * @param priority
+     * @deprecated not handle priority any more
+     */
     public FileDownloadListener(int priority) {
-        super(priority);
+        FileDownloadLog.w(this, "not handle priority any more");
     }
 
     @Override

@@ -27,11 +27,6 @@ import com.liulishuo.filedownloader.services.FileDownloadService;
 public abstract class FileDownloadConnectListener extends IDownloadListener {
 
     public FileDownloadConnectListener() {
-        super(0);
-    }
-
-    public FileDownloadConnectListener(int priority) {
-        super(priority);
     }
 
     @Override

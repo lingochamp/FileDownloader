@@ -23,13 +23,13 @@ public class DownloadEventSampleListener extends IDownloadListener {
     private final IEventListener i;
 
     public DownloadEventSampleListener(IEventListener i) {
-        this(0, i);
-    }
-
-    public DownloadEventSampleListener(int priority, IEventListener i) {
-        super(priority);
         this.i = i;
     }
+
+//    public DownloadEventSampleListener(int priority, IEventListener i) {
+//        super(priority);
+//        this.i = i;
+//    }
 
     @Override
     public boolean callback(IDownloadEvent event) {

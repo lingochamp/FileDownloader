@@ -21,15 +21,15 @@ package com.liulishuo.filedownloader.event;
  */
 public abstract class IDownloadListener {
 
-    private final int priority;
+//    private final int priority;
 
-    public IDownloadListener(int priority) {
-        this.priority = priority;
-    }
+//    public IDownloadListener(int priority) {
+//        this.priority = priority;
+//    }
 
-    public int getPriority() {
-        return this.priority;
-    }
+//    public int getPriority() {
+//        return this.priority;
+//    }
 
     public abstract boolean callback(IDownloadEvent event);
 

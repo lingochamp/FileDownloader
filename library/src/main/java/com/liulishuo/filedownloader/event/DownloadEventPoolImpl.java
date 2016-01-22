@@ -23,8 +23,6 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import junit.framework.Assert;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
@@ -55,11 +53,20 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
             FileDownloadLog.v(this, "setListener %s", eventId);
         }
         Assert.assertNotNull("EventPoolImpl.add", listener);
+
         LinkedList<IDownloadListener> container = listenersMap.get(eventId);
+
         if (container == null) {
-            listenersMap.put(eventId, container = new LinkedList<>());
+            synchronized (eventId) {
+                container = listenersMap.get(eventId);
+                if (container == null) {
+                    listenersMap.put(eventId, container = new LinkedList<>());
+                }
+            }
         }
-        synchronized (container) {
+
+
+        synchronized (eventId) {
             return container.add(listener);
         }
     }
@@ -70,13 +77,24 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
             FileDownloadLog.v(this, "removeListener %s", eventId);
         }
 //        Assert.assertNotNull("EventPoolImpl.remove", listener);
-        final LinkedList<IDownloadListener> container = listenersMap.get(eventId);
+
+        LinkedList<IDownloadListener> container = listenersMap.get(eventId);
+        if (container == null) {
+            synchronized (eventId) {
+                container = listenersMap.get(eventId);
+            }
+        }
+
         if (container == null || listener == null) {
             return false;
         }
 
-        synchronized (container) {
-            return container.remove(listener);
+        synchronized (eventId) {
+            boolean succeed = container.remove(listener);
+            if (container.size() <= 0) {
+                listenersMap.remove(container);
+            }
+            return succeed;
         }
     }
 
@@ -86,6 +104,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         }
         return handler.post(runnable);
     }
+
     @Override
     public boolean publish(final IDownloadEvent event) {
         if (FileDownloadLog.NEED_LOG) {
@@ -95,11 +114,17 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         String eventId = event.getId();
         LinkedList<IDownloadListener> listeners = listenersMap.get(eventId);
         if (listeners == null) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "No listener for this event %s", eventId);
+            synchronized (eventId) {
+                listeners = listenersMap.get(eventId);
+                if (listeners == null) {
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(this, "No listener for this event %s", eventId);
+                    }
+                    return false;
+                }
             }
-            return false;
         }
+
         trigger(listeners, event);
         return true;
     }
@@ -147,29 +172,27 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
     }
 
     private void trigger(final LinkedList<IDownloadListener> listeners, final IDownloadEvent event) {
-        synchronized (listeners) {
-            try {
-                if (event.getOrder()) {
-                    Collections.sort(listeners, new Comparator<IDownloadListener>() {
-                        @Override
-                        public int compare(IDownloadListener lhs, IDownloadListener rhs) {
-                            return rhs.getPriority() - lhs.getPriority();
-                        }
-                    });
-                }
+        // do not handle Order.
+//        try {
+//            if (event.getOrder()) {
+//                Collections.sort(listeners, new Comparator<IDownloadListener>() {
+//                    @Override
+//                    public int compare(IDownloadListener lhs, IDownloadListener rhs) {
+//                        return rhs.getPriority() - lhs.getPriority();
+//                    }
+//                });
+//            }
+//
+//        } catch (Exception e) {
+//            FileDownloadLog.e(this, e, "trigger error, %s", event != null ? event.getId() : null);
+//        }
 
-            } catch (Exception e) {
-                FileDownloadLog.e(this, e, "trigger error, %s", event != null ? event.getId() : null);
+        final Object[] lists = listeners.toArray();
+        for (Object o : lists) {
+            if (((IDownloadListener) o).callback(event)) {
+                break;
             }
-
-            for (Object o : listeners.toArray()) {
-                if (((IDownloadListener) o).callback(event)) {
-                    break;
-                }
-            }
-
         }
-
 
         if (event.callback != null) {
             event.callback.run();
