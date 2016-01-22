@@ -19,6 +19,7 @@ package com.liulishuo.filedownloader.util;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Environment;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -44,7 +45,13 @@ public class FileDownloadUtils {
         return true;
     }
 
+    private static String DEFAULT_SAVE_ROOT_PATH;
+
     public static String getDefaultSaveRootPath() {
+        if (!TextUtils.isEmpty(DEFAULT_SAVE_ROOT_PATH)) {
+            return DEFAULT_SAVE_ROOT_PATH;
+        }
+
         if (FileDownloadHelper.getAppContext().getExternalCacheDir() == null) {
             return Environment.getDownloadCacheDirectory().getAbsolutePath();
         } else {
@@ -54,6 +61,16 @@ public class FileDownloadUtils {
 
     public static String getDefaultSaveFilePath(final String url) {
         return String.format("%s%s%s", getDefaultSaveRootPath(), File.separator, md5(url));
+    }
+
+    /**
+     * The path is used in the case of task without setting path.
+     * {@link com.liulishuo.filedownloader.BaseDownloadTask#setPath(String)}
+     *
+     * @param path default root path for save download file.
+     */
+    public static void setDefaultSaveRootPath(final String path) {
+        DEFAULT_SAVE_ROOT_PATH = path;
     }
 
 //    public static Integer getActiveNetworkType(final Context context) {
@@ -161,7 +178,7 @@ public class FileDownloadUtils {
 
     public static long decodeInt2Long(final int size, final boolean useNegative) {
         if (useNegative) {
-            return size + (long)(-Integer.MIN_VALUE);
+            return size + (long) (-Integer.MIN_VALUE);
         }
 
         return size;
