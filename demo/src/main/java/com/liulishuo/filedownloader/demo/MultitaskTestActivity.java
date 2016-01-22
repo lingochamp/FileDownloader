@@ -32,10 +32,13 @@ import android.widget.Toast;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloadQueueSet;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Jacksgong on 12/25/15.
@@ -195,23 +198,60 @@ public class MultitaskTestActivity extends AppCompatActivity {
         overTaskPb.setMax(count);
         overTaskPb.setProgress(0);
 
-        downloadListener = createLis();
-        for (int i = 0; i < count; i++) {
-            final String url = Constant.URLS[i];
-            FileDownloader.getImpl().create(url)
-                    .setListener(downloadListener)
-                    .setAutoRetryTimes(1)
-                    .setTag(i + 1)
-                    .setCallbackProgressTimes(0)
-                    .ready();
-        }
-
         isStopTimer = false;
         timeConsumeTv.setTag(0);
         goTimeCount();
-        start = System.currentTimeMillis();
 
-        FileDownloader.getImpl().start(downloadListener, serialRbtn.isChecked());
+
+        start = System.currentTimeMillis();
+        // =================== How to Download tasks: =============================
+        downloadListener = createLis();
+//        The first way-----------------------------:
+//        for (int i = 0; i < count; i++) {
+//            final String url = Constant.URLS[i];
+//            FileDownloader.getImpl().create(url)
+//                    .setListener(downloadListener)
+//                    .setAutoRetryTimes(1)
+//                    .setTag(i + 1)
+//                    .setCallbackProgressTimes(0)
+//                    .ready();
+//        }
+//        FileDownloader.getImpl().start(downloadListener, serialRbtn.isChecked());
+
+//        The second way----------------------------:
+
+        final FileDownloadQueueSet queueSet = new FileDownloadQueueSet(downloadListener);
+
+        final List<BaseDownloadTask> tasks = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            tasks.add(FileDownloader.getImpl().create(Constant.URLS[i]).setTag(i + 1));
+        }
+        queueSet.disableCallbackProgressTimes(); // do not want each task's download progress's callback,
+        // we just consider which task will completed.
+
+        // auto retry 1 time
+        queueSet.setAutoRetryTimes(1);
+
+        if (serialRbtn.isChecked()) {
+            // start download in serial order
+            queueSet.downloadSequentially(tasks);
+            // if your tasks are not a list, invoke such following will more readable:
+//            queueSet.downloadSequentially(
+//                    FileDownloader.getImpl().create(url).setPath(...),
+//                    FileDownloader.getImpl().create(url).addHeader(...,...),
+//                    FileDownloader.getImpl().create(url).setPath(...)
+//            );
+        } else {
+            // start parallel download
+            queueSet.downloadTogether(tasks);
+            // if your tasks are not a list, invoke such following will more readable:
+//            queueSet.downloadTogether(
+//                    FileDownloader.getImpl().create(url).setPath(...),
+//                    FileDownloader.getImpl().create(url).setPath(...),
+//                    FileDownloader.getImpl().create(url).setSyncCallback(true)
+//            );
+        }
+        queueSet.start();
 
         return true;
     }
