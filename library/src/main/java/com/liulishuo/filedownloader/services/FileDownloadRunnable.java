@@ -119,38 +119,53 @@ class FileDownloadRunnable implements Runnable {
 
         isPending = false;
         isRunning = true;
-        int retryingTimes = 0;
 
-        FileDownloadModel model = this.downloadModel;
+        try {
+            // Step 1, check model
+            FileDownloadModel model = this.downloadModel;
 
-        if (model == null) {
-            FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
+            if (model == null) {
+                FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
 
-            this.downloadModel = helper.find(getId());
+                this.downloadModel = helper.find(getId());
 
-            if (this.downloadModel == null) {
-                FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", getId());
+                if (this.downloadModel == null) {
+                    FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", getId());
+                    return;
+                }
+
+                model = this.downloadModel;
+            }
+
+            // Step 2, check status
+            if (model.getStatus() != FileDownloadStatus.pending) {
+                FileDownloadLog.e(this, "start runnable but status err %s", model.getStatus());
+
+                // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
+                onError(new RuntimeException(String.format("start runnable but status err %s", model.getStatus())));
+
                 return;
             }
 
-            model = this.downloadModel;
+            // Step 3, start download
+            loop(model);
+
+        } finally {
+            isRunning = false;
         }
 
-        if (model.getStatus() != FileDownloadStatus.pending) {
-            FileDownloadLog.e(this, "start runnable but status err %s", model.getStatus());
 
-            // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
-            onError(new RuntimeException(String.format("start runnable but status err %s", model.getStatus())));
+    }
 
-            return;
-        }
+    private void loop(FileDownloadModel model) {
+        int retryingTimes = 0;
 
-        // 进入下载
         do {
-
+            // loop for retry
             long soFar = 0;
             try {
 
+                // Step 1, check is paused
                 if (isCancelled()) {
                     if (FileDownloadLog.NEED_LOG) {
                         FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
@@ -163,6 +178,7 @@ class FileDownloadRunnable implements Runnable {
                     FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
                 }
 
+                // Step 2, handle resume from breakpoint
                 checkIsContinueAvailable();
 
                 Request.Builder requestBuilder = new Request.Builder().url(url);
@@ -171,6 +187,8 @@ class FileDownloadRunnable implements Runnable {
                 // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
                 requestBuilder.cacheControl(CacheControl.FORCE_NETWORK);
 
+                // start download----------------
+                // Step 3, init request
                 final Request request = requestBuilder.get().build();
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(this, "%s request header %s", getId(), request.headers());
@@ -178,6 +196,7 @@ class FileDownloadRunnable implements Runnable {
 
                 Call call = client.newCall(request);
 
+                // Step 4, build connect
                 Response response = call.execute();
 
                 final boolean isSucceedStart = response.code() == 200;
@@ -188,6 +207,7 @@ class FileDownloadRunnable implements Runnable {
                     final String transferEncoding = response.header("Transfer-Encoding");
 
 
+                    // Step 5, check response's header
                     if (isSucceedStart || total <= 0) {
                         if (transferEncoding == null) {
                             total = response.body().contentLength();
@@ -198,7 +218,6 @@ class FileDownloadRunnable implements Runnable {
                     }
 
                     // TODO consider if not is chunked & http 1.0/(>=http1.1 & connect not be keep live) may not give content-length
-
                     if (total < 0) {
                         // invalid total length
                         final boolean isEncodingChunked = transferEncoding != null
@@ -213,64 +232,15 @@ class FileDownloadRunnable implements Runnable {
                         soFar = downloadTransfer.getSoFarBytes();
                     }
 
-                    InputStream inputStream = null;
-                    RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue);
-                    try {
-                        inputStream = response.body().byteStream();
-                        byte[] buff = new byte[BUFFER_SIZE];
-                        maxNotifyBytes = maxNotifyCounts <= 0 ? -1 : total / maxNotifyCounts;
+                    // Step 6, update header to db. for save etag.
+                    updateHeader(response);
+                    // Step 7, callback on connected.
+                    onConnected(isSucceedContinue, soFar, total);
 
-                        updateHeader(response);
-                        onConnected(isSucceedContinue, soFar, total);
-
-                        do {
-                            int byteCount = inputStream.read(buff);
-                            if (byteCount == -1) {
-                                break;
-                            }
-
-                            accessFile.write(buff, 0, byteCount);
-
-                            //write buff
-                            soFar += byteCount;
-                            if (accessFile.length() < soFar) {
-                                // 文件大小必须会等于正在写入的大小
-                                throw new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar));
-                            } else {
-                                onProcess(soFar, total);
-                            }
-
-                            if (isCancelled()) {
-                                onPause();
-                                return;
-                            }
-
-                        } while (true);
-
-
-                        if (total == -1) {
-                            total = soFar;
-                        }
-
-                        if (soFar == total) {
-                            onComplete(total);
-
-                            // 成功
-                            break;
-                        } else {
-                            throw new RuntimeException(
-                                    String.format("sofar[%d] not equal total[%d]", soFar, total));
-                        }
-                    } finally {
-                        if (inputStream != null) {
-                            inputStream.close();
-                        }
-
-                        if (accessFile != null) {
-                            accessFile.close();
-                        }
+                    // Step 8, start fetch datum from input stream & write to file
+                    if (fetch(response, isSucceedContinue, soFar, total)) {
+                        break;
                     }
-
 
                 } else {
                     throw new HttpRequestException(request, response);
@@ -289,13 +259,80 @@ class FileDownloadRunnable implements Runnable {
                     onError(ex);
                     break;
                 }
-            } finally {
-                isRunning = false;
             }
 
         } while (true);
+    }
+
+    private boolean fetch(Response response, boolean isSucceedContinue,
+                          long soFar, long total) throws Throwable {
+        // fetching datum
+        InputStream inputStream = null;
+        RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue);
+        try {
+            // Step 1, get input stream
+            inputStream = response.body().byteStream();
+            byte[] buff = new byte[BUFFER_SIZE];
+            maxNotifyBytes = maxNotifyCounts <= 0 ? -1 : total / maxNotifyCounts;
+
+            // enter fetching loop(Step 2->6)
+            do {
+                // Step 2, read from input stream.
+                int byteCount = inputStream.read(buff);
+                if (byteCount == -1) {
+                    break;
+                }
+
+                // Step 3, writ to file
+                accessFile.write(buff, 0, byteCount);
+
+                // Step 4, adapter sofar
+                soFar += byteCount;
+
+                // Step 5, check whether file be changed by others
+                if (accessFile.length() < soFar) {
+                    // 文件大小必须会等于正在写入的大小
+                    throw new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar));
+                } else {
+                    // callback on progressing
+                    onProcess(soFar, total);
+                }
+
+                // Step 6, check pause
+                if (isCancelled()) {
+                    // callback on paused
+                    onPause();
+                    return true;
+                }
+
+            } while (true);
 
 
+            // Step 7, adapter chuncked transfer encoding
+            if (total == -1) {
+                total = soFar;
+            }
+
+            // Step 8, complte download
+            if (soFar == total) {
+                // callback on completed
+                onComplete(total);
+
+                // 成功
+                return true;
+            } else {
+                throw new RuntimeException(
+                        String.format("sofar[%d] not equal total[%d]", soFar, total));
+            }
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+
+            if (accessFile != null) {
+                accessFile.close();
+            }
+        }
     }
 
     private void addHeader(Request.Builder builder) {
