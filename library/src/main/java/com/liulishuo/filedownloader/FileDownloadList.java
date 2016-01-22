@@ -158,7 +158,9 @@ class FileDownloadList {
             succeed = list.remove(willRemoveDownload);
         }
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "remove %s left %d %d", willRemoveDownload, removeByStatus, list.size());
+            if (list.size() == 0) {
+                FileDownloadLog.v(this, "remove %s left %d %d", willRemoveDownload, removeByStatus, list.size());
+            }
         }
 
         if (succeed) {

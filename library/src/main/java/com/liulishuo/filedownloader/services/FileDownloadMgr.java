@@ -82,7 +82,6 @@ class FileDownloadMgr {
                         model.getStatus() == FileDownloadStatus.error) // FileDownloadRunnable invoke
             // #checkBreakpointAvailable  to determine whether it is really invalid.
                 ) {
-            // TODO pending data is no use, if not resume by break point
             needUpdate2DB = false;
         } else {
             if (model == null) {

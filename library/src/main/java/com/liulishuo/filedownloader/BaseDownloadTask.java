@@ -62,7 +62,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * 如果是true 会直接在下载线程回调，而不会调用{@link android.os.Handler#post(Runnable)} 抛到UI线程。
-     *
+     * <p/>
      * if true will callback directly on the download thread(do not on post the message to the ui thread
      * by {@link android.os.Handler#post(Runnable)}
      */
@@ -88,7 +88,7 @@ public abstract class BaseDownloadTask {
     // --------------------------------------- FOLLOWING FUNCTION FOR INIT -----------------------------------------------
 
     static {
-        FileDownloadEventPool.getImpl().addListener(DownloadTaskEvent.ID, new IDownloadListener(Integer.MAX_VALUE) {
+        FileDownloadEventPool.getImpl().addListener(DownloadTaskEvent.ID, new IDownloadListener() {
             @Override
             public boolean callback(IDownloadEvent event) {
                 final DownloadTaskEvent taskEvent = (DownloadTaskEvent) event;
@@ -96,6 +96,9 @@ public abstract class BaseDownloadTask {
                     case DownloadTaskEvent.Operate.REQUEST_START:
                         taskEvent.consume()._start();
                         break;
+                    default:
+                        FileDownloadLog.e(DownloadTaskEvent.ID, "exception: do not recognize" +
+                                " operate %s", taskEvent.getOperate());
                 }
                 return true;
             }
@@ -119,9 +122,6 @@ public abstract class BaseDownloadTask {
      *                 blockComplete,retry,error,paused,completed,warn)
      */
     public BaseDownloadTask setListener(final FileDownloadListener listener) {
-        if (this.listener != listener) {
-            isAddedEventLst = false;
-        }
         this.listener = listener;
 
         if (FileDownloadLog.NEED_LOG) {
@@ -301,7 +301,7 @@ public abstract class BaseDownloadTask {
 
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "call start " +
-                    "url[%s], setPath[%s] listener[%s], tag[%s]",
+                            "url[%s], setPath[%s] listener[%s], tag[%s]",
                     url, path, listener, tag);
         }
 
@@ -309,7 +309,6 @@ public abstract class BaseDownloadTask {
 
         try {
             _adjust();
-            _addEventListener();
             _checkFile(path);
         } catch (Throwable e) {
             ready = false;
@@ -548,28 +547,6 @@ public abstract class BaseDownloadTask {
 
     // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL --------------------------------------------------
 
-    private boolean isAddedEventLst = false;
-
-    private void _addEventListener() {
-        if (this.listener != null && !isAddedEventLst) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "[_addEventListener] %s", generateEventId());
-            }
-            FileDownloadEventPool.getImpl().addListener(generateEventId(), this.listener);
-            isAddedEventLst = true;
-        }
-    }
-
-    private void _removeEventListener() {
-        if (this.listener != null) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "[_removeEventListener] %s", generateEventId());
-            }
-            FileDownloadEventPool.getImpl().removeListener(generateEventId(), this.listener);
-            isAddedEventLst = false;
-        }
-    }
-
     private void _checkFile(final String path) {
         File file = new File(path);
         if (file.exists()) {
@@ -586,7 +563,7 @@ public abstract class BaseDownloadTask {
         return true;
     }
 
-    protected boolean _checkCanReuse(){
+    protected boolean _checkCanReuse() {
         return false;
     }
 
@@ -645,6 +622,7 @@ public abstract class BaseDownloadTask {
     protected abstract boolean _pauseExecute();
 
     protected abstract int _getStatusFromServer(final int downloadId);
+
     private Runnable cacheRunnable;
 
     private Runnable _getOverCallback() {
@@ -666,6 +644,7 @@ public abstract class BaseDownloadTask {
 
 
     private final Object headerCreateLock = new Object();
+
     private void checkAndCreateHeader() {
         if (header == null) {
             synchronized (headerCreateLock) {
@@ -691,7 +670,6 @@ public abstract class BaseDownloadTask {
 
     // Clear References
     void clear() {
-        _removeEventListener();
         if (finishListenerList != null) {
             finishListenerList.clear();
         }
@@ -750,7 +728,6 @@ public abstract class BaseDownloadTask {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
         }
-        _addEventListener();
     }
 
     // Being processed

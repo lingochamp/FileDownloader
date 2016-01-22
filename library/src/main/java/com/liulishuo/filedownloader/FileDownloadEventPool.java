@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader;
 
 import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
@@ -82,6 +83,15 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                 }
             });
         }
+    }
+
+    @Override
+    public boolean publish(IDownloadEvent event) {
+        if (event instanceof FileDownloadEvent) {
+            ((FileDownloadEvent) event).getDownloader().getListener().callback(event);
+            return true;
+        }
+        return super.publish(event);
     }
 
     void send2UIThread(final FileDownloadEvent event) {
