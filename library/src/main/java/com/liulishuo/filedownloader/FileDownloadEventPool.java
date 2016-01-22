@@ -234,13 +234,15 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                 // no need.
                 if (!isDigestedNotify) {
                     notifyValid = false;
+//                    FileDownloadLog.v(WaitingRunnable.class, "invalid--- not digested");
                     break;
                 }
 
-                // already digested but not waiting,
+                // already digested but is not waiting,
                 // no need.
                 if (!waiting) {
                     notifyValid = false;
+//                    FileDownloadLog.v(WaitingRunnable.class, "invalid--- not waiting");
                     break;
                 }
 
@@ -267,6 +269,7 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                 // interval isn't enough. no need.
                 if (System.currentTimeMillis() - lastTriggerMills <= INTERVAL) {
                     notifyValid = false;
+//                    FileDownloadLog.v(WaitingRunnable.class, "invalid--- time");
                     break;
                 }
 
@@ -302,6 +305,8 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                                 "event pool is nil %d", waitQueue.size());
                         break;
                     }
+                    // will waiting, for thread area swap not make sense
+                    waiting = true;
                     wpool.get().post2UI(new Runnable() {
                         @Override
                         public void run() {
@@ -314,15 +319,15 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                     }
                     // take a break
                     try {
-                        waiting = true;
                         wait();
+                        waiting = false;
                     } catch (InterruptedException e) {
+                        waiting = false;
                         if (waitQueue.size() <= 0) {
                             break;
                         }
                     }
 
-                    waiting = false;
                 }
 
             }
