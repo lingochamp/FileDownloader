@@ -289,7 +289,7 @@ class FileDownloadRunnable implements Runnable {
                 // Step 4, adapter sofar
                 soFar += byteCount;
 
-                // Step 5, check whether file be changed by others
+                // Step 5, check whether file is changed by others
                 if (accessFile.length() < soFar) {
                     // 文件大小必须会等于正在写入的大小
                     throw new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar));
