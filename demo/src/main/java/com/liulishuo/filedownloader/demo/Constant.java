@@ -144,16 +144,22 @@ public interface Constant {
             "http://girlatlas.b0.upaiyun.com/35/20150106/1916632ab190c6b61631.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19161c1ea0f0c6499aeb.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1917e9990225af5c7ac6.jpg!mid",
+            // 重复
+            "http://girlatlas.b0.upaiyun.com/35/20150106/1916632ab190c6b61631.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19171f38edd72a8eeaaa.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19177f35edb26a1f6122.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/191714e128e4c0b20557.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1917600091ea2eae9dc7.jpg!mid",
+            // 重复
+            "http://girlatlas.b0.upaiyun.com/35/20150106/19177f35edb26a1f6122.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1917b450c502b937d0e9.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19171e7b74071367701d.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1917350acae06ad8b81b.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1917476ec949ca072f0f.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19177b3e1a42704e348d.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19179c4f202de69c7fa9.jpg!mid",
+            // 重复
+            "http://girlatlas.b0.upaiyun.com/35/20150106/1917068cf4eaef36fafb.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1917068cf4eaef36fafb.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19179118e2bd069ddd0c.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/191793a683b41722de08.jpg!mid",
@@ -208,6 +214,8 @@ public interface Constant {
             "http://girlatlas.b0.upaiyun.com/35/20150106/19216fd17083f958396b.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1921b9b4a09e8c6e5c4c.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/192100efa4ea6191f809.jpg!mid",
+            // 重复
+            "http://girlatlas.b0.upaiyun.com/35/20150106/1920fd35296ce6f12988.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/19215ac0666caa1cb748.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/192174692104501931b4.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1921280472d74095d174.jpg!mid",
@@ -223,6 +231,10 @@ public interface Constant {
             "http://girlatlas.b0.upaiyun.com/35/20150106/1922ab70c0d80458076f.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1922f33b1e7313e9ccc4.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1922f5d47d5a89f037f0.jpg!mid",
+            // 重复
+            "http://girlatlas.b0.upaiyun.com/35/20150106/1921b9b4a09e8c6e5c4c.jpg!mid",
+            "http://girlatlas.b0.upaiyun.com/35/20150106/192100efa4ea6191f809.jpg!mid",
+            "http://girlatlas.b0.upaiyun.com/35/20150106/19215ac0666caa1cb748.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/192243447b98a1f1e8c5.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/192201e599b3e1cf347e.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1922fa74790b834f3316.jpg!mid",
@@ -298,6 +310,10 @@ public interface Constant {
             "http://girlatlas.b0.upaiyun.com/35/20150106/1928c3c333cedcbb38ca.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1928dada279c25a59367.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1928c157635a30e14061.jpg!mid",
+            // 重复
+            "http://girlatlas.b0.upaiyun.com/35/20150106/19285a5af331013b53d1.jpg!mid",
+            "http://girlatlas.b0.upaiyun.com/35/20150106/1928039401e85b6c85a5.jpg!mid",
+            "http://girlatlas.b0.upaiyun.com/35/20150106/19282191f6e57cfddcd8.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/1928cee7a9de97213873.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/192800294e3a856e2fcf.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/35/20150106/192889925d56ab2390bf.jpg!mid",
@@ -675,6 +691,9 @@ public interface Constant {
             "http://girlatlas.b0.upaiyun.com/2535/20150202/09487418781a86c041b4.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/2535/20150202/09485231bb2ed8ba33bb.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/2535/20150202/0949a0f6cb9fd1a5dd93.jpg!mid",
+            // 重复
+            "http://girlatlas.b0.upaiyun.com/453/20150201/1408dcdf2d91c78ee7b1.jpg!mid",
+            "http://girlatlas.b0.upaiyun.com/453/20150201/1408b788ec5815ff70ce.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/2535/20150202/0949e4316c816b3a2d9d.jpg!mid",
             "http://girlatlas.b0.upaiyun.com/2535/20140524/2208ee8609be588b2053.jpg!prev",
             "http://girlatlas.b0.upaiyun.com/2535/20141126/01262ceb00be5069a582.jpg!prev",
