@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.1.5'
+    compile 'com.liulishuo.filedownloader:library:0.1.9'
 }
 ```
 
@@ -139,22 +139,65 @@ final FileDownloadListener queueTarget = new FileDownloadListener() {
             }
         };
 
-for (String url : URLS) {
-    FileDownloader.getImpl().create(url)
-            .setCallbackProgressTimes(0) // why do this? in here i assume do not need callback each task's `FileDownloadListener#progress`, so in this way reduce ipc will be effective optimization
-            .setListener(queueTarget)
-            .ready();
-}
+// The first way :
 
-if(serial){
+//for (String url : URLS) {
+//    FileDownloader.getImpl().create(url)
+//            .setCallbackProgressTimes(0) // why do this? in here i assume do not need for each task callback `FileDownloadListener#progress`,
+// we just consider which task will complete. so in this way reduce ipc will be effective optimization
+//            .setListener(queueTarget)
+//            .ready();
+//}
+
+//if(serial){
     // To form a queue with the same queueTarget and execute them linearly
-    FileDownloader.getImpl().start(queueTarget, true);
+//    FileDownloader.getImpl().start(queueTarget, true);
+// }
+
+// if(parallel){
+    // To form a queue with the same queueTarget and execute them in parallel
+//    FileDownloader.getImpl().start(queueTarget, false);
+//}
+
+// the second way:
+
+final FileDownloadQueueSet queueSet = new FileDownloadQueueSet(downloadListener);
+
+final List<BaseDownloadTask> tasks = new ArrayList<>();
+for (int i = 0; i < count; i++) {
+     tasks.add(FileDownloader.getImpl().create(Constant.URLS[i]).setTag(i + 1));
 }
 
-if(parallel){
-    // To form a queue with the same queueTarget and execute them in parallel
-    FileDownloader.getImpl().start(queueTarget, false);
+queueSet.disableCallbackProgressTimes(); // do not need for each task callback `FileDownloadListener#progress`,
+// we just consider which task will complete. so in this way reduce ipc will be effective optimization
+
+// all tasks auto retry 1 time if download fail
+queueSet.setAutoRetryTimes(1);
+
+if (serial) {
+     // start download in serial order
+     queueSet.downloadSequentially(tasks);
+     // if your tasks are not a list, invoke such following will more readable:
+//      queueSet.downloadSequentially(
+//              FileDownloader.getImpl().create(url).setPath(...),
+//              FileDownloader.getImpl().create(url).addHeader(...,...),
+//              FileDownloader.getImpl().create(url).setPath(...)
+//      );
 }
+
+if (parallel) {
+   // start parallel download
+   queueSet.downloadTogether(tasks);
+   // if your tasks are not a list, invoke such following will more readable:
+//    queueSet.downloadTogether(
+//            FileDownloader.getImpl().create(url).setPath(...),
+//            FileDownloader.getImpl().create(url).setPath(...),
+//            FileDownloader.getImpl().create(url).setSyncCallback(true)
+//    );
+}
+
+
+queueSet.start();
 
 ```
 
@@ -181,6 +224,11 @@ if(parallel){
 | unBindServiceIfIdle(void) | If there is no active task in the `:filedownloader` progress currently , then unbind & stop `:filedownloader` process
 | isServiceConnected(void) | Whether started and connected to the `:filedownloader` progress(ps: Please refer to [Tasks Manager demo](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/TasksManagerDemoActivity.java))
 | getStatus(downloadId) | Get download status by the downloadId(ps: Please refer to [Tasks Manager demo](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/TasksManagerDemoActivity.java))
+| setGlobalPost2UIInterval(intervalMillisecond:int) | For Avoid Missing Screen Frames. Each intervalMillisecond post 1 message to ui thread at most. if the value is less than 0, each callback will always post a message to ui thread immediately, may will cause missing screen frames and produce great pressure on the ui thread Looper. Default: 10ms
+| setGlobalHandleSubPackageSize(packageSize:int) | For Avoid Missing Screen Frames. {packageSize}: The number of FileDownloadListener's callback contained in each message. value completely dependent on the intervalMillisecond of setGlobalPost2UIInterval, describe will handle up to {packageSize} callbacks on the each message posted to ui thread. Default: 5
+| enableAvoidDropFrame(void) | Avoid missing screen frames, but this leads to all callbacks of FileDownloadListener do not be invoked at once when it has already achieved.
+| disableAvoidDropFrame(void) | Disable avoid missing screen frames, let all callbacks of FileDownloadListener be invoked at once when it achieve.
+| isEnabledAvoidDropFrame(void) | Has already enabled Avoid Missing Screen Frames. Default: true
 
 #### `FileDownloadTask`
 
@@ -196,6 +244,7 @@ if(parallel){
 | setForceReDownload(isForceReDownload:boolean) | If set to true, will not check whether the file is downloaded by past, default false
 | setFinishListener(listener:FinishListener) | -
 | setAutoRetryTimes(autoRetryTimes:int) | Set the number of times to automatically retry when encounter any error, default 0
+| setSyncCallback(syncCallback:boolean) | if true will invoke callbacks of FileDownloadListener directly on the download thread(do not post the message to the ui thread), default false
 | addHeader(name:String, values:String) | Add custom request header to the task. Attention: We have already handled ETag, and will add `If-Match` & `Range` value if it works
 | addHeader(line:String) | Add custom request header to the task. Attention: We have already handled ETag, and will add `If-Match` & `Range` value if it works
 | removeAllHeaders(name:String) | Remove all custom request header bind with the `{name}`
@@ -219,6 +268,7 @@ if(parallel){
 | getEtag(void):String | Get current ETag on header
 | getAutoRetryTimes(void):int | Get the number of times to automatically retry
 | getRetryingTimes(void):int | Get the current number of retry
+| isSyncCallback(void):boolean | Whether sync invoke callbacks of FileDownloadListener directly on the download thread
 
 #### `FileDownloadListener`
 
@@ -255,11 +305,48 @@ blockComplete -> completed
 
 ![][file_download_listener_callback_flow_png]
 
+##### Calling methods in the FileDownloadListener too fast leads to Missing Screen Frames?
+
+> Your have 2 ways to handle this problem:
+
+1. `FileDownloader#enableAvoidDropFrame`, The default is enabled.
+2. `BaseDownloadTask#setSyncCallback`, The default is false, if true will invoke callbacks of FileDownloadListener directly on the download thread(do not post the message to the ui thread).
+
+#### `FileDownloadMonitor`
+
+> You can add this global monitor for Statistic/Debugging.
+
+| function | description
+| --- | ---
+| setGlobalMonitor(monitor:IMonitor) | set and replace global monitor into the Download Engine
+| releaseGlobalMonitor(void) | release the monitor has already set into the Download Engine
+| getMonitor(void) | get the monitor has already set into the Download Engine
+
+
+##### `FileDownloadMonitor.IMonitor`
+
+> monitor interface.
+
+| interface | description
+| --- | ---
+| onRequestStart(count:int, serial:boolean, lis:FileDownloadListener) | will be invoked when request to start multi-tasks manually
+| onRequestStart(task:BaseDownloadTask) | will be invoked when request to start the task manually
+| onTaskBegin(task:BaseDownloadTask) | will be invoked when the task in the internal is begin(before pending)
+| onTaskOver(task:BaseDownloadTask) | will be invoked when the task in the internal is over(finish all lifecycle of the task)
+
+#### `FileDownloadUtils`
+
+| function | description
+| --- | ---
+| setDefaultSaveRootPath(path:String) | The path is used as Root Path in the case of task without setting path in the entire Download Engine
+
+
 ## Attention
 
 - Using `FileDownloadLargeFileListener` instance instead of `FileDownloadListener`, when file size maybe greater than 1.99G(`2^31-1=2_147_483_647`)(The same use: `getLargeFileSoFarBytes()` and `getLargeFileTotalBytes()`).
 - Default by okhttp: retryOnConnectionFailure: Unreachable IP addresses/Stale pooled connections/Unreachable proxy servers
 - Default by okhttp: connection/read/write time out 10s
+- FileDownloader is enable Avoid Missing Screen Frames as default, if you want to disable it, please invoke `FileDownloader.getImpl().disableAvoidDropFrame()`.
 
 #### Low Memory?
 

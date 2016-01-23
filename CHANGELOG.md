@@ -2,6 +2,37 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.1.9
+
+_2016-01-23_
+
+> FileDownloader is enable Avoid Missing Screen Frames as default, if you want to disable it, please invoke `FileDownloader.getImpl().disableAvoidDropFrame()`.
+
+#### New Interfaces
+
+> We default open Avoid Missing Screen Frames, if you want to disable it(will post to ui thread for each FileDownloadListener event achieved as pre version), please invoke: `FileDownloader.getImpl().disableAvoidDropFrame()`.
+
+- `FileDownloadMonitor`: You can add the global monitor for Statistic/Debugging now.
+- `FileDownloader#enableAvoidDropFrame(void)`: Avoid missing screen frames, but this leads to all callbacks of FileDownloadListener do not be invoked at once when it has already achieved.
+- `FileDownloader#disableAvoidDropFrame(void)`: Disable avoid missing screen frames, let all callbacks of FileDownloadListener be invoked at once when it achieve.
+- `FileDownloader#isEnabledAvoidDropFrame(void)`: Has already enabled Avoid Missing Screen Frames. Default: true
+- `FileDownloader#setGlobalPost2UIInterval(intervalMillisecond:int)`: For Avoid Missing Screen Frames. Each intervalMillisecond post 1 message to ui thread at most. if the value is less than 0, each callback will always post a message to ui thread immediately, may will cause missing screen frames and produce great pressure on the ui thread Looper. Default: 10ms.
+- `FileDownloader#setGlobalHandleSubPackageSize(packageSize:int)`: For Avoid Missing Screen Frames. {packageSize}: The number of FileDownloadListener's callback contained in each message. value completely dependent on the intervalMillisecond of setGlobalPost2UIInterval, describe will handle up to {packageSize} callbacks on the each message posted to ui thread. Default: 5.
+- `BaseDownloadTask#setSyncCallback(syncCallback:boolean)`: if true will invoke callbacks of FileDownloadListener directly on the download thread(do not post the message to the ui thread), default false.
+- `BaseDownloadTask#isSyncCallback(void):boolean`: Whether sync invoke callbacks of FileDownloadListener directly on the download thread.
+- `FileDownloadUtils#setDefaultSaveRootPath`: The path is used as Root Path in the case of task without setting path in the entire Download Engine.
+- `FileDownloadQueueSet`: In order to be more convenient to bind multiple tasks to a queue, and to the overall set.
+
+#### Enhancement
+
+- Improve Debugging: Provide the `FileDownloadMonitor` to monitor entire Download Engine.
+- Improve Performance: Optimize EventPool lock & do not handle listener priority any more(no use internal).
+- Improve Performance: Call `FileDownloadListener` methods do not through EventPool, instead, invoke directly.
+
+#### Fix
+
+- Fix: EventPool listener unlimited increased bug.
+
 ## Version 0.1.5
 
 _2016-01-17_

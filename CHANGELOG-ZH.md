@@ -1,5 +1,35 @@
 # Change log
 
+## Version 0.1.9
+
+_2016-01-23_
+
+> 引擎默认会打开 避免掉帧的处理(使得一次回调(FileDownloadListener)不至于太频繁导致手机显示掉帧), 如果你希望关闭这个功能（关闭以后，所有回调会与之前版本一样，所有的回调会立马抛一个消息ui线程(Handler)）: `FileDownloader.getImpl().disableAvoidDropFrame()`.
+
+#### 新接口
+
+
+- `FileDownloadMonitor`: 现在你可以通过这个来添加一个全局的监听器，方便调试或打点
+- `FileDownloader#enableAvoidDropFrame(void)`: 开启 避免掉帧, 原理最多10ms抛一个消息到ui线程，每次在ui线程每次处理5个回调(FileDownloadListener), 默认: 开启。
+- `FileDownloader#disableAvoidDropFrame(void)`: 关闭 避免掉帧，会和之前的版本一样，每个回调(FileDownloadListener)都抛一个消息到ui线程，如果频率非常高（如高并发的文件检测）可以导致ui线程被ddos。
+- `FileDownloader#isEnabledAvoidDropFrame(void)`: 是否是 开启了避免掉帧，目前如果没有设置默认是开启的。
+- `FileDownloader#setGlobalPost2UIInterval(intervalMillisecond:int)`: 设置最多intervalMillisecond毫秒抛一个消息到ui线程，是 避免掉帧的具体设置。默认: 10ms，如果设置为小于0的数值，会 关闭 避免掉帧。
+- `FileDownloader#setGlobalHandleSubPackageSize(packageSize:int)`: 设置每次在ui线程每次处理packageSize个回调，如果已经关闭了 避免掉帧，那么这个值将没有任何意义，默认: 5个。
+- `BaseDownloadTask#setSyncCallback(syncCallback:boolean)`: 是否同步回调该task中的所有的回调(FileDownloadListener), 如果设为true, 该task的所有回调会直接在下载线程直接回调，不会抛到ui线程, 默认: false。
+- `BaseDownloadTask#isSyncCallback(void):boolean`: 该task是否设置了所有回调(FileDownloadListener)同步调用(直接在下载线程直接调用，而非抛到ui线程)。
+- `FileDownloadUtils#setDefaultSaveRootPath`: 设置全局默认的存储路径(Root Path)，在task没有指定对应的存储路径的时候，会存储在该目录下。
+- `FileDownloadQueueSet`: 用于更方便的指定几个task为一个队列，进行并行/串行下载，并且可以很方便的对整个队列中的所有任务进行统一设置。
+
+#### 性能与提高
+
+- 提高可调试性: 提供了一个全局监听器(`FileDownloadMonitor`)，更方便与调试或打点。
+- 提高性能: 优化内部EventPool的锁机制，不再处理listener的priority。
+- 提高性能: 所有`FileDownloadListener`中的回调将会直接调用，而不再过一层EventPool。
+
+#### 修复
+
+- 修复: 修复`EventPool`中的listener存储器无限制的bug.
+
 ## Version 0.1.5
 
 _2016-01-17_

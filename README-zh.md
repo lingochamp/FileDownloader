@@ -24,6 +24,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 - 当下载的文件大小可能大于1.99GB(2^31-1`=2_147_483_647 = 1.99GB`)的时候, 请使用`FileDownloadLargeFileListener`而不是`FileDownloadListener`(同理使用`getLargeFileSofarBytes()`与`getLargeFileTotalBytes()`)
 - 暂停: paused, 恢复: 直接调用start，默认就是断点续传
+- 引擎默认会打开避免掉帧的处理(使得在有些情况下回调(FileDownloadListener)不至于太频繁导致ui线程被ddos), 如果你希望关闭这个功能（关闭以后，所有回调会与0.1.9之前的版本一样，所有的回调会立马抛一个消息ui线程(Handler)）
 
 #### 使用okHttp并使用其中的一些默认属性
 
@@ -45,7 +46,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.1.5'
+compile 'com.liulishuo.filedownloader:library:0.1.9'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -112,63 +113,100 @@ FileDownloader.getImpl().create(url)
 
 ```
 final FileDownloadListener queueTarget = new FileDownloadListener() {
-            @Override
-            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            }
+    @Override
+    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    }
 
-            @Override
-            protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
-            }
+    @Override
+    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+    }
 
-            @Override
-            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            }
+    @Override
+    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    }
 
-            @Override
-            protected void blockComplete(BaseDownloadTask task) {
-            }
+    @Override
+    protected void blockComplete(BaseDownloadTask task) {
+    }
 
-            @Override
-            protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
-            }
+    @Override
+    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
+    }
 
-            @Override
-            protected void completed(BaseDownloadTask task) {
-            }
+    @Override
+    protected void completed(BaseDownloadTask task) {
+    }
 
-            @Override
-            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            }
+    @Override
+    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    }
 
-            @Override
-            protected void error(BaseDownloadTask task, Throwable e) {
-            }
+    @Override
+    protected void error(BaseDownloadTask task, Throwable e) {
+    }
 
-            @Override
-            protected void warn(BaseDownloadTask task) {
-            }
-        };
+    @Override
+    protected void warn(BaseDownloadTask task) {
+    }
+};
 
-for (String url : URLS) {
-    FileDownloader.getImpl().create(url)
-            .setListener(queueTarget)
-            .setCallbackProgressTimes(0) // 由于是队列任务, 这里是我们假设了现在不需要每个任务都回调`FileDownloadListener#progress`, 所以这里这样设置可以很有效的减少ipc.
-            .ready();
-}
+// 第一种方式 :
 
-if(serial){
+//for (String url : URLS) {
+//    FileDownloader.getImpl().create(url)
+//            .setCallbackProgressTimes(0) // 由于是队列任务, 这里是我们假设了现在不需要每个任务都回调`FileDownloadListener#progress`, 我们只关系每个任务是否完成, 所以这里这样设置可以很有效的减少ipc.
+//            .setListener(queueTarget)
+//            .ready();
+//}
+
+//if(serial){
     // 串行执行该队列
-    FileDownloader.getImpl().start(queueTarget, true);
-}
+//    FileDownloader.getImpl().start(queueTarget, true);
+// }
 
-if(parallel){
+// if(parallel){
     // 并行执行该队列
-    FileDownloader.getImpl().start(queueTarget, false);
+//    FileDownloader.getImpl().start(queueTarget, false);
+//}
+
+// 第二种方式:
+
+final FileDownloadQueueSet queueSet = new FileDownloadQueueSet(downloadListener);
+
+final List<BaseDownloadTask> tasks = new ArrayList<>();
+for (int i = 0; i < count; i++) {
+     tasks.add(FileDownloader.getImpl().create(Constant.URLS[i]).setTag(i + 1));
 }
 
+queueSet.disableCallbackProgressTimes(); // 由于是队列任务, 这里是我们假设了现在不需要每个任务都回调`FileDownloadListener#progress`, 我们只关系每个任务是否完成, 所以这里这样设置可以很有效的减少ipc.
+
+// 所有任务在下载失败的时候都自动重试一次
+queueSet.setAutoRetryTimes(1);
+
+if (serial) {
+  // 串行执行该任务队列
+     queueSet.downloadSequentially(tasks);
+     // 如果你的任务不是一个List，可以考虑使用下面的方式，可读性更强
+//      queueSet.downloadSequentially(
+//              FileDownloader.getImpl().create(url).setPath(...),
+//              FileDownloader.getImpl().create(url).addHeader(...,...),
+//              FileDownloader.getImpl().create(url).setPath(...)
+//      );
+}
+
+if (parallel) {
+  // 并行执行该任务队列
+   queueSet.downloadTogether(tasks);
+   // 如果你的任务不是一个List，可以考虑使用下面的方式，可读性更强
+//    queueSet.downloadTogether(
+//            FileDownloader.getImpl().create(url).setPath(...),
+//            FileDownloader.getImpl().create(url).setPath(...),
+//            FileDownloader.getImpl().create(url).setSyncCallback(true)
+//    );
+}
 ```
 
-#### 全局接口说明(`FileDownloader.`)
+#### 全局接口说明(`FileDownloader`)
 
 > 所有的暂停，就是停止，会释放所有资源并且停到所有相关线程，下次启动的时候默认会断点续传
 
@@ -187,6 +225,12 @@ if(parallel){
 | unBindServiceIfIdle(void) | 如果目前下载进程没有任务正在执行，则关停下载进程
 | isServiceConnected(void) | 是否已经启动并且连接上下载进程(可参考任务管理demo中的使用)
 | getStatus(downloadId) | 获取下载Id为downloadId的状态(可参考任务管理demo中的使用)
+| setGlobalPost2UIInterval(intervalMillisecond:int) | 为了避免掉帧，这里是设置了最多每inerval毫秒抛一个消息到ui线程(使用Handler)，防止由于回调的过于频繁导致ui线程被ddos导致掉帧。 默认值: 10ms. 如果设置小于0，将会失效，也就是说每个回调都直接抛一个消息到ui线程
+| setGlobalHandleSubPackageSize(packageSize:int) | 为了避免掉帧, 如果上面的方法设置的间隔是一个小于0的数，这个packageSize将不会生效。packageSize这个值是为了避免在ui线程中一次处理过多回调，结合上面的间隔，就是每个interval毫秒间隔抛一个消息到ui线程，而每个消息在ui线程中处理packageSize个回调。默认值: 5
+| enableAvoidDropFrame(void) | 开启 避免掉帧处理。就是将抛消息到ui线程的间隔设为默认值10ms, 很明显会影响的是回调不会立马通知到监听器(FileDownloadListener)中，默认值是: 最多10ms处理5个回调到监听器中
+| disableAvoidDropFrame(void) | 关闭 避免掉帧处理。就是将抛消息到ui线程的间隔设置-1(无效值)，这个就是让每个回调都会抛一个消息ui线程中，可能引起掉帧
+| isEnabledAvoidDropFrame(void) | 是否开启了 避免掉帧处理。默认是开启的。
+
 
 #### Task接口说明
 
@@ -200,6 +244,7 @@ if(parallel){
 | setForceReDownload(isForceReDownload:boolean) | 强制重新下载，将会忽略检测文件是否健在
 | setFinishListener(listener:FinishListener) | 结束监听，仅包含结束(over(void))的监听
 | setAutoRetryTimes(autoRetryTimes:int) | 当请求或下载或写文件过程中存在错误时，自动重试次数，默认为0次
+| setSyncCallback(syncCallback:boolean)  | 如果设为true, 所有FileDownloadListener中的回调都会直接在下载线程中回调而不抛到ui线程, 默认为false
 | addHeader(name:String, value:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
 | addHeader(line:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
 | removeAllHeaders(name:String) | 删除由自定义添加上去请求参数为`{name}`的所有键对
@@ -223,6 +268,7 @@ if(parallel){
 | getEtag(void):String | 获取当前下载获取到的ETag
 | getAutoRetryTimes(void):int | 自动重试次数
 | getRetryingTimes(void):int | 当前重试次数。将要开始重试的时候，会将接下来是第几次
+| isSyncCallback(void):boolean | 是否是设置了所有FileDownloadListener中的回调都直接在下载线程直接回调而不抛到ui线程
 
 #### 监听器(`FileDownloadListener`)说明
 
@@ -260,6 +306,43 @@ blockComplete -> completed
 
 
 ![][file_download_listener_callback_flow_png]
+
+##### 由于`FileDownloadListener`中的方法回调过快，导致掉帧?
+
+> 你有两种方法可以解决这个问题
+
+1. `FileDownloader#enableAvoidDropFrame`, 默认 就是开启的
+2. `BaseDownloadTask#setSyncCallback`, 默认是false, 如果设置为true，所有的回调都会在下载线程直接同步调用而不会抛到ui线程。
+
+#### `FileDownloadMonitor`
+
+> 你可以添加一个全局监听器来进行打点或者是调试
+
+| 方法名 | 备注
+| --- | ---
+| setGlobalMonitor(monitor:IMonitor) | 设置与替换一个全局监听器到下载引擎中
+| releaseGlobalMonitor(void) | 释放已经设置到下载引擎中的全局监听器
+| getMonitor(void) | 获取已经设置到下载引擎中的全局监听器
+
+
+##### `FileDownloadMonitor.IMonitor`
+
+> 监听器接口类
+
+|  接口 | 备注
+| --- | ---
+| onRequestStart(count:int, serial:boolean, lis:FileDownloadListener) | 将会在启动队列任务是回调这个方法
+| onRequestStart(task:BaseDownloadTask) | 将会在启动单一任务时回调这个方法
+| onTaskBegin(task:BaseDownloadTask) | 将会在内部开始该任务的时候回调这个方法(会在`pending`回调之前)
+| onTaskOver(task:BaseDownloadTask) | 将会在该任务走完所有生命周期是回调这个方法
+
+#### `FileDownloadUtils`
+
+| 方法名 | 备注
+| --- | ---
+| setDefaultSaveRootPath(path:String) | 在整个引擎中没有设置路径时`BaseDownloadTask#setPath`这个路径将会作为它的Root path
+
+
 
 ## III. 低内存情况
 
