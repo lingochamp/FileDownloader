@@ -23,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        // 这是只是为了全局监控。如果你有需求需要全局监控（比如用于打点/统计）可以使用这个方式，如果没有类似需求就不需要
+        // You do not have to add below code to your project only if you need monitor the global
+        // FileDownloader Engine for statistic or others
         FileDownloadMonitor.setGlobalMonitor(GlobalMonitor.getImpl());
     }
 
