@@ -5,6 +5,7 @@ Android multi-task file download engine.
 [![Download][bintray_svg]][bintray_url]
 ![][file_downloader_svg]
 ![][license_2_svg]
+[![Build Status][build_status_svg]][build_status_link]
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
@@ -387,3 +388,5 @@ limitations under the License.
 [bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
 [file_download_listener_callback_flow_png]: https://github.com/lingochamp/FileDownloader/raw/master/art/filedownloadlistener_callback_flow.png
+[build_status_svg]: https://travis-ci.org/lingochamp/FileDownloader.svg?branch=master
+[build_status_link]: https://travis-ci.org/lingochamp/FileDownloader
