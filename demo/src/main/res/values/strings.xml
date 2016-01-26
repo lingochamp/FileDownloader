@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">FileDownloader Demo</string>
-    <string name="app_github">GITHUB</string>
-    <string name="app_github_url">https://github.com/lingochamp/FileDownloader</string>
+
     <string name="start">Start</string>
     <string name="pause">Pause</string>
     <string name="delete">Delete</string>
