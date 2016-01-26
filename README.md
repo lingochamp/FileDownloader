@@ -4,7 +4,6 @@ Android multi-task file download engine.
 
 [![Download][bintray_svg]][bintray_url]
 ![][file_downloader_svg]
-![][license_2_svg]
 [![Build Status][build_status_svg]][build_status_link]
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)

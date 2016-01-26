@@ -3,7 +3,6 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 [![Download][bintray_svg]][bintray_url]
 ![][file_downloader_svg]
-![][license_2_svg]
 [![Build Status][build_status_svg]][build_status_link]
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
