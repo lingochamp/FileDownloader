@@ -10,9 +10,13 @@ android {
         versionCode VERSION_CODE as int
         versionName VERSION_NAME as String
 
-        Properties p = new Properties()
-        p.load(project.rootProject.file('local.properties').newDataInputStream())
-        def needLog = p.getProperty("needLog");
+        File file = project.rootProject.file('local.properties');
+        def needLog = null
+        if (file.exists()) {
+            Properties p = new Properties()
+            p.load(file.newDataInputStream())
+            needLog = p.getProperty("needLog")
+        }
         buildConfigField "boolean", "DOWNLOAD_NEED_LOG", needLog == "true" ? "true" : "false"
 
 

@@ -35,7 +35,7 @@ buildscript {
             if (upload2maven) {
                 println ':global:include upload 2 maven classpath'
                 classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
-                classpath 'com.github.dcendents:android-maven-plugin:1.2'
+                classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
             }
         }
 
