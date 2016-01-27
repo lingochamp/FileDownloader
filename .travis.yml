@@ -8,6 +8,6 @@ android:
     - extra
 
 after_script:
-    - cat /home/travis/build/lingochamp/FileDownloader/demo/build/outputs/lint-results.xml
+    - cat ./demo/build/outputs/lint-results.xml
 
 sudo: false
