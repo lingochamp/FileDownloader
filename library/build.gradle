@@ -17,8 +17,10 @@ android {
         }
     }
 
-    lintOptions {
-        abortOnError false
+    lintOptions{
+        // This seems to be firing due to okio referencing java.nio.File
+        // which is harmless for us.
+        warning 'InvalidPackage'
     }
 }
 
