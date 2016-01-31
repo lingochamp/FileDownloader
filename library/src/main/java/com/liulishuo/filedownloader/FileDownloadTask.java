@@ -191,10 +191,13 @@ class FileDownloadTask extends BaseDownloadTask {
 
             if (event instanceof DownloadServiceConnectChangedEvent) {
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s", ((DownloadServiceConnectChangedEvent) event).getStatus());
+                    FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s",
+                            ((DownloadServiceConnectChangedEvent) event).getStatus());
                 }
-                if (((DownloadServiceConnectChangedEvent) event).getStatus() == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
+                if (((DownloadServiceConnectChangedEvent) event).getStatus() ==
+                        DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
                     List<BaseDownloadTask> needRestartList;
+
                     synchronized (NEED_RESTART_LIST) {
                         needRestartList = (List<BaseDownloadTask>) NEED_RESTART_LIST.clone();
                         NEED_RESTART_LIST.clear();
@@ -204,15 +207,34 @@ class FileDownloadTask extends BaseDownloadTask {
                         o.start();
                     }
 
-                } else {
-                    // Disconnected from service
-                    // TODO Multi-engine support, need to deal with similar situation
-                    FileDownloadList.getImpl().divert(NEED_RESTART_LIST);
+                } else if (((DownloadServiceConnectChangedEvent) event).getStatus() ==
+                        DownloadServiceConnectChangedEvent.ConnectStatus.lost) {
+                    // lost the connection to the service
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(FileDownloadTask.class, "lost the connection to the " +
+                                "file download service, and current active task size is %d",
+                                FileDownloadList.getImpl().size());
+                    }
 
-                    synchronized (NEED_RESTART_LIST) {
-                        for (BaseDownloadTask fileDownloadInternal : NEED_RESTART_LIST) {
-                            fileDownloadInternal.clear();
+                    // TODO Multi-engine support, need to deal with similar situation
+                    if (FileDownloadList.getImpl().size() > 0) {
+                        synchronized (NEED_RESTART_LIST) {
+                            FileDownloadList.getImpl().divert(NEED_RESTART_LIST);
+                            for (BaseDownloadTask baseDownloadTask : NEED_RESTART_LIST) {
+                                baseDownloadTask.clearMarkAdded2List();
+                            }
                         }
+                    }
+
+
+
+                } else {
+                    // do nothing for unbind manually
+                    // TODO maybe need handle something on file downloader service
+                    if (FileDownloadList.getImpl().size() > 0) {
+                        FileDownloadLog.w(FileDownloadTask.class, "file download service has be unbound" +
+                                " but the size of active tasks are not empty %d ",
+                                FileDownloadList.getImpl().size());
                     }
                 }
 

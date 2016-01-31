@@ -33,13 +33,14 @@ public class DownloadServiceConnectChangedEvent extends IDownloadEvent {
     private final ConnectStatus status;
 
     public enum ConnectStatus {
-        connected, disconnected
+        connected, disconnected,
+        // the process hosting the service has crashed or been killed. (do not be unbound manually)
+        lost
     }
 
     public ConnectStatus getStatus() {
         return status;
     }
-
 
     private final Class<?> serviceClass;
 

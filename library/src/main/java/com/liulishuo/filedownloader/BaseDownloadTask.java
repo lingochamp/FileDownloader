@@ -905,6 +905,10 @@ public abstract class BaseDownloadTask {
         isMarkedAdded2List = true;
     }
 
+    void clearMarkAdded2List(){
+        isMarkedAdded2List = false;
+    }
+
     boolean isMarkedAdded2List() {
         return this.isMarkedAdded2List;
     }
