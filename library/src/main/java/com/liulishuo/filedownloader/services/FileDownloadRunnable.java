@@ -19,6 +19,7 @@ package com.liulishuo.filedownloader.services;
 import android.os.Process;
 import android.text.TextUtils;
 
+import com.liulishuo.filedownloader.BuildConfig;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -224,7 +225,19 @@ class FileDownloadRunnable implements Runnable {
                                 && transferEncoding.equals("chunked");
                         if (!isEncodingChunked) {
                             // not chunked transfer encoding data
-                            throw new GiveUpRetryException("can't know size, and not chunk transfer encoding");
+                            if (BuildConfig.HTTP_LENIENT) {
+                                // do not response content-length either not chunk transfer encoding,
+                                // but HTTP lenient is true, so handle as the case of transfer encoding chunk
+                                total = -1;
+                                if (FileDownloadLog.NEED_LOG) {
+                                    FileDownloadLog.d(this, "%d response header is not legal but " +
+                                            "HTTP lenient is true, so handle as the case of " +
+                                            "transfer encoding chunk", getId());
+                                }
+                            } else {
+                                throw new GiveUpRetryException("can't know the size of download file," +
+                                        " and not chunk transfer encoding");
+                            }
                         }
                     }
 

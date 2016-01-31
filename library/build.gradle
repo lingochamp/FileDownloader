@@ -9,6 +9,20 @@ android {
         targetSdkVersion COMPILE_SDK_VERSION as int
         versionCode VERSION_CODE as int
         versionName VERSION_NAME as String
+
+        // Local file downloader properties if exist
+        File propertiesFile = project.rootProject.file('filedownloader.properties')
+        // if false, will ignore HTTP response header does not has content-length either not chunk
+        // transfer encoding.
+        def httpLenient = null;
+
+        if (propertiesFile.exists()) {
+            Properties p = new Properties()
+            p.load(propertiesFile.newDataInputStream())
+            httpLenient = p.getProperty("http.lenient")
+        }
+
+        buildConfigField "boolean", "HTTP_LENIENT", httpLenient == "true" ? "true" : "false"
     }
     buildTypes {
         release {
