@@ -37,4 +37,6 @@
     <string name="hybrid_test_single_task_title">Execute single task</string>
     <string name="avoid_missing_screen_frames">Avoid Missing Screen Frames</string>
 
+    <string name="notification_demo_title">Notification Demo</string>
+    <string name="notification_demo_show">Show the Notification</string>
 </resources>

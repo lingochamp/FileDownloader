@@ -29,5 +29,10 @@
         android:onClick="onClickPerformance"
         android:text="@string/performance_test_title" />
 
+    <Button
+        style="@style/DemoButton"
+        android:onClick="onClickNotification"
+        android:text="@string/notification_demo_title" />
+
 
 </LinearLayout>

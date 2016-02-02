@@ -41,6 +41,10 @@
         <activity
             android:name=".TasksManagerDemoActivity"
             android:label="@string/tasks_manager_demo_title" />
+        <activity
+            android:name=".NotificationDemoActivity"
+            android:label="@string/notification_demo_title" />
+
     </application>
 
 </manifest>

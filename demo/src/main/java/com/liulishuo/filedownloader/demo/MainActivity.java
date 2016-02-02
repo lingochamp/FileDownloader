@@ -53,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, PerformanceTestActivity.class));
     }
 
+    public void onClickNotification(final View view){
+        startActivity(new Intent(this, NotificationDemoActivity.class));
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
