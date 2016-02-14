@@ -4,23 +4,44 @@ import android.app.Application;
 import android.content.Context;
 
 import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+
+import java.net.Proxy;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 12/17/15.
  */
 public class DemoApplication extends Application {
     public static Context CONTEXT;
+
     @Override
     public void onCreate() {
         super.onCreate();
-        // for demo
+        // for demo.
         CONTEXT = this;
 
-        // 下面这句为了测试，正常使用的时候不用添加
+        // just for open the log in this demo project.
         FileDownloadLog.NEED_LOG = BuildConfig.DOWNLOAD_NEED_LOG;
 
-        // 不耗时，做一些简单初始化准备工作，不会启动下载进程
-        FileDownloader.init(this);
+        /**
+         * just for cache Application's Context, and ':filedownloader' progress will NOT be launched
+         * by below code, so please do not worry about performance.
+         * @see FileDownloader#init(Application)
+         */
+        FileDownloader.init(this,
+                new FileDownloadHelper.OkHttpClientCustomMaker() { // is not must to provide.
+                    @Override
+                    public OkHttpClient customMake() {
+                        // just for OkHttpClient customize.
+                        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                        builder.connectTimeout(15_000, TimeUnit.MILLISECONDS);
+                        builder.proxy(Proxy.NO_PROXY);
+                        return builder.build();
+                    }
+                });
     }
 }
