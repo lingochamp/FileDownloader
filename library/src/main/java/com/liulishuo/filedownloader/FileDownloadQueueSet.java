@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ public class FileDownloadQueueSet {
     private boolean isSerial;
 
 
+    private List<BaseDownloadTask.FinishListener> taskFinishListenerList;
     private Integer autoRetryTimes;
     private Boolean syncCallback;
     private Boolean isForceReDownload;
@@ -122,6 +124,12 @@ public class FileDownloadQueueSet {
                 task.setTag(tag);
             }
 
+            if (taskFinishListenerList != null) {
+                for (BaseDownloadTask.FinishListener finishListener : taskFinishListenerList) {
+                    task.addFinishListener(finishListener);
+                }
+            }
+
             task.ready();
         }
 
@@ -169,6 +177,19 @@ public class FileDownloadQueueSet {
      */
     public FileDownloadQueueSet setTag(final Object tag) {
         this.tag = tag;
+        return this;
+    }
+
+    /**
+     * @see BaseDownloadTask#addFinishListener(BaseDownloadTask.FinishListener)
+     */
+    public FileDownloadQueueSet addTaskFinishListener(
+            final BaseDownloadTask.FinishListener finishListener) {
+        if (this.taskFinishListenerList == null) {
+            this.taskFinishListenerList = new ArrayList<>();
+        }
+
+        this.taskFinishListenerList.add(finishListener);
         return this;
     }
 
