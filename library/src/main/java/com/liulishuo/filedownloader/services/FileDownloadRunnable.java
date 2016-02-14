@@ -235,8 +235,10 @@ class FileDownloadRunnable implements Runnable {
                                             "transfer encoding chunk", getId());
                                 }
                             } else {
-                                throw new GiveUpRetryException("can't know the size of download file," +
-                                        " and not chunk transfer encoding");
+                                throw new GiveUpRetryException("can't know the size of the " +
+                                        "download file, and its Transfer-Encoding is not Chunked " +
+                                        "either.\nyou can ignore such exception by add " +
+                                        "http.lenient=true to the filedownloader.properties");
                             }
                         }
                     }
@@ -304,8 +306,8 @@ class FileDownloadRunnable implements Runnable {
 
                 // Step 5, check whether file is changed by others
                 if (accessFile.length() < soFar) {
-                    // 文件大小必须会等于正在写入的大小
-                    throw new RuntimeException(String.format("file be changed by others when downloading %d %d", accessFile.length(), soFar));
+                    throw new RuntimeException(String.format("the file was changed by others when" +
+                            " downloading. %d %d", accessFile.length(), soFar));
                 } else {
                     // callback on progressing
                     onProcess(soFar, total);
@@ -429,7 +431,8 @@ class FileDownloadRunnable implements Runnable {
 
     private void onRetry(Throwable ex, final int retryTimes, final long soFarBytes) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On retry %d %s %d %d", downloadTransfer.getDownloadId(), ex, retryTimes, autoRetryTimes);
+            FileDownloadLog.d(this, "On retry %d %s %d %d", downloadTransfer.getDownloadId(), ex,
+                    retryTimes, autoRetryTimes);
         }
 
         ex = exFiltrate(ex);
@@ -464,7 +467,8 @@ class FileDownloadRunnable implements Runnable {
 
     private void onComplete(final long total) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On completed %d %d", downloadTransfer.getDownloadId(), total);
+            FileDownloadLog.d(this, "On completed %d %d %B", downloadTransfer.getDownloadId(),
+                    total, isCancelled());
         }
         downloadTransfer.setStatus(FileDownloadStatus.completed);
 
@@ -479,7 +483,8 @@ class FileDownloadRunnable implements Runnable {
     private void onPause() {
         this.isRunning = false;
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(), downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
+            FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(),
+                    downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
         }
         downloadTransfer.setStatus(FileDownloadStatus.paused);
 
@@ -513,13 +518,15 @@ class FileDownloadRunnable implements Runnable {
         }
 
         if (!FileDownloadUtils.isFilenameValid(path)) {
-            throw new RuntimeException(String.format("found invalid internal destination filename %s", path));
+            throw new RuntimeException(String.format("found invalid internal destination filename" +
+                    " %s", path));
         }
 
         File file = new File(path);
 
         if (file.exists() && file.isDirectory()) {
-            throw new RuntimeException(String.format("found invalid internal destination path[%s], & path is directory[%B]", path, file.isDirectory()));
+            throw new RuntimeException(String.format("found invalid internal destination path[%s]," +
+                    " & path is directory[%B]", path, file.isDirectory()));
         }
         if (!file.exists()) {
             if (!file.createNewFile()) {
