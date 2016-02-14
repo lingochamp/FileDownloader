@@ -24,10 +24,13 @@ import android.os.Message;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import junit.framework.Assert;
 
 import java.util.List;
+
+import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 12/17/15.
@@ -35,15 +38,32 @@ import java.util.List;
 public class FileDownloader {
 
     /**
-     * Just cache ApplicationContext
-     * <p/>
-     * Proposed call at{@link Application#onCreate()}
+     * Just cache Application's Context
      */
     public static void init(final Application application) {
+        init(application, null);
+    }
+
+    /**
+     * Just cache Application's Context.
+     * <p/>
+     * Must be invoked at{@link Application#onCreate()}.
+     *
+     * @param okHttpClientCustomMaker Nullable, For Customize {@link OkHttpClient},
+     *                                Only be used on the ':filedownloader' progress.
+     * @see #init(Application)
+     * @see com.liulishuo.filedownloader.util.FileDownloadHelper.OkHttpClientCustomMaker
+     */
+    public static void init(final Application application,
+                            FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(FileDownloader.class, "init Downloader");
         }
         FileDownloadHelper.initAppContext(application);
+
+        if (okHttpClientCustomMaker != null && FileDownloadUtils.isDownloaderProcess(application)) {
+            FileDownloadHelper.setOkHttpClient(okHttpClientCustomMaker.customMake());
+        }
     }
 
     private final static class HolderClass {

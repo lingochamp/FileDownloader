@@ -19,6 +19,8 @@ package com.liulishuo.filedownloader.util;
 import android.app.Application;
 import android.content.Context;
 
+import okhttp3.OkHttpClient;
+
 /**
  * Created by Jacksgong on 12/17/15.
  */
@@ -26,12 +28,36 @@ public class FileDownloadHelper {
 
     private static Context APP_CONTEXT;
 
+    // only effect on the ':filedownloader' progress.
+    private static OkHttpClient OK_HTTP_CLIENT;
+
     public static void initAppContext(final Application application) {
         APP_CONTEXT = application;
     }
 
     public static Context getAppContext() {
         return APP_CONTEXT;
+    }
+
+    public static void setOkHttpClient(OkHttpClient client) {
+        OK_HTTP_CLIENT = client;
+    }
+
+    public static OkHttpClient getOkHttpClient() {
+        return OK_HTTP_CLIENT;
+    }
+
+    public interface OkHttpClientCustomMaker {
+
+        /**
+         * Only be invoked by the {@link Application#onCreate()} on the ':filedownloader' progress.
+         * You can customize Timeout, Proxy, etc...
+         *
+         * @return Nullable, Customize {@link OkHttpClient}, will be used for downloading files.
+         * @see com.liulishuo.filedownloader.FileDownloader#init(Application, OkHttpClientCustomMaker)
+         * @see OkHttpClient
+         */
+        OkHttpClient customMake();
     }
 }
 

@@ -25,7 +25,10 @@ import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
+
+import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 9/23/15.
@@ -51,7 +54,7 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
 
     @Override
     protected FileDownloadServiceBinder createBinder() {
-        return new FileDownloadServiceBinder();
+        return new FileDownloadServiceBinder(FileDownloadHelper.getOkHttpClient());
     }
 
     @Override
@@ -74,8 +77,8 @@ public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallbac
 
         private final FileDownloadMgr downloadManager;
 
-        private FileDownloadServiceBinder() {
-            downloadManager = new FileDownloadMgr();
+        private FileDownloadServiceBinder(OkHttpClient customOkhttpClient) {
+            this.downloadManager = new FileDownloadMgr(customOkhttpClient);
         }
 
         @Override

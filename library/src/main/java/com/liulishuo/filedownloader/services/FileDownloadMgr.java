@@ -38,17 +38,19 @@ import okhttp3.OkHttpClient;
 class FileDownloadMgr {
     private final IFileDownloadDBHelper mHelper;
 
-    // TODO 对OkHttpClient，看如何可以有效利用OkHttpClient进行相关优化，进行有关封装
-    private final OkHttpClient client;
+    private OkHttpClient client = null;
 
     private final FileDownloadThreadPool mThreadPool = new FileDownloadThreadPool();
 
-    public FileDownloadMgr() {
+    public FileDownloadMgr(final OkHttpClient client) {
         mHelper = new FileDownloadDBHelper();
 
         // init client
-        client = new OkHttpClient();
-        // TODO 设置超时
+        if (this.client != client) {
+            this.client = client;
+        } else {
+            this.client = new OkHttpClient();
+        }
     }
 
 
