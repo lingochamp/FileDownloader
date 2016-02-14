@@ -49,6 +49,7 @@ class FileDownloadMgr {
         if (this.client != client) {
             this.client = client;
         } else {
+            // in this case, the client must be null, see #41
             this.client = new OkHttpClient();
         }
     }

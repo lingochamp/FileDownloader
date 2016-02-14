@@ -33,7 +33,7 @@ public class DemoApplication extends Application {
          * @see FileDownloader#init(Application)
          */
         FileDownloader.init(this,
-                new FileDownloadHelper.OkHttpClientCustomMaker() { // is not must to provide.
+                new FileDownloadHelper.OkHttpClientCustomMaker() { // is not has to provide.
                     @Override
                     public OkHttpClient customMake() {
                         // just for OkHttpClient customize.
