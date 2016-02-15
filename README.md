@@ -352,7 +352,7 @@ blockComplete -> completed
 > Format: `keyword=value`.
 
 | keyword | description | default
-| --- | ---
+| --- | --- | ---
 | http.lenient | if you occur exception: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', but you want to ignore such exception, set true, will deal with it as the case of transfer encoding chunk. | false
 
 

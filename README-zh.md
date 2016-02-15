@@ -355,7 +355,7 @@ blockComplete -> completed
 > 格式: `keyword=value`
 
 | 关键字 | 描述 | 默认值
-| --- | ---
+| --- | --- | ---
 | http.lenient | 如果你遇到了: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', 但是你想要忽略类似的返回头不规范的错误，直接将该关键字参数设置为`true`即可，我们将会将其作为`chunck`进行处理 | false
 
 
