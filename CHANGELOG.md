@@ -2,6 +2,22 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.0
+
+_2016-02-15_
+
+#### New Interfaces
+
+- `filedownloader.properties-http.lenient`: Add 'filedownloader.properties' for some special global configs, and add 'http.lenient' keyword to 'filedownloader.properties' to handle the case of want to ignore HTTP response header from download file server isn't legal.
+- `FileDownloadNotificationHelper`: Refashioning NotificationHelper, let handle notifications with FileDownloader more make sense. #25
+- `FileDownloader#init(Application,OkHttpClientCustomMaker)`: Support customize OkHttpClient which will be used for downloading files.
+
+#### Fix
+
+- Fix: Occur 'Concurrent Modification Exception' when Downloader service is unbound or lost connection to service and NeedRestart list not empty. #23
+- Fix: The case of re-connect from lost connection to service but all auto restart tasks' call-back do not effect.
+- Fix: In some cases of high concurrency, the Pause on some tasks is no effect.
+
 ## Version 0.1.9
 
 _2016-01-23_

@@ -7,7 +7,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
 
-> 本引擎依赖okhttp 3.0.1
+> 本引擎依赖okhttp 3.1.2
 
 ---
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
@@ -51,13 +51,15 @@ compile 'com.liulishuo.filedownloader:library:0.1.9'
 
 #### 全局初始化在`Application.onCreate`中
 
+> 如果希望定制化用于下载的`OkHttpClient`，建议参考[DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java)
+
 ```
 public XXApplication extends Application{
 
     ...
     @Override
     public void onCreate() {
-        // 不耗时，做一些简单初始化准备工作，不会启动下载进程
+        // 不耗时，仅仅只是缓存下Application的Context不会启动下载进程
         FileDownloader.init(this);
     }
 
@@ -341,6 +343,20 @@ blockComplete -> completed
 | 方法名 | 备注
 | --- | ---
 | setDefaultSaveRootPath(path:String) | 在整个引擎中没有设置路径时`BaseDownloadTask#setPath`这个路径将会作为它的Root path
+
+#### `FileDownloadNotificationHelper`
+
+> 如何快速集成Notification呢? 建议参考[NotificationDemoActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationDemoActivity.java)
+
+#### `filedownloader.properties`
+
+> 如果你需要使用'filedownloader.properties'却在项目根目录下没有找到该文件，可以直接在项目根目录下直接创建一个以'filedownloader.properties'作为文件名的文件即可。
+
+> 格式: `keyword=value`
+
+| 关键字 | 描述 | 默认值
+| --- | ---
+| http.lenient | 如果你遇到了: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', 但是你想要忽略类似的返回头不规范的错误，直接将该关键字参数设置为`true`即可，我们将会将其作为`chunck`进行处理 | false
 
 
 

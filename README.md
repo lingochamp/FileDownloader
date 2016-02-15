@@ -8,7 +8,7 @@ Android multi-task file download engine.
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
-> This project dependency on [square/okhttp 3.0.1](https://github.com/square/okhttp)
+> This project dependency on [square/okhttp 3.1.2](https://github.com/square/okhttp)
 
 ## DEMO
 
@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.1.9'
+    compile 'com.liulishuo.filedownloader:library:0.2.0'
 }
 ```
 
@@ -36,6 +36,7 @@ dependencies {
 
 To begin using FileDownloader, have your`Application#onCreate` invoke the `FileDownloader.init(this)` such as:
 
+> If your want to customize `OkHttpClient` for downloading files, @see [DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java)
 
 ```
 public XXApplication extends Application{
@@ -44,7 +45,7 @@ public XXApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-        // Just cache ApplicationContext
+        // Just cache Application's Context.
         FileDownloader.init(this);
     }
 
@@ -171,7 +172,7 @@ for (int i = 0; i < count; i++) {
 queueSet.disableCallbackProgressTimes(); // do not need for each task callback `FileDownloadListener#progress`,
 // we just consider which task will complete. so in this way reduce ipc will be effective optimization
 
-// all tasks auto retry 1 time if download fail
+// each task will auto retry 1 time if download fail
 queueSet.setAutoRetryTimes(1);
 
 if (serial) {
@@ -339,6 +340,20 @@ blockComplete -> completed
 | function | description
 | --- | ---
 | setDefaultSaveRootPath(path:String) | The path is used as Root Path in the case of task without setting path in the entire Download Engine
+
+#### `FileDownloadNotificationHelper`
+
+> How to integrate with Notification quickly? Recommend to refer to [NotificationDemoActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationDemoActivity.java)
+
+#### `filedownloader.properties`
+
+> If you want to use this property and don't find 'filedownloader.properties' on the root path of your project, please create a new empty file with naming 'filedownloader.properties' on there feel free.
+
+> Format: `keyword=value`.
+
+| keyword | description | default
+| --- | ---
+| http.lenient | if you occur exception: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', but you want to ignore such exception, set true, will deal with it as the case of transfer encoding chunk. | false
 
 
 ## Attention

@@ -1,5 +1,21 @@
 # Change log
 
+## Version 0.2.0
+
+_2016-02-15_
+
+#### 新接口
+
+- `filedownloader.properties-http.lenient`: 添加`http.lenient`用于配置下载引擎中是否需要忽略一些http规范性的错误(如: 忽略 `can't know the size of the download file, and its Transfer-Encoding is not Chunked`), 默认值`false`。
+- `FileDownloadNotificationHelper`: 用于支持在通知栏中的通知对下载引擎中任务下载状态同步的快速集成。
+- `FileDownloader#init(Application,OkHttpClientCustomMaker)`: 用于为下载引擎提供定制的OkHttpClient。
+
+#### 修复
+
+- 修复: 需要重新启动的列表(`FileDownloadTask.NEED_RESTART_LIST`)不为空并且下载服务断开时出现`Concurrent Modification Exception`的异常。
+- 修复: 下载引擎连接丢失以后，重连任务的回调失效的bug。
+- 修复: 在一些高并发下载情况下，对队列进行暂停，部分暂停不生效的bug。
+
 ## Version 0.1.9
 
 _2016-01-23_
@@ -28,7 +44,7 @@ _2016-01-23_
 
 #### 修复
 
-- 修复: 修复`EventPool`中的listener存储器无限制的bug.
+- 修复: `EventPool`中的listener存储器无限制的bug.
 
 ## Version 0.1.5
 
@@ -49,8 +65,8 @@ _2016-01-17_
 
 #### 修复
 
-- 修复在一些高并发的情况下，有可能内部队列存在残留任务的bug，此bug可能可能引发回调被旧的任务吞掉的问题。
-- 修复了出现网络错误，或者其他错误，重新下载无法自动断点续传的bug。
+- 修复: 在一些高并发的情况下，有可能内部队列存在残留任务的bug，此bug可能可能引发回调被旧的任务吞掉的问题。
+- 修复: 出现网络错误，或者其他错误，重新下载无法自动断点续传的bug。
 
 #### 其他
 
