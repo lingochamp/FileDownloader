@@ -90,14 +90,14 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
         if (event instanceof FileDownloadEvent) {
             final FileDownloadEvent fileDownloadEvent = (FileDownloadEvent) event;
             if (fileDownloadEvent.getDownloader() == null) {
-                FileDownloadLog.e(FileDownloadEventPool.this, "can't invoke callback method %d," +
+                FileDownloadLog.e(FileDownloadEventPool.this, "can't invoke callback method %s," +
                         " do not find downloader in event", event.getId());
                 return false;
             }
 
             if (fileDownloadEvent.getDownloader().getListener() == null) {
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadEventPool.this, "do not invoke  callback method %d, " +
+                    FileDownloadLog.d(FileDownloadEventPool.this, "do not invoke  callback method %s, " +
                             "no listener be found in task.", fileDownloadEvent.getId());
                 }
 
