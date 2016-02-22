@@ -46,7 +46,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.1.9'
+compile 'com.liulishuo.filedownloader:library:0.2.0'
 ```
 
 #### 全局初始化在`Application.onCreate`中
