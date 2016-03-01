@@ -94,7 +94,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     }
 
     private void releaseConnect(final boolean isLost) {
-        if (this.service != null) {
+        if (!isLost && this.service != null) {
             try {
                 unregisterCallback(this.service, this.callback);
             } catch (RemoteException e) {
