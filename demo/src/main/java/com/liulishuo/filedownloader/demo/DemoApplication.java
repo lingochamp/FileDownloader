@@ -38,8 +38,11 @@ public class DemoApplication extends Application {
                     public OkHttpClient customMake() {
                         // just for OkHttpClient customize.
                         final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                        // you can set the connection timeout.
                         builder.connectTimeout(15_000, TimeUnit.MILLISECONDS);
+                        // you can set the HTTP proxy.
                         builder.proxy(Proxy.NO_PROXY);
+                        // etc.
                         return builder.build();
                     }
                 });
