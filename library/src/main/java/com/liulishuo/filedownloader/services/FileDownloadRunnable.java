@@ -163,6 +163,7 @@ class FileDownloadRunnable implements Runnable {
 
         do {
             // loop for retry
+            Response response = null;
             long soFar = 0;
             try {
 
@@ -198,7 +199,7 @@ class FileDownloadRunnable implements Runnable {
                 Call call = client.newCall(request);
 
                 // Step 4, build connect
-                Response response = call.execute();
+                response = call.execute();
 
                 final boolean isSucceedStart = response.code() == 200;
                 final boolean isSucceedContinue = response.code() == 206 && isContinueDownloadAvailable;
@@ -273,6 +274,10 @@ class FileDownloadRunnable implements Runnable {
                     // error
                     onError(ex);
                     break;
+                }
+            } finally {
+                if (response != null && response.body() != null) {
+                    response.body().close();
                 }
             }
 
