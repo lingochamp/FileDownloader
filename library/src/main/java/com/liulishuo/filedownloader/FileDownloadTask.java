@@ -46,6 +46,12 @@ class FileDownloadTask extends BaseDownloadTask {
         super(url);
     }
 
+    FileDownloadTask(String url, String[][] headers) {
+        super(url);
+        for (String[] header : headers) {
+            addHeader(header[0], header[1]);
+        }
+    }
 
     @Override
     public void clear() {

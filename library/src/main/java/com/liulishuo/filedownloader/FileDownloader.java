@@ -160,6 +160,13 @@ public class FileDownloader {
     }
 
     /**
+     * Create a download task
+     */
+    public BaseDownloadTask create(final String url, String[][] headers) {
+        return new FileDownloadTask(url, headers);
+    }
+
+    /**
      * Start the download queue by the same listener
      *
      * @param listener start download by same listener
