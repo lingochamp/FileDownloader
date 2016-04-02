@@ -122,7 +122,7 @@
         <TextView
             android:id="@+id/pending_tv"
             style="@style/DemoInfoTextStyle"
-            android:text="pending: " />
+            android:text="@string/multitask_test_pending" />
 
         <TextView
             android:id="@+id/pending_info_tv"
@@ -138,7 +138,7 @@
         <TextView
             android:id="@+id/connected_tv"
             style="@style/DemoInfoTextStyle"
-            android:text="connected: " />
+            android:text="@string/multitask_test_connected" />
 
         <TextView
             android:id="@+id/connected_info_tv"
@@ -155,7 +155,7 @@
             android:id="@+id/progress_tv"
             style="@style/DemoInfoTextStyle"
             android:layout_width="match_parent"
-            android:text="progress: "
+            android:text="@string/multitask_test_progress"
             android:visibility="gone" />
 
         <TextView
@@ -176,7 +176,7 @@
             android:id="@+id/retry_tv"
             style="@style/DemoInfoTextStyle"
             android:layout_width="match_parent"
-            android:text="retry: " />
+            android:text="@string/multitask_test_retry" />
 
         <TextView
             android:id="@+id/retry_info_tv"
@@ -193,7 +193,7 @@
         <TextView
             android:id="@+id/error_tv"
             style="@style/DemoInfoTextStyle"
-            android:text="error: " />
+            android:text="@string/multitask_test_error" />
 
         <TextView
             android:id="@+id/error_info_tv"
@@ -209,7 +209,7 @@
         <TextView
             android:id="@+id/paused_tv"
             style="@style/DemoInfoTextStyle"
-            android:text="paused: " />
+            android:text="@string/multitask_test_paused" />
 
         <TextView
             android:id="@+id/paused_info_tv"
@@ -223,17 +223,17 @@
             android:layout_height="wrap_content" />
 
         <TextView
-            android:id="@+id/completed_width_old_tv"
+            android:id="@+id/completed_with_old_tv"
             style="@style/DemoInfoTextStyle"
-            android:text="completed reuse old file: " />
+            android:text="@string/multitask_test_completed_reused" />
 
         <TextView
-            android:id="@+id/completed_width_old_info_tv"
+            android:id="@+id/completed_with_old_info_tv"
             style="@style/DemoTasksTextStyle"
             android:text="" />
 
         <ProgressBar
-            android:id="@+id/completed_width_old_pb"
+            android:id="@+id/completed_with_old_pb"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
@@ -241,7 +241,7 @@
         <TextView
             android:id="@+id/completed_tv"
             style="@style/DemoInfoTextStyle"
-            android:text="completed width download: " />
+            android:text="@string/multitask_test_completed_downloading" />
 
         <TextView
             android:id="@+id/completed_info_tv"
@@ -257,7 +257,7 @@
         <TextView
             android:id="@+id/warn_tv"
             style="@style/DemoInfoTextStyle"
-            android:text="warn: " />
+            android:text="@string/multitask_test_warn" />
 
         <TextView
             android:id="@+id/warn_info_tv"

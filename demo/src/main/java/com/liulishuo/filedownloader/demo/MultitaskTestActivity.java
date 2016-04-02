@@ -58,6 +58,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mutitask_test);
         assignViews();
+        resetDisplayData();
 
         actionBtn.setTag(true);
         actionBtn.setOnClickListener(new View.OnClickListener() {
@@ -121,7 +122,8 @@ public class MultitaskTestActivity extends AppCompatActivity {
 
                 } while (false);
 
-                Toast.makeText(MultitaskTestActivity.this, String.format("Complete delete %d files", count), Toast.LENGTH_LONG).show();
+                Toast.makeText(MultitaskTestActivity.this,
+                        String.format("Complete delete %d files", count), Toast.LENGTH_LONG).show();
 
             }
         });
@@ -137,6 +139,39 @@ public class MultitaskTestActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void resetDisplayData() {
+        pendingPb.setProgress(0);
+        connectedPb.setProgress(0);
+        progressPb.setProgress(0);
+        retryPb.setProgress(0);
+        errorPb.setProgress(0);
+        pausedPb.setProgress(0);
+        completedReusedPb.setProgress(0);
+        completedDownloadingPb.setProgress(0);
+        warnPb.setProgress(0);
+        overTaskPb.setProgress(0);
+
+        pendingTv.setText(getString(R.string.multitask_test_pending, 0));
+        connectedTv.setText(getString(R.string.multitask_test_connected, 0));
+        progressTv.setText(getString(R.string.multitask_test_progress, 0));
+        retryTv.setText(getString(R.string.multitask_test_retry, 0));
+        errorTv.setText(getString(R.string.multitask_test_error, 0));
+        pausedTv.setText(getString(R.string.multitask_test_paused, 0));
+        completedReusedTv.setText(getString(R.string.multitask_test_completed_reused, 0));
+        completedDownloadingTv.setText(getString(R.string.multitask_test_completed_downloading, 0));
+        warnTv.setText(getString(R.string.multitask_test_warn, 0));
+
+        pendingInfoTv.setText("");
+        connectedInfoTv.setText("");
+        retryInfoTv.setText("");
+        progressInfoTv.setText("");
+        errorInfoTv.setText("");
+        pausedInfoTv.setText("");
+        completedReusedInfoTv.setText("");
+        completedDownloadingInfoTv.setText("");
+        warnInfoTv.setText("");
     }
 
     private long start = 0;
@@ -155,48 +190,18 @@ public class MultitaskTestActivity extends AppCompatActivity {
         retryPb.setMax(count);
         errorPb.setMax(count);
         pausedPb.setMax(count);
-        completedWidthOldPb.setMax(count);
-        completedPb.setMax(count);
+        completedReusedPb.setMax(count);
+        completedDownloadingPb.setMax(count);
         warnPb.setMax(count);
+        overTaskPb.setMax(count);
 
-        pendingPb.setProgress(0);
-        connectedPb.setProgress(0);
-        progressPb.setProgress(0);
-        retryPb.setProgress(0);
-        errorPb.setProgress(0);
-        pausedPb.setProgress(0);
-        completedWidthOldPb.setProgress(0);
-        completedPb.setProgress(0);
-        warnPb.setProgress(0);
 
-        pendingTv.setText("pending: " + 0);
-        connectedTv.setText("connected: " + 0);
-        progressTv.setText("progress: " + 0);
-        retryTv.setText("retry: " + 0);
-        errorTv.setText("error: " + 0);
-        pausedTv.setText("paused: " + 0);
-        completedWidthOldTv.setText("completed reuse old file: " + 0);
-        completedTv.setText("completed width download: " + 0);
-        warnTv.setText("warn: " + 0);
-
-        pendingInfoTv.setText("");
-        connectedInfoTv.setText("");
-        retryInfoTv.setText("");
-        progressInfoTv.setText("");
-        errorInfoTv.setText("");
-        pausedInfoTv.setText("");
-        completedWidthOldInfoTv.setText("");
-        completedInfoTv.setText("");
-        warnInfoTv.setText("");
-
+        resetDisplayData();
 
         // 需要时再显示
         retryInfoTv.setVisibility(View.GONE);
         retryPb.setVisibility(View.GONE);
         retryTv.setVisibility(View.GONE);
-
-        overTaskPb.setMax(count);
-        overTaskPb.setProgress(0);
 
         isStopTimer = false;
         timeConsumeTv.setTag(0);
@@ -284,19 +289,23 @@ public class MultitaskTestActivity extends AppCompatActivity {
                     return;
                 }
                 pendingPb.setProgress(pendingPb.getProgress() + 1);
-                pendingTv.setText("pending: " + pendingPb.getProgress());
+                pendingTv.setText(getString(R.string.multitask_test_pending, pendingPb.getProgress()));
                 pendingInfoTv.append((int) task.getTag() + " | ");
             }
 
             @Override
-            protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+            protected void connected(BaseDownloadTask task, String etag, boolean isContinue,
+                                     int soFarBytes, int totalBytes) {
+
                 super.connected(task, etag, isContinue, soFarBytes, totalBytes);
                 if (task.getListener() != downloadListener) {
                     return;
                 }
 
                 connectedPb.setProgress(connectedPb.getProgress() + 1);
-                connectedTv.setText("connected: " + connectedPb.getProgress());
+                connectedTv.setText(getString(R.string.multitask_test_connected,
+                        connectedPb.getProgress()));
+
                 connectedInfoTv.append((int) task.getTag() + " | ");
             }
 
@@ -329,7 +338,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
                 retryTv.setVisibility(View.VISIBLE);
 
                 retryPb.setProgress(retryPb.getProgress() + 1);
-                retryTv.setText("retry: " + retryPb.getProgress());
+                retryTv.setText(getString(R.string.multitask_test_retry, retryPb.getProgress()));
                 retryInfoTv.append((int)task.getTag() + " | ");
             }
 
@@ -340,13 +349,17 @@ public class MultitaskTestActivity extends AppCompatActivity {
                 }
 
                 if (task.isReusedOldFile()) {
-                    completedWidthOldPb.setProgress(completedWidthOldPb.getProgress() + 1);
-                    completedWidthOldTv.setText("completed reuse old file: " + completedWidthOldPb.getProgress());
-                    completedWidthOldInfoTv.append((int) task.getTag() + " | ");
+                    completedReusedPb.setProgress(completedReusedPb.getProgress() + 1);
+                    completedReusedTv.setText(getString(R.string.multitask_test_completed_reused,
+                            completedReusedPb.getProgress()));
+                    completedReusedInfoTv.append((int) task.getTag() + " | ");
                 } else {
-                    completedPb.setProgress(completedPb.getProgress() + 1);
-                    completedTv.setText("completed width download: " + completedPb.getProgress());
-                    completedInfoTv.append((int) task.getTag() + " | ");
+                    completedDownloadingPb.setProgress(completedDownloadingPb.getProgress() + 1);
+                    completedDownloadingTv.
+                            setText(getString(R.string.multitask_test_completed_downloading,
+                                    completedDownloadingPb.getProgress()));
+
+                    completedDownloadingInfoTv.append((int) task.getTag() + " | ");
                 }
 
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
@@ -359,7 +372,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
                     return;
                 }
                 pausedPb.setProgress(pausedPb.getProgress() + 1);
-                pausedTv.setText("paused: " + pausedPb.getProgress());
+                pausedTv.setText(getString(R.string.multitask_test_paused, pausedPb.getProgress()));
                 pausedInfoTv.append((int) task.getTag() + " | ");
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
             }
@@ -370,7 +383,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
                     return;
                 }
                 errorPb.setProgress(errorPb.getProgress() + 1);
-                errorTv.setText("error: " + errorPb.getProgress());
+                errorTv.setText(getString(R.string.multitask_test_error, errorPb.getProgress()));
                 errorInfoTv.append((int) task.getTag() + " | ");
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
                 checkEndAll();
@@ -383,7 +396,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
                 }
 
                 warnPb.setProgress(warnPb.getProgress() + 1);
-                warnTv.setText("warn: " + warnPb.getProgress());
+                warnTv.setText(getString(R.string.multitask_test_warn, warnPb.getProgress()));
                 warnInfoTv.append((int) task.getTag() + " | ");
                 overTaskPb.setProgress(overTaskPb.getProgress() + 1);
                 checkEndAll();
@@ -449,12 +462,12 @@ public class MultitaskTestActivity extends AppCompatActivity {
     private TextView pausedTv;
     private TextView pausedInfoTv;
     private ProgressBar pausedPb;
-    private TextView completedWidthOldTv;
-    private TextView completedWidthOldInfoTv;
-    private ProgressBar completedWidthOldPb;
-    private TextView completedTv;
-    private TextView completedInfoTv;
-    private ProgressBar completedPb;
+    private TextView completedReusedTv;
+    private TextView completedReusedInfoTv;
+    private ProgressBar completedReusedPb;
+    private TextView completedDownloadingTv;
+    private TextView completedDownloadingInfoTv;
+    private ProgressBar completedDownloadingPb;
     private TextView warnTv;
     private TextView warnInfoTv;
     private ProgressBar warnPb;
@@ -488,12 +501,12 @@ public class MultitaskTestActivity extends AppCompatActivity {
         pausedTv = (TextView) findViewById(R.id.paused_tv);
         pausedInfoTv = (TextView) findViewById(R.id.paused_info_tv);
         pausedPb = (ProgressBar) findViewById(R.id.paused_pb);
-        completedWidthOldTv = (TextView) findViewById(R.id.completed_width_old_tv);
-        completedWidthOldInfoTv = (TextView) findViewById(R.id.completed_width_old_info_tv);
-        completedWidthOldPb = (ProgressBar) findViewById(R.id.completed_width_old_pb);
-        completedTv = (TextView) findViewById(R.id.completed_tv);
-        completedInfoTv = (TextView) findViewById(R.id.completed_info_tv);
-        completedPb = (ProgressBar) findViewById(R.id.completed_pb);
+        completedReusedTv = (TextView) findViewById(R.id.completed_with_old_tv);
+        completedReusedInfoTv = (TextView) findViewById(R.id.completed_with_old_info_tv);
+        completedReusedPb = (ProgressBar) findViewById(R.id.completed_with_old_pb);
+        completedDownloadingTv = (TextView) findViewById(R.id.completed_tv);
+        completedDownloadingInfoTv = (TextView) findViewById(R.id.completed_info_tv);
+        completedDownloadingPb = (ProgressBar) findViewById(R.id.completed_pb);
         warnTv = (TextView) findViewById(R.id.warn_tv);
         warnInfoTv = (TextView) findViewById(R.id.warn_info_tv);
         warnPb = (ProgressBar) findViewById(R.id.warn_pb);
