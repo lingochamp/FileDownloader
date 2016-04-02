@@ -15,7 +15,7 @@ public interface Constant {
             "https://static.pexels.com/photos/479/landscape-nature-sunset-trees.jpg",
             "http://7xjww9.com1.z0.glb.clouddn.com/Hopetoun_falls.jpg",
             // 5m
-//            "http://mirror.internode.on.net/pub/test/5meg.test5",
+            "http://mirror.internode.on.net/pub/test/5meg.test5",
 //            "http://mirror.internode.on.net/pub/test/5meg.test4",
 //            "http://mirror.internode.on.net/pub/test/5meg.test3",
 //            "http://mirror.internode.on.net/pub/test/5meg.test2",

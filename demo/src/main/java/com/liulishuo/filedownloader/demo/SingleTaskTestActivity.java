@@ -122,12 +122,12 @@ public class SingleTaskTestActivity extends AppCompatActivity {
 
         switch (position) {
             case 1:
-                url = Constant.BIG_FILE_URLS[2];
+                url = Constant.BIG_FILE_URLS[0];
                 tag = new ViewHolder(new WeakReference<>(this), progressBar1, null, 1);
                 path = savePath1;
                 break;
             case 2:
-                url = Constant.BIG_FILE_URLS[3];
+                url = Constant.BIG_FILE_URLS[4];
                 tag = new ViewHolder(new WeakReference<>(this), progressBar2, null, 2);
                 path = savePath2;
                 break;
