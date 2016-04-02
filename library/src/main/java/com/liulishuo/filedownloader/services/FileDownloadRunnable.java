@@ -16,7 +16,9 @@
 
 package com.liulishuo.filedownloader.services;
 
+import android.os.Build;
 import android.os.Process;
+import android.os.StatFs;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BuildConfig;
@@ -288,7 +290,7 @@ class FileDownloadRunnable implements Runnable {
                           long soFar, long total) throws Throwable {
         // fetching datum
         InputStream inputStream = null;
-        RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue);
+        final RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue, total);
         try {
             // Step 1, get input stream
             inputStream = response.body().byteStream();
@@ -517,7 +519,7 @@ class FileDownloadRunnable implements Runnable {
     }
 
     // ----------------------------------
-    private RandomAccessFile getRandomAccessFile(final boolean append) throws Throwable {
+    private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes) throws Throwable {
         if (TextUtils.isEmpty(path)) {
             throw new RuntimeException("found invalid internal destination path, empty");
         }
@@ -540,11 +542,38 @@ class FileDownloadRunnable implements Runnable {
         }
 
         RandomAccessFile outFd = new RandomAccessFile(file, "rw");
+
+        // check the available space bytes whether enough or not.
+        if (totalBytes > 0) {
+            final long curSize = outFd.length();
+            final long needAvailableSpace = totalBytes - curSize;
+
+            long availableBytes;
+            final StatFs statFs = new StatFs(path);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                availableBytes = statFs.getAvailableBytes();
+            } else {
+                availableBytes = statFs.getAvailableBlocks() * statFs.getBlockSize();
+            }
+
+            if (availableBytes < needAvailableSpace) {
+                outFd.close();
+                // throw io exception.
+                throw new IOException(
+                        String.format("The file is too large to store, the downloaded size: " +
+                                " %d, requirements: %d, but the available space size: " +
+                                "%d", curSize, needAvailableSpace, availableBytes));
+            } else {
+                // pre allocate.
+                outFd.setLength(totalBytes);
+            }
+        }
+
         if (append) {
             outFd.seek(downloadTransfer.getSoFarBytes());
         }
+
         return outFd;
-//        return new FileOutputStream(file, append);
     }
 
     private void checkIsContinueAvailable() {

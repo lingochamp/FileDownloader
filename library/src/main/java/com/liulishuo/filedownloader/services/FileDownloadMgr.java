@@ -199,9 +199,9 @@ class FileDownloadMgr {
             final long fileLength = file.length();
 
             if (fileLength < model.getSoFar()
-                    || (model.getTotal() != -1  // not chunk transfer encoding data
-                    && fileLength >= model.getTotal())) {
-                // 脏数据
+                            || (model.getTotal() != -1  // not chunk transfer encoding data
+                            && fileLength > model.getTotal())) {
+                // dirty data.
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data fileLength[%d] sofar[%d] total[%d]",
                             downloadId, fileLength, model.getSoFar(), model.getTotal());
