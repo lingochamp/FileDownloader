@@ -17,8 +17,6 @@
 package com.liulishuo.filedownloader.services;
 
 
-import android.text.TextUtils;
-
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -176,14 +174,6 @@ class FileDownloadMgr {
                 break;
             }
 
-            if (TextUtils.isEmpty(model.getETag())) {
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d etag is empty", downloadId);
-                }
-                break;
-            }
-
-
             File file = new File(model.getPath());
             final boolean isExists = file.exists();
             final boolean isDirectory = file.isDirectory();
@@ -197,6 +187,14 @@ class FileDownloadMgr {
             }
 
             final long fileLength = file.length();
+
+            if (model.getSoFar() == 0) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d the downloaded-record is zero.",
+                            downloadId);
+                }
+                break;
+            }
 
             if (fileLength < model.getSoFar()
                             || (model.getTotal() != -1  // not chunk transfer encoding data

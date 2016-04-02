@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 
 import okhttp3.CacheControl;
@@ -203,13 +204,19 @@ class FileDownloadRunnable implements Runnable {
                 // Step 4, build connect
                 response = call.execute();
 
-                final boolean isSucceedStart = response.code() == 200;
-                final boolean isSucceedContinue = response.code() == 206 && isContinueDownloadAvailable;
+                final boolean isSucceedStart = response.code() == HttpURLConnection.HTTP_OK;
+                final boolean isSucceedContinue = response.code() == HttpURLConnection.HTTP_PARTIAL &&
+                        isContinueDownloadAvailable;
+
+                if (isContinueDownloadAvailable && !isSucceedContinue) {
+                    FileDownloadLog.w(this, "tried to resume from the break point[%d], but the " +
+                                    "response code is %d, not 206(PARTIAL).", model.getSoFar(),
+                            response.code());
+                }
 
                 if (isSucceedStart || isSucceedContinue) {
                     long total = downloadTransfer.getTotalBytes();
                     final String transferEncoding = response.header("Transfer-Encoding");
-
 
                     // Step 5, check response's header
                     if (isSucceedStart || total <= 0) {
@@ -366,7 +373,9 @@ class FileDownloadRunnable implements Runnable {
         }
 
         if (isContinueDownloadAvailable) {
-            builder.addHeader("If-Match", this.etag);
+            if (!TextUtils.isEmpty(this.etag)) {
+                builder.addHeader("If-Match", this.etag);
+            }
             builder.addHeader("Range", String.format("bytes=%d-", downloadTransfer.getSoFarBytes()));
         }
     }
