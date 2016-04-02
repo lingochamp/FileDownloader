@@ -489,7 +489,6 @@ class FileDownloadRunnable implements Runnable {
         downloadTransfer.setStatus(FileDownloadStatus.completed);
 
         helper.updateComplete(downloadTransfer.getDownloadId(), total);
-        downloadTransfer.setUseOldFile(false);
         downloadTransfer.setSoFarBytes(total);
         downloadTransfer.setTotalBytes(total);
 

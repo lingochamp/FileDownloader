@@ -19,6 +19,8 @@ package com.liulishuo.filedownloader.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import junit.framework.Assert;
+
 
 /**
  * Created by Jacksgong on 9/23/15.
@@ -45,7 +47,7 @@ public class FileDownloadTransferModel implements Parcelable {
     private int retryingTimes;
 
     // reused old file
-    private boolean useOldFile;
+    private boolean reusedOldFile = false;
 
     public FileDownloadTransferModel(final FileDownloadModel model) {
         this.status = model.getStatus();
@@ -119,12 +121,14 @@ public class FileDownloadTransferModel implements Parcelable {
         this.throwable = throwable;
     }
 
-    public boolean isUseOldFile() {
-        return useOldFile;
+    public boolean isReusedOldFile() {
+        return reusedOldFile;
     }
 
-    public void setUseOldFile(boolean useOldFile) {
-        this.useOldFile = useOldFile;
+    public void markAsReusedOldFile() {
+        Assert.assertEquals("you can't mark the status as reused old file, when the status isn't" +
+                " equal completed", getStatus(), FileDownloadStatus.completed);
+        this.reusedOldFile = true;
     }
 
     public FileDownloadTransferModel() {
@@ -169,7 +173,10 @@ public class FileDownloadTransferModel implements Parcelable {
                 break;
             case FileDownloadStatus.completed:
                 dest.writeLong(this.totalBytes);
-                dest.writeByte(useOldFile ? (byte) 1 : (byte) 0);
+                dest.writeByte(reusedOldFile ? (byte) 1 : (byte) 0);
+                if (reusedOldFile) {
+                    dest.writeString(this.etag);
+                }
                 break;
         }
     }
@@ -207,7 +214,10 @@ public class FileDownloadTransferModel implements Parcelable {
                 break;
             case FileDownloadStatus.completed:
                 this.totalBytes = in.readLong();
-                this.useOldFile = in.readByte() == 1;
+                this.reusedOldFile = in.readByte() == 1;
+                if (this.reusedOldFile) {
+                    this.etag = in.readString();
+                }
                 break;
         }
     }
@@ -217,36 +227,12 @@ public class FileDownloadTransferModel implements Parcelable {
 
         model.status = this.status;
         model.downloadId = this.downloadId;
-
-        // For fewer copies
-        switch (this.status) {
-            case FileDownloadStatus.pending:
-                model.soFarBytes = this.soFarBytes;
-                model.totalBytes = this.totalBytes;
-                break;
-            case FileDownloadStatus.connected:
-                model.soFarBytes = this.soFarBytes;
-                model.totalBytes = this.totalBytes;
-                model.etag = this.etag;
-                model.isContinue = this.isContinue;
-                break;
-            case FileDownloadStatus.progress:
-                model.soFarBytes = this.soFarBytes;
-                break;
-            case FileDownloadStatus.error:
-                model.soFarBytes = this.soFarBytes;
-                model.throwable = this.throwable;
-                break;
-            case FileDownloadStatus.retry:
-                model.soFarBytes = this.soFarBytes;
-                model.throwable = this.throwable;
-                model.retryingTimes = this.retryingTimes;
-                break;
-            case FileDownloadStatus.completed:
-                model.totalBytes = this.totalBytes;
-                model.useOldFile = this.useOldFile;
-                break;
-        }
+        model.soFarBytes = this.soFarBytes;
+        model.totalBytes = this.totalBytes;
+        model.etag = this.etag;
+        model.isContinue = this.isContinue;
+        model.throwable = this.throwable;
+        model.retryingTimes = this.retryingTimes;
 
         return model;
     }

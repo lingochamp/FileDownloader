@@ -222,7 +222,7 @@ class FileDownloadMgr {
         final boolean canReuse = checkReuse(downloadId, model);
         if (canReuse) {
             transferModel = new FileDownloadTransferModel(model);
-            transferModel.setUseOldFile(true);
+            transferModel.markAsReusedOldFile();
         }
 
         return transferModel;
