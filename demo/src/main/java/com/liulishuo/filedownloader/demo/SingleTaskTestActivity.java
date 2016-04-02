@@ -29,16 +29,15 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         savePath1 = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "tmp1";
         savePath2 = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "tmp2";
         savePath3 = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "chunked_data_tmp1";
-        savePath4 = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "chunked_data_tmp2";
 
         assignViews();
 
-        initNormalDatasAction();
-        initChunkTransferEncodingDatasAction();
+        initNormalDataAction();
+        initChunkTransferEncodingDataAction();
     }
 
 
-    private void initNormalDatasAction() {
+    private void initNormalDataAction() {
         // task 1
         startBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +84,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
 
     }
 
-    private void initChunkTransferEncodingDatasAction() {
+    private void initChunkTransferEncodingDataAction() {
         // task 3
         startBtn3.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,30 +106,6 @@ public class SingleTaskTestActivity extends AppCompatActivity {
                 new File(savePath3).delete();
             }
         });
-
-        // task 4
-        startBtn4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                downloadId4 = createDownloadTask(4).start();
-            }
-        });
-
-        pauseBtn4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FileDownloader.getImpl().pause(downloadId4);
-            }
-        });
-
-        deleteBtn4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new File(savePath4).delete();
-            }
-        });
-
-
     }
 
     @Override
@@ -156,15 +131,10 @@ public class SingleTaskTestActivity extends AppCompatActivity {
                 tag = new ViewHolder(new WeakReference<>(this), progressBar2, null, 2);
                 path = savePath2;
                 break;
-            case 3:
-                url = Constant.CHUNKED_TRANSFER_ENCODING_DATAS[0];
+            default:
+                url = Constant.CHUNKED_TRANSFER_ENCODING_DATA_URLS[0];
                 tag = new ViewHolder(new WeakReference<>(this), progressBar3, detailTv3, 3);
                 path = savePath3;
-                break;
-            default:
-                url = Constant.CHUNKED_TRANSFER_ENCODING_DATAS[1];
-                tag = new ViewHolder(new WeakReference<>(this), progressBar4, detailTv4, 4);
-                path = savePath4;
                 break;
 
         }
@@ -276,13 +246,11 @@ public class SingleTaskTestActivity extends AppCompatActivity {
     private int downloadId1;
     private int downloadId2;
     private int downloadId3;
-    private int downloadId4;
 
 
     private String savePath1;
     private String savePath2;
     private String savePath3;
-    private String savePath4;
 
     private Button startBtn1;
     private Button pauseBtn1;
@@ -297,11 +265,6 @@ public class SingleTaskTestActivity extends AppCompatActivity {
     private Button deleteBtn3;
     private TextView detailTv3;
     private ProgressBar progressBar3;
-    private Button startBtn4;
-    private Button pauseBtn4;
-    private Button deleteBtn4;
-    private TextView detailTv4;
-    private ProgressBar progressBar4;
 
     private void assignViews() {
         startBtn1 = (Button) findViewById(R.id.start_btn_1);
@@ -317,11 +280,6 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         deleteBtn3 = (Button) findViewById(R.id.delete_btn_3);
         detailTv3 = (TextView) findViewById(R.id.detail_tv_3);
         progressBar3 = (ProgressBar) findViewById(R.id.progressBar_3);
-        startBtn4 = (Button) findViewById(R.id.start_btn_4);
-        pauseBtn4 = (Button) findViewById(R.id.pause_btn_4);
-        deleteBtn4 = (Button) findViewById(R.id.delete_btn_4);
-        detailTv4 = (TextView) findViewById(R.id.detail_tv_4);
-        progressBar4 = (ProgressBar) findViewById(R.id.progressBar_4);
     }
 
 
