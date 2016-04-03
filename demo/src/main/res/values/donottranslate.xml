@@ -18,4 +18,15 @@
 <resources>
     <string name="app_github">GITHUB</string>
     <string name="app_github_url">https://github.com/lingochamp/FileDownloader</string>
+
+    <!-- multitask_test, callback -->
+    <string name="multitask_test_pending" formatted="false">pending: %d</string>
+    <string name="multitask_test_connected" formatted="false">connected: %d</string>
+    <string name="multitask_test_progress" formatted="false">progress: %d</string>
+    <string name="multitask_test_retry" formatted="false">retry: %d</string>
+    <string name="multitask_test_error" formatted="false">error: %d</string>
+    <string name="multitask_test_paused" formatted="false">paused: %d</string>
+    <string name="multitask_test_warn" formatted="false">warn: %d</string>
+    <string name="multitask_test_completed_reused" formatted="false">completed, reuse the existed file: %d</string>
+    <string name="multitask_test_completed_downloading" formatted="false">completed, downloading: %d</string>
 </resources>
