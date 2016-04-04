@@ -235,7 +235,7 @@ public class HybridTestActivity extends AppCompatActivity {
             @Override
             protected void warn(BaseDownloadTask task) {
                 finalCounts++;
-                updateDisplay(String.format("[warm] id[%d]", task.getDownloadId()));
+                updateDisplay(String.format("[warn] id[%d]", task.getDownloadId()));
                 updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", (Integer) task.getTag()));
             }
         };
