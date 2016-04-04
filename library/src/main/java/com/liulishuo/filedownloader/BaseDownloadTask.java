@@ -763,16 +763,25 @@ public abstract class BaseDownloadTask {
         }
     }
 
+    private void printNotMatchReasonLog(int status) {
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "can't update status change, %d, but the current" +
+                    " status is %d, %d", status, getStatus(), getDownloadId());
+        }
+    }
+
     /**
      * @param transfer In order to optimize some of the data in some cases is not back
      */
-    void update(final FileDownloadTransferModel transfer) {
+    boolean update(final FileDownloadTransferModel transfer) {
+        boolean match = false;
         switch (transfer.getStatus()) {
             case FileDownloadStatus.pending:
-                if (getStatus() == FileDownloadStatus.pending) {
-                    FileDownloadLog.w(this, "already pending %d", getDownloadId());
+                if (getStatus() != FileDownloadStatus.INVALID_STATUS) {
+                    printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }
+                match = true;
                 this.setStatus(transfer.getStatus());
                 this.setSoFarBytes(transfer.getSoFarBytes());
                 this.setTotalBytes(transfer.getTotalBytes());
@@ -781,11 +790,13 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyPending();
                 break;
             case FileDownloadStatus.connected:
-                if (getStatus() == FileDownloadStatus.connected) {
-                    FileDownloadLog.w(this, "already connected %d", getDownloadId());
+                if (getStatus() != FileDownloadStatus.pending &&
+                        getStatus() != FileDownloadStatus.retry) {
+                    printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }
 
+                match = true;
                 setStatus(transfer.getStatus());
                 setTotalBytes(transfer.getTotalBytes());
                 setSoFarBytes(transfer.getSoFarBytes());
@@ -796,12 +807,13 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
-                if (getStatus() == FileDownloadStatus.progress &&
-                        transfer.getSoFarBytes() == getLargeFileSoFarBytes()) {
-                    FileDownloadLog.w(this, "%d unused values! by process callback", getDownloadId());
+                if (getStatus() != FileDownloadStatus.progress &&
+                        getStatus() != FileDownloadStatus.connected) {
+                    printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }
 
+                match = true;
                 setStatus(transfer.getStatus());
                 setSoFarBytes(transfer.getSoFarBytes());
 
@@ -814,13 +826,14 @@ public abstract class BaseDownloadTask {
                  */
                 break;
             case FileDownloadStatus.retry:
-                if (getStatus() == FileDownloadStatus.retry &&
-                        getRetryingTimes() == transfer.getRetryingTimes()) {
-                    FileDownloadLog.w(this, "%d already retry! %d %d %s", getDownloadId(),
-                            getRetryingTimes(), getAutoRetryTimes(), transfer.getThrowable());
+                if (getStatus() != FileDownloadStatus.progress &&
+                        getStatus() != FileDownloadStatus.pending &&
+                        getStatus() != FileDownloadStatus.connected) {
+                    printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }
 
+                match = true;
                 setStatus(transfer.getStatus());
                 setSoFarBytes(transfer.getSoFarBytes());
                 setEx(transfer.getThrowable());
@@ -836,6 +849,7 @@ public abstract class BaseDownloadTask {
                     break;
                 }
 
+                match = true;
                 setStatus(transfer.getStatus());
                 setEx(transfer.getThrowable());
                 setSoFarBytes(transfer.getSoFarBytes());
@@ -850,12 +864,15 @@ public abstract class BaseDownloadTask {
                  */
                 break;
             case FileDownloadStatus.completed:
-                if (getStatus() == FileDownloadStatus.completed) {
-                    FileDownloadLog.w(this, "%d already completed , callback by process with same transfer",
-                            getDownloadId());
+                if (getStatus() != FileDownloadStatus.INVALID_STATUS &&
+                        getStatus() != FileDownloadStatus.connected &&
+                        getStatus() != FileDownloadStatus.progress &&
+                        getStatus() != FileDownloadStatus.pending) {
+                    printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }
 
+                match = true;
                 this.isReusedOldFile = transfer.isReusedOldFile();
                 setStatus(transfer.getStatus());
                 // only carry total data back
@@ -867,12 +884,12 @@ public abstract class BaseDownloadTask {
 
                 break;
             case FileDownloadStatus.warn:
-                if (getStatus() == FileDownloadStatus.warn) {
-                    FileDownloadLog.w(this, "%d already warn , callback by process with same transfer",
-                            getDownloadId());
+                if (getStatus() != FileDownloadStatus.INVALID_STATUS) {
+                    printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }
 
+                match = true;
                 final int count = FileDownloadList.getImpl().count(getDownloadId());
                 if (count <= 1) {
                     // 1. this progress kill by sys and relive,
@@ -902,6 +919,8 @@ public abstract class BaseDownloadTask {
                 FileDownloadList.getImpl().removeByWarn(this);
                 break;
         }
+
+        return match;
     }
 
     // why this? thread not safe: update,ready, _start, pause, start which influence of this

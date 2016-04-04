@@ -20,7 +20,6 @@ import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -166,18 +165,16 @@ class FileDownloadTask extends BaseDownloadTask {
                                 transfer.getDownloadId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
                     }
 
-                    if (transfer.getStatus() == FileDownloadStatus.warn) {
-                        // just update one task, another will be maintained to receive other status
-                        final BaseDownloadTask task = taskList.get(taskList.size() - 1);
-                        task.update(transfer);
-                    } else {
-                        // guarantee: 1. BaseDownloadTask#update pass no change status.
-                        //  2. FileDownloadList#remove only notify in case of remove succeed.
+                    final String updateSync = String.format("%s%s", taskList.get(0).getUrl(),
+                            taskList.get(0).getPath());
+
+                    synchronized (updateSync.intern()) {
                         for (BaseDownloadTask task : taskList) {
-                            task.update(transfer);
+                            if (task.update(transfer)) {
+                                break;
+                            }
                         }
                     }
-
 
 
                 } else {
