@@ -57,7 +57,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         LinkedList<IDownloadListener> container = listenersMap.get(eventId);
 
         if (container == null) {
-            synchronized (eventId) {
+            synchronized (eventId.intern()) {
                 container = listenersMap.get(eventId);
                 if (container == null) {
                     listenersMap.put(eventId, container = new LinkedList<>());
@@ -66,7 +66,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         }
 
 
-        synchronized (eventId) {
+        synchronized (eventId.intern()) {
             return container.add(listener);
         }
     }
@@ -80,7 +80,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
         LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null) {
-            synchronized (eventId) {
+            synchronized (eventId.intern()) {
                 container = listenersMap.get(eventId);
             }
         }
@@ -89,7 +89,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
             return false;
         }
 
-        synchronized (eventId) {
+        synchronized (eventId.intern()) {
             boolean succeed = container.remove(listener);
             if (container.size() <= 0) {
                 listenersMap.remove(container);
@@ -114,7 +114,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         String eventId = event.getId();
         LinkedList<IDownloadListener> listeners = listenersMap.get(eventId);
         if (listeners == null) {
-            synchronized (eventId) {
+            synchronized (eventId.intern()) {
                 listeners = listenersMap.get(eventId);
                 if (listeners == null) {
                     if (FileDownloadLog.NEED_LOG) {
