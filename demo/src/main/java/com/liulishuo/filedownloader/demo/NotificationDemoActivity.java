@@ -191,6 +191,9 @@ public class NotificationDemoActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (downloadId != 0) {
+            FileDownloader.getImpl().pause(downloadId);
+        }
         this.notificationHelper.clear();
         clear();
         super.onDestroy();
