@@ -30,9 +30,9 @@ public class DemoApplication extends Application {
         /**
          * just for cache Application's Context, and ':filedownloader' progress will NOT be launched
          * by below code, so please do not worry about performance.
-         * @see FileDownloader#init(Application)
+         * @see FileDownloader#init(Context)
          */
-        FileDownloader.init(this,
+        FileDownloader.init(getApplicationContext(),
                 new FileDownloadHelper.OkHttpClientCustomMaker() { // is not has to provide.
                     @Override
                     public OkHttpClient customMake() {
