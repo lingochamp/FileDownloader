@@ -31,8 +31,8 @@ public class FileDownloadHelper {
     // only effect on the ':filedownloader' progress.
     private static OkHttpClient OK_HTTP_CLIENT;
 
-    public static void initAppContext(final Application application) {
-        APP_CONTEXT = application;
+    public static void holdContext(final Context context) {
+        APP_CONTEXT = context;
     }
 
     public static Context getAppContext() {

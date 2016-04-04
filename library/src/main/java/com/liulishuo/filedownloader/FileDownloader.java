@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader;
 
 import android.app.Application;
+import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -40,30 +41,49 @@ public class FileDownloader {
     /**
      * Just cache Application's Context
      */
-    public static void init(final Application application) {
-        init(application, null);
+    public static void init(final Context context) {
+        init(context, null);
     }
 
     /**
-     * Just cache Application's Context.
+     * Cache {@code context} in Main-Process and FileDownloader-Process; And will init the
+     * OkHttpClient in FileDownloader-Process, if the {@code okHttpClientCustomMaker} is provided.
      * <p/>
      * Must be invoked at{@link Application#onCreate()}.
      *
+     * @param context                 This context will be hold in FileDownloader, so recommend
+     *                                use {@link Application#getApplicationContext()}.
      * @param okHttpClientCustomMaker Nullable, For Customize {@link OkHttpClient},
      *                                Only be used on the ':filedownloader' progress.
      * @see #init(Application)
      * @see com.liulishuo.filedownloader.util.FileDownloadHelper.OkHttpClientCustomMaker
      */
-    public static void init(final Application application,
+    public static void init(final Context context,
                             FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(FileDownloader.class, "init Downloader");
         }
-        FileDownloadHelper.initAppContext(application);
+        FileDownloadHelper.holdContext(context);
 
-        if (okHttpClientCustomMaker != null && FileDownloadUtils.isDownloaderProcess(application)) {
+        if (okHttpClientCustomMaker != null && FileDownloadUtils.isDownloaderProcess(context)) {
             FileDownloadHelper.setOkHttpClient(okHttpClientCustomMaker.customMake());
         }
+    }
+
+    /**
+     * @deprecated Consider use {@link #init(Context)} instead.
+     */
+    public static void init(final Application application) {
+        init(application.getApplicationContext());
+    }
+
+    /**
+     * @deprecated Consider use {@link #init(Context, FileDownloadHelper.OkHttpClientCustomMaker)}
+     * instead.
+     */
+    public static void init(final Application application,
+                            FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker) {
+        init(application.getApplicationContext(), okHttpClientCustomMaker);
     }
 
     private final static class HolderClass {
