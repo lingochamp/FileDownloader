@@ -50,10 +50,10 @@ public class FileDownloadTransferModel implements Parcelable {
     private boolean reusedOldFile = false;
 
     public FileDownloadTransferModel(final FileDownloadModel model) {
-        reset(model);
+        update(model);
     }
 
-    private void reset(FileDownloadModel model) {
+    public void update(FileDownloadModel model) {
         this.downloadId = model.getId();
         this.status = model.getStatus();
         this.soFarBytes = model.getSoFar();

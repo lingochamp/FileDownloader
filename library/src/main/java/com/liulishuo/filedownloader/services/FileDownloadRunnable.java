@@ -23,6 +23,8 @@ import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BuildConfig;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
+import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -220,7 +222,7 @@ class FileDownloadRunnable implements Runnable {
                                             "transfer encoding chunk", getId());
                                 }
                             } else {
-                                throw new GiveUpRetryException("can't know the size of the " +
+                                throw new FileDownloadGiveUpRetryException("can't know the size of the " +
                                         "download file, and its Transfer-Encoding is not Chunked " +
                                         "either.\nyou can ignore such exception by add " +
                                         "http.lenient=true to the filedownloader.properties");
@@ -243,14 +245,14 @@ class FileDownloadRunnable implements Runnable {
                     }
 
                 } else {
-                    throw new HttpRequestException(request, response);
+                    throw new FileDownloadHttpException(request, response);
                 }
 
 
             } catch (Throwable ex) {
                 // TODO 决策是否需要重试，是否是用户决定，或者根据错误码处理
                 if (autoRetryTimes > retryingTimes++
-                        && !(ex instanceof GiveUpRetryException)) {
+                        && !(ex instanceof FileDownloadGiveUpRetryException)) {
                     // retry
                     onRetry(ex, retryingTimes, soFar);
                     continue;
@@ -317,7 +319,7 @@ class FileDownloadRunnable implements Runnable {
                 total = soFar;
             }
 
-            // Step 8, complte download
+            // Step 8, complete download
             if (soFar == total) {
                 // callback on completed
                 onComplete(total);
@@ -383,11 +385,7 @@ class FileDownloadRunnable implements Runnable {
     private void onConnected(final boolean resuming, final long soFar, final long total) {
         helper.update(getId(), FileDownloadStatus.connected, soFar, total);
 
-        transferModel.setSoFarBytes(soFar);
-        transferModel.setTotalBytes(total);
-        transferModel.setEtag(model.getETag());
         transferModel.setResuming(resuming);
-        transferModel.setStatus(FileDownloadStatus.connected);
 
         onStatusChanged(model.getStatus());
     }
@@ -397,10 +395,6 @@ class FileDownloadRunnable implements Runnable {
 
     private void onProgress(final long soFar, final long total) {
         helper.update(getId(), FileDownloadStatus.progress, soFar, total);
-
-        transferModel.setSoFarBytes(soFar);
-        transferModel.setTotalBytes(total);
-        transferModel.setStatus(FileDownloadStatus.progress);
 
         if (maxNotifyBytes < 0 || soFar - lastNotifiedSoFar < maxNotifyBytes) {
             return;
@@ -424,10 +418,8 @@ class FileDownloadRunnable implements Runnable {
         ex = exFiltrate(ex);
         helper.updateRetry(getId(), ex.getMessage(), retryTimes, soFarBytes);
 
-        transferModel.setStatus(FileDownloadStatus.retry);
         transferModel.setThrowable(ex);
         transferModel.setRetryingTimes(retryTimes);
-        transferModel.setSoFarBytes(soFarBytes);
 
         onStatusChanged(model.getStatus());
     }
@@ -440,9 +432,7 @@ class FileDownloadRunnable implements Runnable {
         ex = exFiltrate(ex);
         helper.updateError(getId(), ex.getMessage());
 
-        transferModel.setStatus(FileDownloadStatus.error);
         transferModel.setThrowable(ex);
-
 
         onStatusChanged(model.getStatus());
     }
@@ -452,10 +442,6 @@ class FileDownloadRunnable implements Runnable {
             FileDownloadLog.d(this, "On completed %d %d %B", getId(), total, isCancelled());
         }
         helper.updateComplete(getId(), total);
-
-        transferModel.setStatus(FileDownloadStatus.completed);
-        transferModel.setSoFarBytes(total);
-        transferModel.setTotalBytes(total);
 
         onStatusChanged(model.getStatus());
     }
@@ -468,8 +454,6 @@ class FileDownloadRunnable implements Runnable {
         }
 
         helper.updatePause(getId());
-
-        transferModel.setStatus(FileDownloadStatus.paused);
 
         // 这边没有必要从服务端再回调，由于直接调pause看是否已经成功
 //        onStatusChanged(model.getStatus());
@@ -484,12 +468,12 @@ class FileDownloadRunnable implements Runnable {
 
         helper.updatePending(getId());
 
-        model.setStatus(FileDownloadStatus.pending);
-
         onStatusChanged(model.getStatus());
     }
 
     private void onStatusChanged(int status){
+        transferModel.update(model);
+
         if (status == FileDownloadStatus.progress || FileDownloadStatus.isOver(status)) {
             FileDownloadProcessEventPool.getImpl().
                     asyncPublishInNewThread(event.setTransfer(transferModel));
@@ -582,18 +566,5 @@ class FileDownloadRunnable implements Runnable {
         }
 
         return ex;
-    }
-
-    public static class GiveUpRetryException extends RuntimeException {
-        public GiveUpRetryException(final String detailMessage) {
-            super(detailMessage);
-        }
-    }
-
-    public static class HttpRequestException extends RuntimeException {
-        public HttpRequestException(final Request request, final Response response) {
-            super(String.format("response code error: %d, \n request headers: %s \n " +
-                    "response headers: %s", response.code(), request.headers(), response.headers()));
-        }
     }
 }

@@ -26,6 +26,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import okhttp3.Headers;
+
 
 /**
  * Created by Jacksgong on 9/25/15.
@@ -182,5 +184,23 @@ public class FileDownloadUtils {
         }
 
         return size;
+    }
+
+    public static String[] convertHeaderString(final String nameAndValuesString) {
+        final String[] lineString = nameAndValuesString.split("\n");
+        final String[] namesAndValues = new String[lineString.length * 2];
+
+        for (int i = 0; i < lineString.length; i++) {
+            final String[] nameAndValue = lineString[i].split(": ");
+            /**
+             * @see Headers#toString()
+             * @see Headers#name(int)
+             * @see Headers#value(int)
+             */
+            namesAndValues[i * 2] = nameAndValue[0];
+            namesAndValues[i * 2 + 1] = nameAndValue[1];
+        }
+
+        return namesAndValues;
     }
 }

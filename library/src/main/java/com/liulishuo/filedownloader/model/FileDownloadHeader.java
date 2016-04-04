@@ -19,6 +19,8 @@ package com.liulishuo.filedownloader.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
+
 import okhttp3.Headers;
 import okhttp3.Request;
 
@@ -118,19 +120,7 @@ public class FileDownloadHeader implements Parcelable {
                     break;
                 }
 
-                final String[] lineString = nameAndValuesString.split("\n");
-                namesAndValues = new String[lineString.length * 2];
-
-                for (int i = 0; i < lineString.length; i++) {
-                    final String[] nameAndValue = lineString[i].split(": ");
-                    /**
-                     * @see Headers#toString()
-                     * @see Headers#name(int)
-                     * @see Headers#value(int)
-                     */
-                    namesAndValues[i * 2] = nameAndValue[0];
-                    namesAndValues[i * 2 + 1] = nameAndValue[1];
-                }
+                namesAndValues = FileDownloadUtils.convertHeaderString(nameAndValuesString);
             }
 
 
