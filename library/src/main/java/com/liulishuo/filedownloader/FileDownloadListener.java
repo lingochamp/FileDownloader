@@ -63,7 +63,7 @@ public abstract class FileDownloadListener extends IDownloadListener {
             case FileDownloadStatus.connected:
                 connected(downloaderEvent.getDownloader(),
                         downloaderEvent.getDownloader().getEtag(),
-                        downloaderEvent.getDownloader().isContinue(),
+                        downloaderEvent.getDownloader().isResuming(),
                         downloaderEvent.getDownloader().getSmallFileSoFarBytes(),
                         downloaderEvent.getDownloader().getSmallFileTotalBytes());
                 break;

@@ -228,16 +228,18 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateRetry(int id, String errMsg, int retryingTimes) {
+    public void updateRetry(int id, String errMsg, int retryingTimes, final long soFar) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(FileDownloadStatus.retry);
             downloadModel.setErrMsg(errMsg);
+            downloadModel.setSoFar(soFar);
 
             // db
             ContentValues cv = new ContentValues();
             cv.put(FileDownloadModel.ERR_MSG, errMsg);
             cv.put(FileDownloadModel.STATUS, FileDownloadStatus.retry);
+            cv.put(FileDownloadModel.SOFAR, soFar);
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
     }

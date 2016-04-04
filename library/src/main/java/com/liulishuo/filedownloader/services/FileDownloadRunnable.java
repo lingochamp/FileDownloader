@@ -50,33 +50,18 @@ import okhttp3.Response;
 class FileDownloadRunnable implements Runnable {
 
     private static final int BUFFER_SIZE = 1024 * 4;
-    private final FileDownloadTransferModel downloadTransfer;
-
-    private final String url;
-    private final String path;
-
-    private final IFileDownloadDBHelper helper;
+    private final FileDownloadTransferModel transferModel;
 
     private long maxNotifyBytes;
-
-
     private int maxNotifyCounts = 0;
+    private boolean isResumeDownloadAvailable;
 
-    //tmp
-    private boolean isContinueDownloadAvailable;
-
-    // etag
-    private String etag;
-
-    private FileDownloadModel downloadModel;
-
-    public int getId() {
-        return downloadModel.getId();
-    }
+    private FileDownloadModel model;
 
     private volatile boolean isRunning = false;
     private volatile boolean isPending = false;
 
+    private final IFileDownloadDBHelper helper;
     private final OkHttpClient client;
     private final int autoRetryTimes;
 
@@ -92,25 +77,19 @@ class FileDownloadRunnable implements Runnable {
         this.helper = helper;
         this.header = header;
 
-        this.url = model.getUrl();
-        this.path = model.getPath();
-
-        downloadTransfer = new FileDownloadTransferModel();
-
-        downloadTransfer.setDownloadId(model.getId());
-        downloadTransfer.setStatus(model.getStatus());
-        downloadTransfer.setSoFarBytes(model.getSoFar());
-        downloadTransfer.setTotalBytes(model.getTotal());
-
+        transferModel = new FileDownloadTransferModel(model);
         maxNotifyCounts = model.getCallbackProgressTimes();
         maxNotifyCounts = maxNotifyCounts <= 0 ? 0 : maxNotifyCounts;
 
-        this.isContinueDownloadAvailable = false;
+        this.isResumeDownloadAvailable = false;
 
-        this.etag = model.getETag();
-        this.downloadModel = model;
+        this.model = model;
 
         this.autoRetryTimes = autoRetryTimes;
+    }
+
+    public int getId() {
+        return model.getId();
     }
 
     public boolean isExist() {
@@ -126,19 +105,15 @@ class FileDownloadRunnable implements Runnable {
 
         try {
             // Step 1, check model
-            FileDownloadModel model = this.downloadModel;
-
             if (model == null) {
                 FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
 
-                this.downloadModel = helper.find(getId());
+                this.model = helper.find(getId());
 
-                if (this.downloadModel == null) {
+                if (this.model == null) {
                     FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", getId());
                     return;
                 }
-
-                model = this.downloadModel;
             }
 
             // Step 2, check status
@@ -184,9 +159,9 @@ class FileDownloadRunnable implements Runnable {
                 }
 
                 // Step 2, handle resume from breakpoint
-                checkIsContinueAvailable();
+                checkIsResumeAvailable();
 
-                Request.Builder requestBuilder = new Request.Builder().url(url);
+                Request.Builder requestBuilder = new Request.Builder().url(model.getUrl());
                 addHeader(requestBuilder);
                 requestBuilder.tag(this.getId());
                 // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
@@ -205,17 +180,17 @@ class FileDownloadRunnable implements Runnable {
                 response = call.execute();
 
                 final boolean isSucceedStart = response.code() == HttpURLConnection.HTTP_OK;
-                final boolean isSucceedContinue = response.code() == HttpURLConnection.HTTP_PARTIAL &&
-                        isContinueDownloadAvailable;
+                final boolean isSucceedResume = response.code() == HttpURLConnection.HTTP_PARTIAL &&
+                        isResumeDownloadAvailable;
 
-                if (isContinueDownloadAvailable && !isSucceedContinue) {
+                if (isResumeDownloadAvailable && !isSucceedResume) {
                     FileDownloadLog.w(this, "tried to resume from the break point[%d], but the " +
                                     "response code is %d, not 206(PARTIAL).", model.getSoFar(),
                             response.code());
                 }
 
-                if (isSucceedStart || isSucceedContinue) {
-                    long total = downloadTransfer.getTotalBytes();
+                if (isSucceedStart || isSucceedResume) {
+                    long total = model.getTotal();
                     final String transferEncoding = response.header("Transfer-Encoding");
 
                     // Step 5, check response's header
@@ -253,17 +228,17 @@ class FileDownloadRunnable implements Runnable {
                         }
                     }
 
-                    if (isSucceedContinue) {
-                        soFar = downloadTransfer.getSoFarBytes();
+                    if (isSucceedResume) {
+                        soFar = model.getSoFar();
                     }
 
                     // Step 6, update header to db. for save etag.
                     updateHeader(response);
                     // Step 7, callback on connected.
-                    onConnected(isSucceedContinue, soFar, total);
+                    onConnected(isSucceedResume, soFar, total);
 
                     // Step 8, start fetch datum from input stream & write to file
-                    if (fetch(response, isSucceedContinue, soFar, total)) {
+                    if (fetch(response, isSucceedResume, soFar, total)) {
                         break;
                     }
 
@@ -324,7 +299,7 @@ class FileDownloadRunnable implements Runnable {
                             " downloading. %d %d", accessFile.length(), soFar));
                 } else {
                     // callback on progressing
-                    onProcess(soFar, total);
+                    onProgress(soFar, total);
                 }
 
                 // Step 6, check pause
@@ -372,11 +347,11 @@ class FileDownloadRunnable implements Runnable {
             builder.headers(Headers.of(header.getNamesAndValues()));
         }
 
-        if (isContinueDownloadAvailable) {
-            if (!TextUtils.isEmpty(this.etag)) {
-                builder.addHeader("If-Match", this.etag);
+        if (isResumeDownloadAvailable) {
+            if (!TextUtils.isEmpty(model.getETag())) {
+                builder.addHeader("If-Match", model.getETag());
             }
-            builder.addHeader("Range", String.format("bytes=%d-", downloadTransfer.getSoFarBytes()));
+            builder.addHeader("Range", String.format("bytes=%d-", model.getSoFar()));
         }
     }
 
@@ -386,7 +361,7 @@ class FileDownloadRunnable implements Runnable {
         }
 
         boolean needRefresh = false;
-        final String oldEtag = this.etag;
+        final String oldEtag = model.getETag();
         final String newEtag = response.header("Etag");
 
         if (FileDownloadLog.NEED_LOG) {
@@ -400,36 +375,32 @@ class FileDownloadRunnable implements Runnable {
         }
 
         if (needRefresh) {
-            this.etag = newEtag;
-            helper.updateHeader(downloadTransfer.getDownloadId(), newEtag);
+            helper.updateHeader(getId(), newEtag);
         }
 
     }
 
-    private final DownloadTransferEvent event = new DownloadTransferEvent(null);
+    private void onConnected(final boolean resuming, final long soFar, final long total) {
+        helper.update(getId(), FileDownloadStatus.connected, soFar, total);
 
-    private void onConnected(final boolean isContinue, final long soFar, final long total) {
-        downloadTransfer.setSoFarBytes(soFar);
-        downloadTransfer.setTotalBytes(total);
-        downloadTransfer.setEtag(this.etag);
-        downloadTransfer.setIsContinue(isContinue);
-        downloadTransfer.setStatus(FileDownloadStatus.connected);
+        transferModel.setSoFarBytes(soFar);
+        transferModel.setTotalBytes(total);
+        transferModel.setEtag(model.getETag());
+        transferModel.setResuming(resuming);
+        transferModel.setStatus(FileDownloadStatus.connected);
 
-        helper.update(downloadTransfer.getDownloadId(), FileDownloadStatus.connected, soFar, total);
-
-        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer.copy()));
+        onStatusChanged(model.getStatus());
     }
 
     private long lastNotifiedSoFar = 0;
+    private final DownloadTransferEvent event = new DownloadTransferEvent(null);
 
-    private void onProcess(final long soFar, final long total) {
-        if (soFar != total) {
-            downloadTransfer.setSoFarBytes(soFar);
-            downloadTransfer.setTotalBytes(total);
-            downloadTransfer.setStatus(FileDownloadStatus.progress);
+    private void onProgress(final long soFar, final long total) {
+        helper.update(getId(), FileDownloadStatus.progress, soFar, total);
 
-            helper.update(downloadTransfer.getDownloadId(), FileDownloadStatus.progress, soFar, total);
-        }
+        transferModel.setSoFarBytes(soFar);
+        transferModel.setTotalBytes(total);
+        transferModel.setStatus(FileDownloadStatus.progress);
 
         if (maxNotifyBytes < 0 || soFar - lastNotifiedSoFar < maxNotifyBytes) {
             return;
@@ -437,97 +408,105 @@ class FileDownloadRunnable implements Runnable {
 
         lastNotifiedSoFar = soFar;
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On progress %d %d %d", downloadTransfer.getDownloadId(), soFar, total);
+            FileDownloadLog.d(this, "On progress %d %d %d", getId(), soFar, total);
         }
 
-
-        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        onStatusChanged(model.getStatus());
 
     }
 
     private void onRetry(Throwable ex, final int retryTimes, final long soFarBytes) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On retry %d %s %d %d", downloadTransfer.getDownloadId(), ex,
+            FileDownloadLog.d(this, "On retry %d %s %d %d", getId(), ex,
                     retryTimes, autoRetryTimes);
         }
 
         ex = exFiltrate(ex);
-        downloadTransfer.setStatus(FileDownloadStatus.retry);
-        downloadTransfer.setThrowable(ex);
-        downloadTransfer.setRetryingTimes(retryTimes);
-        downloadTransfer.setSoFarBytes(soFarBytes);
-        // TODO 目前是做断点续传，实际还需要看情况而定
+        helper.updateRetry(getId(), ex.getMessage(), retryTimes, soFarBytes);
 
-        helper.updateRetry(downloadTransfer.getDownloadId(), ex.getMessage(), retryTimes);
+        transferModel.setStatus(FileDownloadStatus.retry);
+        transferModel.setThrowable(ex);
+        transferModel.setRetryingTimes(retryTimes);
+        transferModel.setSoFarBytes(soFarBytes);
 
-        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(
-                new DownloadTransferEvent(downloadTransfer
-                        .copy()// because we must make sure retry status no change by downloadTransfer reference
-                ));
+        onStatusChanged(model.getStatus());
     }
 
     private void onError(Throwable ex) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On error %d %s", downloadTransfer.getDownloadId(), ex);
+            FileDownloadLog.d(this, "On error %d %s", getId(), ex);
         }
 
         ex = exFiltrate(ex);
-        downloadTransfer.setStatus(FileDownloadStatus.error);
-        downloadTransfer.setThrowable(ex);
+        helper.updateError(getId(), ex.getMessage());
+
+        transferModel.setStatus(FileDownloadStatus.error);
+        transferModel.setThrowable(ex);
 
 
-        helper.updateError(downloadTransfer.getDownloadId(), ex.getMessage());
-
-        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        onStatusChanged(model.getStatus());
     }
 
     private void onComplete(final long total) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On completed %d %d %B", downloadTransfer.getDownloadId(),
-                    total, isCancelled());
+            FileDownloadLog.d(this, "On completed %d %d %B", getId(), total, isCancelled());
         }
-        downloadTransfer.setStatus(FileDownloadStatus.completed);
+        helper.updateComplete(getId(), total);
 
-        helper.updateComplete(downloadTransfer.getDownloadId(), total);
-        downloadTransfer.setSoFarBytes(total);
-        downloadTransfer.setTotalBytes(total);
+        transferModel.setStatus(FileDownloadStatus.completed);
+        transferModel.setSoFarBytes(total);
+        transferModel.setTotalBytes(total);
 
-        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        onStatusChanged(model.getStatus());
     }
 
     private void onPause() {
         this.isRunning = false;
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On paused %d %d %d", downloadTransfer.getDownloadId(),
-                    downloadTransfer.getSoFarBytes(), downloadTransfer.getTotalBytes());
+            FileDownloadLog.d(this, "On paused %d %d %d", getId(),
+                    model.getSoFar(), model.getTotal());
         }
-        downloadTransfer.setStatus(FileDownloadStatus.paused);
 
-        helper.updatePause(downloadTransfer.getDownloadId());
+        helper.updatePause(getId());
+
+        transferModel.setStatus(FileDownloadStatus.paused);
 
         // 这边没有必要从服务端再回调，由于直接调pause看是否已经成功
-//        FileEventPool.getImpl().asyncPublishInNewThread(new FileDownloadTransferEvent(downloadTransfer));
+//        onStatusChanged(model.getStatus());
     }
 
     public void onResume() {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On resume %d", downloadTransfer.getDownloadId());
+            FileDownloadLog.d(this, "On resume %d", getId());
         }
-        downloadTransfer.setStatus(FileDownloadStatus.pending);
 
         this.isPending = true;
 
-        helper.updatePending(downloadTransfer.getDownloadId());
+        helper.updatePending(getId());
 
-        FileDownloadProcessEventPool.getImpl().asyncPublishInNewThread(event.setTransfer(downloadTransfer));
+        model.setStatus(FileDownloadStatus.pending);
+
+        onStatusChanged(model.getStatus());
+    }
+
+    private void onStatusChanged(int status){
+        if (status == FileDownloadStatus.progress || FileDownloadStatus.isOver(status)) {
+            FileDownloadProcessEventPool.getImpl().
+                    asyncPublishInNewThread(event.setTransfer(transferModel));
+        }else {
+            FileDownloadProcessEventPool.getImpl().
+                    asyncPublishInNewThread(new DownloadTransferEvent(transferModel.copy()));
+        }
     }
 
     private boolean isCancelled() {
-        return this.downloadModel.isCanceled();
+        return this.model.isCanceled();
     }
 
     // ----------------------------------
-    private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes) throws Throwable {
+    private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes)
+            throws Throwable {
+        final String path = model.getPath();
         if (TextUtils.isEmpty(path)) {
             throw new RuntimeException("found invalid internal destination path, empty");
         }
@@ -578,19 +557,19 @@ class FileDownloadRunnable implements Runnable {
         }
 
         if (append) {
-            outFd.seek(downloadTransfer.getSoFarBytes());
+            outFd.seek(model.getSoFar());
         }
 
         return outFd;
     }
 
-    private void checkIsContinueAvailable() {
-        if (FileDownloadMgr.checkBreakpointAvailable(getId(), this.downloadModel)) {
-            this.isContinueDownloadAvailable = true;
+    private void checkIsResumeAvailable() {
+        if (FileDownloadMgr.checkBreakpointAvailable(getId(), this.model)) {
+            this.isResumeDownloadAvailable = true;
         } else {
-            this.isContinueDownloadAvailable = false;
+            this.isResumeDownloadAvailable = false;
             // delete dirty file
-            File file = new File(path);
+            File file = new File(model.getPath());
             file.delete();
         }
     }

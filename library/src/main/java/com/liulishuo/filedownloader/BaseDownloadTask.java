@@ -57,7 +57,7 @@ public abstract class BaseDownloadTask {
     private int retryingTimes = 0;
 
 
-    private boolean isContinue;
+    private boolean resuming;
     private String etag;
 
     /**
@@ -506,12 +506,20 @@ public abstract class BaseDownloadTask {
         return keyedTags == null ? null : keyedTags.get(key);
     }
 
+
+    /**
+     * @deprecated Use {@link #isResuming()} instead.
+     */
+    public boolean isContinue() {
+        return this.resuming;
+    }
+
     /**
      * @return Is resume by breakpoint, available
      * after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
      */
-    public boolean isContinue() {
-        return this.isContinue;
+    public boolean isResuming() {
+        return this.resuming;
     }
 
     /**
@@ -781,7 +789,7 @@ public abstract class BaseDownloadTask {
                 setStatus(transfer.getStatus());
                 setTotalBytes(transfer.getTotalBytes());
                 setSoFarBytes(transfer.getSoFarBytes());
-                this.isContinue = transfer.isContinue();
+                this.resuming = transfer.isResuming();
                 this.etag = transfer.getEtag();
 
                 // notify

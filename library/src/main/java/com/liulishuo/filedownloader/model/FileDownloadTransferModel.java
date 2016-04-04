@@ -36,7 +36,7 @@ public class FileDownloadTransferModel implements Parcelable {
     // Total bytes
     private long totalBytes;
     // Whether Resume from the breakpoint
-    private boolean isContinue;
+    private boolean resuming;
     // ETag
     private String etag;
 
@@ -50,8 +50,12 @@ public class FileDownloadTransferModel implements Parcelable {
     private boolean reusedOldFile = false;
 
     public FileDownloadTransferModel(final FileDownloadModel model) {
-        this.status = model.getStatus();
+        reset(model);
+    }
+
+    private void reset(FileDownloadModel model) {
         this.downloadId = model.getId();
+        this.status = model.getStatus();
         this.soFarBytes = model.getSoFar();
         this.totalBytes = model.getTotal();
         this.etag = model.getETag();
@@ -65,12 +69,12 @@ public class FileDownloadTransferModel implements Parcelable {
         this.retryingTimes = retryingTimes;
     }
 
-    public boolean isContinue() {
-        return isContinue;
+    public void setResuming(boolean resuming) {
+        this.resuming = resuming;
     }
 
-    public void setIsContinue(boolean isContinue) {
-        this.isContinue = isContinue;
+    public boolean isResuming() {
+        return resuming;
     }
 
     public String getEtag() {
@@ -157,7 +161,7 @@ public class FileDownloadTransferModel implements Parcelable {
                 dest.writeLong(this.soFarBytes);
                 dest.writeLong(this.totalBytes);
                 dest.writeString(this.etag);
-                dest.writeByte(isContinue ? (byte) 1 : (byte) 0);
+                dest.writeByte(resuming ? (byte) 1 : (byte) 0);
                 break;
             case FileDownloadStatus.progress:
                 dest.writeLong(this.soFarBytes);
@@ -198,7 +202,7 @@ public class FileDownloadTransferModel implements Parcelable {
                 this.soFarBytes = in.readLong();
                 this.totalBytes = in.readLong();
                 this.etag = in.readString();
-                this.isContinue = in.readByte() == 1;
+                this.resuming = in.readByte() == 1;
                 break;
             case FileDownloadStatus.progress:
                 this.soFarBytes = in.readLong();
@@ -230,7 +234,7 @@ public class FileDownloadTransferModel implements Parcelable {
         model.soFarBytes = this.soFarBytes;
         model.totalBytes = this.totalBytes;
         model.etag = this.etag;
-        model.isContinue = this.isContinue;
+        model.resuming = this.resuming;
         model.throwable = this.throwable;
         model.retryingTimes = this.retryingTimes;
 

@@ -53,7 +53,7 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
             case FileDownloadStatus.connected:
                 connected(downloaderEvent.getDownloader(),
                         downloaderEvent.getDownloader().getEtag(),
-                        downloaderEvent.getDownloader().isContinue(),
+                        downloaderEvent.getDownloader().isResuming(),
                         downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
                         downloaderEvent.getDownloader().getLargeFileTotalBytes());
                 break;

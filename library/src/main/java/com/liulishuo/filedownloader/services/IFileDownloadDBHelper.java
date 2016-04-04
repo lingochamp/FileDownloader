@@ -50,7 +50,7 @@ interface IFileDownloadDBHelper {
 
     void updateError(final int id, final String errMsg);
 
-    void updateRetry(final int id, final String errMsg, final int retryingTimes);
+    void updateRetry(final int id, final String errMsg, final int retryingTimes, final long soFar);
 
     void updateComplete(final int id, final long total);
 
