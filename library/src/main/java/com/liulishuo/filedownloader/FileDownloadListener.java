@@ -181,6 +181,8 @@ public abstract class FileDownloadListener extends IDownloadListener {
      *
      * @param task Current task
      * @param e    Any throwable on download pipeline
+     * @see com.liulishuo.filedownloader.exception.FileDownloadHttpException
+     * @see com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException
      */
     protected abstract void error(final BaseDownloadTask task, final Throwable e);
 
