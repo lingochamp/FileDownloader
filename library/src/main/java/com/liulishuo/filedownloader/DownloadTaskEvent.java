@@ -20,6 +20,8 @@ import com.liulishuo.filedownloader.event.IDownloadEvent;
 
 /**
  * Created by Jacksgong on 12/23/15.
+ * <p/>
+ * Wrapping the task and Used to driving an event to start it.
  */
 public class DownloadTaskEvent extends IDownloadEvent {
 
@@ -33,7 +35,7 @@ public class DownloadTaskEvent extends IDownloadEvent {
     }
 
     /**
-     * @return 消耗掉并返回本事件的Task
+     * @return the consumed task in this event.
      */
     public BaseDownloadTask consume() {
         final BaseDownloadTask task = this.task;

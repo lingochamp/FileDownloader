@@ -261,7 +261,6 @@ class FileDownloadRunnable implements Runnable {
                         && !(ex instanceof FileDownloadGiveUpRetryException)) {
                     // retry
                     onRetry(ex, retryingTimes, soFar);
-                    continue;
                 } else {
                     // error
                     onError(ex);
@@ -276,6 +275,9 @@ class FileDownloadRunnable implements Runnable {
         } while (true);
     }
 
+    /**
+     * @return Whether finish looper or not.
+     */
     private boolean fetch(Response response, boolean isSucceedContinue,
                           long soFar, long total) throws Throwable {
         // fetching datum
@@ -330,7 +332,6 @@ class FileDownloadRunnable implements Runnable {
                 // callback on completed
                 onComplete(total);
 
-                // 成功
                 return true;
             } else {
                 throw new RuntimeException(

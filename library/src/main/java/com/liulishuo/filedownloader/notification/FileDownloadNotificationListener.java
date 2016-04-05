@@ -28,7 +28,7 @@ import junit.framework.Assert;
  * @see BaseNotificationItem
  */
 public abstract class FileDownloadNotificationListener extends FileDownloadListener {
-    private FileDownloadNotificationHelper helper;
+    private final FileDownloadNotificationHelper helper;
 
     public FileDownloadNotificationListener(FileDownloadNotificationHelper helper) {
         Assert.assertNotNull("FileDownloadNotificationHelper must not null", helper);

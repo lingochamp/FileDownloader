@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Jacksgong on 15/6/23.
+ * <p/>
+ * Implementing actions for event pool.
  */
 public class DownloadEventPoolImpl implements IDownloadEventPool {
 
@@ -99,10 +101,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
     }
 
     public boolean post2UI(final Runnable runnable) {
-        if (handler == null) {
-            return false;
-        }
-        return handler.post(runnable);
+        return handler != null && handler.post(runnable);
     }
 
     @Override

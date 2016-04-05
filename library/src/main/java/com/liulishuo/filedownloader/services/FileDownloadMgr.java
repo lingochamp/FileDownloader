@@ -130,6 +130,7 @@ class FileDownloadMgr {
                     (model.getStatus() != FileDownloadStatus.pending && model.getStatus() != FileDownloadStatus.progress)
                     ) {
 
+                //noinspection RedundantIfStatement
                 if (isInPool) {
                     // status 不是pending/processing & 线程池有，只有可能是线程同步问题，status已经设置为complete/error/pause但是线程还没有执行完
                     // TODO 这里需要特殊处理，小概率事件，需要对同一DownloadId的Runnable与该方法同步

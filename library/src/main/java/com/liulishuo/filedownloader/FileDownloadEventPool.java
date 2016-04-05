@@ -197,14 +197,14 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     private static final class WaitingRunnable implements Runnable {
 
         private boolean isDead = false;
-        private WeakReference<FileDownloadEventPool> wPool;
+        private final WeakReference<FileDownloadEventPool> wPool;
         private long lastTriggerMills;
 
         WaitingRunnable(final WeakReference<FileDownloadEventPool> wPool) {
             this.wPool = wPool;
         }
 
-        private ArrayList<FileDownloadEvent> waitQueue =
+        private final ArrayList<FileDownloadEvent> waitQueue =
                 new ArrayList<>();
 
         private boolean waiting = false;
@@ -387,7 +387,7 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
         sendPool = Executors.newFixedThreadPool(3);
     }
 
-    private List<ShutDownItem> needShutdownList = new ArrayList<>();
+    private final List<ShutDownItem> needShutdownList = new ArrayList<>();
 
     synchronized void shutdownSendPool(final FileDownloadListener lis) {
         if (wait2SendThreadCount > 0) {
@@ -416,8 +416,8 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     }
 
     private static class ShutDownItem {
-        private FileDownloadListener listener;
-        private int snapshotWaitCount;
+        private final FileDownloadListener listener;
+        private final int snapshotWaitCount;
         private int needCheckCount;
 
         public ShutDownItem(final FileDownloadListener listener, final int wait2SendThreadCount) {

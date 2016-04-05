@@ -19,6 +19,8 @@ package com.liulishuo.filedownloader.event;
 
 /**
  * Created by Jacksgong on 9/24/15.
+ * <p/>
+ * Used to drive the FileDownload Service connection event.
  */
 public class DownloadServiceConnectChangedEvent extends IDownloadEvent {
     public final static String ID = "event.service.connect.changed";

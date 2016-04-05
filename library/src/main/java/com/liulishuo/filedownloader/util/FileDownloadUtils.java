@@ -162,32 +162,6 @@ public class FileDownloadUtils {
         return false;
     }
 
-    public static int encodeLong2Int(final long size) {
-        if (size < 0) {
-            return 0;
-        }
-
-        // (0, Integer.MAX_VALUE]
-        if (size <= Integer.MAX_VALUE) {
-            return (int) size;
-        }
-
-        // (Integer.MAX_VALUE, Integer.MAX_VALUE - Integer.MIN_VALUE]
-        if (size > Integer.MAX_VALUE && size <= (Integer.MAX_VALUE + (long) (-Integer.MIN_VALUE))) {
-            return (int) (size + Integer.MIN_VALUE);
-        }
-
-        return Integer.MAX_VALUE;
-    }
-
-    public static long decodeInt2Long(final int size, final boolean useNegative) {
-        if (useNegative) {
-            return size + (long) (-Integer.MIN_VALUE);
-        }
-
-        return size;
-    }
-
     public static String[] convertHeaderString(final String nameAndValuesString) {
         final String[] lineString = nameAndValuesString.split("\n");
         final String[] namesAndValues = new String[lineString.length * 2];

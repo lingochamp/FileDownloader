@@ -35,7 +35,7 @@ import com.liulishuo.filedownloader.services.FileDownloadService;
  * The UI-Guard for FileDownloader-Process.
  * <p/>
  * The only Class can access the FileDownload-Process, and the only Class can receive the event from
- * the Filedownload-Process through Binder.
+ * the FileDownloader-Process through Binder.
  */
 class FileDownloadServiceUIGuard extends
         BaseFileServiceUIGuard<FileDownloadServiceUIGuard.FileDownloadServiceCallback,

@@ -30,9 +30,9 @@ import okhttp3.Response;
  * and not {@link java.net.HttpURLConnection#HTTP_PARTIAL} either.
  */
 public class FileDownloadHttpException extends RuntimeException {
-    private int code;
-    private HeaderWrap requestHeaderWrap;
-    private HeaderWrap responseHeaderWrap;
+    private final int code;
+    private final HeaderWrap requestHeaderWrap;
+    private final HeaderWrap responseHeaderWrap;
 
     public FileDownloadHttpException(final Request request, final Response response) {
         super(String.format("response code error: %d, \n request headers: %s \n " +
@@ -65,7 +65,7 @@ public class FileDownloadHttpException extends RuntimeException {
     }
 
     static class HeaderWrap implements Serializable {
-        private String nameAndValuesString;
+        private final String nameAndValuesString;
         private String[] namesAndValues;
 
         public HeaderWrap(final Headers headers) {

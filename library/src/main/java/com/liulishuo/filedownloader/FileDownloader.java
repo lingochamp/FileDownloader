@@ -35,6 +35,8 @@ import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 12/17/15.
+ * <p/>
+ * The basic entrance for FileDownloader.
  */
 public class FileDownloader {
 
