@@ -22,6 +22,11 @@ import android.os.Parcelable;
 
 /**
  * Created by Jacksgong on 9/24/15.
+ * <p/>
+ * The Download-Task-Model will be store in DB.
+ *
+ * @see com.liulishuo.filedownloader.services.FileDownloadDBHelper
+ * @see com.liulishuo.filedownloader.services.FileDownloadDBOpenHelper
  */
 public class FileDownloadModel implements Parcelable {
 

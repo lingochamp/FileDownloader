@@ -23,6 +23,10 @@ import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 12/17/15.
+ * <p/>
+ * The simple helper for cache the {@code APP_CONTEXT} and {@code OK_HTTP_CLIENT}.
+ *
+ * @see com.liulishuo.filedownloader.FileDownloader#init(Context, OkHttpClientCustomMaker)
  */
 public class FileDownloadHelper {
 

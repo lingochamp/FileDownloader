@@ -25,6 +25,8 @@ import java.util.concurrent.Executors;
 
 /**
  * Created by Jacksgong on 9/25/15.
+ * <p/>
+ * The thread pool for driving the download runnable.
  */
 class FileDownloadThreadPool {
 
@@ -36,7 +38,7 @@ class FileDownloadThreadPool {
     public void execute(FileDownloadRunnable runnable) {
         runnable.onResume();
         threadPool.execute(runnable);
-        synchronized (this){
+        synchronized (this) {
             runnablePool.put(runnable.getId(), runnable);
         }
 

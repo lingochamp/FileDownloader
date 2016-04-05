@@ -29,6 +29,10 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
  * Created by Jacksgong on 8/6/15.
+ * <p/>
+ * The basic function wrap for one {@link Service}.
+ *
+ * @see BaseFileServiceUIGuard
  */
 public abstract class BaseFileService<CALLBACK extends IInterface, BINDER extends Binder> extends Service {
 

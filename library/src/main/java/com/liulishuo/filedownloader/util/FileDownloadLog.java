@@ -20,6 +20,11 @@ import android.util.Log;
 
 /**
  * Created by Jacksgong on 12/17/15.
+ * <p/>
+ * For handling the log print.
+ * <p/>
+ * If you want to print all priority FileDownloader logs, please set true to {@link #NEED_LOG},
+ * otherwise, we just print the log which priority higher than or equal to {@link Log#WARN}.
  */
 public class FileDownloadLog {
 

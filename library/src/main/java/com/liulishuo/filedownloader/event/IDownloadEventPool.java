@@ -20,6 +20,11 @@ import android.os.Looper;
 
 /**
  * Created by Jacksgong on 15/6/23.
+ * <p/>
+ * The event pool to store the event and listener, and drive them.
+ *
+ * @see IDownloadEvent
+ * @see IDownloadListener
  */
 public interface IDownloadEventPool {
 

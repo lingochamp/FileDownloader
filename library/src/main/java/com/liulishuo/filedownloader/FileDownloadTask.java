@@ -29,6 +29,8 @@ import java.util.List;
 
 /**
  * Created by Jacksgong on 9/24/15.
+ * <p/>
+ * An atom task wraps the real action with {@link FileDownloadServiceUIGuard}.
  */
 class FileDownloadTask extends BaseDownloadTask {
 

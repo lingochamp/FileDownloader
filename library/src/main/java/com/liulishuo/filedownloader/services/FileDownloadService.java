@@ -32,8 +32,14 @@ import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 9/23/15.
+ * <p/>
+ * The Service holding in FileDownloader-Process for transferring download events.
+ *
+ * @see FileDownloadMgr
  */
-public class FileDownloadService extends BaseFileService<IFileDownloadIPCCallback, FileDownloadService.FileDownloadServiceBinder> implements DownloadEventSampleListener.IEventListener {
+public class FileDownloadService extends
+        BaseFileService<IFileDownloadIPCCallback, FileDownloadService.FileDownloadServiceBinder>
+        implements DownloadEventSampleListener.IEventListener {
 
     private DownloadEventSampleListener mListener;
 

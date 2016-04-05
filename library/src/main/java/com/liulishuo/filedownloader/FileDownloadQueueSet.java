@@ -21,6 +21,10 @@ import java.util.List;
 
 /**
  * Created by Jacksgong on 1/22/16.
+ * <p/>
+ * The helper for start and config the task queue simply and quickly.
+ *
+ * @see FileDownloader#start(FileDownloadListener, boolean)
  */
 public class FileDownloadQueueSet {
 

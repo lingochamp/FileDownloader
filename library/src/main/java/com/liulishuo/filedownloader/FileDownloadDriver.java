@@ -20,6 +20,8 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
  * Created by Jacksgong on 12/21/15.
+ * <p/>
+ * The driver is used to notify to the {@link FileDownloadListener}.
  */
 class FileDownloadDriver implements IFileDownloadMessage {
 

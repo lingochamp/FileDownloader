@@ -25,6 +25,15 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 
 /**
  * Created by Jacksgong on 9/25/15.
+ * <p/>
+ * The DB For storing the {@link FileDownloadModel}.
+ * <p/>
+ * Use to judge whether can resume from breakpoint; or whether the downloaded file matches the
+ * target task.
+ *
+ * @see FileDownloadDBHelper
+ * @see FileDownloadMgr#checkBreakpointAvailable(int, FileDownloadModel)
+ * @see FileDownloadMgr#checkReuse(int, FileDownloadModel)
  */
 class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "filedownloader.db";

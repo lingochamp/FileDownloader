@@ -23,6 +23,10 @@ import com.liulishuo.filedownloader.services.FileDownloadService;
 
 /**
  * Created by Jacksgong on 1/10/16.
+ * <p/>
+ * For listening whether the service establishes connection or disconnected.
+ *
+ * @see com.liulishuo.filedownloader.services.BaseFileServiceUIGuard#releaseConnect(boolean)
  */
 public abstract class FileDownloadConnectListener extends IDownloadListener {
 

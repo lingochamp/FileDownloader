@@ -33,6 +33,11 @@ import java.util.ArrayList;
 
 /**
  * Created by Jacksgong on 9/23/15.
+ * <p/>
+ * A atom download task.
+ *
+ * @see FileDownloader
+ * @see FileDownloadTask
  */
 public abstract class BaseDownloadTask {
 

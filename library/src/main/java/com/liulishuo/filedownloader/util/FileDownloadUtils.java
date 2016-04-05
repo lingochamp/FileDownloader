@@ -31,6 +31,8 @@ import okhttp3.Headers;
 
 /**
  * Created by Jacksgong on 9/25/15.
+ * <p/>
+ * Wrapping some static utils for FileDownloader.
  */
 public class FileDownloadUtils {
 

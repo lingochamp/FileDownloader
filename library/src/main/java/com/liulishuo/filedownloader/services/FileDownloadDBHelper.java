@@ -34,6 +34,9 @@ import java.util.Set;
 
 /**
  * Created by Jacksgong on 9/24/15.
+ * <p/>
+ * For storing and updating the {@link FileDownloadModel} to DB.
+ * And will maintain the DB automatically, when FileDownloader-Process is launching.
  */
 class FileDownloadDBHelper implements IFileDownloadDBHelper {
 

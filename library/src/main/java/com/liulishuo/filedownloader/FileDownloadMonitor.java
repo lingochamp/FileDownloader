@@ -18,6 +18,13 @@ package com.liulishuo.filedownloader;
 
 /**
  * Created by Jacksgong on 1/19/16.
+ * <p/>
+ * The FileDownloader global monitor, monitor the begin、over for all tasks.
+ *
+ * @see BaseDownloadTask#begin()
+ * @see BaseDownloadTask#over()
+ * @see BaseDownloadTask#start()
+ * @see FileDownloader#start(FileDownloadListener, boolean)
  */
 public class FileDownloadMonitor {
     private static IMonitor MONITOR;

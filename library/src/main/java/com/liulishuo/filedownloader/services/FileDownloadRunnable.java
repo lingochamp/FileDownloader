@@ -48,6 +48,12 @@ import okhttp3.Response;
 
 /**
  * Created by Jacksgong on 9/24/15.
+ * <p/>
+ * An atom download runnable for one task.
+ *
+ * @see #loop(FileDownloadModel)
+ * @see #fetch(Response, boolean, long, long)
+ * @see FileDownloadThreadPool
  */
 class FileDownloadRunnable implements Runnable {
 

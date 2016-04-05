@@ -32,6 +32,14 @@ import okhttp3.OkHttpClient;
 
 /**
  * Created by Jacksgong on 9/24/15.
+ * <p/>
+ * The Download Manager in FileDownloader-Process, which is used to control all download-inflow.
+ * <p/>
+ * Handling real {@link #start(String, String, int, int, FileDownloadHeader)}; Handing real
+ * {@link #checkReuse(int, FileDownloadModel)} (int, FileDownloadModel)}
+ *
+ * @see FileDownloadThreadPool
+ * @see FileDownloadRunnable
  */
 class FileDownloadMgr {
     private final IFileDownloadDBHelper mHelper;

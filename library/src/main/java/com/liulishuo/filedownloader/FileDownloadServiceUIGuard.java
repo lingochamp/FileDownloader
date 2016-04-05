@@ -31,8 +31,15 @@ import com.liulishuo.filedownloader.services.FileDownloadService;
 
 /**
  * Created by Jacksgong on 9/23/15.
+ * <p/>
+ * The UI-Guard for FileDownloader-Process.
+ * <p/>
+ * The only Class can access the FileDownload-Process, and the only Class can receive the event from
+ * the Filedownload-Process through Binder.
  */
-class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServiceUIGuard.FileDownloadServiceCallback, IFileDownloadIPCService> {
+class FileDownloadServiceUIGuard extends
+        BaseFileServiceUIGuard<FileDownloadServiceUIGuard.FileDownloadServiceCallback,
+                IFileDownloadIPCService> {
 
     private final static class HolderClass {
         private final static FileDownloadServiceUIGuard INSTANCE = new FileDownloadServiceUIGuard();
@@ -185,7 +192,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         return val;
     }
 
-    public int getStatus(final int downloadId){
+    public int getStatus(final int downloadId) {
         int status = FileDownloadStatus.INVALID_STATUS;
         if (getService() == null) {
             return status;
@@ -200,7 +207,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
         return status;
     }
 
-    public void pauseAllTasks(){
+    public void pauseAllTasks() {
         if (getService() == null) {
             return;
         }
@@ -215,7 +222,7 @@ class FileDownloadServiceUIGuard extends BaseFileServiceUIGuard<FileDownloadServ
     /**
      * @return any error, will return true
      */
-    public boolean isIdle(){
+    public boolean isIdle() {
         if (getService() == null) {
             return true;
         }

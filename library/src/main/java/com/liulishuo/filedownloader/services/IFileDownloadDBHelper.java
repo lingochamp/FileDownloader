@@ -23,6 +23,8 @@ import java.util.Set;
 
 /**
  * Created by Jacksgong on 9/24/15.
+ *
+ * The DB helper for handling all {@link FileDownloadModel} updating to DB.
  */
 interface IFileDownloadDBHelper {
 

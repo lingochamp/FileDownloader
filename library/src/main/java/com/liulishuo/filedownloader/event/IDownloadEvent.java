@@ -20,6 +20,8 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
  * Created by Jacksgong on 15/6/23.
+ * <p/>
+ * An atom event.
  */
 public abstract class IDownloadEvent {
     public Runnable callback = null;

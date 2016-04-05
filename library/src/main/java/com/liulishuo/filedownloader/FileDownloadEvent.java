@@ -22,6 +22,11 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
  * Created by Jacksgong on 9/7/15.
+ * <p/>
+ * For Wrapping the task-status-changed-event for notifying to the {@link FileDownloadListener}.
+ *
+ * @see FileDownloadDriver
+ * @see FileDownloadEventPool
  */
 class FileDownloadEvent extends IDownloadEvent {
 
