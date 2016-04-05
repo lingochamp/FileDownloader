@@ -307,7 +307,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
                             .setListener(taskDownloadListener);
 
                     TasksManager.getImpl()
-                            .addTaskForViewHoder(task);
+                            .addTaskForViewHolder(task);
 
                     TasksManager.getImpl()
                             .updateViewHolder(holder.id, holder);
@@ -407,7 +407,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
         }
 
         private SparseArray<BaseDownloadTask> taskSparseArray = new SparseArray<>();
-        public void addTaskForViewHoder(final BaseDownloadTask task) {
+        public void addTaskForViewHolder(final BaseDownloadTask task) {
             taskSparseArray.put(task.getDownloadId(), task);
         }
 
@@ -477,7 +477,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             return modelList.get(position);
         }
 
-        public TasksManagerModel getbyId(final int id) {
+        public TasksManagerModel getById(final int id) {
             for (TasksManagerModel model : modelList) {
                 if (model.getId() == id) {
                     return model;
@@ -508,7 +508,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
         }
 
         public boolean isExist(final int id) {
-            return new File(getbyId(id).getPath()).exists();
+            return new File(getById(id).getPath()).exists();
         }
 
         public int getStatus(final int id) {
@@ -537,7 +537,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             final int id = FileDownloadUtils.generateId(url, path);
-            TasksManagerModel model = getbyId(id);
+            TasksManagerModel model = getById(id);
             if (model != null) {
                 return model;
             }

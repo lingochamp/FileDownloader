@@ -314,7 +314,7 @@ class FileDownloadRunnable implements Runnable {
             } while (true);
 
 
-            // Step 7, adapter chuncked transfer encoding
+            // Step 7, adapter chunked transfer encoding
             if (total == -1) {
                 total = soFar;
             }

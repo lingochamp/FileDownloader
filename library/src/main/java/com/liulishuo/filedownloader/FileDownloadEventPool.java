@@ -197,11 +197,11 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     private static final class WaitingRunnable implements Runnable {
 
         private boolean isDead = false;
-        private WeakReference<FileDownloadEventPool> wpool;
+        private WeakReference<FileDownloadEventPool> wPool;
         private long lastTriggerMills;
 
         WaitingRunnable(final WeakReference<FileDownloadEventPool> wPool) {
-            this.wpool = wPool;
+            this.wPool = wPool;
         }
 
         private ArrayList<FileDownloadEvent> waitQueue =
@@ -300,14 +300,14 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                         break;
                     }
 
-                    if (wpool == null || wpool.get() == null) {
+                    if (wPool == null || wPool.get() == null) {
                         FileDownloadLog.e(WaitingRunnable.class, "trigger to callback 2 ui, but " +
                                 "event pool is nil %d", waitQueue.size());
                         break;
                     }
                     // will waiting, for thread area swap not make sense
                     waiting = true;
-                    wpool.get().post2UI(new Runnable() {
+                    wPool.get().post2UI(new Runnable() {
                         @Override
                         public void run() {
                             loopMessage();
@@ -363,13 +363,13 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
             }
 
             for (int i = 0; i < toDealQueue.size(); i++) {
-                if (wpool == null || wpool.get() == null) {
+                if (wPool == null || wPool.get() == null) {
                     FileDownloadLog.e(WaitingRunnable.class, "trigger to send 2 ui thread and " +
                             "wait queue is available but event pool is nil");
                     return false;
                 }
 
-                wpool.get().publish(toDealQueue.get(i));
+                wPool.get().publish(toDealQueue.get(i));
             }
 
             lastTriggerMills = System.currentTimeMillis();
