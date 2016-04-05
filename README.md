@@ -8,7 +8,7 @@ Android multi-task file download engine.
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
-> This project dependency on [square/okhttp 3.1.2](https://github.com/square/okhttp)
+> This project dependency on [square/okhttp 3.2.0](https://github.com/square/okhttp)
 
 ## DEMO
 
@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.2.0'
+    compile 'com.liulishuo.filedownloader:library:0.2.1'
 }
 ```
 
@@ -45,8 +45,11 @@ public XXApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-        // Just cache Application's Context.
-        FileDownloader.init(this);
+        /**
+         * Just for cache Application's Context, and ':filedownloader' progress will NOT be launched
+         * by below code, so please do not worry about performance.
+         */
+        FileDownloader.init(getApplicationContext());
     }
 
     ...
@@ -212,7 +215,8 @@ queueSet.start();
 
 | function | description
 | --- | ---
-| init(Application) |  Just cache ApplicationContext
+| init(Context) |  Just cache `Context` in Main-Process and FileDownloader-Process.
+| init(Context, OkHttpClientCustomMaker) |  Cache `Context` in Main-Process and FileDownloader-Process, and init the OkHttpClient in FileDownloader-Process when FileDownloader-Process is launching.
 | create(url:String) | Create a download task
 | start(listener:FileDownloadListener, isSerial:boolean) | Start the download queue by the same listener(maybe do not need callback each task's `FileDownloadListener#progress` in this case, then set `setCallbackProgressTimes(0)` is effective optimization)
 | pause(listener:FileDownloadListener) | Pause the download queue by the same listener
@@ -355,6 +359,15 @@ blockComplete -> completed
 | --- | --- | ---
 | http.lenient | if you occur exception: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', but you want to ignore such exception, set true, will deal with it as the case of transfer encoding chunk. | false
 
+## Exception
+
+> If occur a exception, you will get it in `FileDownloadListener#error(BaseDownloadTask, Throwable)`
+
+| Exception | reason
+| --- | ---
+| `FileDownloadHttpException`| Throw this exception, when the HTTP status code is not 200(HTTP_OK),  and not 206(HTTP_PARTIAL) either. You can find the request-header, the response-header and response-code in this exception.
+| `FileDownloadGiveUpRetryException` | Throw this exception, when can't know the size of the download file, and its Transfer-Encoding is not Chunked either; And With this exception, will ignore all retry-chances(`BaseDownloadTask#setAutoRetryTimes`). You can ignore such exception by add `http.lenient=true` to the `filedownloader.properties`, and will download directly as a Chunked-Resource.
+| Others | Program Exception, or the free space is not enough to store the download-file will throw the `IOException` .
 
 ## Attention
 

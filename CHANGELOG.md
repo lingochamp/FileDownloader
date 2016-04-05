@@ -2,6 +2,33 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.1
+
+_2016-04-05_
+
+#### New Interfaces
+
+- Add `FileDownloadHttpException` and `FileDownloadGiveUpRetryException`, and optimize the mechanism of exception. Closes #67 .
+- Init the `FileDownloader` use `Context` instead of `Application` ( `FileDownloader#init(Context)` ) , for more make sense and unit-test. Closes #54 .
+
+#### Enhancement
+
+- Improve Robust: Check whether free space is enough, and throw IOException directly when not enough; And pre-allocate need-available-space before fetching datum when the free space more than need-available-space. Closes #46 .
+- Improve Practicability: Support resume from breakpoint without ETag. Just need the server support the request-header param 'Range'. Close #35 , #66 .
+
+
+#### Fix
+
+- Fix: The `IllegalFormatConversionException` on `EventPool` when publishing the event which does not in effect and `FileDownloadLog.NEED_LOG` is `true`. Closes #30 .
+- Fix: The non-fatal-crash in `IFileDownloadIPCService.java` , when lost connection from filedownloader process. because the IBinder's hosting process(filedownloader process) has been killed/cancelled. Closes #38 .
+- Fix: The leak of response-body: 'WARNING: A connection to https://... was leaked. Did you forget to close a response body?' Closes #68 .
+- Fix: Using the internal-string as synchronized lock-object instead of string-original.
+- Fix: The number of the Ing-call-back is not correct in some cases.
+
+#### Others
+
+- Upgrade dependency okhttp from `3.1.2` to `3.2.0`.
+
 ## Version 0.2.0
 
 _2016-02-15_

@@ -1,5 +1,33 @@
 # Change log
 
+> [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
+
+## Version 0.2.1
+
+_2016-04-05_
+
+#### 新接口
+
+- 添加 `FileDownloadHttpException` 与 `FileDownloadGiveUpRetryException`, 优化异常回调处理机制. Closes #67 。
+- 初始化 `FileDownloader` 传入参数由原来需要 `Application` 改为 需要 `Context`( `FileDownloader#init(Context)` ), 优化接口，并且便于单元测试。 Closes #54 。
+
+#### 性能与提高
+
+- 提高稳定性: 在开始获取数据之前，先检查是否有足够的空间用于存储下载文件，如果不够直接抛异常，如果足够将锁定对应空间用于正常存储正在下载的文件。 Closes #46 。
+- 提高实用性: 断点续传支持，不再强制要求Etag存在；支持不需要Etag，只要后台支持 `Range` 头部参数就可以支持断点续传。 Close #35 , #66 。
+
+#### 修复
+
+- 修复: 在 `FileDownloadLog.NEED_LOG` 为 `true` 时，并且事件无效的情况下，`EventPool` 出现 `IllegalFormatConversionException` 异常的问题。 Closes #30 。
+- 修复: 在 Filedownloader进程被杀以后， 在 `IFileDownloadIPCService` 出现异常。Closes #38 。
+- 修复: 修复 reponse-body 可能存在的泄漏: 'WARNING: A connection to https://... was leaked. Did you forget to close a response body?' Closes #68 。
+- 修复: 使用 `internal-string` 作为同步的对象，而非直接用 String对象。
+- 修复: 在一些情况下如果存在重复任务，在高并发下进行中的回调次数可能不对的bug。
+
+#### 其他
+
+- 所依赖的okhttp从`3.1.2`升到`3.2.0`。
+
 ## Version 0.2.0
 
 _2016-02-15_

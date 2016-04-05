@@ -7,7 +7,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
 
-> 本引擎依赖okhttp 3.1.2
+> 本引擎依赖okhttp 3.2.0
 
 ---
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
@@ -46,7 +46,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.0'
+compile 'com.liulishuo.filedownloader:library:0.2.1'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -59,8 +59,10 @@ public XXApplication extends Application{
     ...
     @Override
     public void onCreate() {
-        // 不耗时，仅仅只是缓存下Application的Context不会启动下载进程
-        FileDownloader.init(this);
+        /**
+         * 仅仅是缓存Application的Context，不耗时
+         */
+        FileDownloader.init(getApplicationContext);
     }
 
     ...
@@ -214,7 +216,8 @@ if (parallel) {
 
 | 方法名 | 备注
 | --- | ---
-| init(Application) |  简单初始化，不会启动下载进程
+| init(Context) |  缓存Context，不会启动下载进程
+| init(Context, OkHttpClientCustomMaker) | 缓存Context，不会启动下载进程；在下载进程启动的时候，初始化OkHttpClient
 | create(url:String) | 创建一个下载任务
 | start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
@@ -357,6 +360,17 @@ blockComplete -> completed
 | 关键字 | 描述 | 默认值
 | --- | --- | ---
 | http.lenient | 如果你遇到了: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', 但是你想要忽略类似的返回头不规范的错误，直接将该关键字参数设置为`true`即可，我们将会将其作为`chunck`进行处理 | false
+
+
+III. 异常处理
+
+> 所有的异常，都将在 `FileDownloadListener#error(BaseDownloadTask, Throwable)` 中获知。
+
+| Exception | 原因
+| --- | ---
+| `FileDownloadHttpException`| 在发出请求以后，response-code不是200(HTTP_OK)，也不是206(HTTP_PARTIAL)的情况下会抛出该异常; 在这个异常对象会带上 response-code、response-header、request-header。
+| `FileDownloadGiveUpRetryException` | 在请求返回的 response-header 中没有带有文件大小(content-length)，并且不是流媒体(transfer-encoding)的情况下会抛出该异常；出现这个异常，将会忽略所有重试的机会(`BaseDownloadTask#setAutoRetryTimes`). 你可以通过在 `filedownloader.properties`中添加 `http.lenient=true` 来忽略这个异常，并且在该情况下，直接作为流媒体进行下载。
+| 其他 | 程序错误; 或者是本地的存储空间已经不足以存储将要下载的文件会直接抛出`IOException` 。
 
 
 
