@@ -2,9 +2,9 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
-## Version 0.2.1
+## Version 0.2.2
 
-_2016-04-05_
+_2016-04-06_
 
 #### New Interfaces
 
