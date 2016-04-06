@@ -531,7 +531,7 @@ class FileDownloadRunnable implements Runnable {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 availableBytes = statFs.getAvailableBytes();
             } else {
-                availableBytes = statFs.getAvailableBlocks() * statFs.getBlockSize();
+                availableBytes = statFs.getAvailableBlocks() * (long) statFs.getBlockSize();
             }
 
             if (availableBytes < needAvailableSpace) {
