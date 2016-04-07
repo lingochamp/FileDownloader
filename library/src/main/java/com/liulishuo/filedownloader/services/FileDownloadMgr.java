@@ -172,17 +172,6 @@ class FileDownloadMgr {
                 break;
             }
 
-            if (model.getStatus() != FileDownloadStatus.paused
-                    && model.getStatus() != FileDownloadStatus.retry
-                    && model.getStatus() != FileDownloadStatus.pending // may pending in case of enqueue
-                    ) {
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d status[%d] isn't paused",
-                            downloadId, model.getStatus());
-                }
-                break;
-            }
-
             File file = new File(model.getPath());
             final boolean isExists = file.exists();
             final boolean isDirectory = file.isDirectory();

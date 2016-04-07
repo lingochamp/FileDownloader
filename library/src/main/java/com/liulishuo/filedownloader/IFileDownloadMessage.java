@@ -16,6 +16,9 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.services.FileDownloadRunnable;
+
 /**
  * Created by Jacksgong on 12/21/15.
  *
@@ -23,27 +26,105 @@ package com.liulishuo.filedownloader;
  */
 interface IFileDownloadMessage {
 
+    /**
+     * The task is just received to handle.
+     * <p/>
+     * FileDownloader accept the task.
+     */
+    void notifyBegin();
 
-    // Start state，Entry queue
-    void notifyStarted();
-
-    // in-between state
+    /**
+     * The task is pending.
+     * <p/>
+     * enqueue, and pending, waiting.
+     *
+     * @see com.liulishuo.filedownloader.services.FileDownloadThreadPool
+     */
     void notifyPending();
 
+    /**
+     * The download runnable of the task has started running.
+     * <p/>
+     * Finish pending, and start download runnable.
+     *
+     * @see FileDownloadRunnable#onStarted()
+     */
+    void notifyStarted();
+
+    /**
+     * The task is running.
+     * <p/>
+     * Already connected to the server, and received the Http-response.
+     *
+     * @see FileDownloadRunnable#onConnected(boolean, long, long)
+     */
     void notifyConnected();
 
+    /**
+     * The task is running.
+     * <p/>
+     * Fetching datum, and write to local disk.
+     *
+     * @see FileDownloadRunnable#onProgress(long, long)
+     */
     void notifyProgress();
 
+    /**
+     * The task is running.
+     * <p/>
+     * Already completed download, and block the current thread to do something, such as unzip,etc.
+     *
+     * @see FileDownloadRunnable#onComplete(long)
+     * @see FileDownloadList#removeByCompleted(BaseDownloadTask)
+     */
     void notifyBlockComplete();
 
+    /**
+     * The task over.
+     * <p/>
+     * Occur a exception when downloading, but has retry
+     * chance {@link BaseDownloadTask#setAutoRetryTimes(int)}, so retry(re-connect,re-download).
+     */
     void notifyRetry();
 
-    // Over state, one of the following
+    /**
+     * The task over.
+     * <p/>
+     * There are some same Task(Same-URL & Same-SavePath) in Queue or Downloading.
+     *
+     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#start(String, String, int, int, FileDownloadHeader)
+     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#checkDownloading(String, String)
+     */
     void notifyWarn();
 
+    /**
+     * The task over.
+     * <p/>
+     * Occur a exception, but don't has any chance to retry.
+     *
+     * @see FileDownloadRunnable#onError(Throwable)
+     * @see com.liulishuo.filedownloader.exception.FileDownloadHttpException
+     * @see com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException
+     * @see com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException
+     */
     void notifyError();
 
+    /**
+     * The task over.
+     * <p/>
+     * Pause manually by {@link BaseDownloadTask#pause()}.
+     *
+     * @see BaseDownloadTask#pause()
+     */
     void notifyPaused();
 
+    /**
+     * The task over.
+     * <p/>
+     * Achieve complete ceremony.
+     *
+     * @see FileDownloadRunnable#onComplete(long)
+     * @see FileDownloadList#removeByCompleted(BaseDownloadTask)
+     */
     void notifyCompleted();
 }

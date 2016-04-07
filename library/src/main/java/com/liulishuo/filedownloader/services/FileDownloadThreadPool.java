@@ -36,7 +36,7 @@ class FileDownloadThreadPool {
     private final ExecutorService threadPool = Executors.newFixedThreadPool(3);
 
     public void execute(FileDownloadRunnable runnable) {
-        runnable.onResume();
+        runnable.onPending();
         threadPool.execute(runnable);
         synchronized (this) {
             runnablePool.put(runnable.getId(), runnable);

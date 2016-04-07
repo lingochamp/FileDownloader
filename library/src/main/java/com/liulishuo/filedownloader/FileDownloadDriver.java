@@ -22,6 +22,8 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
  * Created by Jacksgong on 12/21/15.
  * <p/>
  * The driver is used to notify to the {@link FileDownloadListener}.
+ *
+ * @see IFileDownloadMessage
  */
 class FileDownloadDriver implements IFileDownloadMessage {
 
@@ -31,17 +33,15 @@ class FileDownloadDriver implements IFileDownloadMessage {
         this.download = download;
     }
 
-    // Start state, from FileDownloadList, to addEventListener ---------------
     @Override
-    public void notifyStarted() {
+    public void notifyBegin() {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify started %s", download);
+            FileDownloadLog.d(this, "notify begin %s", download);
         }
 
         download.begin();
     }
 
-    // in-between state, from BaseDownloadTask#update, to user ---------------------------
     @Override
     public void notifyPending() {
         if (FileDownloadLog.NEED_LOG) {
@@ -52,12 +52,21 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getIngEvent().pending();
 
-        if (download.isSyncCallback()) {
-            FileDownloadEventPool.getImpl().publish(event);
-        } else {
-            FileDownloadEventPool.getImpl().send2UIThread(event);
+        publishEvent(event);
+
+    }
+
+    @Override
+    public void notifyStarted() {
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "notify started %s", download);
         }
 
+        download.ing();
+
+        final FileDownloadEvent event = download.getIngEvent().started();
+
+        publishEvent(event);
     }
 
     @Override
@@ -70,12 +79,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getIngEvent().connected();
 
-        if (download.isSyncCallback()) {
-            FileDownloadEventPool.getImpl().publish(event);
-        } else {
-            FileDownloadEventPool.getImpl().send2UIThread(event);
-        }
-
+        publishEvent(event);
     }
 
     @Override
@@ -95,12 +99,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getIngEvent().progress();
 
-        if (download.isSyncCallback()) {
-            FileDownloadEventPool.getImpl().publish(event);
-        } else {
-            FileDownloadEventPool.getImpl().send2UIThread(event);
-        }
-
+        publishEvent(event);
     }
 
     /**
@@ -114,6 +113,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         download.ing();
 
+        // need block the current thread, so execute sync.
         FileDownloadEventPool.getImpl().publish(download.getIngEvent()
                 .blockComplete());
     }
@@ -129,12 +129,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getIngEvent().retry();
 
-        if (download.isSyncCallback()) {
-            FileDownloadEventPool.getImpl().publish(event);
-        } else {
-            FileDownloadEventPool.getImpl().send2UIThread(event);
-        }
-
+        publishEvent(event);
     }
 
     // Over state, from FileDownloadList, to user -----------------------------
@@ -148,12 +143,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getOverEvent().warn();
 
-        if (download.isSyncCallback()) {
-            FileDownloadEventPool.getImpl().publish(event);
-        } else {
-            FileDownloadEventPool.getImpl().send2UIThread(event);
-        }
-
+        publishEvent(event);
     }
 
     @Override
@@ -166,12 +156,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getOverEvent().error();
 
-        if (download.isSyncCallback()) {
-            FileDownloadEventPool.getImpl().publish(event);
-        } else {
-            FileDownloadEventPool.getImpl().send2UIThread(event);
-        }
-
+        publishEvent(event);
     }
 
     @Override
@@ -184,11 +169,7 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getOverEvent().pause();
 
-        if (download.isSyncCallback()) {
-            FileDownloadEventPool.getImpl().publish(event);
-        } else {
-            FileDownloadEventPool.getImpl().send2UIThread(event);
-        }
+        publishEvent(event);
     }
 
     @Override
@@ -201,6 +182,10 @@ class FileDownloadDriver implements IFileDownloadMessage {
 
         final FileDownloadEvent event = download.getOverEvent().complete();
 
+        publishEvent(event);
+    }
+
+    private void publishEvent(FileDownloadEvent event) {
         if (download.isSyncCallback()) {
             FileDownloadEventPool.getImpl().publish(event);
         } else {

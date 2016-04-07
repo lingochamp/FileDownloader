@@ -794,9 +794,20 @@ public abstract class BaseDownloadTask {
                 // notify
                 getDriver().notifyPending();
                 break;
+            case FileDownloadStatus.started:
+                if (getStatus() != FileDownloadStatus.pending) {
+                    printNotMatchReasonLog(transfer.getStatus());
+                    break;
+                }
+                match = true;
+                this.setStatus(transfer.getStatus());
+
+                // notify
+                getDriver().notifyStarted();
+                break;
             case FileDownloadStatus.connected:
-                if (getStatus() != FileDownloadStatus.pending &&
-                        getStatus() != FileDownloadStatus.retry) {
+                if (getStatus() != FileDownloadStatus.retry &&
+                        getStatus() != FileDownloadStatus.started) {
                     printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }

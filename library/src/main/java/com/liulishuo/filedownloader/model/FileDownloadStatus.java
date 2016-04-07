@@ -24,6 +24,7 @@ package com.liulishuo.filedownloader.model;
 public class FileDownloadStatus {
     // [-2^7, 2^7 -1]
     public final static byte pending = 1;
+    public final static byte started = 6;
     public final static byte connected = 2;
     public final static byte progress = 3;
     public final static byte blockComplete = 4;
@@ -33,7 +34,7 @@ public class FileDownloadStatus {
     public final static byte completed = -3;
     public final static byte warn = -4;
 
-    public final static byte MAX_INT = 5;
+    public final static byte MAX_INT = 6;
     public final static byte MIN_INT = -4;
     public final static byte INVALID_STATUS = 0;
 

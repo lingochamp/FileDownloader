@@ -55,7 +55,7 @@ import okhttp3.Response;
  * @see #fetch(Response, boolean, long, long)
  * @see FileDownloadThreadPool
  */
-class FileDownloadRunnable implements Runnable {
+public class FileDownloadRunnable implements Runnable {
 
     private static final int BUFFER_SIZE = 1024 * 4;
     private final FileDownloadTransferModel transferModel;
@@ -133,6 +133,8 @@ class FileDownloadRunnable implements Runnable {
 
                 return;
             }
+
+            onStarted();
 
             // Step 3, start download
             loop(model);
@@ -468,7 +470,12 @@ class FileDownloadRunnable implements Runnable {
 //        onStatusChanged(model.getStatus());
     }
 
-    public void onResume() {
+    private void onStarted() {
+        model.setStatus(FileDownloadStatus.started);
+        onStatusChanged(model.getStatus());
+    }
+
+    public void onPending() {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "On resume %d", getId());
         }
@@ -480,13 +487,13 @@ class FileDownloadRunnable implements Runnable {
         onStatusChanged(model.getStatus());
     }
 
-    private void onStatusChanged(int status){
+    private void onStatusChanged(int status) {
         transferModel.update(model);
 
         if (status == FileDownloadStatus.progress || FileDownloadStatus.isOver(status)) {
             FileDownloadProcessEventPool.getImpl().
                     asyncPublishInNewThread(event.setTransfer(transferModel));
-        }else {
+        } else {
             FileDownloadProcessEventPool.getImpl().
                     asyncPublishInNewThread(new DownloadTransferEvent(transferModel.copy()));
         }

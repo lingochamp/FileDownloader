@@ -206,7 +206,7 @@ class FileDownloadList {
         ready(downloadInternal);
 
         // Notify 2 Listener
-        downloadInternal.getDriver().notifyStarted();
+        downloadInternal.getDriver().notifyBegin();
     }
 
     void ready(final BaseDownloadTask task) {
