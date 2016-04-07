@@ -18,7 +18,9 @@ package com.liulishuo.filedownloader.util;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
+import android.os.StatFs;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -178,5 +180,17 @@ public class FileDownloadUtils {
         }
 
         return namesAndValues;
+    }
+
+    public static long getFreeSpaceBytes(final String path) {
+        long freeSpaceBytes;
+        final StatFs statFs = new StatFs(path);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            freeSpaceBytes = statFs.getAvailableBytes();
+        } else {
+            freeSpaceBytes = statFs.getAvailableBlocks() * (long) statFs.getBlockSize();
+        }
+
+        return freeSpaceBytes;
     }
 }

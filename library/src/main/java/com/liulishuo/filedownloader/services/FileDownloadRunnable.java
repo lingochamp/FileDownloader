@@ -18,13 +18,13 @@ package com.liulishuo.filedownloader.services;
 
 import android.os.Build;
 import android.os.Process;
-import android.os.StatFs;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BuildConfig;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
+import com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -262,6 +262,8 @@ class FileDownloadRunnable implements Runnable {
                     // retry
                     onRetry(ex, retryingTimes, soFar);
                 } else {
+
+
                     // error
                     onError(ex);
                     break;
@@ -496,7 +498,7 @@ class FileDownloadRunnable implements Runnable {
 
     // ----------------------------------
     private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes)
-            throws Throwable {
+            throws IOException {
         final String path = model.getPath();
         if (TextUtils.isEmpty(path)) {
             throw new RuntimeException("found invalid internal destination path, empty");
@@ -523,24 +525,16 @@ class FileDownloadRunnable implements Runnable {
 
         // check the available space bytes whether enough or not.
         if (totalBytes > 0) {
-            final long curSize = outFd.length();
-            final long needAvailableSpace = totalBytes - curSize;
+            final long breakpointBytes = outFd.length();
+            final long requiredSpaceBytes = totalBytes - breakpointBytes;
 
-            long availableBytes;
-            final StatFs statFs = new StatFs(path);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                availableBytes = statFs.getAvailableBytes();
-            } else {
-                availableBytes = statFs.getAvailableBlocks() * (long) statFs.getBlockSize();
-            }
+            final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(path);
 
-            if (availableBytes < needAvailableSpace) {
+            if (freeSpaceBytes < requiredSpaceBytes) {
                 outFd.close();
-                // throw io exception.
-                throw new IOException(
-                        String.format("The file is too large to store, the downloaded size: " +
-                                " %d, requirements: %d, but the available space size: " +
-                                "%d", curSize, needAvailableSpace, availableBytes));
+                // throw a out of space exception.
+                throw new FileDownloadOutOfSpaceException(freeSpaceBytes,
+                        requiredSpaceBytes, breakpointBytes);
             } else {
                 // pre allocate.
                 outFd.setLength(totalBytes);
@@ -566,7 +560,38 @@ class FileDownloadRunnable implements Runnable {
     }
 
     private Throwable exFiltrate(Throwable ex) {
-        if (TextUtils.isEmpty(ex.getMessage())) {
+        /**
+         * Only handle the case of Chunked resource, if it is not chunked, has already been handled
+         * in {@link #getRandomAccessFile(boolean, long)}.
+         */
+        if (model.getTotal() == -1 && ex instanceof IOException) {
+            // chunked
+            final long freeSpaceBytes = FileDownloadUtils.
+                    getFreeSpaceBytes(model.getPath());
+            if (freeSpaceBytes <= BUFFER_SIZE) {
+                // free space is not enough.
+                long downloadedSize = 0;
+                final File file = new File(model.getPath());
+                if (!file.exists()) {
+                    FileDownloadLog.e(FileDownloadRunnable.class, ex, "Exception with: free " +
+                            "space isn't enough, and the target file not exist.");
+                } else {
+                    downloadedSize = file.length();
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+                    ex = new FileDownloadOutOfSpaceException(freeSpaceBytes, BUFFER_SIZE,
+                            downloadedSize, ex);
+                } else {
+                    ex = new FileDownloadOutOfSpaceException(freeSpaceBytes, BUFFER_SIZE,
+                            downloadedSize);
+                }
+
+            }
+        }
+
+        // Provide the exception message.
+        else if (TextUtils.isEmpty(ex.getMessage())) {
             if (ex instanceof SocketTimeoutException) {
                 ex = new RuntimeException(ex.getClass().getSimpleName(), ex);
             }
