@@ -61,8 +61,8 @@ public class FileDownloadRunnable implements Runnable {
     private static final int BUFFER_SIZE = 1024 * 4;
     private final FileDownloadTransferModel transferModel;
 
-    private long maxNotifyBytes;
-    private int maxNotifyCounts = 0;
+    private long progressThresholdBytes;
+    private int maxProgressCount = 0;
     private boolean isResumeDownloadAvailable;
 
     private FileDownloadModel model;
@@ -87,8 +87,8 @@ public class FileDownloadRunnable implements Runnable {
         this.header = header;
 
         transferModel = new FileDownloadTransferModel(model);
-        maxNotifyCounts = model.getCallbackProgressTimes();
-        maxNotifyCounts = maxNotifyCounts <= 0 ? 0 : maxNotifyCounts;
+        maxProgressCount = model.getCallbackProgressTimes();
+        maxProgressCount = maxProgressCount <= 0 ? 0 : maxProgressCount;
 
         this.isResumeDownloadAvailable = false;
 
@@ -292,7 +292,7 @@ public class FileDownloadRunnable implements Runnable {
             // Step 1, get input stream
             inputStream = response.body().byteStream();
             byte[] buff = new byte[BUFFER_SIZE];
-            maxNotifyBytes = maxNotifyCounts <= 0 ? -1 : total / maxNotifyCounts;
+            progressThresholdBytes = maxProgressCount <= 0 ? -1 : total / (maxProgressCount + 1);
 
             // enter fetching loop(Step 2->6)
             do {
@@ -402,17 +402,21 @@ public class FileDownloadRunnable implements Runnable {
         onStatusChanged(model.getStatus());
     }
 
-    private long lastNotifiedSoFar = 0;
-    private final DownloadTransferEvent event = new DownloadTransferEvent(null);
+    private long lastProgressBytes = 0;
 
     private void onProgress(final long soFar, final long total) {
-        helper.update(getId(), FileDownloadStatus.progress, soFar, total);
-
-        if (maxNotifyBytes < 0 || soFar - lastNotifiedSoFar < maxNotifyBytes) {
+        if (soFar == total) {
             return;
         }
 
-        lastNotifiedSoFar = soFar;
+        helper.update(getId(), FileDownloadStatus.progress, soFar, total);
+
+        if (progressThresholdBytes < 0 ||
+                soFar - lastProgressBytes < progressThresholdBytes) {
+            return;
+        }
+
+        lastProgressBytes = soFar;
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "On progress %d %d %d", getId(), soFar, total);
         }
