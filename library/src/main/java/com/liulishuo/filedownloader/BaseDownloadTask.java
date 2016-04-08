@@ -771,26 +771,40 @@ public abstract class BaseDownloadTask {
         }
     }
 
-    private void printNotMatchReasonLog(int status) {
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "can't update status change, %d, but the current" +
-                    " status is %d, %d", status, getStatus(), getDownloadId());
+    boolean updateKeepFlow(final FileDownloadTransferModel transfer) {
+        if (!FileDownloadStatus.isKeepFlow(getStatus(), transfer.getStatus())) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "can't update status change by keep flow, %d, but the" +
+                        " current status is %d, %d", status, getStatus(), getDownloadId());
+            }
+            return false;
         }
+
+        update(transfer);
+        return true;
+    }
+
+    boolean updateKeepAhead(final FileDownloadTransferModel transfer) {
+        if (!FileDownloadStatus.isKeepAhead(getStatus(), transfer.getStatus())) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "can't update status change by keep ahead, %d, but the" +
+                        " current status is %d, %d", status, getStatus(), getDownloadId());
+            }
+            return false;
+        }
+
+        update(transfer);
+        return true;
     }
 
     /**
      * @param transfer In order to optimize some of the data in some cases is not back
      */
-    boolean update(final FileDownloadTransferModel transfer) {
-        boolean match = false;
+    private void update(final FileDownloadTransferModel transfer) {
+        setStatus(transfer.getStatus());
+
         switch (transfer.getStatus()) {
             case FileDownloadStatus.pending:
-                if (getStatus() != FileDownloadStatus.INVALID_STATUS) {
-                    printNotMatchReasonLog(transfer.getStatus());
-                    break;
-                }
-                match = true;
-                this.setStatus(transfer.getStatus());
                 this.setSoFarBytes(transfer.getSoFarBytes());
                 this.setTotalBytes(transfer.getTotalBytes());
 
@@ -798,25 +812,10 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyPending();
                 break;
             case FileDownloadStatus.started:
-                if (getStatus() != FileDownloadStatus.pending) {
-                    printNotMatchReasonLog(transfer.getStatus());
-                    break;
-                }
-                match = true;
-                this.setStatus(transfer.getStatus());
-
                 // notify
                 getDriver().notifyStarted();
                 break;
             case FileDownloadStatus.connected:
-                if (getStatus() != FileDownloadStatus.retry &&
-                        getStatus() != FileDownloadStatus.started) {
-                    printNotMatchReasonLog(transfer.getStatus());
-                    break;
-                }
-
-                match = true;
-                setStatus(transfer.getStatus());
                 setTotalBytes(transfer.getTotalBytes());
                 setSoFarBytes(transfer.getSoFarBytes());
                 this.resuming = transfer.isResuming();
@@ -826,14 +825,6 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
-                if (getStatus() != FileDownloadStatus.progress &&
-                        getStatus() != FileDownloadStatus.connected) {
-                    printNotMatchReasonLog(transfer.getStatus());
-                    break;
-                }
-
-                match = true;
-                setStatus(transfer.getStatus());
                 setSoFarBytes(transfer.getSoFarBytes());
 
                 // notify
@@ -845,15 +836,6 @@ public abstract class BaseDownloadTask {
                  */
                 break;
             case FileDownloadStatus.retry:
-                if (getStatus() != FileDownloadStatus.progress &&
-                        getStatus() != FileDownloadStatus.pending &&
-                        getStatus() != FileDownloadStatus.connected) {
-                    printNotMatchReasonLog(transfer.getStatus());
-                    break;
-                }
-
-                match = true;
-                setStatus(transfer.getStatus());
                 setSoFarBytes(transfer.getSoFarBytes());
                 setEx(transfer.getThrowable());
                 _setRetryingTimes(transfer.getRetryingTimes());
@@ -862,14 +844,6 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyRetry();
                 break;
             case FileDownloadStatus.error:
-                if (getStatus() == FileDownloadStatus.error) {
-                    FileDownloadLog.w(this, "%d already err(%s) , callback by other status same transfer",
-                            getDownloadId(), getEx());
-                    break;
-                }
-
-                match = true;
-                setStatus(transfer.getStatus());
                 setEx(transfer.getThrowable());
                 setSoFarBytes(transfer.getSoFarBytes());
 
@@ -883,16 +857,7 @@ public abstract class BaseDownloadTask {
                  */
                 break;
             case FileDownloadStatus.completed:
-                if (getStatus() != FileDownloadStatus.INVALID_STATUS &&
-                        getStatus() != FileDownloadStatus.connected &&
-                        getStatus() != FileDownloadStatus.progress) {
-                    printNotMatchReasonLog(transfer.getStatus());
-                    break;
-                }
-
-                match = true;
                 this.isReusedOldFile = transfer.isReusedOldFile();
-                setStatus(transfer.getStatus());
                 // only carry total data back
                 setSoFarBytes(transfer.getTotalBytes());
                 setTotalBytes(transfer.getTotalBytes());
@@ -902,12 +867,6 @@ public abstract class BaseDownloadTask {
 
                 break;
             case FileDownloadStatus.warn:
-                if (getStatus() != FileDownloadStatus.INVALID_STATUS) {
-                    printNotMatchReasonLog(transfer.getStatus());
-                    break;
-                }
-
-                match = true;
                 final int count = FileDownloadList.getImpl().count(getDownloadId());
                 if (count <= 1) {
                     // 1. this progress kill by sys and relive,
@@ -931,14 +890,10 @@ public abstract class BaseDownloadTask {
 
                 }
 
-                setStatus(transfer.getStatus());
-
                 // to FileDownloadList
                 FileDownloadList.getImpl().removeByWarn(this);
                 break;
         }
-
-        return match;
     }
 
     // why this? thread not safe: update,ready, _start, pause, start which influence of this
@@ -950,7 +905,7 @@ public abstract class BaseDownloadTask {
         isMarkedAdded2List = true;
     }
 
-    void clearMarkAdded2List(){
+    void clearMarkAdded2List() {
         isMarkedAdded2List = false;
     }
 

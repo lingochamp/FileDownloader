@@ -20,6 +20,7 @@ package com.liulishuo.filedownloader.model;
  * Created by Jacksgong on 11/26/15.
  *
  * @see com.liulishuo.filedownloader.IFileDownloadMessage
+ * @see <a href="https://raw.githubusercontent.com/lingochamp/FileDownloader/master/art/filedownloadlistener_callback_flow.png">Callback-Flow</a>
  */
 public class FileDownloadStatus {
     // [-2^7, 2^7 -1]
@@ -27,6 +28,9 @@ public class FileDownloadStatus {
     public final static byte started = 6;
     public final static byte connected = 2;
     public final static byte progress = 3;
+    /**
+     * Just for event
+     **/
     public final static byte blockComplete = 4;
     public final static byte retry = 5;
     public final static byte error = -1;
@@ -44,5 +48,124 @@ public class FileDownloadStatus {
 
     public static boolean isIng(final int status) {
         return status >= pending && status <= started;
+    }
+
+    public static boolean isKeepAhead(final int status, final int nextStatus) {
+        if (status != progress && status == nextStatus) {
+            return false;
+        }
+
+        if (isOver(status)) {
+            return false;
+        }
+
+        switch (status) {
+            case pending:
+                switch (nextStatus) {
+                    case INVALID_STATUS:
+                        return false;
+                    default:
+                        return true;
+                }
+            case started:
+                switch (nextStatus) {
+                    case INVALID_STATUS:
+                    case pending:
+                        return false;
+                    default:
+                        return true;
+                }
+
+            case connected:
+                switch (nextStatus) {
+                    case INVALID_STATUS:
+                    case pending:
+                    case started:
+                        return false;
+                    default:
+                        return true;
+                }
+            case progress:
+                switch (nextStatus) {
+                    case INVALID_STATUS:
+                    case pending:
+                    case started:
+                    case connected:
+                        return false;
+                    default:
+                        return true;
+                }
+
+            case retry:
+                switch (nextStatus) {
+                    case pending:
+                    case started:
+                        return false;
+                    default:
+                        return true;
+                }
+
+            default:
+                return true;
+        }
+
+    }
+
+    public static boolean isKeepFlow(final int status, final int nextStatus) {
+        if (status != progress && status == nextStatus) {
+            return false;
+        }
+
+        if (isOver(status)) {
+            return false;
+        }
+
+        if (nextStatus == paused) {
+            return true;
+        }
+
+        if (nextStatus == error) {
+            return true;
+        }
+
+        switch (status) {
+            case INVALID_STATUS:
+                switch (nextStatus) {
+                    case pending:
+                    case warn:
+                    case completed:
+                        return true;
+                    default:
+                        return false;
+                }
+            case pending:
+                switch (nextStatus) {
+                    case started:
+                        return true;
+                    default:
+                        return false;
+                }
+            case retry:
+            case started:
+                switch (nextStatus) {
+                    case connected:
+                        return true;
+                    default:
+                        return false;
+                }
+            case connected:
+            case progress:
+                switch (nextStatus) {
+                    case progress:
+                    case completed:
+                    case retry:
+                        return true;
+                    default:
+                        return false;
+                }
+            default:
+                return false;
+        }
+
     }
 }

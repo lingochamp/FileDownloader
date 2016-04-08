@@ -173,10 +173,15 @@ class FileDownloadTask extends BaseDownloadTask {
                     synchronized (updateSync.intern()) {
                         boolean consumed = false;
                         for (BaseDownloadTask task : taskList) {
-                            if (task.update(transfer)) {
+                            if (task.updateKeepFlow(transfer)) {
                                 consumed = true;
                                 break;
                             }
+                        }
+
+                        if (!consumed && taskList.size() == 1) {
+                            // Cover the most case for restarting from the low memory status.
+                            consumed = taskList.get(0).updateKeepAhead(transfer);
                         }
 
                         if (!consumed) {
@@ -187,8 +192,8 @@ class FileDownloadTask extends BaseDownloadTask {
                             }
                             FileDownloadLog.w(FileDownloadTask.class, log);
                         }
-                    }
 
+                    }
 
                 } else {
                     if (FileDownloadLog.NEED_LOG) {
