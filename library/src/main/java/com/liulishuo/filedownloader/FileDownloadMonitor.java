@@ -79,9 +79,18 @@ public class FileDownloadMonitor {
          * <p/>
          * Sync invoke, do not hold on.
          *
-         * @param task The task is begin.
+         * @param task The task is just received to handle in the internal.
          */
         void onTaskBegin(BaseDownloadTask task);
+
+        /**
+         * The method will be invoked when the download runnable of the task has started running.
+         * <p/>
+         * Sync invoke, do not hold on.
+         *
+         * @param task The task finish pending and start download runnable.
+         */
+        void onTaskStarted(BaseDownloadTask task);
 
         /**
          * The method will be invoked when the task in the internal is over.

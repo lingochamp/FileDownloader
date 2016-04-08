@@ -56,6 +56,11 @@ public class GlobalMonitor implements FileDownloadMonitor.IMonitor {
     }
 
     @Override
+    public void onTaskStarted(BaseDownloadTask task) {
+
+    }
+
+    @Override
     public void onTaskOver(BaseDownloadTask task) {
         markOver++;
     }

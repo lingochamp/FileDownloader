@@ -746,6 +746,9 @@ public abstract class BaseDownloadTask {
 
     // Being processed
     void ing() {
+        if (FileDownloadMonitor.isValid() && getStatus() == FileDownloadStatus.started) {
+            FileDownloadMonitor.getMonitor().onTaskStarted(this);
+        }
     }
 
     // End task
