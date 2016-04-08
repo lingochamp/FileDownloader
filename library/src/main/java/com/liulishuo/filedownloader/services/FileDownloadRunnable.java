@@ -21,6 +21,7 @@ import android.os.Process;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BuildConfig;
+import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
@@ -490,13 +491,9 @@ public class FileDownloadRunnable implements Runnable {
     private void onStatusChanged(int status) {
         transferModel.update(model);
 
-        if (status == FileDownloadStatus.progress || FileDownloadStatus.isOver(status)) {
-            FileDownloadProcessEventPool.getImpl().
-                    asyncPublishInNewThread(event.setTransfer(transferModel));
-        } else {
-            FileDownloadProcessEventPool.getImpl().
-                    asyncPublishInNewThread(new DownloadTransferEvent(transferModel.copy()));
-        }
+
+        FileDownloadEventPool.getImpl().
+                asyncPublishInFlow(new DownloadTransferEvent(transferModel.copy()));
     }
 
     private boolean isCancelled() {

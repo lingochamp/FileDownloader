@@ -171,10 +171,21 @@ class FileDownloadTask extends BaseDownloadTask {
                             taskList.get(0).getPath());
 
                     synchronized (updateSync.intern()) {
+                        boolean consumed = false;
                         for (BaseDownloadTask task : taskList) {
                             if (task.update(transfer)) {
+                                consumed = true;
                                 break;
                             }
+                        }
+
+                        if (!consumed) {
+                            String log = "The flow callback did not consumed, id:" + transfer.getDownloadId() + " status:"
+                                    + transfer.getStatus() + " task-count:" + taskList.size();
+                            for (BaseDownloadTask task : taskList) {
+                                log += " | " + task.getStatus();
+                            }
+                            FileDownloadLog.w(FileDownloadTask.class, log);
                         }
                     }
 

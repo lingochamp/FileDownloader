@@ -19,6 +19,7 @@ package com.liulishuo.filedownloader.event;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.liulishuo.filedownloader.FileDownloadFlowThreadPool;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import junit.framework.Assert;
@@ -40,6 +41,8 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
     private final ExecutorService threadPool = new ThreadPoolExecutor(3, 30,
             10, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>());
+
+    protected final FileDownloadFlowThreadPool flowThreadPool = new FileDownloadFlowThreadPool(5);
 
     private final HashMap<String, LinkedList<IDownloadListener>> listenersMap = new HashMap<>();
 
@@ -78,7 +81,6 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "removeListener %s", eventId);
         }
-//        Assert.assertNotNull("EventPoolImpl.remove", listener);
 
         LinkedList<IDownloadListener> container = listenersMap.get(eventId);
         if (container == null) {
@@ -170,21 +172,12 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         });
     }
 
+    @Override
+    public void asyncPublishInFlow(DownloadTransferEvent event) {
+        flowThreadPool.execute(event);
+    }
+
     private void trigger(final LinkedList<IDownloadListener> listeners, final IDownloadEvent event) {
-        // do not handle Order.
-//        try {
-//            if (event.getOrder()) {
-//                Collections.sort(listeners, new Comparator<IDownloadListener>() {
-//                    @Override
-//                    public int compare(IDownloadListener lhs, IDownloadListener rhs) {
-//                        return rhs.getPriority() - lhs.getPriority();
-//                    }
-//                });
-//            }
-//
-//        } catch (Exception e) {
-//            FileDownloadLog.e(this, e, "trigger error, %s", event != null ? event.getId() : null);
-//        }
 
         final Object[] lists = listeners.toArray();
         for (Object o : lists) {

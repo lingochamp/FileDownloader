@@ -17,9 +17,7 @@
 package com.liulishuo.filedownloader;
 
 import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.lang.ref.WeakReference;
@@ -68,21 +66,6 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
                 publish(event);
             }
         });
-    }
-
-    void receiveByService(final DownloadTransferEvent event) {
-        if (event.getTransfer() != null
-                && event.getTransfer().getStatus() == FileDownloadStatus.completed) {
-            // for block complete callback FileDownloadList#remove
-            asyncPublishInNewThread(event);
-        } else {
-            receivePool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    publish(event);
-                }
-            });
-        }
     }
 
     @Override

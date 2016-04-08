@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader.services;
 
 import android.os.RemoteException;
 
+import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
@@ -48,14 +49,14 @@ public class FileDownloadService extends
         super.onCreate();
         mListener = new DownloadEventSampleListener(this);
 
-        FileDownloadProcessEventPool.getImpl().addListener(DownloadTransferEvent.ID, mListener);
+        FileDownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, mListener);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        FileDownloadProcessEventPool.getImpl().removeListener(DownloadTransferEvent.ID, mListener);
+        FileDownloadEventPool.getImpl().removeListener(DownloadTransferEvent.ID, mListener);
     }
 
     @Override

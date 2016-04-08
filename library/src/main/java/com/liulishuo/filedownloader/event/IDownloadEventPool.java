@@ -42,4 +42,6 @@ public interface IDownloadEventPool {
 
     void asyncPublishInMain(final IDownloadEvent event);
 
+    void asyncPublishInFlow(final DownloadTransferEvent event);
+
 }

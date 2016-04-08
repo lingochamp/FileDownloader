@@ -882,8 +882,7 @@ public abstract class BaseDownloadTask {
             case FileDownloadStatus.completed:
                 if (getStatus() != FileDownloadStatus.INVALID_STATUS &&
                         getStatus() != FileDownloadStatus.connected &&
-                        getStatus() != FileDownloadStatus.progress &&
-                        getStatus() != FileDownloadStatus.pending) {
+                        getStatus() != FileDownloadStatus.progress) {
                     printNotMatchReasonLog(transfer.getStatus());
                     break;
                 }

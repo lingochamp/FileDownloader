@@ -77,7 +77,7 @@ class FileDownloadServiceUIGuard extends
 
         @Override
         public void callback(FileDownloadTransferModel transfer) throws RemoteException {
-            FileDownloadEventPool.getImpl().receiveByService(new DownloadTransferEvent(transfer));
+            FileDownloadEventPool.getImpl().asyncPublishInFlow(new DownloadTransferEvent(transfer));
         }
     }
 

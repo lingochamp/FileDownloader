@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.services;
 
 
+import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -76,7 +77,7 @@ class FileDownloadMgr {
             warnModel.setDownloadId(id);
             warnModel.setStatus(FileDownloadStatus.warn);
 
-            FileDownloadProcessEventPool.getImpl()
+            FileDownloadEventPool.getImpl()
                     .publish(new DownloadTransferEvent(warnModel));
             return;
         }
