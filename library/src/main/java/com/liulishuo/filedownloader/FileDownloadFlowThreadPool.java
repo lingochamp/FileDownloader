@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class FileDownloadFlowThreadPool {
 
-    private List<FlowSingleExecutor> executorList;
+    private final List<FlowSingleExecutor> executorList;
 
     public FileDownloadFlowThreadPool(final int poolCount) {
         executorList = new ArrayList<>();

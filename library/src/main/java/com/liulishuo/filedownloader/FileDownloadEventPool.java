@@ -34,7 +34,6 @@ import java.util.concurrent.Executors;
 public class FileDownloadEventPool extends DownloadEventPoolImpl {
 
     private ExecutorService sendPool = Executors.newFixedThreadPool(3);
-    private final ExecutorService receivePool = Executors.newFixedThreadPool(3);
 
     private static class HolderClass {
         private final static FileDownloadEventPool INSTANCE = new FileDownloadEventPool();
