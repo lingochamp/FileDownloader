@@ -43,6 +43,6 @@ public class FileDownloadStatus {
     }
 
     public static boolean isIng(final int status) {
-        return status >= pending && status <= retry;
+        return status >= pending && status <= started;
     }
 }
