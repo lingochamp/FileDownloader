@@ -66,8 +66,9 @@ class FileDownloadMgr {
     public synchronized void start(final String url, final String path, final int callbackProgressTimes,
                                    final int autoRetryTimes, final FileDownloadHeader header) {
         final int id = FileDownloadUtils.generateId(url, path);
+        FileDownloadModel model = mHelper.find(id);
 
-        // check is already in download pool
+        // check has already in download pool
         if (checkDownloading(url, path)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already started download %d", id);
@@ -75,6 +76,8 @@ class FileDownloadMgr {
             // warn
             final FileDownloadTransferModel warnModel = new FileDownloadTransferModel();
             warnModel.setDownloadId(id);
+            warnModel.setTotalBytes(model.getTotal());
+            warnModel.setSoFarBytes(model.getSoFar());
             warnModel.setStatus(FileDownloadStatus.warn);
 
             FileDownloadEventPool.getImpl()
@@ -85,7 +88,6 @@ class FileDownloadMgr {
         // real start
 
         // - create model
-        FileDownloadModel model = mHelper.find(id);
         boolean needUpdate2DB;
         if (model != null &&
                 (model.getStatus() == FileDownloadStatus.paused ||

@@ -882,6 +882,8 @@ public abstract class BaseDownloadTask {
                         // keep and wait callback
 
                         setStatus(FileDownloadStatus.pending);
+                        setTotalBytes(transfer.getTotalBytes());
+                        setSoFarBytes(transfer.getSoFarBytes());
                         getDriver().notifyPending();
                         break;
                     } else {

@@ -153,6 +153,7 @@ public class FileDownloadTransferModel implements Parcelable {
 
         // For fewer copies
         switch (this.status) {
+            case FileDownloadStatus.warn:
             case FileDownloadStatus.pending:
                 dest.writeLong(this.soFarBytes);
                 dest.writeLong(this.totalBytes);
@@ -194,6 +195,7 @@ public class FileDownloadTransferModel implements Parcelable {
 
         // For fewer copies
         switch (this.status) {
+            case FileDownloadStatus.warn:
             case FileDownloadStatus.pending:
                 this.soFarBytes = in.readLong();
                 this.totalBytes = in.readLong();
