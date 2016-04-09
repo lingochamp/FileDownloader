@@ -51,7 +51,7 @@ public class FileDownloadStatus {
     }
 
     public static boolean isKeepAhead(final int status, final int nextStatus) {
-        if (status != progress && status == nextStatus) {
+        if (status != progress && status != retry && status == nextStatus) {
             return false;
         }
 
@@ -112,7 +112,7 @@ public class FileDownloadStatus {
     }
 
     public static boolean isKeepFlow(final int status, final int nextStatus) {
-        if (status != progress && status == nextStatus) {
+        if (status != progress && status != retry && status == nextStatus) {
             return false;
         }
 
@@ -148,6 +148,7 @@ public class FileDownloadStatus {
             case retry:
             case started:
                 switch (nextStatus) {
+                    case retry:
                     case connected:
                         return true;
                     default:
