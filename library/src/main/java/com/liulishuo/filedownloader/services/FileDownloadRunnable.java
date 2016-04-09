@@ -432,7 +432,7 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         ex = exFiltrate(ex);
-        helper.updateRetry(getId(), ex.getMessage(), retryTimes, soFarBytes);
+        helper.updateRetry(getId(), ex.getMessage(), retryTimes);
 
         transferModel.setThrowable(ex);
         transferModel.setRetryingTimes(retryTimes);
