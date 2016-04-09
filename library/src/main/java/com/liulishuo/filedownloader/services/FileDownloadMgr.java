@@ -123,34 +123,43 @@ class FileDownloadMgr {
     }
 
     public boolean checkDownloading(String url, String path) {
-        final int downloadId = FileDownloadUtils.generateId(url, path);
-        final FileDownloadModel model = mHelper.find(downloadId);
-        final boolean isInPool = mThreadPool.isInThreadPool(downloadId);
+        return checkDownloading(FileDownloadUtils.generateId(url, path));
+    }
 
+    public boolean checkDownloading(int downloadId) {
+        final FileDownloadModel model = mHelper.find(downloadId);
+        if (model == null) {
+            return false;
+        }
+
+        final boolean isInPool = mThreadPool.isInThreadPool(downloadId);
         boolean isDownloading;
+
         do {
-            if (model == null ||
-                    (model.getStatus() != FileDownloadStatus.pending && model.getStatus() != FileDownloadStatus.progress)
-                    ) {
+            if (FileDownloadStatus.isOver(model.getStatus())) {
 
                 //noinspection RedundantIfStatement
                 if (isInPool) {
-                    // status 不是pending/processing & 线程池有，只有可能是线程同步问题，status已经设置为complete/error/pause但是线程还没有执行完
-                    // TODO 这里需要特殊处理，小概率事件，需要对同一DownloadId的Runnable与该方法同步
+                    // already finished, but still in the pool.
+                    // handle as downloading.
                     isDownloading = true;
                 } else {
-                    // status 不是pending/processing & 线程池没有，直接返回不在下载中
+                    // already finished, and not in the pool.
+                    // make sense.
                     isDownloading = false;
 
                 }
             } else {
-                //model != null && status 为pending/progress其中一个
                 if (isInPool) {
-                    // status 是pending/processing & 线程池有，直接返回正在下载中
+                    // not finish, in the pool.
+                    // make sense.
                     isDownloading = true;
                 } else {
-                    // status 是pending/processing & 线程池没有，只有可能异常状态，打e级log，直接放回不在下载中
-                    FileDownloadLog.e(this, "status is[%s] & thread is not has %d", model.getStatus(), downloadId);
+                    // not finish, but not in the pool.
+                    // beyond expectation.
+                    FileDownloadLog.e(this, "%d status is[%s](not finish) & but not in the pool",
+                            downloadId, model.getStatus());
+                    // handle as not in downloading, going to re-downloading.
                     isDownloading = false;
 
                 }
@@ -158,7 +167,6 @@ class FileDownloadMgr {
         } while (false);
 
         return isDownloading;
-
     }
 
     /**
