@@ -186,8 +186,7 @@ class FileDownloadList {
                     }
 
                     if (ex != null) {
-                        willRemoveDownload.setStatus(FileDownloadStatus.error);
-                        willRemoveDownload.setEx(ex);
+                        willRemoveDownload.catchException(ex);
                         willRemoveDownload.getDriver().notifyError();
                     } else {
                         willRemoveDownload.getDriver().notifyCompleted();
@@ -195,6 +194,7 @@ class FileDownloadList {
                     break;
             }
 
+            willRemoveDownload.clearMarkAdded2List();
         } else {
             FileDownloadLog.e(this, "remove error, not exist: %s", willRemoveDownload);
         }

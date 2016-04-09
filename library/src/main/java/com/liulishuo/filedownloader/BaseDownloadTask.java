@@ -83,6 +83,8 @@ public abstract class BaseDownloadTask {
      */
     private boolean isReusedOldFile = false;
 
+    private volatile boolean using = false;
+
     private final FileDownloadDriver driver;
 
     BaseDownloadTask(final String url) {
@@ -299,13 +301,53 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * start download
-     * <p/>
-     * 用于启动一个单独任务
+     * Reuse this task withhold request params: path、url、header、isForceReDownloader、etc.
+     *
+     * @return Successful reuse or not.
+     */
+    public boolean reuse() {
+        if (FileDownloadStatus.isIng(getStatus()) || isMarkedAdded2List()) {
+            FileDownloadLog.w(this, "This task is running %d, if you want start the same task," +
+                    " please create a new one by FileDownloader.create", getDownloadId());
+            return false;
+        }
+
+        this.using = false;
+        this.etag = null;
+        this.resuming = false;
+        this.retryingTimes = 0;
+        this.isReusedOldFile = false;
+        this.ex = null;
+
+
+        setStatus(FileDownloadStatus.INVALID_STATUS);
+        this.soFarBytes = 0;
+        this.totalBytes = 0;
+
+        return true;
+    }
+
+    /**
+     * start the task.
      *
      * @return Download id
      */
     public int start() {
+
+        if (using) {
+            if (FileDownloadStatus.isIng(getStatus()) || isMarkedAdded2List()) {
+                throw new IllegalStateException(String.format("This task is running %d, if you" +
+                        " want to start the same task, please create a new one by" +
+                        " FileDownloader.create", getDownloadId()));
+            } else {
+                throw new IllegalStateException("This task is dirty to restart, If you want to " +
+                        "reuse this task, please invoke #reuse method manually and retry to " +
+                        "restart again.");
+            }
+        }
+
+        this.using = true;
+
         if (FileDownloadMonitor.isValid()) {
             FileDownloadMonitor.getMonitor().onRequestStart(this);
         }
@@ -324,8 +366,7 @@ public abstract class BaseDownloadTask {
         } catch (Throwable e) {
             ready = false;
 
-            setStatus(FileDownloadStatus.error);
-            setEx(e);
+            catchException(e);
             FileDownloadList.getImpl().add(this);
             FileDownloadList.getImpl().removeByError(this);
         }
@@ -602,6 +643,7 @@ public abstract class BaseDownloadTask {
 
             // Whether service was already started.
             if (!_checkCanStart()) {
+                this.using = false;
                 // Not ready
                 return;
             }
@@ -617,14 +659,14 @@ public abstract class BaseDownloadTask {
             }
 
             if (!_startExecute()) {
-                setEx(new RuntimeException("not run download, not got download id"));
+                catchException(new RuntimeException("not run download, not got download id"));
                 FileDownloadList.getImpl().removeByError(this);
             }
 
         } catch (Throwable e) {
             e.printStackTrace();
 
-            setEx(e);
+            catchException(e);
             FileDownloadList.getImpl().removeByError(this);
         }
 
@@ -673,6 +715,16 @@ public abstract class BaseDownloadTask {
             }
         }
     }
+
+    // Status, will changed before enqueue/dequeue/notify
+    private void setStatus(byte status) {
+        if (status > FileDownloadStatus.MAX_INT ||
+                status < FileDownloadStatus.MIN_INT) {
+            throw new RuntimeException(String.format("status undefined, %d", status));
+        }
+        this.status = status;
+    }
+
     // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL --------------------------------------------------
 
     // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
@@ -689,9 +741,6 @@ public abstract class BaseDownloadTask {
 
     // Clear References
     void clear() {
-        if (finishListenerList != null) {
-            finishListenerList.clear();
-        }
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "clear %s", this);
         }
@@ -708,28 +757,9 @@ public abstract class BaseDownloadTask {
         return this.header;
     }
 
-    // Error cause
-    void setEx(Throwable ex) {
+    void catchException(Throwable ex) {
+        setStatus(FileDownloadStatus.error);
         this.ex = ex;
-    }
-
-    // The number of download so far
-    void setSoFarBytes(long soFarBytes) {
-        this.soFarBytes = soFarBytes;
-    }
-
-    // Total bytes
-    void setTotalBytes(long totalBytes) {
-        this.totalBytes = totalBytes;
-    }
-
-    // Status, will changed before enqueue/dequeue/notify
-    void setStatus(byte status) {
-        if (status > FileDownloadStatus.MAX_INT ||
-                status < FileDownloadStatus.MIN_INT) {
-            throw new RuntimeException(String.format("status undefined, %d", status));
-        }
-        this.status = status;
     }
 
     // Driver
@@ -810,8 +840,8 @@ public abstract class BaseDownloadTask {
 
         switch (transfer.getStatus()) {
             case FileDownloadStatus.pending:
-                this.setSoFarBytes(transfer.getSoFarBytes());
-                this.setTotalBytes(transfer.getTotalBytes());
+                this.soFarBytes = transfer.getSoFarBytes();
+                this.totalBytes = transfer.getTotalBytes();
 
                 // notify
                 getDriver().notifyPending();
@@ -821,8 +851,8 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyStarted();
                 break;
             case FileDownloadStatus.connected:
-                setTotalBytes(transfer.getTotalBytes());
-                setSoFarBytes(transfer.getSoFarBytes());
+                this.totalBytes = transfer.getTotalBytes();
+                this.soFarBytes = transfer.getSoFarBytes();
                 this.resuming = transfer.isResuming();
                 this.etag = transfer.getEtag();
 
@@ -830,7 +860,7 @@ public abstract class BaseDownloadTask {
                 getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
-                setSoFarBytes(transfer.getSoFarBytes());
+                this.soFarBytes= transfer.getSoFarBytes();
 
                 // notify
                 getDriver().notifyProgress();
@@ -841,16 +871,16 @@ public abstract class BaseDownloadTask {
                  */
                 break;
             case FileDownloadStatus.retry:
-                setSoFarBytes(transfer.getSoFarBytes());
-                setEx(transfer.getThrowable());
+                this.soFarBytes = transfer.getSoFarBytes();
+                this.ex = transfer.getThrowable();
                 _setRetryingTimes(transfer.getRetryingTimes());
 
                 // notify
                 getDriver().notifyRetry();
                 break;
             case FileDownloadStatus.error:
-                setEx(transfer.getThrowable());
-                setSoFarBytes(transfer.getSoFarBytes());
+                this.ex = transfer.getThrowable();
+                this.soFarBytes = transfer.getSoFarBytes();
 
                 // to FileDownloadList
                 FileDownloadList.getImpl().removeByError(this);
@@ -864,8 +894,8 @@ public abstract class BaseDownloadTask {
             case FileDownloadStatus.completed:
                 this.isReusedOldFile = transfer.isReusedOldFile();
                 // only carry total data back
-                setSoFarBytes(transfer.getTotalBytes());
-                setTotalBytes(transfer.getTotalBytes());
+                this.soFarBytes = transfer.getTotalBytes();
+                this.totalBytes = transfer.getTotalBytes();
 
                 // to FileDownloadList
                 FileDownloadList.getImpl().removeByCompleted(this);
@@ -887,8 +917,8 @@ public abstract class BaseDownloadTask {
                         // keep and wait callback
 
                         setStatus(FileDownloadStatus.pending);
-                        setTotalBytes(transfer.getTotalBytes());
-                        setSoFarBytes(transfer.getSoFarBytes());
+                        this.totalBytes = transfer.getTotalBytes();
+                        this.soFarBytes = transfer.getSoFarBytes();
                         getDriver().notifyPending();
                         break;
                     } else {
