@@ -69,7 +69,7 @@ class FileDownloadMgr {
         FileDownloadModel model = mHelper.find(id);
 
         // check has already in download pool
-        if (checkDownloading(url, path)) {
+        if (!needStart(id)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already started download %d", id);
             }
@@ -120,6 +120,30 @@ class FileDownloadMgr {
         // - execute
         mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes, header));
 
+    }
+
+    private boolean needStart(int downloadId) {
+        final FileDownloadModel model = mHelper.find(downloadId);
+        if (model == null) {
+            return true;
+        }
+
+        boolean needStart = false;
+        do {
+
+            if (checkDownloading(downloadId)) {
+                break;
+            }
+
+            if (checkReuse(downloadId, model)) {
+                break;
+            }
+
+            needStart = true;
+
+        } while (false);
+
+        return needStart;
     }
 
     public boolean checkDownloading(String url, String path) {
