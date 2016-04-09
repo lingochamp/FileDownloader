@@ -186,8 +186,6 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * any status follow end，warn,error,paused,completed
-     *
      * @deprecated Replace with {@link #addFinishListener(FinishListener)}
      */
     public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
@@ -197,6 +195,13 @@ public abstract class BaseDownloadTask {
 
     private ArrayList<FinishListener> finishListenerList;
 
+    /**
+     * This listener's method {@link FinishListener#over()} will be invoked in Internal-Flow-Thread
+     * directly, which is controlled by {@link FileDownloadFlowThreadPool}.
+     *
+     * @param finishListener Just consider whether the task is over.
+     * @see FileDownloadStatus#isOver(int)
+     */
     public BaseDownloadTask addFinishListener(final FinishListener finishListener) {
         if (finishListenerList == null) {
             finishListenerList = new ArrayList<>();
@@ -766,7 +771,7 @@ public abstract class BaseDownloadTask {
                     (ArrayList<FinishListener>) finishListenerList.clone();
             final int numListeners = listenersCopy.size();
             for (int i = 0; i < numListeners; ++i) {
-                listenersCopy.get(i).over();
+                listenersCopy.get(i).over(this);
             }
         }
     }
@@ -932,7 +937,17 @@ public abstract class BaseDownloadTask {
 
     // ---------------------------------------------
     public interface FinishListener {
-        void over();
+        /**
+         * Will be invoked when the {@code task} is over({@link FileDownloadStatus#isOver(int)}).
+         * This method will be invoked in Non-UI-Thread and this thread is controlled by
+         * {@link FileDownloadFlowThreadPool}.
+         *
+         * @param task is over, the status would be one of below:
+         *             {@link FileDownloadStatus#completed}、{@link FileDownloadStatus#warn}、
+         *             {@link FileDownloadStatus#error}、{@link FileDownloadStatus#paused}.
+         * @see FileDownloadStatus#isOver(int)
+         */
+        void over(final BaseDownloadTask task);
     }
 
     @Override

@@ -27,7 +27,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Jacksgong on 4/8/16.
  * <p/>
- * For guarantee only one-flow for one-task.
+ * For guaranteeing only one-flow for one-task, in other words, for the call-back status can be
+ * updated FIFO for a task.
  */
 public class FileDownloadFlowThreadPool {
 

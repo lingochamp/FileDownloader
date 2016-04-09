@@ -461,7 +461,7 @@ public class FileDownloader {
                             }
 
                             @Override
-                            public void over() {
+                            public void over(final BaseDownloadTask task) {
                                 goNext(this.index);
                             }
                         }.setIndex(msg.arg1 + 1))
