@@ -194,7 +194,6 @@ class FileDownloadList {
                     break;
             }
 
-            willRemoveDownload.clearMarkAdded2List();
         } else {
             FileDownloadLog.e(this, "remove error, not exist: %s", willRemoveDownload);
         }

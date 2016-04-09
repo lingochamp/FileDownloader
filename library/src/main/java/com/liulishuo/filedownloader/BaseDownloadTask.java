@@ -306,7 +306,7 @@ public abstract class BaseDownloadTask {
      * @return Successful reuse or not.
      */
     public boolean reuse() {
-        if (FileDownloadStatus.isIng(getStatus()) || isMarkedAdded2List()) {
+        if (FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this)) {
             FileDownloadLog.w(this, "This task is running %d, if you want start the same task," +
                     " please create a new one by FileDownloader.create", getDownloadId());
             return false;
@@ -318,6 +318,7 @@ public abstract class BaseDownloadTask {
         this.retryingTimes = 0;
         this.isReusedOldFile = false;
         this.ex = null;
+        clearMarkAdded2List();
 
 
         setStatus(FileDownloadStatus.INVALID_STATUS);
@@ -335,7 +336,7 @@ public abstract class BaseDownloadTask {
     public int start() {
 
         if (using) {
-            if (FileDownloadStatus.isIng(getStatus()) || isMarkedAdded2List()) {
+            if (FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this)) {
                 throw new IllegalStateException(String.format("This task is running %d, if you" +
                         " want to start the same task, please create a new one by" +
                         " FileDownloader.create", getDownloadId()));
