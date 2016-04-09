@@ -98,6 +98,15 @@ public class FileDownloadEventPool extends DownloadEventPoolImpl {
     }
 
     void send2UIThread(final FileDownloadEvent event, boolean immediately) {
+        /** @see #publish(IDownloadEvent)  **/
+        if (event.getDownloader().getListener() == null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(FileDownloadEventPool.this, "do not invoke  callback method %s, " +
+                        "no listener be found in task.", event.getId());
+            }
+            return;
+        }
+
         if (!isIntervalValid()) {
             if (send2UIPollThread != null && send2UIPollThread.isAlive()) {
                 // handle  The INTERVAL is disabled when FileDownloader is active.
