@@ -572,7 +572,8 @@ public class FileDownloadRunnable implements Runnable {
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
          * in {@link #getRandomAccessFile(boolean, long)}.
          */
-        if (model.getTotal() == -1 && ex instanceof IOException) {
+        if (model.getTotal() == -1 && ex instanceof IOException &&
+                new File(model.getPath()).exists()) {
             // chunked
             final long freeSpaceBytes = FileDownloadUtils.
                     getFreeSpaceBytes(model.getPath());
