@@ -30,6 +30,13 @@ dependencies {
 }
 ```
 
+## Welcome PR
+
+- Comments as much as possible.
+- Commit message format follow: [AngularJS's commit message convention](https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#-git-commit-guidelines) .
+- The change of each commit as small as possible.
+- As far as possible follow the advice from Inspection by IDE(Such as 'Inspect Code' in Android Studio).
+
 ## Usage
 
 #### Basic
