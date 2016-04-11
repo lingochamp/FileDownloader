@@ -1,4 +1,6 @@
 # FileDownloader
+
+[![Join the chat at https://gitter.im/lingochamp/FileDownloader](https://badges.gitter.im/lingochamp/FileDownloader.svg)](https://gitter.im/lingochamp/FileDownloader?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Android multi-task file download engine.
 
 
