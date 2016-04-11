@@ -29,6 +29,8 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import junit.framework.Assert;
 
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -210,6 +212,9 @@ public class FileDownloader {
             msg.what = WHAT_SERIAL_NEXT;
             msg.arg1 = 0;
             serialHandler.sendMessage(msg);
+            synchronized (RUNNING_SERIAL_MAP) {
+                RUNNING_SERIAL_MAP.put(listener, serialHandler);
+            }
         } else {
             // parallel
             for (final BaseDownloadTask downloadTask : list) {
@@ -403,11 +408,22 @@ public class FileDownloader {
     }
 
 
+    final static HashMap<FileDownloadListener, Handler> RUNNING_SERIAL_MAP = new HashMap<>();
+
     final static int WHAT_SERIAL_NEXT = 1;
+    final static int WHAT_FREEZE = 2;
+    final static int WHAT_UNFREEZE = 3;
 
     private static class SerialHandlerCallback implements Handler.Callback {
         private Handler handler;
         private List<BaseDownloadTask> list;
+        private int runningIndex = 0;
+        private SerialFinishListener serialFinishListener;
+
+        SerialHandlerCallback() {
+            serialFinishListener =
+                    new SerialFinishListener(new WeakReference<>(this));
+        }
 
         public Handler.Callback setHandler(final Handler handler) {
             this.handler = handler;
@@ -423,11 +439,15 @@ public class FileDownloader {
         public boolean handleMessage(final Message msg) {
             if (msg.what == WHAT_SERIAL_NEXT) {
                 if (msg.arg1 >= list.size()) {
+                    synchronized (RUNNING_SERIAL_MAP) {
+                        RUNNING_SERIAL_MAP.remove(list.get(0).getListener());
+                    }
                     // final serial tasks
                     if (this.handler != null && this.handler.getLooper() != null) {
                         this.handler.getLooper().quit();
                         this.handler = null;
                         this.list = null;
+                        this.serialFinishListener = null;
                     }
 
                     if (FileDownloadLog.NEED_LOG) {
@@ -438,12 +458,13 @@ public class FileDownloader {
                     return true;
                 }
 
-                final BaseDownloadTask task = this.list.get(msg.arg1);
+                runningIndex = msg.arg1;
+                final BaseDownloadTask stackTopTask = this.list.get(runningIndex);
                 synchronized (pauseLock) {
-                    if (!FileDownloadList.getImpl().contains(task)) {
+                    if (!FileDownloadList.getImpl().contains(stackTopTask)) {
                         // pause?
                         if (FileDownloadLog.NEED_LOG) {
-                            FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", task, msg.arg1);
+                            FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", stackTopTask, msg.arg1);
                         }
                         goNext(msg.arg1 + 1);
                         return true;
@@ -451,24 +472,25 @@ public class FileDownloader {
                 }
 
 
-                list.get(msg.arg1)
-                        .addFinishListener(new BaseDownloadTask.FinishListener() {
-                            private int index;
-
-                            public BaseDownloadTask.FinishListener setIndex(int index) {
-                                this.index = index;
-                                return this;
-                            }
-
-                            @Override
-                            public void over(final BaseDownloadTask task) {
-                                goNext(this.index);
-                            }
-                        }.setIndex(msg.arg1 + 1))
+                stackTopTask
+                        .addFinishListener(serialFinishListener.setNextIndex(runningIndex + 1))
                         .start();
 
+            } else if (msg.what == WHAT_FREEZE) {
+                freeze();
+            } else if (msg.what == WHAT_UNFREEZE) {
+                unfreeze();
             }
             return true;
+        }
+
+        public void freeze() {
+            list.get(runningIndex).removeFinishListener(serialFinishListener);
+            handler.removeCallbacksAndMessages(null);
+        }
+
+        public void unfreeze() {
+            goNext(runningIndex);
         }
 
         private void goNext(final int nextIndex) {
@@ -490,4 +512,33 @@ public class FileDownloader {
         }
     }
 
+    private static class SerialFinishListener implements BaseDownloadTask.FinishListener {
+        private WeakReference<SerialHandlerCallback> wSerialHandlerCallback;
+
+        private SerialFinishListener(WeakReference<SerialHandlerCallback> wSerialHandlerCallback) {
+            this.wSerialHandlerCallback = wSerialHandlerCallback;
+        }
+
+        private int nextIndex;
+
+        public BaseDownloadTask.FinishListener setNextIndex(int index) {
+            this.nextIndex = index;
+            return this;
+        }
+
+        @Override
+        public void over(final BaseDownloadTask task) {
+            if (wSerialHandlerCallback != null && wSerialHandlerCallback.get() != null) {
+                wSerialHandlerCallback.get().goNext(this.nextIndex);
+            }
+        }
+    }
+
+    static void freezeSerialHandler(Handler handler) {
+        handler.sendEmptyMessage(WHAT_FREEZE);
+    }
+
+    static void unFreezeSerialHandler(Handler handler) {
+        handler.sendEmptyMessage(WHAT_UNFREEZE);
+    }
 }

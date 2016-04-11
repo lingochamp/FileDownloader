@@ -83,7 +83,7 @@ public abstract class BaseDownloadTask {
      */
     private boolean isReusedOldFile = false;
 
-    private volatile boolean using = false;
+    volatile boolean using = false;
 
     private final FileDownloadDriver driver;
 
@@ -328,27 +328,7 @@ public abstract class BaseDownloadTask {
         return true;
     }
 
-    /**
-     * start the task.
-     *
-     * @return Download id
-     */
-    public int start() {
-
-        if (using) {
-            if (FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this)) {
-                throw new IllegalStateException(String.format("This task is running %d, if you" +
-                        " want to start the same task, please create a new one by" +
-                        " FileDownloader.create", getDownloadId()));
-            } else {
-                throw new IllegalStateException("This task is dirty to restart, If you want to " +
-                        "reuse this task, please invoke #reuse method manually and retry to " +
-                        "restart again.");
-            }
-        }
-
-        this.using = true;
-
+    private int startUnchecked() {
         if (FileDownloadMonitor.isValid()) {
             FileDownloadMonitor.getMonitor().onRequestStart(this);
         }
@@ -379,6 +359,29 @@ public abstract class BaseDownloadTask {
 
 
         return getDownloadId();
+    }
+    /**
+     * start the task.
+     *
+     * @return Download id
+     */
+    public int start() {
+
+        if (using) {
+            if (FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this)) {
+                throw new IllegalStateException(String.format("This task is running %d, if you" +
+                        " want to start the same task, please create a new one by" +
+                        " FileDownloader.create", getDownloadId()));
+            } else {
+                throw new IllegalStateException("This task is dirty to restart, If you want to " +
+                        "reuse this task, please invoke #reuse method manually and retry to " +
+                        "restart again.");
+            }
+        }
+
+        this.using = true;
+
+        return startUnchecked();
     }
 
     // -------------- Another Operations ---------------------
@@ -659,10 +662,7 @@ public abstract class BaseDownloadTask {
                 FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
             }
 
-            if (!_startExecute()) {
-                catchException(new RuntimeException("not run download, not got download id"));
-                FileDownloadList.getImpl().removeByError(this);
-            }
+            _startExecute();
 
         } catch (Throwable e) {
             e.printStackTrace();
@@ -678,7 +678,7 @@ public abstract class BaseDownloadTask {
      *
      * @return succeed
      */
-    protected abstract boolean _startExecute();
+    protected abstract void _startExecute();
 
     // Execute pause
     protected abstract boolean _pauseExecute();

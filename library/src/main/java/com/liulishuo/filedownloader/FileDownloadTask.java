@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader;
 
+import android.os.Handler;
+
 import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
@@ -62,7 +64,7 @@ class FileDownloadTask extends BaseDownloadTask {
     }
 
     @Override
-    protected boolean _startExecute() {
+    protected void _startExecute() {
         final boolean succeed = FileDownloadServiceUIGuard.getImpl().
                 startDownloader(
                         getUrl(),
@@ -71,11 +73,28 @@ class FileDownloadTask extends BaseDownloadTask {
                         getAutoRetryTimes(),
                         getHeader());
 
-        if (succeed) {
+        if (!succeed) {
+            if (_checkCanStart()) {
+                catchException(new RuntimeException("Occur Unknow Error, when request to start" +
+                        " maybe some problem in binder, maybe the process was killed in unexpected."));
+                if (!FileDownloadList.getImpl().contains(this)) {
+                    synchronized (NEED_RESTART_LIST) {
+                        if (NEED_RESTART_LIST.contains(this)) {
+                            NEED_RESTART_LIST.remove(this);
+                        }
+                    }
+                    FileDownloadList.getImpl().add(this);
+                }
+
+                FileDownloadList.getImpl().removeByError(this);
+
+            } else {
+                // the process was killed when request stating. will be restarted by NEED_RESTART_LIST.
+            }
+        } else {
             handleNoNeedRestart();
         }
 
-        return succeed;
     }
 
     @Override
@@ -105,7 +124,9 @@ class FileDownloadTask extends BaseDownloadTask {
                         FileDownloadLog.d(this, "no connect service !! %s", getDownloadId());
                     }
                     FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
-                    NEED_RESTART_LIST.add(this);
+                    if (!NEED_RESTART_LIST.contains(this)) {
+                        NEED_RESTART_LIST.add(this);
+                    }
                     return false;
                 }
             }
@@ -216,10 +237,24 @@ class FileDownloadTask extends BaseDownloadTask {
                     synchronized (NEED_RESTART_LIST) {
                         needRestartList = (List<BaseDownloadTask>) NEED_RESTART_LIST.clone();
                         NEED_RESTART_LIST.clear();
-                    }
 
-                    for (BaseDownloadTask o : needRestartList) {
-                        o.start();
+                        for (BaseDownloadTask o : needRestartList) {
+                            if (FileDownloader.RUNNING_SERIAL_MAP.containsKey(o.getListener())) {
+                                o.ready();
+                                continue;
+                            }
+                            if (!o.using) {
+                                o.start();
+                            } else {
+                                /** already handled
+                                 * by {@link FileDownloadEventPool#send2Service(DownloadTaskEvent)}
+                                 * **/
+                            }
+                        }
+
+                        for (Handler handler : FileDownloader.RUNNING_SERIAL_MAP.values()) {
+                            FileDownloader.unFreezeSerialHandler(handler);
+                        }
                     }
 
                 } else if (((DownloadServiceConnectChangedEvent) event).getStatus() ==
@@ -227,7 +262,7 @@ class FileDownloadTask extends BaseDownloadTask {
                     // lost the connection to the service
                     if (FileDownloadLog.NEED_LOG) {
                         FileDownloadLog.d(FileDownloadTask.class, "lost the connection to the " +
-                                "file download service, and current active task size is %d",
+                                        "file download service, and current active task size is %d",
                                 FileDownloadList.getImpl().size());
                     }
 
@@ -236,19 +271,24 @@ class FileDownloadTask extends BaseDownloadTask {
                         synchronized (NEED_RESTART_LIST) {
                             FileDownloadList.getImpl().divert(NEED_RESTART_LIST);
                             for (BaseDownloadTask baseDownloadTask : NEED_RESTART_LIST) {
+                                baseDownloadTask.using = false;
                                 baseDownloadTask.clearMarkAdded2List();
                             }
+
+                            for (Handler handler : FileDownloader.RUNNING_SERIAL_MAP.values()) {
+                                FileDownloader.freezeSerialHandler(handler);
+                            }
                         }
+
+
                     }
-
-
 
                 } else {
                     // do nothing for unbind manually
                     // TODO maybe need handle something on file downloader service
                     if (FileDownloadList.getImpl().size() > 0) {
                         FileDownloadLog.w(FileDownloadTask.class, "file download service has be unbound" +
-                                " but the size of active tasks are not empty %d ",
+                                        " but the size of active tasks are not empty %d ",
                                 FileDownloadList.getImpl().size());
                     }
                 }
