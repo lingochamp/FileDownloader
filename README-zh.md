@@ -1,6 +1,7 @@
 # FileDownloader
 Android 文件下载引擎，稳定、高效、简单易用
 
+[![Gitter][gitter_svg]][gitter_url]
 [![Download][bintray_svg]][bintray_url]
 ![][file_downloader_svg]
 [![Build Status][build_status_svg]][build_status_link]
@@ -432,6 +433,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+[gitter_url]: https://gitter.im/lingochamp/FileDownloader?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+[gitter_svg]: https://badges.gitter.im/lingochamp/FileDownloader.svg
 [license_2_svg]: https://img.shields.io/hexpm/l/plug.svg
 [android_platform_svg]: https://img.shields.io/badge/Platform-Android-brightgreen.svg
 [file_downloader_svg]: https://img.shields.io/badge/Android-FileDownloader-orange.svg
