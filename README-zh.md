@@ -46,7 +46,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.2'
+compile 'com.liulishuo.filedownloader:library:0.2.3'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -280,7 +280,7 @@ if (parallel) {
 ##### 一般的下载回调流程:
 
 ```
-pending -> connected -> (progress <->progress) -> [retry] -> blockComplete -> completed
+pending -> started -> connected -> (progress <->progress) -> blockComplete -> completed
 ```
 
 ##### 可能会遇到以下回调而直接终止整个下载过程:
@@ -300,6 +300,7 @@ blockComplete -> completed
 | 回调方法 | 备注 | 带回数据
 | --- | --- | ---
 | pending | 等待，已经进入下载队列 | 数据库中的soFarBytes与totalBytes
+| started | 结束了pending，并且开始当前任务的Runnable | -
 | connected | 已经连接上 | ETag, 是否断点续传, soFarBytes, totalBytes
 | progress | 下载进度回调 | soFarBytes
 | blockComplete | 在完成前同步调用该方法，此时已经下载完成 | -
@@ -338,8 +339,9 @@ blockComplete -> completed
 | --- | ---
 | onRequestStart(count:int, serial:boolean, lis:FileDownloadListener) | 将会在启动队列任务是回调这个方法
 | onRequestStart(task:BaseDownloadTask) | 将会在启动单一任务时回调这个方法
-| onTaskBegin(task:BaseDownloadTask) | 将会在内部开始该任务的时候回调这个方法(会在`pending`回调之前)
-| onTaskOver(task:BaseDownloadTask) | 将会在该任务走完所有生命周期是回调这个方法
+| onTaskBegin(task:BaseDownloadTask) | 将会在内部接收并开始task的时候回调这个方法(会在`pending`回调之前)
+| onTaskStarted(task:BaseDownloadTask) | 将会在task结束pending开始task的runnable的时候回调该方法
+| onTaskOver(task:BaseDownloadTask) | 将会在task走完所有生命周期是回调这个方法
 
 #### `FileDownloadUtils`
 
@@ -370,7 +372,8 @@ III. 异常处理
 | --- | ---
 | `FileDownloadHttpException`| 在发出请求以后，response-code不是200(HTTP_OK)，也不是206(HTTP_PARTIAL)的情况下会抛出该异常; 在这个异常对象会带上 response-code、response-header、request-header。
 | `FileDownloadGiveUpRetryException` | 在请求返回的 response-header 中没有带有文件大小(content-length)，并且不是流媒体(transfer-encoding)的情况下会抛出该异常；出现这个异常，将会忽略所有重试的机会(`BaseDownloadTask#setAutoRetryTimes`). 你可以通过在 `filedownloader.properties`中添加 `http.lenient=true` 来忽略这个异常，并且在该情况下，直接作为流媒体进行下载。
-| 其他 | 程序错误; 或者是本地的存储空间已经不足以存储将要下载的文件会直接抛出`IOException` 。
+| `FileDownloadOutOfSpaceException` | 当将要下载的文件大小大于剩余磁盘大小时，会抛出这个异常。
+| 其他 | 程序错误。
 
 
 

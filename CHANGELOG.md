@@ -2,6 +2,32 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.3
+
+_2016-04-11_
+
+#### New Interfaces
+
+- Add `FileDownloadOutOfSpaceException`, Throw this exception, when the file will be downloaded is too large to store.
+- Add new call-back method in `FileDownloadListener`: `started` which will be invoked when finish pending, and start the download runnable.
+- Add new call-back method in `FileDownloadMonitor.IMonitor`: `onTaskStarted` which will be invoked when finish pending, and start the download runnable.
+
+#### Enhancement
+
+- Improve Practicability: Provide the current task to the method `over` in `FinishListener`, for recognizing target task in case of one-FinishListener for more than one task. Closes #69 .
+- Improve Robust: Throw the exception directly when invoke `BaseDownloadTask#start` for a running-task object, add provide 'reuse' method to reuse a used and already finished task object. Closes #91 .
+- Improve Performance: Intercept the enqueue operate for the otiose event which is no listener for handling it.
+
+#### Fix
+
+- Fix: In handful cases the task-call-back flow not follow the expect.
+- Fix: `progress` call-back included the ending frame ( `sofarBytes == totalBytes` ).
+- Fix: Carry back the total bytes in the status of warn, for covering the case of UI-process had killed but has restarted App with restarting the task and download-process is alive still, the total bytes is 0 in UI-process. Closes #90 .
+- Fix: Can't call-back 'retry' in expect, the case of the call-back method 'retry' one-by-one. Refs: #91 .
+- Fix: The wrong sofar bytes will cover the right one, when occur error in no-network and has chance to retry. Closes #92 .
+- Fix: Handle the case of the downloading is finished during the 'check-reuse' to 'check-downloading' in filedownloader-process.
+- Fix: The serial-queue converts to The parallel-queue in restoring from filedownloader-process has killed and restarting.
+
 ## Version 0.2.2
 
 _2016-04-06_

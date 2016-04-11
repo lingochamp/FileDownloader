@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.2.2'
+    compile 'com.liulishuo.filedownloader:library:0.2.3'
 }
 ```
 
@@ -280,7 +280,7 @@ queueSet.start();
 ##### Natural callback flow :
 
 ```
-pending -> connected -> (progress <->progress) -> blockComplete -> completed
+pending -> started -> connected -> (progress <->progress) -> blockComplete -> completed
 ```
 
 ##### Maybe get follow callback and finish the download:
@@ -298,6 +298,7 @@ blockComplete -> completed
 | function | description | update
 | --- | --- | ---
 | pending | Pending for download | soFarBytes、totalBytes
+| started | Finish pending, and start the download runnable for the task | -
 | connected | Connected to the remote file server | ETag、IsResumeBreakpoint、 soFarBytes、totalBytes
 | progress | Download progress | soFarBytes
 | blockComplete | Callback before the 'completed callback' sync in the new thread| -
@@ -334,10 +335,11 @@ blockComplete -> completed
 
 | interface | description
 | --- | ---
-| onRequestStart(count:int, serial:boolean, lis:FileDownloadListener) | will be invoked when request to start multi-tasks manually
-| onRequestStart(task:BaseDownloadTask) | will be invoked when request to start the task manually
-| onTaskBegin(task:BaseDownloadTask) | will be invoked when the task in the internal is begin(before pending)
-| onTaskOver(task:BaseDownloadTask) | will be invoked when the task in the internal is over(finish all lifecycle of the task)
+| onRequestStart(count:int, serial:boolean, lis:FileDownloadListener) | Will be invoked when request to start multi-tasks manually
+| onRequestStart(task:BaseDownloadTask) | Will be invoked when request to start the task manually
+| onTaskBegin(task:BaseDownloadTask) | Will be invoked when the task in the internal is begin(before pending)
+| onTaskStarted(task:BaseDownloadTask) | Will be invoked when the task finish pending and start download runnable
+| onTaskOver(task:BaseDownloadTask) | Will be invoked when the task in the internal is over(finish all lifecycle of the task)
 
 #### `FileDownloadUtils`
 
@@ -367,7 +369,8 @@ blockComplete -> completed
 | --- | ---
 | `FileDownloadHttpException`| Throw this exception, when the HTTP status code is not 200(HTTP_OK),  and not 206(HTTP_PARTIAL) either. You can find the request-header, the response-header and response-code in this exception.
 | `FileDownloadGiveUpRetryException` | Throw this exception, when can't know the size of the download file, and its Transfer-Encoding is not Chunked either; And With this exception, will ignore all retry-chances(`BaseDownloadTask#setAutoRetryTimes`). You can ignore such exception by add `http.lenient=true` to the `filedownloader.properties`, and will download directly as a Chunked-Resource.
-| Others | Program Exception, or the free space is not enough to store the download-file will throw the `IOException` .
+| `FileDownloadOutOfSpaceException` | Throw this exception, when the file will be downloaded is too large to store.
+| Others | some program Exceptions.
 
 ## Attention
 
