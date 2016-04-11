@@ -12,13 +12,13 @@ _2016-04-11_
 - 在 `FileDownloadListener` 新增 `started` 回调方法: 在结束 `pending` 开始运行当前任务的线程时，回调该方法。
 - 在 `FileDownloadMonitor.IMonitor` 新增 `onTaskStarted` 回调方法，用于监控在结束 `pending` 开始运行当前任务的线程时，回调该方法。这样就可以在监控中通过 `onTaskBegin`到`onTaskStarted`计算出pending的时间，在`onTaskStarted`到`onTaskOver`计算出真正消耗在下载的时间(Connection、Fetching)。
 
-#### Enhancement
+#### 性能与提高
 
 - 提高实用性: 为 `FinishListener` 的 `over` 方法提供所指向的Task，为了有些时候我们为多个任务添加相同的 `FinishListener` 时，需要这个参数来判断当前是哪个任务的回调。 Closes #69 。
 - 提高稳定性: 如果调用一个正在运行中的Task对象的 `start` 方法，直接抛异常；并且为已经结束的Task对象提供 `BaseDownloadTask#reuse` 进行复用。 Closes #91 。
 - 提高性能: 在进入事件队列之前，拦截掉一些原本就没有监听器进行监听的事件。
 
-#### Fix
+#### 修复
 
 - 修复: 在一些极端情况下，非结束的回调回调次数不符合预期的情况。
 - 修复: `progress` 方法的回调中包含了对完成( `sofarBytes==totalBytes` )的回调，导致回调间隔不达预期的bug。
