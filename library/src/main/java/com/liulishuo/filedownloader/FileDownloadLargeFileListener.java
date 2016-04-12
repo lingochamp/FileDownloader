@@ -27,9 +27,12 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 public abstract class FileDownloadLargeFileListener extends FileDownloadListener {
 
     public FileDownloadLargeFileListener() {
-        this(0);
     }
 
+    /**
+     * @see #FileDownloadLargeFileListener()
+     * @deprecated not handle priority any more
+     */
     public FileDownloadLargeFileListener(int priority) {
         super(priority);
     }
