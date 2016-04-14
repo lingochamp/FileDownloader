@@ -12,6 +12,8 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 ---
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
+
+#### 英文文档: [Wiki](https://github.com/lingochamp/FileDownloader/wiki)
 ---
 
 ### 特点
