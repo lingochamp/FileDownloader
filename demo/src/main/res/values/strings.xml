@@ -10,7 +10,8 @@
 
     <string name="single_task_test_title">Single task test</string>
     <string name="performance_test_title">Performance test</string>
-    <string name="performance_test_with_times_title" formatted="false">%d(times) Performance test</string>
+    <string name="performance_test_parcel">100000(times) Basic performance test</string>
+    <string name="performance_test_output">Output performance test</string>
 
 
     <string name="tasks_manager_demo_title">Tasks Manager Demo</string>

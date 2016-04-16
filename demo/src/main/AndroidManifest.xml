@@ -36,7 +36,8 @@
             android:name=".MultitaskTestActivity"
             android:label="@string/multitask_test_title" />
 
-        <activity android:name=".performance.PerformanceTestActivity" />
+        <activity android:name=".performance.PerformanceTestActivity"
+            android:label="@string/performance_test_title"/>
 
         <activity
             android:name=".TasksManagerDemoActivity"

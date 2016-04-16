@@ -19,6 +19,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/performance_test_parcel"
+        android:textColor="@color/colorAccent" />
+
     <Button
         style="@style/DemoButton"
         android:onClick="onClickLongOperate"
@@ -39,11 +47,30 @@
         android:onClick="onClickIntParcel"
         android:text="Int Parcel" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/performance_test_output"
+        android:textColor="@color/colorAccent" />
+
+    <android.support.v7.widget.AppCompatSeekBar
+        android:id="@+id/io_performance_sb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="50" />
+
+    <Button
+        style="@style/DemoButton"
+        android:onClick="onClickWriteTest"
+        android:text="Output performance test" />
+
     <ScrollView
         android:id="@+id/scrollView"
-        android:scrollbars="none"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
 
         <TextView
             android:id="@+id/info_tv"
