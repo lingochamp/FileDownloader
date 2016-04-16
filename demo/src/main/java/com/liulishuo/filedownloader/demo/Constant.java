@@ -11,6 +11,7 @@ public interface Constant {
 
     String[] BIG_FILE_URLS = {
             "http://7xjww9.com1.z0.glb.clouddn.com/20130221114001385.jpg",
+            "http://180.153.105.144/dd.myapp.com/16891/E2F3DEBB12A049ED921C6257C5E9FB11.apk",
             "http://dg.101.hk/1.rar",
             "https://static.pexels.com/photos/479/landscape-nature-sunset-trees.jpg",
             "http://7xjww9.com1.z0.glb.clouddn.com/Hopetoun_falls.jpg",
