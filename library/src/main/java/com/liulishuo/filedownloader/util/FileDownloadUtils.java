@@ -24,6 +24,7 @@ import android.os.StatFs;
 import android.text.TextUtils;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -37,6 +38,51 @@ import okhttp3.Headers;
  * Wrapping some static utils for FileDownloader.
  */
 public class FileDownloadUtils {
+
+    private static int MIN_PROGRESS_STEP = 65536;
+    private static long MIN_PROGRESS_TIME = 2000;
+
+    /**
+     * @param minProgressStep The min buffered so far bytes.
+     *                        Used for adjudging whether is time to sync the downloaded so far bytes
+     *                        to database and make sure sync the downloaded buffer to local file.
+     *                        <p/>
+     *                        More smaller more frequently, then download more slowly, but will more
+     *                        safer in scene of the process is killed unexpected.
+     *                        <p/>
+     *                        Default 65536, which follow the value in
+     *                        com.android.providers.downloads.Constants.
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see #setMinProgressTime(int)
+     */
+    public static void setMinProgressStep(int minProgressStep) {
+        MIN_PROGRESS_STEP = minProgressStep;
+    }
+
+    /**
+     * @param minProgressTime The min buffered millisecond.
+     *                        Used for adjudging whether is time to sync the downloaded so far bytes
+     *                        to database and make sure sync the downloaded buffer to local file.
+     *                        <p/>
+     *                        More smaller more frequently, then download more slowly, but will more
+     *                        safer in scene of the process is killed unexpected.
+     *                        <p/>
+     *                        Default 2000, which follow the value in
+     *                        com.android.providers.downloads.Constants.
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see #setMinProgressStep(int)
+     */
+    public static void setMinProgressTime(int minProgressTime) {
+        MIN_PROGRESS_TIME = minProgressTime;
+    }
+
+    public static int getMinProgressStep() {
+        return MIN_PROGRESS_STEP;
+    }
+
+    public static long getMinProgressTime() {
+        return MIN_PROGRESS_TIME;
+    }
 
     /**
      * Checks whether the filename looks legitimate

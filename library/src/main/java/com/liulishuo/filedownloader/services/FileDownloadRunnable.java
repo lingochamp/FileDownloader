@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader.services;
 
 import android.os.Build;
 import android.os.Process;
+import android.os.SystemClock;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BuildConfig;
@@ -34,9 +35,11 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.SyncFailedException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 
@@ -263,7 +266,7 @@ public class FileDownloadRunnable implements Runnable {
                 if (autoRetryTimes > retryingTimes++
                         && !(ex instanceof FileDownloadGiveUpRetryException)) {
                     // retry
-                    onRetry(ex, retryingTimes, soFar);
+                    onRetry(ex, retryingTimes);
                 } else {
 
 
@@ -288,6 +291,7 @@ public class FileDownloadRunnable implements Runnable {
         // fetching datum
         InputStream inputStream = null;
         final RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue, total);
+        final FileDescriptor fd = accessFile.getFD();
         try {
             // Step 1, get input stream
             inputStream = response.body().byteStream();
@@ -314,7 +318,7 @@ public class FileDownloadRunnable implements Runnable {
                             " downloading. %d %d", accessFile.length(), soFar));
                 } else {
                     // callback on progressing
-                    onProgress(soFar, total);
+                    onProgress(soFar, total, fd);
                 }
 
                 // Step 6, check pause
@@ -404,12 +408,35 @@ public class FileDownloadRunnable implements Runnable {
 
     private long lastProgressBytes = 0;
 
-    private void onProgress(final long soFar, final long total) {
+    private long lastUpdateBytes = 0;
+    private long lastUpdateTime = 0;
+
+
+    private void onProgress(final long soFar, final long total, final FileDescriptor fd) {
         if (soFar == total) {
             return;
         }
 
-        helper.update(getId(), FileDownloadStatus.progress, soFar, total);
+        long now = SystemClock.elapsedRealtime();
+        long bytesDelta = soFar - lastUpdateBytes;
+        long timeDelta = now - lastUpdateTime;
+
+        if (bytesDelta > FileDownloadUtils.getMinProgressStep() &&
+                timeDelta > FileDownloadUtils.getMinProgressTime()) {
+            try {
+                fd.sync();
+            } catch (SyncFailedException e) {
+                e.printStackTrace();
+            }
+            helper.updateProgress(model, soFar);
+            lastUpdateBytes = soFar;
+            lastUpdateTime = now;
+        } else {
+            if (model.getStatus() != FileDownloadStatus.progress) {
+                model.setStatus(FileDownloadStatus.progress);
+            }
+            model.setSoFar(soFar);
+        }
 
         if (progressThresholdBytes < 0 ||
                 soFar - lastProgressBytes < progressThresholdBytes) {
@@ -425,7 +452,7 @@ public class FileDownloadRunnable implements Runnable {
 
     }
 
-    private void onRetry(Throwable ex, final int retryTimes, final long soFarBytes) {
+    private void onRetry(Throwable ex, final int retryTimes) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "On retry %d %s %d %d", getId(), ex,
                     retryTimes, autoRetryTimes);
@@ -446,7 +473,7 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         ex = exFiltrate(ex);
-        helper.updateError(getId(), ex.getMessage());
+        helper.updateError(getId(), ex.getMessage(), model.getSoFar());
 
         transferModel.setThrowable(ex);
 
@@ -469,7 +496,7 @@ public class FileDownloadRunnable implements Runnable {
                     model.getSoFar(), model.getTotal());
         }
 
-        helper.updatePause(getId());
+        helper.updatePause(getId(), model.getSoFar());
 
         // 这边没有必要从服务端再回调，由于直接调pause看是否已经成功
 //        onStatusChanged(model.getStatus());

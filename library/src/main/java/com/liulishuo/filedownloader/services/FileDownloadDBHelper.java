@@ -171,8 +171,6 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
         db.delete(TABLE_NAME, FileDownloadModel.ID + " = ?", new String[]{String.valueOf(id)});
     }
 
-    private long lastRefreshUpdate = 0;
-
     @Override
     public void update(int id, byte status, long soFar, long total) {
         final FileDownloadModel downloadModel = find(id);
@@ -180,17 +178,6 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
             downloadModel.setStatus(status);
             downloadModel.setSoFar(soFar);
             downloadModel.setTotal(total);
-
-            boolean needRefresh2DB = false;
-            final int MIN_REFRESH_DURATION_2_DB = 10;
-            if (System.currentTimeMillis() - lastRefreshUpdate > MIN_REFRESH_DURATION_2_DB) {
-                needRefresh2DB = true;
-                lastRefreshUpdate = System.currentTimeMillis();
-            }
-
-            if (!needRefresh2DB) {
-                return;
-            }
 
             // db
             ContentValues cv = new ContentValues();
@@ -200,6 +187,19 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
 
+    }
+
+    @Override
+    public void updateProgress(FileDownloadModel model, long soFar) {
+        model.setStatus(FileDownloadStatus.progress);
+        model.setSoFar(soFar);
+
+        // db
+        ContentValues cv = new ContentValues();
+        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.progress);
+        cv.put(FileDownloadModel.SOFAR, soFar);
+        db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ",
+                new String[]{String.valueOf(model.getId())});
     }
 
     @Override
@@ -216,16 +216,18 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateError(int id, String errMsg) {
+    public void updateError(int id, String errMsg, long sofar) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(FileDownloadStatus.error);
             downloadModel.setErrMsg(errMsg);
+            downloadModel.setSoFar(sofar);
 
             // db
             ContentValues cv = new ContentValues();
             cv.put(FileDownloadModel.ERR_MSG, errMsg);
             cv.put(FileDownloadModel.STATUS, FileDownloadStatus.error);
+            cv.put(FileDownloadModel.SOFAR, sofar);
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
     }
@@ -263,14 +265,16 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updatePause(int id) {
+    public void updatePause(int id, long sofar) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(FileDownloadStatus.paused);
+            downloadModel.setSoFar(sofar);
 
             // db
             ContentValues cv = new ContentValues();
             cv.put(FileDownloadModel.STATUS, FileDownloadStatus.paused);
+            cv.put(FileDownloadModel.SOFAR, sofar);
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
     }
