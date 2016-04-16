@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader;
 
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
@@ -60,7 +61,8 @@ public abstract class BaseDownloadTask {
     private int autoRetryTimes = 0;
     // Number of times to try again
     private int retryingTimes = 0;
-
+    // The min interval millisecond for updating the download speed.
+    private int minIntervalUpdateSpeed = 5;
 
     private boolean resuming;
     private String etag;
@@ -87,6 +89,15 @@ public abstract class BaseDownloadTask {
 
     private final FileDownloadDriver driver;
 
+    private long lastCalcSpeedSofarTime;
+    private long lastCalcSpeedSofar;
+
+    private long startDownloadSofar;
+    private long startDownloadTime;
+
+    // KB/s
+    private int speed;
+
     BaseDownloadTask(final String url) {
         this.url = url;
         driver = new FileDownloadDriver(this);
@@ -112,6 +123,18 @@ public abstract class BaseDownloadTask {
         });
     }
     // --------------------------------------- FOLLOWING FUNCTION FOR OUTSIDE ----------------------------------------------
+
+    /**
+     * @param minIntervalUpdateSpeedMs The min interval millisecond for updating the download speed
+     *                                 in downloading process(Status equal to progress).
+     *                                 Default 5 ms. If less than or equal to 0, will not calculate
+     *                                 the download speed in process.
+     * @see #calcSpeed(long)
+     */
+    public BaseDownloadTask setMinIntervalUpdateSpeed(int minIntervalUpdateSpeedMs) {
+        this.minIntervalUpdateSpeed = minIntervalUpdateSpeedMs;
+        return this;
+    }
 
     /**
      * @param path Absolute path for save the download file
@@ -318,6 +341,7 @@ public abstract class BaseDownloadTask {
         this.retryingTimes = 0;
         this.isReusedOldFile = false;
         this.ex = null;
+        resetSpeed();
         clearMarkAdded2List();
 
 
@@ -398,6 +422,7 @@ public abstract class BaseDownloadTask {
 
         final boolean result = _pauseExecute();
 
+        calcAverageSpeed(this.soFarBytes);
         // For make sure already added event listener for receive paused event
         FileDownloadList.getImpl().add(this);
         if (result) {
@@ -508,6 +533,21 @@ public abstract class BaseDownloadTask {
 
     public long getLargeFileTotalBytes() {
         return totalBytes;
+    }
+
+    /**
+     * If in downloading process(status equal {@link FileDownloadStatus#progress}) : Calculating
+     * when the interval from the last calculation more than {@link #minIntervalUpdateSpeed} before
+     * each {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} call-back method.
+     * <p/>
+     * If finished({@link FileDownloadStatus#isOver(int)}): Would be average speed. The scope is
+     * (connected, over).
+     *
+     * @return KB/s
+     * @see #setMinIntervalUpdateSpeed(int)
+     */
+    public int getSpeed() {
+        return this.speed;
     }
 
     /**
@@ -726,6 +766,58 @@ public abstract class BaseDownloadTask {
         this.status = status;
     }
 
+
+    private void resetSpeed() {
+        this.speed = 0;
+        this.lastCalcSpeedSofarTime = 0;
+    }
+
+    private void markStartDownload() {
+        this.startDownloadTime = SystemClock.uptimeMillis();
+        this.startDownloadSofar = this.soFarBytes;
+    }
+
+    private void calcAverageSpeed(final long overSofar) {
+        if (startDownloadTime <= 0 || startDownloadSofar <= 0) {
+            return;
+        }
+
+        long downloadSize = overSofar - startDownloadSofar;
+        this.lastCalcSpeedSofarTime = 0;
+        long interval = SystemClock.uptimeMillis() - startDownloadTime;
+        if (interval < 0) {
+            speed = (int) downloadSize;
+        } else {
+            speed = (int) (downloadSize / interval);
+        }
+    }
+
+    private void calcSpeed(long sofar) {
+        if (minIntervalUpdateSpeed <= 0) {
+            return;
+        }
+
+        boolean isUpdateData = false;
+        do {
+            if (lastCalcSpeedSofarTime == 0) {
+                isUpdateData = true;
+                break;
+            }
+
+            long interval = SystemClock.uptimeMillis() - lastCalcSpeedSofarTime;
+            if (interval >= minIntervalUpdateSpeed || (speed == 0 && interval > 0)) {
+                speed = (int) ((sofar - lastCalcSpeedSofar) / interval);
+                speed = Math.max(0, speed);
+                isUpdateData = true;
+                break;
+            }
+        } while (false);
+
+        if (isUpdateData) {
+            lastCalcSpeedSofar = sofar;
+            lastCalcSpeedSofarTime = SystemClock.uptimeMillis();
+        }
+    }
     // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL --------------------------------------------------
 
     // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
@@ -857,11 +949,14 @@ public abstract class BaseDownloadTask {
                 this.resuming = transfer.isResuming();
                 this.etag = transfer.getEtag();
 
+                markStartDownload();
+
                 // notify
                 getDriver().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
                 this.soFarBytes= transfer.getSoFarBytes();
+                calcSpeed(transfer.getSoFarBytes());
 
                 // notify
                 getDriver().notifyProgress();
@@ -876,6 +971,7 @@ public abstract class BaseDownloadTask {
                 this.ex = transfer.getThrowable();
                 _setRetryingTimes(transfer.getRetryingTimes());
 
+                resetSpeed();
                 // notify
                 getDriver().notifyRetry();
                 break;
@@ -883,6 +979,7 @@ public abstract class BaseDownloadTask {
                 this.ex = transfer.getThrowable();
                 this.soFarBytes = transfer.getSoFarBytes();
 
+                calcAverageSpeed(this.soFarBytes);
                 // to FileDownloadList
                 FileDownloadList.getImpl().removeByError(this);
 
@@ -898,11 +995,13 @@ public abstract class BaseDownloadTask {
                 this.soFarBytes = transfer.getTotalBytes();
                 this.totalBytes = transfer.getTotalBytes();
 
+                calcAverageSpeed(this.soFarBytes);
                 // to FileDownloadList
                 FileDownloadList.getImpl().removeByCompleted(this);
 
                 break;
             case FileDownloadStatus.warn:
+                resetSpeed();
                 final int count = FileDownloadList.getImpl().count(getDownloadId());
                 if (count <= 1) {
                     // 1. this progress kill by sys and relive,
@@ -920,6 +1019,9 @@ public abstract class BaseDownloadTask {
                         setStatus(FileDownloadStatus.pending);
                         this.totalBytes = transfer.getTotalBytes();
                         this.soFarBytes = transfer.getSoFarBytes();
+
+                        markStartDownload();
+
                         getDriver().notifyPending();
                         break;
                     } else {
