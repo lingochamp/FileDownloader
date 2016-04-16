@@ -123,17 +123,17 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         switch (position) {
             case 1:
                 url = Constant.BIG_FILE_URLS[0];
-                tag = new ViewHolder(new WeakReference<>(this), progressBar1, null, 1);
+                tag = new ViewHolder(new WeakReference<>(this), progressBar1, null, speedTv1, 1);
                 path = savePath1;
                 break;
             case 2:
                 url = Constant.BIG_FILE_URLS[4];
-                tag = new ViewHolder(new WeakReference<>(this), progressBar2, null, 2);
+                tag = new ViewHolder(new WeakReference<>(this), progressBar2, null, speedTv2, 2);
                 path = savePath2;
                 break;
             default:
                 url = Constant.CHUNKED_TRANSFER_ENCODING_DATA_URLS[0];
-                tag = new ViewHolder(new WeakReference<>(this), progressBar3, detailTv3, 3);
+                tag = new ViewHolder(new WeakReference<>(this), progressBar3, detailTv3, speedTv3, 3);
                 path = savePath3;
                 break;
 
@@ -142,24 +142,26 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         return FileDownloader.getImpl().create(url)
                 .setPath(path)
                 .setCallbackProgressTimes(300)
+                .setMinIntervalUpdateSpeed(400)
                 .setTag(tag)
                 .setListener(new FileDownloadSampleListener() {
                     @Override
                     protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                         super.progress(task, soFarBytes, totalBytes);
-                        ((ViewHolder)task.getTag()).updateProgress(soFarBytes, totalBytes);
+                        ((ViewHolder) task.getTag()).updateProgress(soFarBytes, totalBytes,
+                                task.getSpeed());
                     }
 
                     @Override
                     protected void error(BaseDownloadTask task, Throwable e) {
                         super.error(task, e);
-                        ((ViewHolder)task.getTag()).updateError(e);
+                        ((ViewHolder)task.getTag()).updateError(e, task.getSpeed());
                     }
 
                     @Override
                     protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                         super.paused(task, soFarBytes, totalBytes);
-                        ((ViewHolder)task.getTag()).updatePaused();
+                        ((ViewHolder)task.getTag()).updatePaused(task.getSpeed());
                     }
 
                     @Override
@@ -179,20 +181,27 @@ public class SingleTaskTestActivity extends AppCompatActivity {
 
     private static class ViewHolder {
         private ProgressBar pb;
-        private TextView tv;
+        private TextView detailTv;
+        private TextView speedTv;
         private int position;
 
         private WeakReference<SingleTaskTestActivity> weakReferenceContext;
 
         public ViewHolder(WeakReference<SingleTaskTestActivity> weakReferenceContext,
-                          final ProgressBar pb, final TextView tv, final int position) {
+                          final ProgressBar pb, final TextView detailTv, final TextView speedTv,
+                          final int position) {
             this.weakReferenceContext = weakReferenceContext;
             this.pb = pb;
-            this.tv = tv;
+            this.detailTv = detailTv;
             this.position = position;
+            this.speedTv = speedTv;
         }
 
-        public void updateProgress(final int sofar, final int total) {
+        private void updateSpeed(int speed) {
+            speedTv.setText(String.format("%dKB/s",speed));
+        }
+
+        public void updateProgress(final int sofar, final int total, final int speed) {
             if (total == -1) {
                 // chunked transfer encoding data
                 pb.setIndeterminate(true);
@@ -201,13 +210,16 @@ public class SingleTaskTestActivity extends AppCompatActivity {
                 pb.setProgress(sofar);
             }
 
-            if (tv != null) {
-                tv.setText(String.format("sofar: %d total: %d", sofar, total));
+            updateSpeed(speed);
+
+            if (detailTv != null) {
+                detailTv.setText(String.format("sofar: %d total: %d", sofar, total));
             }
         }
 
-        public void updatePaused() {
+        public void updatePaused(final int speed) {
             toast(String.format("paused %d", position));
+            updateSpeed(speed);
             pb.setIndeterminate(false);
         }
 
@@ -216,8 +228,9 @@ public class SingleTaskTestActivity extends AppCompatActivity {
             pb.setIndeterminate(false);
         }
 
-        public void updateError(final Throwable ex) {
+        public void updateError(final Throwable ex, final int speed) {
             toast(String.format("error %d %s", position, ex.getMessage()));
+            updateSpeed(speed);
             pb.setIndeterminate(false);
         }
 
@@ -226,10 +239,12 @@ public class SingleTaskTestActivity extends AppCompatActivity {
 
             toast(String.format("completed %d %s", position, task.getPath()));
 
-            if (tv != null) {
-                tv.setText(String.format("sofar: %d total: %d",
+            if (detailTv != null) {
+                detailTv.setText(String.format("sofar: %d total: %d",
                         task.getSmallFileSoFarBytes(), task.getSmallFileTotalBytes()));
             }
+
+            updateSpeed(task.getSpeed());
             pb.setIndeterminate(false);
             pb.setMax(task.getSmallFileTotalBytes());
             pb.setProgress(task.getSmallFileSoFarBytes());
@@ -255,30 +270,36 @@ public class SingleTaskTestActivity extends AppCompatActivity {
     private Button startBtn1;
     private Button pauseBtn1;
     private Button deleteBtn1;
+    private TextView speedTv1;
     private ProgressBar progressBar1;
     private Button startBtn2;
     private Button pauseBtn2;
     private Button deleteBtn2;
+    private TextView speedTv2;
     private ProgressBar progressBar2;
     private Button startBtn3;
     private Button pauseBtn3;
     private Button deleteBtn3;
     private TextView detailTv3;
+    private TextView speedTv3;
     private ProgressBar progressBar3;
 
     private void assignViews() {
         startBtn1 = (Button) findViewById(R.id.start_btn_1);
         pauseBtn1 = (Button) findViewById(R.id.pause_btn_1);
         deleteBtn1 = (Button) findViewById(R.id.delete_btn_1);
+        speedTv1 = (TextView) findViewById(R.id.speed_tv_1);
         progressBar1 = (ProgressBar) findViewById(R.id.progressBar_1);
         startBtn2 = (Button) findViewById(R.id.start_btn_2);
         pauseBtn2 = (Button) findViewById(R.id.pause_btn_2);
         deleteBtn2 = (Button) findViewById(R.id.delete_btn_2);
+        speedTv2 = (TextView) findViewById(R.id.speed_tv_2);
         progressBar2 = (ProgressBar) findViewById(R.id.progressBar_2);
         startBtn3 = (Button) findViewById(R.id.start_btn_3);
         pauseBtn3 = (Button) findViewById(R.id.pause_btn_3);
         deleteBtn3 = (Button) findViewById(R.id.delete_btn_3);
         detailTv3 = (TextView) findViewById(R.id.detail_tv_3);
+        speedTv3 = (TextView) findViewById(R.id.speed_tv_3);
         progressBar3 = (ProgressBar) findViewById(R.id.progressBar_3);
     }
 

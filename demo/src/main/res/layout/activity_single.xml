@@ -47,6 +47,14 @@
             android:textSize="14sp" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/speed_tv_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textColor="#000000"
+        android:textSize="14sp" />
+
     <ProgressBar
         android:id="@+id/progressBar_1"
         style="?android:attr/progressBarStyleHorizontal"
@@ -87,6 +95,14 @@
             android:textColor="#000000"
             android:textSize="14sp" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/speed_tv_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textColor="#000000"
+        android:textSize="14sp" />
 
     <ProgressBar
         android:id="@+id/progressBar_2"
@@ -145,6 +161,15 @@
         android:layout_gravity="center"
         android:text="-"
         android:textColor="@color/colorPrimary"
+        android:textSize="14sp" />
+
+
+    <TextView
+        android:id="@+id/speed_tv_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textColor="#000000"
         android:textSize="14sp" />
 
     <ProgressBar
