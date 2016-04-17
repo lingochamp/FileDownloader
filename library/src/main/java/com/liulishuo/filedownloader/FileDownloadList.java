@@ -27,14 +27,14 @@ import java.util.List;
  * <p/>
  * Storing all tasks in processing in the Main-Process.
  */
-class FileDownloadList {
+public class FileDownloadList {
 
 
     private final static class HolderClass {
         private final static FileDownloadList INSTANCE = new FileDownloadList();
     }
 
-    static FileDownloadList getImpl() {
+    public static FileDownloadList getImpl() {
         return HolderClass.INSTANCE;
     }
 
@@ -68,7 +68,7 @@ class FileDownloadList {
         return size;
     }
 
-    BaseDownloadTask get(final int id) {
+    public BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
                 // when FileDownloadMgr#checkDownloading

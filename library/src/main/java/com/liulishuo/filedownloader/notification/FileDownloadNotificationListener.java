@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.notification;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadList;
 import com.liulishuo.filedownloader.FileDownloadListener;
 
 import junit.framework.Assert;
@@ -39,7 +40,19 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
         return helper;
     }
 
-    public void createNotification(BaseDownloadTask task) {
+
+    public void addNotificationItem(int downloadId) {
+        if (downloadId == 0) {
+            return;
+        }
+
+        BaseDownloadTask task = FileDownloadList.getImpl().get(downloadId);
+        if (task != null) {
+            addNotificationItem(task);
+        }
+    }
+
+    public void addNotificationItem(BaseDownloadTask task) {
         if (disableNotification(task)) {
             return;
         }
@@ -119,7 +132,13 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
 
     @Override
     protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-        createNotification(task);
+        addNotificationItem(task);
+        showIndeterminate(task);
+    }
+
+    @Override
+    protected void started(BaseDownloadTask task) {
+        super.started(task);
         showIndeterminate(task);
     }
 
