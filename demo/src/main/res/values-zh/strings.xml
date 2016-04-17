@@ -35,6 +35,7 @@
     <string name="tasks_manager_demo_name" formatted="false">任务: %s</string>
     <string name="tasks_manager_demo_status_loading">状态: 加载中...</string>
     <string name="tasks_manager_demo_status_pending">状态: 队列中</string>
+    <string name="tasks_manager_demo_status_started">状态: 开始下载</string>
     <string name="tasks_manager_demo_status_connected">状态: 已连接上</string>
     <string name="tasks_manager_demo_status_progress">状态: 下载中...</string>
     <string name="tasks_manager_demo_status_downloading" formatted="false">状态: 正在下载 %d</string>

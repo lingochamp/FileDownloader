@@ -18,6 +18,7 @@
     <string name="tasks_manager_demo_name" formatted="false">task: %s</string>
     <string name="tasks_manager_demo_status_loading">Status: loading...</string>
     <string name="tasks_manager_demo_status_pending">Status: pending</string>
+    <string name="tasks_manager_demo_status_started">Status: started</string>
     <string name="tasks_manager_demo_status_connected">Status: connected</string>
     <string name="tasks_manager_demo_status_progress">Status: progressing</string>
     <string name="tasks_manager_demo_status_downloading" formatted="false">Status: downloading %d</string>
