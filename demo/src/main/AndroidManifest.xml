@@ -44,6 +44,7 @@
             android:label="@string/tasks_manager_demo_title" />
         <activity
             android:name=".NotificationDemoActivity"
+            android:launchMode="singleTask"
             android:label="@string/notification_demo_title" />
 
     </application>
