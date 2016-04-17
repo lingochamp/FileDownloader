@@ -10,19 +10,20 @@ public interface Constant {
     };
 
     String[] BIG_FILE_URLS = {
-            "http://7xjww9.com1.z0.glb.clouddn.com/20130221114001385.jpg",
-            "http://180.153.105.144/dd.myapp.com/16891/E2F3DEBB12A049ED921C6257C5E9FB11.apk",
-            "http://dg.101.hk/1.rar",
-            "https://static.pexels.com/photos/479/landscape-nature-sunset-trees.jpg",
-            "http://7xjww9.com1.z0.glb.clouddn.com/Hopetoun_falls.jpg",
             // 5m
             "http://mirror.internode.on.net/pub/test/5meg.test5",
+            // 6m
+            "http://download.chinaunix.net/down.php?id=10608&ResourceID=5267&site=1",
+            // 8m
+            "http://7xjww9.com1.z0.glb.clouddn.com/Hopetoun_falls.jpg",
+            // 10m
+            "http://dg.101.hk/1.rar",
+            // 342m
+            "http://180.153.105.144/dd.myapp.com/16891/E2F3DEBB12A049ED921C6257C5E9FB11.apk",
 //            "http://mirror.internode.on.net/pub/test/5meg.test4",
 //            "http://mirror.internode.on.net/pub/test/5meg.test3",
 //            "http://mirror.internode.on.net/pub/test/5meg.test2",
 //            "http://mirror.internode.on.net/pub/test/5meg.test1",
-            // 6m
-//            "http://download.chinaunix.net/down.php?id=10608&ResourceID=5267&site=1",
             // 6.8m
 //            "http://dlsw.baidu.com/sw-search-sp/soft/7b/33461/freeime.1406862029.exe",
             // 10m
@@ -30,6 +31,7 @@ public interface Constant {
 //            "http://mirror.internode.on.net/pub/test/10meg.test1",
 //            "http://mirror.internode.on.net/pub/test/10meg.test2",
 //            "http://mirror.internode.on.net/pub/test/10meg.test3",
+            // 10m
             "http://mirror.internode.on.net/pub/test/10meg.test4",
 //            "http://mirror.internode.on.net/pub/test/10meg.test5",
             // 20m

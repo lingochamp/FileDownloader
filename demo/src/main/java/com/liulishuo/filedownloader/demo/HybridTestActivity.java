@@ -103,9 +103,9 @@ public class HybridTestActivity extends AppCompatActivity {
      * @param view
      */
     public void onClickStartSingleDownload(final View view) {
-        updateDisplay(getString(R.string.hybrid_test_start_single_task, Constant.BIG_FILE_URLS[0]));
+        updateDisplay(getString(R.string.hybrid_test_start_single_task, Constant.BIG_FILE_URLS[2]));
         totalCounts++;
-        FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[0])
+        FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[2])
                 .setListener(createListener())
                 .setTag(1)
                 .start();

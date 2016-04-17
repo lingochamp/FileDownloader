@@ -66,6 +66,13 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
 
         TasksManager.getImpl().onCreate(new WeakReference<>(this));
+        TasksManager.getImpl().addTask(Constant.BIG_FILE_URLS[0]);
+        TasksManager.getImpl().addTask(Constant.BIG_FILE_URLS[3]);
+        TasksManager.getImpl().addTask(Constant.BIG_FILE_URLS[4]);
+        TasksManager.getImpl().addTask(Constant.BIG_FILE_URLS[5]);
+        TasksManager.getImpl().addTask(Constant.BIG_FILE_URLS[6]);
+        TasksManager.getImpl().addTask(Constant.BIG_FILE_URLS[7]);
+        adapter.notifyDataSetChanged();
     }
 
     public void postNotifyDataChanged() {
@@ -401,8 +408,6 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
                     final String url = Constant.URLS[i];
                     addTask(url);
                 }
-
-                modelList = dbController.getAllTasks();
             }
         }
 
@@ -541,7 +546,12 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             if (model != null) {
                 return model;
             }
-            return dbController.addTask(url, path);
+            final TasksManagerModel newModel = dbController.addTask(url, path);
+            if (newModel != null) {
+                modelList.add(newModel);
+            }
+
+            return newModel;
         }
 
         public String createPath(final String url) {
@@ -568,14 +578,18 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
             final List<TasksManagerModel> list = new ArrayList<>();
             try {
-                while (c.moveToNext()) {
+                if (!c.moveToLast()) {
+                    return list;
+                }
+
+                do {
                     TasksManagerModel model = new TasksManagerModel();
                     model.setId(c.getInt(c.getColumnIndex(TasksManagerModel.ID)));
                     model.setName(c.getString(c.getColumnIndex(TasksManagerModel.NAME)));
                     model.setUrl(c.getString(c.getColumnIndex(TasksManagerModel.URL)));
                     model.setPath(c.getString(c.getColumnIndex(TasksManagerModel.PATH)));
                     list.add(model);
-                }
+                } while (c.moveToPrevious());
             } finally {
                 if (c != null) {
                     c.close();

@@ -68,7 +68,7 @@ public class NotificationDemoActivity extends AppCompatActivity {
     private int downloadId = 0;
 
     public void onClickStart(final View view) {
-        downloadId = FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[2])
+        downloadId = FileDownloader.getImpl().create(Constant.BIG_FILE_URLS[3])
                 .setPath(savePath)
                 .setListener(new FileDownloadNotificationListener(notificationHelper) {
                     @Override
