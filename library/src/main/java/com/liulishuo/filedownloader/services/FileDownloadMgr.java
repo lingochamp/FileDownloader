@@ -110,7 +110,6 @@ class FileDownloadMgr {
         }
 
         model.setCallbackProgressTimes(callbackProgressTimes);
-        model.setIsCancel(false);
 
         // - update model to db
         if (needUpdate2DB) {
@@ -328,7 +327,8 @@ class FileDownloadMgr {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "paused %d", id);
         }
-        model.setIsCancel(true);
+
+        mThreadPool.cancel(id);
         /**
          * 耦合 by {@link FileDownloadRunnable#run()} 中的 {@link com.squareup.okhttp.Request.Builder#tag(Object)}
          * 目前在okHttp里还是每个单独任务

@@ -20,8 +20,8 @@ import android.util.SparseArray;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by Jacksgong on 9/25/15.
@@ -33,7 +33,7 @@ class FileDownloadThreadPool {
     private SparseArray<FileDownloadRunnable> runnablePool = new SparseArray<>();
 
     // TODO 对用户开放线程池大小，全局并行下载数
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(3);
+    private final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
 
     public void execute(FileDownloadRunnable runnable) {
         runnable.onPending();
@@ -48,6 +48,18 @@ class FileDownloadThreadPool {
             mIgnoreCheckTimes = 0;
         } else {
             mIgnoreCheckTimes++;
+        }
+    }
+
+    public void cancel(final int id) {
+        checkNoExist();
+        synchronized (this) {
+            FileDownloadRunnable r = runnablePool.get(id);
+            if (r != null) {
+                r.cancelRunnable();
+                threadPool.remove(r);
+            }
+            runnablePool.remove(id);
         }
     }
 

@@ -79,6 +79,8 @@ public class FileDownloadRunnable implements Runnable {
 
     private final FileDownloadHeader header;
 
+    private volatile boolean isCanceled = false;
+
     public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model,
                                 final IFileDownloadDBHelper helper, final int autoRetryTimes,
                                 final FileDownloadHeader header) {
@@ -398,6 +400,11 @@ public class FileDownloadRunnable implements Runnable {
 
     }
 
+    public void cancelRunnable() {
+        this.isCanceled = true;
+        onPause();
+    }
+
     private void onConnected(final boolean resuming, final long soFar, final long total) {
         helper.update(getId(), FileDownloadStatus.connected, soFar, total);
 
@@ -528,7 +535,7 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     private boolean isCancelled() {
-        return this.model.isCanceled();
+        return isCanceled;
     }
 
     // ----------------------------------
