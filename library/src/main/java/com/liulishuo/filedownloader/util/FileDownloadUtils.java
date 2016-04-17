@@ -23,6 +23,8 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
 
+import com.liulishuo.filedownloader.BuildConfig;
+
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.UnsupportedEncodingException;
@@ -198,6 +200,10 @@ public class FileDownloadUtils {
     }
 
     public static boolean isDownloaderProcess(final Context context) {
+        if (BuildConfig.PROCESS_NON_SEPARATE) {
+            return true;
+        }
+
         int pid = android.os.Process.myPid();
         final ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 

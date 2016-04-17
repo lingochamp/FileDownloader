@@ -36,20 +36,18 @@ import com.liulishuo.filedownloader.services.FileDownloadService;
  * <p/>
  * The only Class can access the FileDownload-Process, and the only Class can receive the event from
  * the FileDownloader-Process through Binder.
+ *
+ * We will use this UIGuard as default, because the FileDownloadService runs in the separate process
+ * `:filedownloader` as default, If you want to share the main process to run the FileDownloadService,
+ * just add a command `process.non-separate=true` in `/filedownloader.properties`.
+ *
+ * @see FileDownloadServiceSharedTransmit
  */
 class FileDownloadServiceUIGuard extends
         BaseFileServiceUIGuard<FileDownloadServiceUIGuard.FileDownloadServiceCallback,
                 IFileDownloadIPCService> {
 
-    private final static class HolderClass {
-        private final static FileDownloadServiceUIGuard INSTANCE = new FileDownloadServiceUIGuard();
-    }
-
-    public static FileDownloadServiceUIGuard getImpl() {
-        return HolderClass.INSTANCE;
-    }
-
-    protected FileDownloadServiceUIGuard() {
+    FileDownloadServiceUIGuard() {
         super(FileDownloadService.class);
     }
 
@@ -88,6 +86,7 @@ class FileDownloadServiceUIGuard extends
      * @param autoRetryTimes        for auto retry times when error
      * @param header                for http header
      */
+    @Override
     public boolean startDownloader(final String url, final String path,
                                    final int callbackProgressTimes, final int autoRetryTimes,
                                    final FileDownloadHeader header) {
@@ -106,6 +105,7 @@ class FileDownloadServiceUIGuard extends
         return true;
     }
 
+    @Override
     public boolean pauseDownloader(final int downloadId) {
         if (getService() == null) {
             return false;
@@ -120,6 +120,7 @@ class FileDownloadServiceUIGuard extends
         return false;
     }
 
+    @Override
     public FileDownloadTransferModel checkReuse(final String url, final String path) {
         if (getService() == null) {
             return null;
@@ -134,6 +135,7 @@ class FileDownloadServiceUIGuard extends
         return null;
     }
 
+    @Override
     public FileDownloadTransferModel checkReuse(final int id) {
         if (getService() == null) {
             return null;
@@ -148,6 +150,7 @@ class FileDownloadServiceUIGuard extends
         return null;
     }
 
+    @Override
     public boolean checkIsDownloading(final String url, final String path) {
         if (getService() == null) {
             return false;
@@ -162,6 +165,7 @@ class FileDownloadServiceUIGuard extends
         return false;
     }
 
+    @Override
     public long getSofar(final int downloadId) {
         long val = 0;
         if (getService() == null) {
@@ -177,6 +181,7 @@ class FileDownloadServiceUIGuard extends
         return val;
     }
 
+    @Override
     public long getTotal(final int downloadId) {
         long val = 0;
         if (getService() == null) {
@@ -192,6 +197,7 @@ class FileDownloadServiceUIGuard extends
         return val;
     }
 
+    @Override
     public int getStatus(final int downloadId) {
         int status = FileDownloadStatus.INVALID_STATUS;
         if (getService() == null) {
@@ -207,6 +213,7 @@ class FileDownloadServiceUIGuard extends
         return status;
     }
 
+    @Override
     public void pauseAllTasks() {
         if (getService() == null) {
             return;
@@ -222,6 +229,7 @@ class FileDownloadServiceUIGuard extends
     /**
      * @return any error, will return true
      */
+    @Override
     public boolean isIdle() {
         if (getService() == null) {
             return true;

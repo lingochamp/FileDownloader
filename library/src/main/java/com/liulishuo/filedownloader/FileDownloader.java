@@ -39,11 +39,15 @@ import okhttp3.OkHttpClient;
  * Created by Jacksgong on 12/17/15.
  * <p/>
  * The basic entrance for FileDownloader.
+ *
+ * @see com.liulishuo.filedownloader.services.FileDownloadService The service for FileDownloader.
  */
 public class FileDownloader {
 
     /**
      * Just cache Application's Context
+     *
+     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker)
      */
     public static void init(final Context context) {
         init(context, null);
@@ -53,7 +57,8 @@ public class FileDownloader {
      * Cache {@code context} in Main-Process and FileDownloader-Process; And will init the
      * OkHttpClient in FileDownloader-Process, if the {@code okHttpClientCustomMaker} is provided.
      * <p/>
-     * Must be invoked at{@link Application#onCreate()}.
+     * Must be invoked at{@link Application#onCreate()} in the Main process and the filedownloader
+     * process.
      *
      * @param context                 This context will be hold in FileDownloader, so recommend
      *                                use {@link Application#getApplicationContext()}.
@@ -258,18 +263,18 @@ public class FileDownloader {
         }
         // double check, for case: File Download progress alive but ui progress has died and relived,
         // so FileDownloadList not always contain all running task exactly.
-        if (FileDownloadServiceUIGuard.getImpl().isConnected()) {
-            FileDownloadServiceUIGuard.getImpl().pauseAllTasks();
+        if (FileDownloadServiceProxy.getImpl().isConnected()) {
+            FileDownloadServiceProxy.getImpl().pauseAllTasks();
         } else {
             if (pauseAllRunnable == null) {
                 pauseAllRunnable = new Runnable() {
                     @Override
                     public void run() {
-                        FileDownloadServiceUIGuard.getImpl().pauseAllTasks();
+                        FileDownloadServiceProxy.getImpl().pauseAllTasks();
                     }
                 };
             }
-            FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext(), pauseAllRunnable);
+            FileDownloadServiceProxy.getImpl().bindStartByContext(FileDownloadHelper.getAppContext(), pauseAllRunnable);
         }
 
     }
@@ -295,7 +300,7 @@ public class FileDownloader {
     public long getSoFar(final int downloadId) {
         BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
         if (downloadTask == null) {
-            return FileDownloadServiceUIGuard.getImpl().getSofar(downloadId);
+            return FileDownloadServiceProxy.getImpl().getSofar(downloadId);
         }
 
         return downloadTask.getLargeFileSoFarBytes();
@@ -307,7 +312,7 @@ public class FileDownloader {
     public long getTotal(final int downloadId) {
         BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
         if (downloadTask == null) {
-            return FileDownloadServiceUIGuard.getImpl().getTotal(downloadId);
+            return FileDownloadServiceProxy.getImpl().getTotal(downloadId);
         }
 
         return downloadTask.getLargeFileTotalBytes();
@@ -326,7 +331,7 @@ public class FileDownloader {
     public int getStatus(final int downloadId) {
         BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
         if (downloadTask == null) {
-            return FileDownloadServiceUIGuard.getImpl().getStatus(downloadId);
+            return FileDownloadServiceProxy.getImpl().getStatus(downloadId);
         }
 
         return downloadTask.getStatus();
@@ -337,7 +342,7 @@ public class FileDownloader {
      */
     public void bindService() {
         if (!isServiceConnected()) {
-            FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
+            FileDownloadServiceProxy.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
         }
     }
 
@@ -346,7 +351,7 @@ public class FileDownloader {
      */
     public void unBindService() {
         if (isServiceConnected()) {
-            FileDownloadServiceUIGuard.getImpl().unbindByContext(FileDownloadHelper.getAppContext());
+            FileDownloadServiceProxy.getImpl().unbindByContext(FileDownloadHelper.getAppContext());
         }
     }
 
@@ -357,7 +362,7 @@ public class FileDownloader {
         }
 
         if (FileDownloadList.getImpl().isEmpty()
-                && FileDownloadServiceUIGuard.getImpl().isIdle()) {
+                && FileDownloadServiceProxy.getImpl().isIdle()) {
             unBindService();
             return true;
         }
@@ -369,7 +374,7 @@ public class FileDownloader {
      * @return has connected File Download service
      */
     public boolean isServiceConnected() {
-        return FileDownloadServiceUIGuard.getImpl().isConnected();
+        return FileDownloadServiceProxy.getImpl().isConnected();
     }
 
     /**

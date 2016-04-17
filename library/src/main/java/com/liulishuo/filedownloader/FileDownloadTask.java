@@ -65,7 +65,7 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     protected void _startExecute() {
-        final boolean succeed = FileDownloadServiceUIGuard.getImpl().
+        final boolean succeed = FileDownloadServiceProxy.getImpl().
                 startDownloader(
                         getUrl(),
                         getPath(),
@@ -103,7 +103,7 @@ class FileDownloadTask extends BaseDownloadTask {
             return false;
         }
 
-        final FileDownloadTransferModel model = FileDownloadServiceUIGuard.getImpl().checkReuse(getDownloadId());
+        final FileDownloadTransferModel model = FileDownloadServiceProxy.getImpl().checkReuse(getDownloadId());
         if (model != null) {
             FileDownloadEventPool.getImpl().publish(new DownloadTransferEvent(model));
 
@@ -116,14 +116,14 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     protected boolean _checkCanStart() {
-        if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
+        if (!FileDownloadServiceProxy.getImpl().isConnected()) {
             synchronized (NEED_RESTART_LIST) {
-                if (!FileDownloadServiceUIGuard.getImpl().isConnected()) {
+                if (!FileDownloadServiceProxy.getImpl().isConnected()) {
                     // 没有连上 服务
                     if (FileDownloadLog.NEED_LOG) {
                         FileDownloadLog.d(this, "no connect service !! %s", getDownloadId());
                     }
-                    FileDownloadServiceUIGuard.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
+                    FileDownloadServiceProxy.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
                     if (!NEED_RESTART_LIST.contains(this)) {
                         NEED_RESTART_LIST.add(this);
                     }
@@ -162,12 +162,12 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     protected boolean _pauseExecute() {
-        return FileDownloadServiceUIGuard.getImpl().pauseDownloader(getDownloadId());
+        return FileDownloadServiceProxy.getImpl().pauseDownloader(getDownloadId());
     }
 
     @Override
     protected int _getStatusFromServer(final int downloadId) {
-        return FileDownloadServiceUIGuard.getImpl().getStatus(downloadId);
+        return FileDownloadServiceProxy.getImpl().getStatus(downloadId);
     }
 
     private static class FileDownloadInternalLis implements DownloadEventSampleListener.IEventListener {

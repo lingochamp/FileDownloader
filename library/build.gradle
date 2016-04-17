@@ -15,14 +15,18 @@ android {
         // if false, will ignore HTTP response header does not has content-length either not chunk
         // transfer encoding.
         def httpLenient = null;
+        def processNonSeparate = null;
 
         if (propertiesFile.exists()) {
             Properties p = new Properties()
             p.load(propertiesFile.newDataInputStream())
             httpLenient = p.getProperty("http.lenient")
+            processNonSeparate = p.getProperty("process.non-separate")
         }
 
         buildConfigField "boolean", "HTTP_LENIENT", httpLenient == "true" ? "true" : "false"
+        buildConfigField "boolean", "PROCESS_NON_SEPARATE", processNonSeparate == "true" ? "true" : "false"
+        manifestPlaceholders = [filedownloaderProcessName: processNonSeparate == "true" ? "" : ":filedownloader"]
     }
     buildTypes {
         release {

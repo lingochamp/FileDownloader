@@ -19,6 +19,8 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.services.FileDownloadRunnable;
 
+import java.io.FileDescriptor;
+
 /**
  * Created by Jacksgong on 12/21/15.
  *
@@ -65,7 +67,7 @@ interface IFileDownloadMessage {
      * <p/>
      * Fetching datum, and write to local disk.
      *
-     * @see FileDownloadRunnable#onProgress(long, long)
+     * @see FileDownloadRunnable#onProgress(long, long, FileDescriptor)
      */
     void notifyProgress();
 

@@ -26,6 +26,7 @@ import android.os.IInterface;
 import android.os.RemoteException;
 
 import com.liulishuo.filedownloader.FileDownloadEventPool;
+import com.liulishuo.filedownloader.IFileDownloadServiceProxy;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
@@ -39,9 +40,9 @@ import java.util.List;
  * A UI-Guard in Main-Process for IPC. which is the only Class can access the other process in
  * Main-Process with Binder.
  *
- * @see BaseFileService
  */
-public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE extends IInterface> implements ServiceConnection {
+public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE extends IInterface>
+        implements ServiceConnection, IFileDownloadServiceProxy {
 
     private final CALLBACK callback;
     private INTERFACE service;
@@ -121,10 +122,12 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     private final List<Context> BIND_CONTEXTS = new ArrayList<>();
     private final ArrayList<Runnable> connectedRunnableList = new ArrayList<>();
 
+    @Override
     public void bindStartByContext(final Context context) {
         bindStartByContext(context, null);
     }
 
+    @Override
     public void bindStartByContext(final Context context, final Runnable connectedRunnable) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "bindStartByContext %s", context.getClass().getSimpleName());
@@ -146,6 +149,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         context.startService(i);
     }
 
+    @Override
     public void unbindByContext(final Context context) {
         if (!BIND_CONTEXTS.contains(context)) {
             return;
@@ -193,6 +197,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         return key;
     }
 
+    @Override
     public boolean isConnected() {
         return getService() != null;
     }
