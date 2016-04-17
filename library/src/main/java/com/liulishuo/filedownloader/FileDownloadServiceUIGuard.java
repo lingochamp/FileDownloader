@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader;
 
+import android.app.Notification;
 import android.os.IBinder;
 import android.os.RemoteException;
 
@@ -242,5 +243,31 @@ class FileDownloadServiceUIGuard extends
         }
 
         return true;
+    }
+
+    @Override
+    public void startForeground(int id, Notification notification) {
+        if (getService() == null) {
+            return;
+        }
+
+        try {
+            getService().startForeground(id, notification);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void stopForeground(boolean removeNotification) {
+        if (getService() == null) {
+            return;
+        }
+
+        try {
+            getService().stopForeground(removeNotification);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 }

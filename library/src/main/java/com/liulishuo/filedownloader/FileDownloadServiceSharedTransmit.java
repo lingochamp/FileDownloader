@@ -15,6 +15,7 @@
  */
 package com.liulishuo.filedownloader;
 
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 
@@ -124,6 +125,16 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
         Intent i = new Intent(context, FileDownloadService.class);
         context.stopService(i);
         handler = null;
+    }
+
+    @Override
+    public void startForeground(int id, Notification notification) {
+        handler.startForeground(id, notification);
+    }
+
+    @Override
+    public void stopForeground(boolean removeNotification) {
+        handler.stopForeground(removeNotification);
     }
 
     private FDServiceSharedHandler handler;

@@ -22,6 +22,8 @@ import android.os.IBinder;
 
 import com.liulishuo.filedownloader.BuildConfig;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Created by Jacksgong on 9/23/15.
  * <p/>
@@ -39,9 +41,9 @@ public class FileDownloadService extends Service {
     public void onCreate() {
         super.onCreate();
         if (BuildConfig.PROCESS_NON_SEPARATE) {
-            handler = new FDServiceSharedHandler();
+            handler = new FDServiceSharedHandler(new WeakReference<>(this));
         } else {
-            handler = new FDServiceSeparateHandler();
+            handler = new FDServiceSeparateHandler(new WeakReference<>(this));
         }
     }
 

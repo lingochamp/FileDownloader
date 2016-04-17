@@ -15,6 +15,7 @@
  */
 package com.liulishuo.filedownloader.services;
 
+import android.app.Notification;
 import android.content.Intent;
 import android.os.IBinder;
 
@@ -26,6 +27,8 @@ import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Created by Jacksgong on 4/17/16.
  * <p/>
@@ -34,8 +37,10 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
         implements IFileDownloadServiceHandler {
     private final FileDownloadMgr downloadManager;
+    private WeakReference<FileDownloadService> wService;
 
-    FDServiceSharedHandler() {
+    FDServiceSharedHandler(WeakReference<FileDownloadService> wService) {
+        this.wService = wService;
         this.downloadManager = new FileDownloadMgr(FileDownloadHelper.getOkHttpClient());
     }
 
@@ -96,6 +101,20 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     @Override
     public boolean isIdle() {
         return downloadManager.isIdle();
+    }
+
+    @Override
+    public void startForeground(int id, Notification notification) {
+        if (this.wService != null && this.wService.get() != null) {
+            this.wService.get().startForeground(id, notification);
+        }
+    }
+
+    @Override
+    public void stopForeground(boolean removeNotification) {
+        if (this.wService != null && this.wService.get() != null) {
+            this.wService.get().stopForeground(removeNotification);
+        }
     }
 
     @Override

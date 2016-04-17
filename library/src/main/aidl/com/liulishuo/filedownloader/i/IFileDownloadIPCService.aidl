@@ -3,6 +3,7 @@ package com.liulishuo.filedownloader.i;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import android.app.Notification;
 
 interface IFileDownloadIPCService {
 
@@ -25,4 +26,7 @@ interface IFileDownloadIPCService {
     long getTotal(int downloadId);
     int getStatus(int downloadId);
     boolean isIdle();
+
+    oneway void startForeground(int id, in Notification notification);
+    oneway void stopForeground(boolean removeNotification);
 }

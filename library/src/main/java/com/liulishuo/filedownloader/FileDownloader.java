@@ -17,6 +17,8 @@
 package com.liulishuo.filedownloader;
 
 import android.app.Application;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -321,12 +323,6 @@ public class FileDownloader {
     /**
      * @param downloadId Download Id
      * @return download status,
-     * if service has not connected,
-     * will be {@link com.liulishuo.filedownloader.model.FileDownloadStatus#INVALID_STATUS}
-     * if already has over(error,paused,completed,warn),
-     * will come from File Download Service
-     * if there are no data in File Download Service ,
-     * will be {@link com.liulishuo.filedownloader.model.FileDownloadStatus#INVALID_STATUS}
      */
     public int getStatus(final int downloadId) {
         BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
@@ -335,6 +331,48 @@ public class FileDownloader {
         }
 
         return downloadTask.getStatus();
+    }
+
+    /**
+     * Find the running task by {@code url} and default path, and replace its listener with
+     * the new one {@code listener}.
+     *
+     * @return The target task's DownloadId, if not exist target task, and replace failed, will be 0.
+     * @see #replaceListener(int, FileDownloadListener)
+     * @see #replaceListener(String, String, FileDownloadListener)
+     */
+    public int replaceListener(String url, FileDownloadListener listener) {
+        return replaceListener(url, FileDownloadUtils.getDefaultSaveFilePath(url), listener);
+    }
+
+    /**
+     * Find the running task by {@code url} and {@code path}, and replace its listener with
+     * the new one {@code listener}.
+     *
+     * @return The target task's DownloadId, if not exist target task, and replace failed, will be 0.
+     * @see #replaceListener(String, FileDownloadListener)
+     * @see #replaceListener(int, FileDownloadListener)
+     */
+    public int replaceListener(String url, String path, FileDownloadListener listener) {
+        return replaceListener(FileDownloadUtils.generateId(url, path), listener);
+    }
+
+    /**
+     * Find the running task by {@code id}, and replace its listener width the new one
+     * {@code listener}.
+     *
+     * @return The target task's DownloadId, if not exist target task, and replace failed, will be 0.
+     * @see #replaceListener(String, FileDownloadListener)
+     * @see #replaceListener(String, String, FileDownloadListener)
+     */
+    public int replaceListener(int id, FileDownloadListener listener) {
+        final BaseDownloadTask task = FileDownloadList.getImpl().get(id);
+        if (task == null) {
+            return 0;
+        }
+
+        task.setListener(listener);
+        return task.getDownloadId();
     }
 
     /**
@@ -394,6 +432,42 @@ public class FileDownloader {
     public void removeServiceConnectListener(final FileDownloadConnectListener listener) {
         FileDownloadEventPool.getImpl().removeListener(DownloadServiceConnectChangedEvent.ID
                 , listener);
+    }
+
+    /**
+     * In foreground status, will save the FileDownloader alive, even user kill the application from
+     * recent apps.
+     * <p/>
+     * Make FileDownloader service run in the foreground, supplying the ongoing
+     * notification to be shown to the user while in this state.
+     * By default FileDownloader services are background, meaning that if the system needs to
+     * kill them to reclaim more memory (such as to display a large page in a
+     * web browser), they can be killed without too much harm.  You can set this
+     * flag if killing your service would be disruptive to the user, such as
+     * if your service is performing background downloading, so the user
+     * would notice if their app stopped downloading.
+     *
+     * @param id           The identifier for this notification as per
+     *                     {@link NotificationManager#notify(int, Notification)
+     *                     NotificationManager.notify(int, Notification)}; must not be 0.
+     * @param notification The Notification to be displayed.
+     * @see #stopForeground(boolean)
+     */
+    public void startForeground(int id, Notification notification) {
+        FileDownloadServiceProxy.getImpl().startForeground(id, notification);
+    }
+
+    /**
+     * Remove FileDownload service from foreground state, allowing it to be killed if
+     * more memory is needed.
+     *
+     * @param removeNotification If true, the notification previously provided
+     *                           to {@link #startForeground} will be removed.  Otherwise it will remain
+     *                           until a later call removes it (or the service is destroyed).
+     * @see #startForeground(int, Notification)
+     */
+    public void stopForeground(boolean removeNotification) {
+        FileDownloadServiceProxy.getImpl().stopForeground(removeNotification);
     }
 
     private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {

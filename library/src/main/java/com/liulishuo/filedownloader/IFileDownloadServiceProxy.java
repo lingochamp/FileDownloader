@@ -15,6 +15,7 @@
  */
 package com.liulishuo.filedownloader;
 
+import android.app.Notification;
 import android.content.Context;
 
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
@@ -53,4 +54,8 @@ public interface IFileDownloadServiceProxy {
     void bindStartByContext(final Context context, final Runnable connectedRunnable);
 
     void unbindByContext(final Context context);
+
+    void startForeground(int id, Notification notification);
+
+    void stopForeground(boolean removeNotification);
 }

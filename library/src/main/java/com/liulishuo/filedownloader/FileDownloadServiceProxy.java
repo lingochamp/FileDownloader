@@ -15,6 +15,7 @@
  */
 package com.liulishuo.filedownloader;
 
+import android.app.Notification;
 import android.content.Context;
 
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
@@ -125,5 +126,15 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     @Override
     public void unbindByContext(Context context) {
         handler.unbindByContext(context);
+    }
+
+    @Override
+    public void startForeground(int id, Notification notification) {
+        handler.startForeground(id, notification);
+    }
+
+    @Override
+    public void stopForeground(boolean removeNotification) {
+        handler.stopForeground(removeNotification);
     }
 }

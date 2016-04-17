@@ -15,6 +15,7 @@
  */
 package com.liulishuo.filedownloader.services;
 
+import android.app.Notification;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
@@ -32,6 +33,8 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Created by Jacksgong on 4/17/16.
  * <p/>
@@ -43,6 +46,7 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     private final RemoteCallbackList<IFileDownloadIPCCallback> callbackList = new RemoteCallbackList<>();
     private final FileDownloadMgr downloadManager;
     private DownloadEventSampleListener mListener;
+    private WeakReference<FileDownloadService> wService;
 
     protected synchronized int callback(FileDownloadTransferModel transfer) {
         final int n = callbackList.beginBroadcast();
@@ -59,7 +63,8 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
         return n;
     }
 
-    FDServiceSeparateHandler() {
+    FDServiceSeparateHandler( WeakReference<FileDownloadService> wService) {
+        this.wService = wService;
         this.downloadManager = new FileDownloadMgr(FileDownloadHelper.getOkHttpClient());
 
         mListener = new DownloadEventSampleListener(this);
@@ -125,6 +130,20 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     @Override
     public boolean isIdle() throws RemoteException {
         return downloadManager.isIdle();
+    }
+
+    @Override
+    public void startForeground(int id, Notification notification) throws RemoteException {
+        if (this.wService != null && this.wService.get() != null) {
+            this.wService.get().startForeground(id, notification);
+        }
+    }
+
+    @Override
+    public void stopForeground(boolean removeNotification) throws RemoteException {
+        if (this.wService != null && this.wService.get() != null) {
+            this.wService.get().stopForeground(removeNotification);
+        }
     }
 
     @Override
