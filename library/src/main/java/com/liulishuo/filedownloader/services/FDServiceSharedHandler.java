@@ -118,6 +118,11 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
+    public boolean setTaskCompleted(String url, String path, long totalBytes) {
+        return downloadManager.setTaskCompleted(url, path, totalBytes);
+    }
+
+    @Override
     public void onStartCommand(Intent intent, int flags, int startId) {
         FileDownloadServiceProxy.getConnectionListener().onConnected(this);
     }

@@ -17,6 +17,8 @@
 package com.liulishuo.filedownloader.services;
 
 
+import android.text.TextUtils;
+
 import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
@@ -382,6 +384,44 @@ class FileDownloadMgr {
 
     public boolean isIdle() {
         return mThreadPool.exactSize() <= 0;
+    }
+
+    public boolean setTaskCompleted(String url, String path, long totalBytes) {
+        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(path) || totalBytes <= 0) {
+            return false;
+        }
+
+        final int id = FileDownloadUtils.generateId(url, path);
+
+        if (checkDownloading(id)) {
+            return false;
+        }
+
+        final File file = new File(path);
+        if (!file.exists()) {
+            return false;
+        }
+
+        if (file.length() != totalBytes) {
+            return false;
+        }
+
+        FileDownloadModel model = mHelper.find(id);
+
+        if (model == null) {
+            model = new FileDownloadModel();
+            model.setId(id);
+            model.setUrl(url);
+            model.setPath(path);
+        }
+
+
+        model.setTotal(totalBytes);
+        model.setSoFar(totalBytes);
+        model.setStatus(FileDownloadStatus.completed);
+
+        mHelper.update(model);
+        return true;
     }
 }
 

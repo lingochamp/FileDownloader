@@ -137,4 +137,9 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     public void stopForeground(boolean removeNotification) {
         handler.stopForeground(removeNotification);
     }
+
+    @Override
+    public boolean setTaskCompleted(String url, String path, long totalBytes) {
+        return handler.setTaskCompleted(url, path, totalBytes);
+    }
 }

@@ -29,4 +29,6 @@ interface IFileDownloadIPCService {
 
     oneway void startForeground(int id, in Notification notification);
     oneway void stopForeground(boolean removeNotification);
+
+    boolean setTaskCompleted(String url, String path, long totalBytes);
 }

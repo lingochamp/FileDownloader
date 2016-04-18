@@ -147,6 +147,11 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
+    public boolean setTaskCompleted(String url, String path, long totalBytes) throws RemoteException {
+        return downloadManager.setTaskCompleted(url, path, totalBytes);
+    }
+
+    @Override
     public boolean callback(IDownloadEvent event) {
         callback(((DownloadTransferEvent) event).getTransfer());
         return false;

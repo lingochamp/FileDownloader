@@ -270,4 +270,19 @@ class FileDownloadServiceUIGuard extends
             e.printStackTrace();
         }
     }
+
+    @Override
+    public boolean setTaskCompleted(String url, String path, long totalBytes) {
+        if (getService() == null) {
+            return false;
+        }
+
+        try {
+            return getService().setTaskCompleted(url, path, totalBytes);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

@@ -58,4 +58,6 @@ public interface IFileDownloadServiceProxy {
     void startForeground(int id, Notification notification);
 
     void stopForeground(boolean removeNotification);
+
+    boolean setTaskCompleted(String url, String path, long totalBytes);
 }

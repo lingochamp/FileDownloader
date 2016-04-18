@@ -470,6 +470,31 @@ public class FileDownloader {
         FileDownloadServiceProxy.getImpl().stopForeground(removeNotification);
     }
 
+    /**
+     * Recommend used to telling the FileDownloader Engine that the task with the {@code url}  and
+     * the {@code path} has already completed downloading, in case of your task has already
+     * downloaded by other ways(not by FileDownloader Engine), and after success to set the task
+     * completed, FileDownloader will check the task with {@code url} and the {@code path} whether
+     * completed by {@code totalBytes}.
+     * <p/>
+     * Otherwise, If FileDownloader Engine isn't know your task's status, whatever your task with
+     * the {@code url} and the {@code path} has already downloaded in other way, FileDownloader
+     * Engine will ignore the exist file and redownload it, because FileDownloader Engine don't know
+     * the exist file whether it is valid.
+     *
+     * @param url        The url of the completed task.
+     * @param path       The absolute path of the completed task's save file.
+     * @param totalBytes The content-length of the completed task, the length of the file in the
+     *                   {@code path} must be equal to this value.
+     * @return Whether is successful to set the task completed. If the {@code path} not exist will be
+     * false; If the length of the file in {@code path} is not equal to {@code totalBytes} will be
+     * false; If the task with {@code url} and {@code path} is downloading will be false. Otherwise
+     * will be true.
+     */
+    public boolean setTaskCompleted(String url, String path, long totalBytes) {
+        return FileDownloadServiceProxy.getImpl().setTaskCompleted(url, path, totalBytes);
+    }
+
     private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {
         Assert.assertTrue("create serial handler list must not empty", serialTasks != null && serialTasks.size() > 0);
 

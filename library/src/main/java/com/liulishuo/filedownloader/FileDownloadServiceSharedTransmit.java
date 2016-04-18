@@ -137,6 +137,11 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
         handler.stopForeground(removeNotification);
     }
 
+    @Override
+    public boolean setTaskCompleted(String url, String path, long totalBytes) {
+        return handler.setTaskCompleted(url, path, totalBytes);
+    }
+
     private FDServiceSharedHandler handler;
 
     @Override
