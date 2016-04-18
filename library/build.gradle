@@ -16,16 +16,23 @@ android {
         // transfer encoding.
         def httpLenient = null;
         def processNonSeparate = null;
+        def downloadMinProgressStep = null;
+        def downloadMinProgressTime = null;
 
         if (propertiesFile.exists()) {
             Properties p = new Properties()
             p.load(propertiesFile.newDataInputStream())
             httpLenient = p.getProperty("http.lenient")
             processNonSeparate = p.getProperty("process.non-separate")
+            downloadMinProgressStep = p.getProperty("download.min-progress-step")
+            downloadMinProgressTime = p.getProperty("download.min-progress-time")
+
         }
 
         buildConfigField "boolean", "HTTP_LENIENT", httpLenient == "true" ? "true" : "false"
         buildConfigField "boolean", "PROCESS_NON_SEPARATE", processNonSeparate == "true" ? "true" : "false"
+        buildConfigField "int", "DOWNLOAD_MIN_PROGRESS_STEP", downloadMinProgressStep == null ? '65536' : downloadMinProgressStep
+        buildConfigField "long", "DOWNLOAD_MIN_PROGRESS_TIME", downloadMinProgressTime == null ? '2000' : downloadMinProgressTime
         manifestPlaceholders = [filedownloaderProcessName: processNonSeparate == "true" ? "" : ":filedownloader"]
     }
     buildTypes {

@@ -41,8 +41,8 @@ import okhttp3.Headers;
  */
 public class FileDownloadUtils {
 
-    private static int MIN_PROGRESS_STEP = 65536;
-    private static long MIN_PROGRESS_TIME = 2000;
+    private static int MIN_PROGRESS_STEP = BuildConfig.DOWNLOAD_MIN_PROGRESS_STEP;
+    private static long MIN_PROGRESS_TIME = BuildConfig.DOWNLOAD_MIN_PROGRESS_TIME;
 
     /**
      * @param minProgressStep The min buffered so far bytes.
@@ -57,8 +57,16 @@ public class FileDownloadUtils {
      * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
      * @see #setMinProgressTime(int)
      */
-    public static void setMinProgressStep(int minProgressStep) {
-        MIN_PROGRESS_STEP = minProgressStep;
+    public static void setMinProgressStep(int minProgressStep) throws IllegalAccessException {
+        if (isDownloaderProcess(FileDownloadHelper.getAppContext())) {
+            MIN_PROGRESS_STEP = minProgressStep;
+        } else {
+            throw new IllegalAccessException("This value is used in the :filedownloader process," +
+                    " so set this value in your process is without effect. You can add " +
+                    "'process.non-separate=true' in 'filedownloader.properties' to share the main " +
+                    "process to FileDownloadService. Or you can configure this value in " +
+                    "'filedownloader.properties' by 'download.min-progress-step'.");
+        }
     }
 
     /**
@@ -74,8 +82,16 @@ public class FileDownloadUtils {
      * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
      * @see #setMinProgressStep(int)
      */
-    public static void setMinProgressTime(int minProgressTime) {
-        MIN_PROGRESS_TIME = minProgressTime;
+    public static void setMinProgressTime(int minProgressTime) throws IllegalAccessException {
+        if (isDownloaderProcess(FileDownloadHelper.getAppContext())) {
+            MIN_PROGRESS_TIME = minProgressTime;
+        } else {
+            throw new IllegalAccessException("This value is used in the :filedownloader process," +
+                    " so set this value in your process is without effect. You can add " +
+                    "'process.non-separate=true' in 'filedownloader.properties' to share the main " +
+                    "process to FileDownloadService. Or you can configure this value in " +
+                    "'filedownloader.properties' by 'download.min-progress-time'.");
+        }
     }
 
     public static int getMinProgressStep() {
