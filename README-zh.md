@@ -20,7 +20,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 - 简单易用
 - 高并发
-- 独立进程
+- 可选择性支持: 独立/非独立进程
 - 自动断点续传
 
 #### 需要注意
@@ -60,7 +60,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.3'
+compile 'com.liulishuo.filedownloader:library:0.2.4'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -236,7 +236,7 @@ if (parallel) {
 | start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
 | pauseAll(void) | 暂停所有任务
-| pause(downloadId) | 启动downloadId的任务
+| pause(downloadId) | 暂停downloadId的任务
 | getSoFar(downloadId) | 获得下载Id为downloadId的soFarBytes
 | getTotal(downloadId) | 获得下载Id为downloadId的totalBytes
 | bindService(void) | 主动启动下载进程(可事先调用该方法(可以不调用)，保证第一次下载的时候没有启动进程的速度消耗)
@@ -248,7 +248,9 @@ if (parallel) {
 | setGlobalHandleSubPackageSize(packageSize:int) | 为了避免掉帧, 如果上面的方法设置的间隔是一个小于0的数，这个packageSize将不会生效。packageSize这个值是为了避免在ui线程中一次处理过多回调，结合上面的间隔，就是每个interval毫秒间隔抛一个消息到ui线程，而每个消息在ui线程中处理packageSize个回调。默认值: 5
 | enableAvoidDropFrame(void) | 开启 避免掉帧处理。就是将抛消息到ui线程的间隔设为默认值10ms, 很明显会影响的是回调不会立马通知到监听器(FileDownloadListener)中，默认值是: 最多10ms处理5个回调到监听器中
 | disableAvoidDropFrame(void) | 关闭 避免掉帧处理。就是将抛消息到ui线程的间隔设置-1(无效值)，这个就是让每个回调都会抛一个消息ui线程中，可能引起掉帧
-| isEnabledAvoidDropFrame(void) | 是否开启了 避免掉帧处理。默认是开启的。
+| isEnabledAvoidDropFrame(void) | 是否开启了 避免掉帧处理。默认是开启的
+| startForeground(id:int, notification:Notification) | 设置FileDownloadService为前台模式，保证用户从最近应用列表移除应用以后下载服务不会被杀
+| stopForeground(removeNotification:boolean) | 取消FileDownloadService的前台模式
 
 
 #### Task接口说明
@@ -266,6 +268,7 @@ if (parallel) {
 | setSyncCallback(syncCallback:boolean)  | 如果设为true, 所有FileDownloadListener中的回调都会直接在下载线程中回调而不抛到ui线程, 默认为false
 | addHeader(name:String, value:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
 | addHeader(line:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
+| setMinIntervalUpdateSpeed(minIntervalUpdateSpeedMs:int) | 设置下载中刷新下载速度的最小间隔
 | removeAllHeaders(name:String) | 删除由自定义添加上去请求参数为`{name}`的所有键对
 | ready(void) | 用于队列下载的单任务的结束符(见上面:启动多任务下载的案例)
 | start(void) | 启动下载任务
@@ -288,6 +291,7 @@ if (parallel) {
 | getAutoRetryTimes(void):int | 自动重试次数
 | getRetryingTimes(void):int | 当前重试次数。将要开始重试的时候，会将接下来是第几次
 | isSyncCallback(void):boolean | 是否是设置了所有FileDownloadListener中的回调都直接在下载线程直接回调而不抛到ui线程
+| getSpeed():int | 获取下载速度，如果当前正在下载中(状态是 {@link FileDownloadStatus#progress})，那么在距离上一次计算的时间大于 {@link #minIntervalUpdateSpeed} 时，在每次 {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} 回调之前进行计算; 如果当前已经结束下载({@link FileDownloadStatus#isOver(int)})，这个速度将会是全程下载的平均速度，区间 (connected, over)
 
 #### 监听器(`FileDownloadListener`)说明
 
@@ -376,6 +380,9 @@ blockComplete -> completed
 | 关键字 | 描述 | 默认值
 | --- | --- | ---
 | http.lenient | 如果你遇到了: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', 但是你想要忽略类似的返回头不规范的错误，直接将该关键字参数设置为`true`即可，我们将会将其作为`chunck`进行处理 | false
+| process.non-separate | FileDownloadService 默认是运行在独立进程':filedownloader'上的, 如果你想要FileDownloadService共享并运行在主进程上, 将该关键字参数设置为`true` | false
+| download.min-progress-step | 最小缓冲大小，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 65536
+| download.min-progress-time | 最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 2000
 
 
 III. 异常处理

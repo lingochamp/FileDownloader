@@ -2,6 +2,25 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.2.4
+
+_2016-04-18_
+
+#### 新接口
+
+- 添加 `BaseDownloadTask#getSpeed` 以及 `BaseDownloadTask#setMinIntervalUpdateSpeed`: 如果当前正在下载中(状态是 {@link FileDownloadStatus#progress})，那么在距离上一次计算的时间大于 {@link #minIntervalUpdateSpeed} 时，在每次 {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} 回调之前进行计算; 如果当前已经结束下载({@link FileDownloadStatus#isOver(int)})，这个速度将会是全程下载的平均速度，区间 (connected, over)。 Closes #95 。
+- 添加 `FileDownloader#startForeground` 以及 `FileDownloader#stopForeground` 用于支持 前台模式(http://developer.android.com/intl/zh-cn/reference/android/app/Service.html#startForeground(int, android.app.Notification))，保证用户从最近应用列表移除应用以后下载服务被杀。 Closes #110 。
+- 支持 新的配置参数 `download.min-progress-step` 以及 `download.min-progress-time`: 最小缓冲大小以及最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。这两个值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全。默认值是与 `com.android.providers.downloads.Constants`中的一致 65536(最小缓冲大小) 以及 2000(最小缓冲时间)。
+- 支持 新的配置参数 `process.non-separate` 在 `filedownloader.properties` 中 : FileDownloadService 默认是运行在独立进程':filedownloader'上的, 如果你想要FileDownloadService共享并运行在主进程上, 添加将该配置参数值设置为 `true`。 Closes #106 。
+
+#### 性能与提高
+
+- 提高性能: 提高了下载速度, 优化了同步缓冲区的数据到本地文件以及数据库的架构，很大程度的提高了下载速度。 Closes #112 。
+
+#### 修复
+
+- 修复: 无法重新启动一个已经暂停但是依然存在下载线程池中在pending中的任务。 Closes #111 。
+
 ## Version 0.2.3
 
 _2016-04-11_
@@ -46,7 +65,7 @@ _2016-04-06_
 
 - 修复: 在 `FileDownloadLog.NEED_LOG` 为 `true` 时，并且事件无效的情况下，`EventPool` 出现 `IllegalFormatConversionException` 异常的问题。 Closes #30 。
 - 修复: 在 Filedownloader进程被杀以后， 在 `IFileDownloadIPCService` 出现异常。Closes #38 。
-- 修复: 修复 reponse-body 可能存在的泄漏: 'WARNING: A connection to https://... was leaked. Did you forget to close a response body?' Closes #68 。
+- 修复: 修复 response-body 可能存在的泄漏: 'WARNING: A connection to https://... was leaked. Did you forget to close a response body?' Closes #68 。
 - 修复: 使用 `internal-string` 作为同步的对象，而非直接用 String对象。
 - 修复: 在一些情况下如果存在重复任务，在高并发下进行中的回调次数可能不对的bug。
 
@@ -81,7 +100,7 @@ _2016-01-23_
 
 - `FileDownloadMonitor`: 现在你可以通过这个来添加一个全局的监听器，方便调试或打点
 - `FileDownloader#enableAvoidDropFrame(void)`: 开启 避免掉帧, 原理最多10ms抛一个消息到ui线程，每次在ui线程每次处理5个回调(FileDownloadListener), 默认: 开启。
-- `FileDownloader#disableAvoidDropFrame(void)`: 关闭 避免掉帧，会和之前的版本一样，每个回调(FileDownloadListener)都抛一个消息到ui线程，如果频率非常高（如高并发的文件检测）可以导致ui线程被ddos。
+- `FileDownloader#disableAvoidDropFrame(void)`: 关闭 避免掉帧，会和之前的版本一样，每个回调(FileDownloadListener)都抛一个消息到ui线程，如果频率非常高（如高并发的文件检测）可以导致ui线程被DDOS。
 - `FileDownloader#isEnabledAvoidDropFrame(void)`: 是否是 开启了避免掉帧，目前如果没有设置默认是开启的。
 - `FileDownloader#setGlobalPost2UIInterval(intervalMillisecond:int)`: 设置最多intervalMillisecond毫秒抛一个消息到ui线程，是 避免掉帧的具体设置。默认: 10ms，如果设置为小于0的数值，会 关闭 避免掉帧。
 - `FileDownloader#setGlobalHandleSubPackageSize(packageSize:int)`: 设置每次在ui线程每次处理packageSize个回调，如果已经关闭了 避免掉帧，那么这个值将没有任何意义，默认: 5个。

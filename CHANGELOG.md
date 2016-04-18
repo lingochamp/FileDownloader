@@ -2,6 +2,25 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.4
+
+_2016-04-18_
+
+#### New Interfaces
+
+- Add `BaseDownloadTask#getSpeed` and `BaseDownloadTask#setMinIntervalUpdateSpeed`: If in downloading process(status equal {@link FileDownloadStatus#progress}),Calculating when the interval from the last calculation more than {@link #minIntervalUpdateSpeed} before each {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} call-back method; If finished({@link FileDownloadStatus#isOver(int)}), Would be average speed. The scope is (connected, over). Closes #95
+- Add the `FileDownloader#startForeground` and `FileDownloader#stopForeground` for supporting the Foreground mode(http://developer.android.com/intl/in/reference/android/app/Service.html#startForeground(int, android.app.Notification)); For ensure the FileDownloadService would keep alive when user removed the App from the recent apps. Closes #110 .
+- Support configurations `download.min-progress-step` and `download.min-progress-time`: The min buffered so far bytes and millisecond, used for adjudging whether is time to sync the download so far bytes to database and make sure sync the downloaded buffers to local file.More smaller more frequently, then download more slowly, but will more safer in scene of the process is killed unexpected. Default 65536(MinProgressStep) and 2000(MinProgressTime), which follow the value in `com.android.providers.downloads.Constants`.
+- Support the configuration `process.non-separate` in `filedownloader.properties`: The FileDownloadService runs in the separate process ':filedownloader' as default, if you want to run the FileDownloadService in the main process, set this configuration as `true`. Closes #106 .
+
+#### Enhancement
+
+- Improve Performance: Download more quickly, Optimize the strategy about sync the buffered datum to db and local file when processing. Closes #112 .
+
+#### Fix
+
+- Fix: Can't re-start the task which paused but is still settling in the download-pool. Closes #111
+
 ## Version 0.2.3
 
 _2016-04-11_
