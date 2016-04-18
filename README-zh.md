@@ -236,7 +236,7 @@ if (parallel) {
 | start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
 | pauseAll(void) | 暂停所有任务
-| pause(downloadId) | 启动downloadId的任务
+| pause(downloadId) | 暂停downloadId的任务
 | getSoFar(downloadId) | 获得下载Id为downloadId的soFarBytes
 | getTotal(downloadId) | 获得下载Id为downloadId的totalBytes
 | bindService(void) | 主动启动下载进程(可事先调用该方法(可以不调用)，保证第一次下载的时候没有启动进程的速度消耗)
