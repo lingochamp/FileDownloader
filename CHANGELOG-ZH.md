@@ -8,10 +8,10 @@ _2016-04-18_
 
 #### 新接口
 
-- 添加 `BaseDownloadTask#getSpeed` 以及 `BaseDownloadTask#setMinIntervalUpdateSpeed`: 如果当前正在下载中(状态是 {@link FileDownloadStatus#progress})，那么在距离上一次计算的时间大于 {@link #minIntervalUpdateSpeed} 时，在每次 {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} 回调之前进行计算; 如果当前已经结束下载({@link FileDownloadStatus#isOver(int)})，这个速度将会是全程下载的平均速度，区间 (connected, over)。 Closes #95 。
-- 添加 `FileDownloader#startForeground` 以及 `FileDownloader#stopForeground` 用于支持 前台模式(http://developer.android.com/intl/zh-cn/reference/android/app/Service.html#startForeground(int, android.app.Notification))，保证用户从最近应用列表移除应用以后下载服务被杀。 Closes #110 。
+- 添加 `BaseDownloadTask#getSpeed` 以及 `BaseDownloadTask#setMinIntervalUpdateSpeed`: 获取任务的下载速度, 下载过程中为实时速度，下载结束状态为平均速度。 Closes #95 。
+- 添加 `FileDownloader#startForeground` 以及 `FileDownloader#stopForeground` 用于支持 前台模式([Service#startForeground](http://developer.android.com/intl/zh-cn/reference/android/app/Service.html#startForeground(int, android.app.Notification)))，保证用户从最近应用列表移除应用以后下载服务被杀。 Closes #110 。
 - 支持 新的配置参数 `download.min-progress-step` 以及 `download.min-progress-time`: 最小缓冲大小以及最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。这两个值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全。默认值是与 `com.android.providers.downloads.Constants`中的一致 65536(最小缓冲大小) 以及 2000(最小缓冲时间)。
-- 支持 新的配置参数 `process.non-separate` 在 `filedownloader.properties` 中 : FileDownloadService 默认是运行在独立进程':filedownloader'上的, 如果你想要FileDownloadService共享并运行在主进程上, 添加将该配置参数值设置为 `true`。 Closes #106 。
+- 支持 新的配置参数 `process.non-separate` 在 `filedownloader.properties` 中 : FileDownloadService 默认是运行在独立进程 `:filedownloader` 上的, 如果你想要FileDownloadService共享并运行在主进程上，以减少不必要的消耗(如IPC的I/O，维护进程的CPU的消耗等), 添加将该配置参数值设置为 `true`。 Closes #106 。
 
 #### 性能与提高
 

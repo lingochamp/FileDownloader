@@ -291,7 +291,7 @@ if (parallel) {
 | getAutoRetryTimes(void):int | 自动重试次数
 | getRetryingTimes(void):int | 当前重试次数。将要开始重试的时候，会将接下来是第几次
 | isSyncCallback(void):boolean | 是否是设置了所有FileDownloadListener中的回调都直接在下载线程直接回调而不抛到ui线程
-| getSpeed():int | 获取下载速度，如果当前正在下载中(状态是 {@link FileDownloadStatus#progress})，那么在距离上一次计算的时间大于 {@link #minIntervalUpdateSpeed} 时，在每次 {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} 回调之前进行计算; 如果当前已经结束下载({@link FileDownloadStatus#isOver(int)})，这个速度将会是全程下载的平均速度，区间 (connected, over)
+| getSpeed():int | 获取任务的下载速度, 下载过程中为实时速度，下载结束状态为平均速度
 
 #### 监听器(`FileDownloadListener`)说明
 
