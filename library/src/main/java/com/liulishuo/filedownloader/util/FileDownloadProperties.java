@@ -15,6 +15,7 @@
  */
 package com.liulishuo.filedownloader.util;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -139,7 +140,13 @@ public class FileDownloadProperties {
                 downloadMaxNetworkThreadCount = p.getProperty(KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (e instanceof FileNotFoundException) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadProperties.class, "not found filedownloader.properties");
+                }
+            } else {
+                e.printStackTrace();
+            }
         } finally {
             if (inputStream != null) {
                 try {

@@ -33,7 +33,7 @@ import java.lang.ref.WeakReference;
  * FileDownloadService runs in the main process, and by default the FileDownloadService runs in the
  * separate `:filedownloader` process.
  */
-public class FileDownloadService  extends Service {
+public class FileDownloadService extends Service {
 
     private IFileDownloadServiceHandler handler;
 
