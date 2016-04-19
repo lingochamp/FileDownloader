@@ -18,6 +18,8 @@ package com.liulishuo.filedownloader.services;
 
 import android.util.SparseArray;
 
+import com.liulishuo.filedownloader.BuildConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -32,8 +34,8 @@ class FileDownloadThreadPool {
 
     private SparseArray<FileDownloadRunnable> runnablePool = new SparseArray<>();
 
-    // TODO 对用户开放线程池大小，全局并行下载数
-    private final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+    private final ThreadPoolExecutor threadPool =
+            (ThreadPoolExecutor) Executors.newFixedThreadPool(BuildConfig.DOWNLOAD_MAX_NETWORK_THREAD_COUNT);
 
     public void execute(FileDownloadRunnable runnable) {
         runnable.onPending();
