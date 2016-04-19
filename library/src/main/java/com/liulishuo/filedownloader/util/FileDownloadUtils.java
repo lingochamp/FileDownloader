@@ -23,8 +23,6 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.BuildConfig;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.UnsupportedEncodingException;
@@ -41,8 +39,8 @@ import okhttp3.Headers;
  */
 public class FileDownloadUtils {
 
-    private static int MIN_PROGRESS_STEP = BuildConfig.DOWNLOAD_MIN_PROGRESS_STEP;
-    private static long MIN_PROGRESS_TIME = BuildConfig.DOWNLOAD_MIN_PROGRESS_TIME;
+    private static int MIN_PROGRESS_STEP = 65536;
+    private static long MIN_PROGRESS_TIME = 2000;
 
     /**
      * @param minProgressStep The min buffered so far bytes.
@@ -55,7 +53,7 @@ public class FileDownloadUtils {
      *                        Default 65536, which follow the value in
      *                        com.android.providers.downloads.Constants.
      * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
-     * @see #setMinProgressTime(int)
+     * @see #setMinProgressTime(long)
      */
     public static void setMinProgressStep(int minProgressStep) throws IllegalAccessException {
         if (isDownloaderProcess(FileDownloadHelper.getAppContext())) {
@@ -82,7 +80,7 @@ public class FileDownloadUtils {
      * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
      * @see #setMinProgressStep(int)
      */
-    public static void setMinProgressTime(int minProgressTime) throws IllegalAccessException {
+    public static void setMinProgressTime(long minProgressTime) throws IllegalAccessException {
         if (isDownloaderProcess(FileDownloadHelper.getAppContext())) {
             MIN_PROGRESS_TIME = minProgressTime;
         } else {
@@ -216,7 +214,7 @@ public class FileDownloadUtils {
     }
 
     public static boolean isDownloaderProcess(final Context context) {
-        if (BuildConfig.PROCESS_NON_SEPARATE) {
+        if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
             return true;
         }
 

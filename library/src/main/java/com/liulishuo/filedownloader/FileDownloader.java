@@ -27,6 +27,7 @@ import android.os.Message;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import junit.framework.Assert;
@@ -43,6 +44,7 @@ import okhttp3.OkHttpClient;
  * The basic entrance for FileDownloader.
  *
  * @see com.liulishuo.filedownloader.services.FileDownloadService The service for FileDownloader.
+ * @see FileDownloadProperties
  */
 public class FileDownloader {
 
@@ -76,9 +78,19 @@ public class FileDownloader {
         }
         FileDownloadHelper.holdContext(context);
 
-        if (okHttpClientCustomMaker != null && FileDownloadUtils.isDownloaderProcess(context)) {
-            FileDownloadHelper.setOkHttpClient(okHttpClientCustomMaker.customMake());
+        if (FileDownloadUtils.isDownloaderProcess(context)) {
+            if (okHttpClientCustomMaker != null) {
+                FileDownloadHelper.setOkHttpClient(okHttpClientCustomMaker.customMake());
+            }
+
+            try {
+                FileDownloadUtils.setMinProgressStep(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_STEP);
+                FileDownloadUtils.setMinProgressTime(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_TIME);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
+
     }
 
     /**

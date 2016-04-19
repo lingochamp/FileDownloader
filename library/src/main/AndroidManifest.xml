@@ -3,9 +3,10 @@
 
 
     <application>
+        <service android:name=".services.FileDownloadService$SharedMainProcessService" />
         <service
-            android:name=".services.FileDownloadService"
-            android:process="${filedownloaderProcessName}"/>
+            android:name=".services.FileDownloadService$SeparateProcessService"
+            android:process=":filedownloader" />
     </application>
 
 </manifest>

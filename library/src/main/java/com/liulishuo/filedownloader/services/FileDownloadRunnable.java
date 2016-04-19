@@ -21,7 +21,6 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.BuildConfig;
 import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
@@ -32,6 +31,7 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -226,7 +226,7 @@ public class FileDownloadRunnable implements Runnable {
                                 && transferEncoding.equals("chunked");
                         if (!isEncodingChunked) {
                             // not chunked transfer encoding data
-                            if (BuildConfig.HTTP_LENIENT) {
+                            if (FileDownloadProperties.getImpl().HTTP_LENIENT) {
                                 // do not response content-length either not chunk transfer encoding,
                                 // but HTTP lenient is true, so handle as the case of transfer encoding chunk
                                 total = -1;

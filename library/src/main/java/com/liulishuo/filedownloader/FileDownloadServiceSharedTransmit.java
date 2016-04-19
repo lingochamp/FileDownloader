@@ -24,7 +24,7 @@ import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownloadServiceSharedConnection;
-import com.liulishuo.filedownloader.services.FileDownloadService;
+import com.liulishuo.filedownloader.services.FileDownloadService.SharedMainProcessService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +41,8 @@ import java.util.List;
  */
 public class FileDownloadServiceSharedTransmit implements IFileDownloadServiceProxy,
         FileDownloadServiceSharedConnection {
+
+    private final static Class<?> SERVICE_CLASS = SharedMainProcessService.class;
 
     @Override
     public boolean startDownloader(String url, String path, int callbackProgressTimes, int autoRetryTimes, FileDownloadHeader header) {
@@ -116,13 +118,13 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
                 connectedRunnableList.add(connectedRunnable);
             }
         }
-        Intent i = new Intent(context, FileDownloadService.class);
+        Intent i = new Intent(context, SERVICE_CLASS);
         context.startService(i);
     }
 
     @Override
     public void unbindByContext(Context context) {
-        Intent i = new Intent(context, FileDownloadService.class);
+        Intent i = new Intent(context, SERVICE_CLASS);
         context.stopService(i);
         handler = null;
     }
@@ -156,7 +158,7 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
         FileDownloadEventPool.getImpl().
                 asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
                         DownloadServiceConnectChangedEvent.ConnectStatus.connected,
-                        FileDownloadService.class));
+                        SERVICE_CLASS));
     }
 
     @Override
@@ -165,7 +167,7 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
         FileDownloadEventPool.getImpl().
                 asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
                         DownloadServiceConnectChangedEvent.ConnectStatus.disconnected,
-                        FileDownloadService.class));
+                        SERVICE_CLASS));
     }
 
 

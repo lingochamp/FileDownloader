@@ -27,7 +27,7 @@ import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
-import com.liulishuo.filedownloader.services.FileDownloadService;
+import com.liulishuo.filedownloader.services.FileDownloadService.SeparateProcessService;
 
 
 /**
@@ -49,7 +49,7 @@ class FileDownloadServiceUIGuard extends
                 IFileDownloadIPCService> {
 
     FileDownloadServiceUIGuard() {
-        super(FileDownloadService.class);
+        super(SeparateProcessService.class);
     }
 
     @Override

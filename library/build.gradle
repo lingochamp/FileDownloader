@@ -9,40 +9,6 @@ android {
         targetSdkVersion COMPILE_SDK_VERSION as int
         versionCode VERSION_CODE as int
         versionName VERSION_NAME as String
-
-        // Local file downloader properties if exist
-        File propertiesFile = project.rootProject.file('filedownloader.properties')
-        // if false, will ignore HTTP response header does not has content-length either not chunk
-        // transfer encoding.
-        def httpLenient = null;
-        def processNonSeparate = null;
-        def downloadMinProgressStep = null;
-        def downloadMinProgressTime = null;
-        def downloadMaxNetworkThreadCount = null;
-
-        if (propertiesFile.exists()) {
-            Properties p = new Properties()
-            p.load(propertiesFile.newDataInputStream())
-            httpLenient = p.getProperty("http.lenient")
-            processNonSeparate = p.getProperty("process.non-separate")
-            downloadMinProgressStep = p.getProperty("download.min-progress-step")
-            downloadMinProgressTime = p.getProperty("download.min-progress-time")
-            downloadMaxNetworkThreadCount = p.getProperty("download.max-network-thread-count")
-        }
-
-        if (downloadMaxNetworkThreadCount != null) {
-            downloadMaxNetworkThreadCount = Integer.valueOf(downloadMaxNetworkThreadCount) > 10 ?
-                    '12' : downloadMaxNetworkThreadCount
-            downloadMaxNetworkThreadCount = Integer.valueOf(downloadMaxNetworkThreadCount) < 1 ?
-                    '1' : downloadMaxNetworkThreadCount
-        }
-
-        buildConfigField "boolean", "HTTP_LENIENT", httpLenient == "true" ? "true" : "false"
-        buildConfigField "boolean", "PROCESS_NON_SEPARATE", processNonSeparate == "true" ? "true" : "false"
-        buildConfigField "int", "DOWNLOAD_MIN_PROGRESS_STEP", downloadMinProgressStep == null ? '65536' : downloadMinProgressStep
-        buildConfigField "long", "DOWNLOAD_MIN_PROGRESS_TIME", downloadMinProgressTime == null ? '2000' : downloadMinProgressTime
-        buildConfigField "int", "DOWNLOAD_MAX_NETWORK_THREAD_COUNT", downloadMaxNetworkThreadCount == null ? '3' : downloadMaxNetworkThreadCount
-        manifestPlaceholders = [filedownloaderProcessName: processNonSeparate == "true" ? "" : ":filedownloader"]
     }
     buildTypes {
         release {

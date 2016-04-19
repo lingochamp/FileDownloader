@@ -21,6 +21,7 @@ import android.content.Context;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
+import com.liulishuo.filedownloader.util.FileDownloadProperties;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -53,7 +54,7 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     private final IFileDownloadServiceProxy handler;
 
     private FileDownloadServiceProxy() {
-        handler = BuildConfig.PROCESS_NON_SEPARATE ?
+        handler = FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE ?
                 new FileDownloadServiceSharedTransmit() :
                 new FileDownloadServiceUIGuard();
     }

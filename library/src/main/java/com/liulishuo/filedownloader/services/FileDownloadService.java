@@ -20,7 +20,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
-import com.liulishuo.filedownloader.BuildConfig;
+import com.liulishuo.filedownloader.util.FileDownloadProperties;
 
 import java.lang.ref.WeakReference;
 
@@ -33,14 +33,14 @@ import java.lang.ref.WeakReference;
  * FileDownloadService runs in the main process, and by default the FileDownloadService runs in the
  * separate `:filedownloader` process.
  */
-public class FileDownloadService extends Service {
+public class FileDownloadService  extends Service {
 
     private IFileDownloadServiceHandler handler;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        if (BuildConfig.PROCESS_NON_SEPARATE) {
+        if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
             handler = new FDServiceSharedHandler(new WeakReference<>(this));
         } else {
             handler = new FDServiceSeparateHandler(new WeakReference<>(this));
@@ -64,4 +64,9 @@ public class FileDownloadService extends Service {
         return handler.onBind(intent);
     }
 
+    public static class SharedMainProcessService extends FileDownloadService {
+    }
+
+    public static class SeparateProcessService extends FileDownloadService {
+    }
 }

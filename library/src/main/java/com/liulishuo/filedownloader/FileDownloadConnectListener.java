@@ -19,7 +19,6 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.event.IDownloadListener;
-import com.liulishuo.filedownloader.services.FileDownloadService;
 
 /**
  * Created by Jacksgong on 1/10/16.
@@ -38,8 +37,7 @@ public abstract class FileDownloadConnectListener extends IDownloadListener {
         if (event instanceof DownloadServiceConnectChangedEvent) {
             final DownloadServiceConnectChangedEvent connectChangedEvent
                     = (DownloadServiceConnectChangedEvent) event;
-            if (connectChangedEvent.isSuchService(FileDownloadService.class)
-                    && connectChangedEvent.getStatus()
+            if (connectChangedEvent.getStatus()
                     == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
                 connected();
             } else {
