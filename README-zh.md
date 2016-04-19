@@ -60,7 +60,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.5'
+compile 'com.liulishuo.filedownloader:library:0.2.6'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -374,14 +374,14 @@ blockComplete -> completed
 
 #### `filedownloader.properties`
 
-> 如果你需要使用'filedownloader.properties'却在项目根目录下没有找到该文件，可以直接在项目根目录下直接创建一个以'filedownloader.properties'作为文件名的文件即可。
+> 如果你需要定制化FileDownloader，可以在你的项目模块的`assets` 目录下添加 'filedownloader.properties' 文件(如 `/demo/src/main/assets/filedownloader.properties`)，然后添加以下可选相关配置。
 
 > 格式: `keyword=value`
 
 | 关键字 | 描述 | 默认值
 | --- | --- | ---
 | http.lenient | 如果你遇到了: 'can't know the size of the download file, and its Transfer-Encoding is not Chunked either', 但是你想要忽略类似的返回头不规范的错误，直接将该关键字参数设置为`true`即可，我们将会将其作为`chunck`进行处理 | false
-| process.non-separate | FileDownloadService 默认是运行在独立进程':filedownloader'上的, 如果你想要FileDownloadService共享并运行在主进程上, 将该关键字参数设置为`true` | false
+| process.non-separate | FileDownloadService 默认是运行在独立进程':filedownloader'上的, 如果你想要FileDownloadService共享并运行在主进程上, 将该关键字参数设置为`true`，可以有效减少IPC产生的I/O | false
 | download.min-progress-step | 最小缓冲大小，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 65536
 | download.min-progress-time | 最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 2000
 | download.max-network-thread-count | 用于同时下载的最大网络线程数, 区间[1, 12] | 3

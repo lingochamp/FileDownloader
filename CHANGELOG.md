@@ -2,6 +2,18 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.6
+
+_2016-04-20_
+
+#### New Interfaces
+
+- Adjust: Change the location of the `filedownloader.properties` ，no more in the root directory of project, instead below the `assets` of a module, for example `/demo/src/main/assets/filedownloader.properties`.
+
+#### Fix
+
+- Fix: `filedownloader.properties` not work. Closes #117.
+
 ## Version 0.2.5
 
 _2016-04-19_
