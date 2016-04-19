@@ -60,7 +60,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.4'
+compile 'com.liulishuo.filedownloader:library:0.2.5'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -251,6 +251,7 @@ if (parallel) {
 | isEnabledAvoidDropFrame(void) | 是否开启了 避免掉帧处理。默认是开启的
 | startForeground(id:int, notification:Notification) | 设置FileDownloadService为前台模式，保证用户从最近应用列表移除应用以后下载服务不会被杀
 | stopForeground(removeNotification:boolean) | 取消FileDownloadService的前台模式
+| setTaskCompleted(url:String, path:String, totalBytes:long) | 用于告诉FileDownloader引擎，以指定Url与Path的任务已经通过其他方式(非FileDownloader)下载完成
 
 
 #### Task接口说明
@@ -383,6 +384,7 @@ blockComplete -> completed
 | process.non-separate | FileDownloadService 默认是运行在独立进程':filedownloader'上的, 如果你想要FileDownloadService共享并运行在主进程上, 将该关键字参数设置为`true` | false
 | download.min-progress-step | 最小缓冲大小，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 65536
 | download.min-progress-time | 最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 2000
+| download.max-network-thread-count | 用于同时下载的最大网络线程数, 区间[1, 12] | 3
 
 
 III. 异常处理

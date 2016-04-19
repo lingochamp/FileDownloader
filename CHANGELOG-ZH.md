@@ -2,6 +2,15 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.2.5
+
+_2016-04-19_
+
+#### 新接口
+
+- 添加 `FileDownloader#setTaskCompleted`: 用于告诉FileDownloader引擎，以指定Url与Path的任务已经通过其他方式(非FileDownloader)下载完成。
+- 支持 新的配置参数`download.max-network-thread-count` 在 `filedownloader.properties`: 同时下载的最大网络线程数，默认值是3. Closes #116.
+
 ## Version 0.2.4
 
 _2016-04-18_

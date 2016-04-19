@@ -2,6 +2,15 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.5
+
+_2016-04-19_
+
+#### New Interfaces
+
+- Add `FileDownloader#setTaskCompleted`: Used to telling the FileDownloader Engine that the task with the url and the path has already completed downloading by other ways(not by FileDownloader Engine).
+- Support the configuration `download.max-network-thread-count` in `filedownloader.properties`: The maximum network thread count for downloading simultaneously, default is 3. Closes #116.
+
 ## Version 0.2.4
 
 _2016-04-18_
