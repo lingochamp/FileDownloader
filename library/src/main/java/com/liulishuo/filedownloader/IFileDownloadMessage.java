@@ -92,7 +92,8 @@ interface IFileDownloadMessage {
     /**
      * The task over.
      * <p/>
-     * There are some same Task(Same-URL & Same-SavePath) in Queue or Downloading.
+     * There has already had some same Tasks(Same-URL & Same-SavePath) in Pending-Queue or is
+     * running.
      *
      * @see com.liulishuo.filedownloader.services.FileDownloadMgr#start(String, String, int, int, FileDownloadHeader)
      * @see com.liulishuo.filedownloader.services.FileDownloadMgr#checkDownloading(String, String)

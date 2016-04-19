@@ -20,16 +20,22 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.notification.FileDownloadNotificationListener;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
  * Created by Jacksgong on 9/7/15.
  * <p/>
- * normal chain {@link #pending} -> {@link #connected} -> {@link #progress}  -> {@link #blockComplete} -> {@link #completed}
- * may final width {@link #paused}/{@link #completed}/{@link #error}/{@link #warn}
- * if reuse just {@link #blockComplete} ->{@link #completed}
+ * Normal flow: {@link #pending} -> {@link #started} -> {@link #connected} -> {@link #progress}  ->
+ * {@link #blockComplete} -> {@link #completed}
+ * <p/>
+ * Maybe over with: {@link #paused}/{@link #completed}/{@link #error}/{@link #warn}
+ * <p/>
+ * If the task has already downloaded and exist: {@link #blockComplete} ->{@link #completed}
  *
  * @see FileDownloadLargeFileListener
+ * @see FileDownloadNotificationListener
+ * @see BaseDownloadTask#setSyncCallback(boolean)
  */
 public abstract class FileDownloadListener extends IDownloadListener {
 
@@ -109,9 +115,9 @@ public abstract class FileDownloadListener extends IDownloadListener {
 
 
     /**
-     * Enqueue, and pending
+     * Enqueue, and pending, waiting for {@link #started(BaseDownloadTask)}.
      *
-     * @param task       Current task
+     * @param task       The task
      * @param soFarBytes Already downloaded bytes stored in the db
      * @param totalBytes Total bytes stored in the db
      * @see IFileDownloadMessage#notifyPending()
@@ -129,9 +135,9 @@ public abstract class FileDownloadListener extends IDownloadListener {
     }
 
     /**
-     * Connected
+     * Already connected to the server, and received the Http-response.
      *
-     * @param task       Current task
+     * @param task       The task
      * @param etag       ETag
      * @param isContinue Is resume from breakpoint
      * @param soFarBytes Number of bytes download so far
@@ -144,9 +150,9 @@ public abstract class FileDownloadListener extends IDownloadListener {
     }
 
     /**
-     * Fetching datum and Writing to local disk.
+     * Fetching datum from network and Writing to the local disk.
      *
-     * @param task       Current task
+     * @param task       The task
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      * @see IFileDownloadMessage#notifyProgress()
@@ -155,42 +161,50 @@ public abstract class FileDownloadListener extends IDownloadListener {
                                      final int totalBytes);
 
     /**
-     * Block completed in new thread
+     * Unlike other methods in {@link #FileDownloadListener}, BlockComplete is executed in other
+     * thread than main as default, when you receive this execution, it means has already completed
+     * downloading, but just block the execution of {@link #completed(BaseDownloadTask)}. therefore,
+     * you can unzip or do some ending operation before {@link #completed(BaseDownloadTask)} in other
+     * thread.
      *
-     * @param task Current task
+     * @param task the current task
      * @see IFileDownloadMessage#notifyBlockComplete()
      */
-    protected abstract void blockComplete(final BaseDownloadTask task);
+    protected void blockComplete(final BaseDownloadTask task){
+    }
 
     /**
      * Occur a exception and has chance{@link BaseDownloadTask#setAutoRetryTimes(int)} to retry and
-     * start Retry
+     * start Retry.
      *
-     * @param task          Current task
-     * @param ex            why retry
+     * @param task          The task
+     * @param ex            Why retry
      * @param retryingTimes How many times will retry
      * @param soFarBytes    Number of bytes download so far
      * @see IFileDownloadMessage#notifyRetry()
      */
     protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes,
                          final int soFarBytes) {
-
     }
 
-    // final width below methods
+    // ======================= The task is over, if execute below methods =======================
 
     /**
-     * Succeed download
+     * Achieve complete ceremony.
+     * <p/>
+     * Complete downloading.
      *
-     * @param task Current task
+     * @param task The task
      * @see IFileDownloadMessage#notifyCompleted()
+     * @see #blockComplete(BaseDownloadTask)
      */
     protected abstract void completed(final BaseDownloadTask task);
 
     /**
-     * Download paused
+     * Task is paused, the vast majority of cases is invoking the {@link BaseDownloadTask#pause()}
+     * manually.
      *
-     * @param task       Current task
+     * @param task       The task
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      * @see IFileDownloadMessage#notifyPaused()
@@ -199,9 +213,9 @@ public abstract class FileDownloadListener extends IDownloadListener {
                                    final int totalBytes);
 
     /**
-     * Download error
+     * Occur a exception, but don't has any chance to retry.
      *
-     * @param task Current task
+     * @param task The task
      * @param e    Any throwable on download pipeline
      * @see IFileDownloadMessage#notifyError()
      * @see com.liulishuo.filedownloader.exception.FileDownloadHttpException
@@ -211,9 +225,10 @@ public abstract class FileDownloadListener extends IDownloadListener {
     protected abstract void error(final BaseDownloadTask task, final Throwable e);
 
     /**
-     * There is already an identical task being downloaded
+     * There has already had some same Tasks(Same-URL & Same-SavePath) in Pending-Queue or is
+     * running.
      *
-     * @param task Current task
+     * @param task The task
      * @see IFileDownloadMessage#notifyWarn()
      */
     protected abstract void warn(final BaseDownloadTask task);
