@@ -354,9 +354,9 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
             holder.taskActionBtn.setEnabled(true);
 
-            final int status = TasksManager.getImpl().getStatus(model.getId());
 
             if (TasksManager.getImpl().isReady()) {
+                final int status = TasksManager.getImpl().getStatus(model.getId());
                 if (status == FileDownloadStatus.pending || status == FileDownloadStatus.started ||
                         status == FileDownloadStatus.connected) {
                     // start task, but file not created yet
