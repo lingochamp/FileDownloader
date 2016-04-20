@@ -169,6 +169,7 @@ public class FileDownloadProperties {
         } else {
             HTTP_LENIENT = false;
         }
+
         //process.non-separate
         if (processNonSeparate != null) {
             if (!processNonSeparate.equals(TRUE_STRING) &&
@@ -190,7 +191,6 @@ public class FileDownloadProperties {
         } else {
             DOWNLOAD_MIN_PROGRESS_STEP = 65536;
         }
-
 
         //download.min-progress-time
         if (downloadMinProgressTime != null) {

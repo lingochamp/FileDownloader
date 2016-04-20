@@ -29,6 +29,7 @@ import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.IFileDownloadServiceProxy;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,6 +130,15 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
 
     @Override
     public void bindStartByContext(final Context context, final Runnable connectedRunnable) {
+        if (FileDownloadUtils.isDownloaderProcess(context)) {
+            throw new IllegalStateException("Fatal-Exception: You can't bind the " +
+                    "FileDownloadService in :filedownloader process.\n It's the invalid operation, " +
+                    "and is likely to cause unexpected problems.\n Maybe you want to use" +
+                    " non-separate process mode for FileDownloader, More detail about " +
+                    "non-separate mode, please move to wiki manually:" +
+                    " https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties");
+        }
+
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "bindStartByContext %s", context.getClass().getSimpleName());
         }
