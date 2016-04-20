@@ -97,7 +97,7 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
         }
 
         this.helper.showProgress(task.getDownloadId(), task.getSmallFileSoFarBytes(),
-                task.getSmallFileTotalBytes());
+                task.getSmallFileTotalBytes(), task.getSpeed());
     }
 
     /**

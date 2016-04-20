@@ -73,8 +73,9 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
      * @param id    download id
      * @param sofar Number of bytes download so far
      * @param total Total bytes
+     * @param speed download speed
      */
-    public void showProgress(final int id, final int sofar, final int total) {
+    public void showProgress(final int id, final int sofar, final int total, final int speed) {
         final T notification = get(id);
 
         if (notification == null) {
@@ -82,7 +83,7 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
         }
 
         notification.updateStatus(FileDownloadStatus.progress);
-        notification.update(sofar, total);
+        notification.update(sofar, total, speed);
     }
 
     /**
