@@ -18,8 +18,11 @@ package com.liulishuo.filedownloader;
 import android.app.Notification;
 import android.content.Context;
 
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
+
+import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -60,4 +63,6 @@ public interface IFileDownloadServiceProxy {
     void stopForeground(boolean removeNotification);
 
     boolean setTaskCompleted(String url, String path, long totalBytes);
+
+    boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList);
 }

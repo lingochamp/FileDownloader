@@ -25,6 +25,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -502,9 +503,29 @@ public class FileDownloader {
      * false; If the length of the file in {@code path} is not equal to {@code totalBytes} will be
      * false; If the task with {@code url} and {@code path} is downloading will be false. Otherwise
      * will be true.
+     * @see #setTaskCompleted(List)
      */
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
         return FileDownloadServiceProxy.getImpl().setTaskCompleted(url, path, totalBytes);
+    }
+
+    /**
+     * Recommend used to telling the FileDownloader Engine that a bulk of tasks have already
+     * downloaded by other ways(not by the FileDownloader Engine).
+     * <p/>
+     * The FileDownloader Engine need to know the status of completed, because if you want to
+     * download any tasks, FileDownloader Engine judges whether the task need downloads or not
+     * according its status which existed in DB.
+     *
+     * @param taskAtomList The bulk of tasks.
+     * @return Whether is successful to update all tasks' status to the Filedownloader Engine. If
+     * one task atom among them is not match the Rules in
+     * {@link com.liulishuo.filedownloader.services.FileDownloadMgr#obtainCompletedTaskModel(String, String, long)}
+     * will receive false, and non of them would be updated to DB.
+     * @see #setTaskCompleted(String, String, long)
+     */
+    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
+        return FileDownloadServiceProxy.getImpl().setTaskCompleted(taskAtomList);
     }
 
     private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {

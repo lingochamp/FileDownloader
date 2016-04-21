@@ -22,12 +22,14 @@ import android.os.IBinder;
 import com.liulishuo.filedownloader.FileDownloadServiceProxy;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -120,6 +122,11 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     @Override
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
         return downloadManager.setTaskCompleted(url, path, totalBytes);
+    }
+
+    @Override
+    public boolean setTaskCompleted1(List<FileDownloadTaskAtom> taskList) {
+        return downloadManager.setTaskCompleted(taskList);
     }
 
     @Override

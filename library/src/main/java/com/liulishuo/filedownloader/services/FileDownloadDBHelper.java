@@ -165,6 +165,11 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
     @Override
     public void update(List<FileDownloadModel> downloadModelList) {
+        if (downloadModelList == null) {
+            FileDownloadLog.w(this, "update a download list, but list == null!");
+            return;
+        }
+
         db.beginTransaction();
 
         try {

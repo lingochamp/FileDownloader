@@ -21,6 +21,7 @@ import android.content.Intent;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownloadServiceSharedConnection;
@@ -142,6 +143,11 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
     @Override
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
         return handler.setTaskCompleted(url, path, totalBytes);
+    }
+
+    @Override
+    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
+        return handler.setTaskCompleted1(taskAtomList);
     }
 
     private FDServiceSharedHandler handler;

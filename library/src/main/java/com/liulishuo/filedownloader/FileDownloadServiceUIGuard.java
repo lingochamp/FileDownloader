@@ -25,9 +25,12 @@ import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService.SeparateProcessService;
+
+import java.util.List;
 
 
 /**
@@ -37,7 +40,7 @@ import com.liulishuo.filedownloader.services.FileDownloadService.SeparateProcess
  * <p/>
  * The only Class can access the FileDownload-Process, and the only Class can receive the event from
  * the FileDownloader-Process through Binder.
- *
+ * <p/>
  * We will use this UIGuard as default, because the FileDownloadService runs in the separate process
  * `:filedownloader` as default, If you want to share the main process to run the FileDownloadService,
  * just add a command `process.non-separate=true` in `/filedownloader.properties`.
@@ -279,6 +282,21 @@ class FileDownloadServiceUIGuard extends
 
         try {
             return getService().setTaskCompleted(url, path, totalBytes);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
+        if (getService() == null) {
+            return false;
+        }
+
+        try {
+            return getService().setTaskCompleted1(taskAtomList);
         } catch (RemoteException e) {
             e.printStackTrace();
         }

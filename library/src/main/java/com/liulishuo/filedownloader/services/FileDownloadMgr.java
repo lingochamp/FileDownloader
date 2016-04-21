@@ -24,11 +24,13 @@ import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -231,8 +233,8 @@ class FileDownloadMgr {
             }
 
             if (fileLength < model.getSoFar()
-                            || (model.getTotal() != -1  // not chunk transfer encoding data
-                            && fileLength > model.getTotal())) {
+                    || (model.getTotal() != -1  // not chunk transfer encoding data
+                    && fileLength > model.getTotal())) {
                 // dirty data.
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data fileLength[%d] sofar[%d] total[%d]",
@@ -386,24 +388,63 @@ class FileDownloadMgr {
         return mThreadPool.exactSize() <= 0;
     }
 
-    public boolean setTaskCompleted(String url, String path, long totalBytes) {
-        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(path) || totalBytes <= 0) {
+    // synchronized with #start, for avoid start downloading and updating db simultaneously.
+    public synchronized boolean setTaskCompleted(String url, String path, long totalBytes) {
+        final FileDownloadModel model = obtainCompletedTaskModel(url, path, totalBytes);
+        if (model == null) {
             return false;
+        }
+
+        mHelper.update(model);
+        return true;
+    }
+
+    // synchronized with #start, for avoid start downloading and updating db simultaneously.
+    public synchronized boolean setTaskCompleted(final List<FileDownloadTaskAtom> taskAtomList) {
+        // TODO Maybe need in IDL for updating a bulk of tasks.
+        final List<FileDownloadModel> modelList = new ArrayList<>();
+
+        for (FileDownloadTaskAtom task : taskAtomList) {
+            final FileDownloadModel model =
+                    obtainCompletedTaskModel(task.getUrl(), task.getPath(), task.getTotalBytes());
+            if (model == null) {
+                return false;
+            }
+
+            modelList.add(model);
+        }
+
+        mHelper.update(modelList);
+        return true;
+    }
+
+    private FileDownloadModel obtainCompletedTaskModel(String url, String path, long totalBytes) {
+        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(path) || totalBytes <= 0) {
+            FileDownloadLog.w(this, "Want to obtain a completed task model, but find invalid value" +
+                    " %s %s %d", url, path, totalBytes);
+            return null;
         }
 
         final int id = FileDownloadUtils.generateId(url, path);
 
         if (checkDownloading(id)) {
-            return false;
+            FileDownloadLog.w(this, "Want to obtain a completed task model, but the task " +
+                    "with url[%s] and path[%s] is downloading", url, path);
+            return null;
         }
 
         final File file = new File(path);
         if (!file.exists()) {
-            return false;
+            FileDownloadLog.w(this, "Want to obtain a completed task model, but the task " +
+                    "with url[%s] and path[%s] is not exist", url, path);
+            return null;
         }
 
         if (file.length() != totalBytes) {
-            return false;
+            FileDownloadLog.w(this, "Want to obtain a completed task model, but the task " +
+                    "with url[%s] and path[%s], the length of its file [%d] not equal to provided" +
+                    " totalBytes[%d]", url, path, file.length(), totalBytes);
+            return null;
         }
 
         FileDownloadModel model = mHelper.find(id);
@@ -420,8 +461,8 @@ class FileDownloadMgr {
         model.setSoFar(totalBytes);
         model.setStatus(FileDownloadStatus.completed);
 
-        mHelper.update(model);
-        return true;
+        return model;
     }
+
 }
 

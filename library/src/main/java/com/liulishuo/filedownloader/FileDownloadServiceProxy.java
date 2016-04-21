@@ -18,10 +18,13 @@ package com.liulishuo.filedownloader;
 import android.app.Notification;
 import android.content.Context;
 
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
+
+import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -142,5 +145,10 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     @Override
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
         return handler.setTaskCompleted(url, path, totalBytes);
+    }
+
+    @Override
+    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
+        return handler.setTaskCompleted(taskAtomList);
     }
 }
