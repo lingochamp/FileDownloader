@@ -2,6 +2,18 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.2.7
+
+_2016-04-22_
+
+#### 新接口
+
+- 添加 `FileDownloader#setTaskCompleted(taskAtomList:List<FileDownloadTaskAtom>)`: 用于告诉FileDownloader引擎，指定的一系列的任务都已经通过其他方式(非FileDownloader)下载完成。
+
+#### 性能与提高
+
+- 提高稳定性: 假如在下载进程调用 `bindService` 直接抛异常，防止用户在使用过程中，错误的在下载进程绑定服务，而没有暴露这个根本问题，引发其他一系列的异常。Closes #119。
+
 ## Version 0.2.6
 
 _2016-04-20_

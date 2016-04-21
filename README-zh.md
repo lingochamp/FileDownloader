@@ -60,7 +60,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.6'
+compile 'com.liulishuo.filedownloader:library:0.2.7'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -244,7 +244,7 @@ if (parallel) {
 | unBindServiceIfIdle(void) | 如果目前下载进程没有任务正在执行，则关停下载进程
 | isServiceConnected(void) | 是否已经启动并且连接上下载进程(可参考任务管理demo中的使用)
 | getStatus(downloadId) | 获取下载Id为downloadId的状态(可参考任务管理demo中的使用)
-| setGlobalPost2UIInterval(intervalMillisecond:int) | 为了避免掉帧，这里是设置了最多每inerval毫秒抛一个消息到ui线程(使用Handler)，防止由于回调的过于频繁导致ui线程被ddos导致掉帧。 默认值: 10ms. 如果设置小于0，将会失效，也就是说每个回调都直接抛一个消息到ui线程
+| setGlobalPost2UIInterval(intervalMillisecond:int) | 为了避免掉帧，这里是设置了最多每interval毫秒抛一个消息到ui线程(使用Handler)，防止由于回调的过于频繁导致ui线程被ddos导致掉帧。 默认值: 10ms. 如果设置小于0，将会失效，也就是说每个回调都直接抛一个消息到ui线程
 | setGlobalHandleSubPackageSize(packageSize:int) | 为了避免掉帧, 如果上面的方法设置的间隔是一个小于0的数，这个packageSize将不会生效。packageSize这个值是为了避免在ui线程中一次处理过多回调，结合上面的间隔，就是每个interval毫秒间隔抛一个消息到ui线程，而每个消息在ui线程中处理packageSize个回调。默认值: 5
 | enableAvoidDropFrame(void) | 开启 避免掉帧处理。就是将抛消息到ui线程的间隔设为默认值10ms, 很明显会影响的是回调不会立马通知到监听器(FileDownloadListener)中，默认值是: 最多10ms处理5个回调到监听器中
 | disableAvoidDropFrame(void) | 关闭 避免掉帧处理。就是将抛消息到ui线程的间隔设置-1(无效值)，这个就是让每个回调都会抛一个消息ui线程中，可能引起掉帧
@@ -252,6 +252,7 @@ if (parallel) {
 | startForeground(id:int, notification:Notification) | 设置FileDownloadService为前台模式，保证用户从最近应用列表移除应用以后下载服务不会被杀
 | stopForeground(removeNotification:boolean) | 取消FileDownloadService的前台模式
 | setTaskCompleted(url:String, path:String, totalBytes:long) | 用于告诉FileDownloader引擎，以指定Url与Path的任务已经通过其他方式(非FileDownloader)下载完成
+| setTaskCompleted(taskAtomList:List<FileDownloadTaskAtom>) | 用于告诉FileDownloader引擎，指定的一系列的任务都已经通过其他方式(非FileDownloader)下载完成
 
 
 #### Task接口说明

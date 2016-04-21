@@ -2,6 +2,18 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.7
+
+_2016-04-22_
+
+#### New Interfaces
+
+- Add `FileDownloader#setTaskCompleted(taskAtomList:List<FileDownloadTaskAtom>)`: Used to telling the FileDownloader Engine that a bulk of tasks have already downloaded by other ways.
+
+#### Enhancement
+
+- Improve Robust: Throw the Fatal-Exception directly when request to bind the FileDownloadService in the `:filedownloader` process. Closes #119 .
+
 ## Version 0.2.6
 
 _2016-04-20_
