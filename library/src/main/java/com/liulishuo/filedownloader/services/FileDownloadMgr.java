@@ -390,10 +390,19 @@ class FileDownloadMgr {
 
     // synchronized with #start, for avoid start downloading and updating db simultaneously.
     public synchronized boolean setTaskCompleted(String url, String path, long totalBytes) {
-        final FileDownloadModel model = obtainCompletedTaskModel(url, path, totalBytes);
+        final FileDownloadModel model = obtainCompletedTaskShelfModel(url, path, totalBytes);
         if (model == null) {
             return false;
         }
+
+        if (model.getTotal() == totalBytes &&
+                model.getStatus() == FileDownloadStatus.completed) {
+            return true;
+        }
+
+        model.setSoFar(totalBytes);
+        model.setTotal(totalBytes);
+        model.setStatus(FileDownloadStatus.completed);
 
         mHelper.update(model);
         return true;
@@ -406,19 +415,32 @@ class FileDownloadMgr {
 
         for (FileDownloadTaskAtom task : taskAtomList) {
             final FileDownloadModel model =
-                    obtainCompletedTaskModel(task.getUrl(), task.getPath(), task.getTotalBytes());
+                    obtainCompletedTaskShelfModel(task.getUrl(), task.getPath(), task.getTotalBytes());
             if (model == null) {
                 return false;
             }
 
+            if (model.getTotal() == task.getTotalBytes() &&
+                    model.getStatus() == FileDownloadStatus.completed) {
+                continue;
+            }
+
+            model.setSoFar(task.getTotalBytes());
+            model.setTotal(task.getTotalBytes());
+            model.setStatus(FileDownloadStatus.completed);
+
             modelList.add(model);
+        }
+
+        if (modelList.isEmpty()) {
+            return true;
         }
 
         mHelper.update(modelList);
         return true;
     }
 
-    private FileDownloadModel obtainCompletedTaskModel(String url, String path, long totalBytes) {
+    private FileDownloadModel obtainCompletedTaskShelfModel(String url, String path, long totalBytes) {
         if (TextUtils.isEmpty(url) || TextUtils.isEmpty(path) || totalBytes <= 0) {
             FileDownloadLog.w(this, "Want to obtain a completed task model, but find invalid value" +
                     " %s %s %d", url, path, totalBytes);
@@ -455,11 +477,6 @@ class FileDownloadMgr {
             model.setUrl(url);
             model.setPath(path);
         }
-
-
-        model.setTotal(totalBytes);
-        model.setSoFar(totalBytes);
-        model.setStatus(FileDownloadStatus.completed);
 
         return model;
     }

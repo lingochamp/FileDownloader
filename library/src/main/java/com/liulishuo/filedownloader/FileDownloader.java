@@ -520,7 +520,7 @@ public class FileDownloader {
      * @param taskAtomList The bulk of tasks.
      * @return Whether is successful to update all tasks' status to the Filedownloader Engine. If
      * one task atom among them is not match the Rules in
-     * {@link com.liulishuo.filedownloader.services.FileDownloadMgr#obtainCompletedTaskModel(String, String, long)}
+     * {@link com.liulishuo.filedownloader.services.FileDownloadMgr#obtainCompletedTaskShelfModel(String, String, long)}
      * will receive false, and non of them would be updated to DB.
      * @see #setTaskCompleted(String, String, long)
      */
