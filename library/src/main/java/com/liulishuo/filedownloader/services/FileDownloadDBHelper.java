@@ -164,6 +164,33 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
+    public void update(List<FileDownloadModel> downloadModelList) {
+        db.beginTransaction();
+
+        try {
+            for (FileDownloadModel model : downloadModelList) {
+                if (find(model.getId()) != null) {
+                    // replace
+                    downloaderModelMap.remove(model.getId());
+                    downloaderModelMap.put(model.getId(), model);
+
+                    db.update(TABLE_NAME, model.toContentValues(), FileDownloadModel.ID + " = ? ",
+                            new String[]{String.valueOf(model.getId())});
+                } else {
+                    // insert new one.
+                    downloaderModelMap.put(model.getId(), model);
+
+                    db.insert(TABLE_NAME, null, model.toContentValues());
+                }
+            }
+
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    @Override
     public void remove(int id) {
         downloaderModelMap.remove(id);
 

@@ -19,6 +19,7 @@ package com.liulishuo.filedownloader.services;
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,6 +44,8 @@ interface IFileDownloadDBHelper {
     void insert(final FileDownloadModel downloadModel);
 
     void update(final FileDownloadModel downloadModel);
+
+    void update(final List<FileDownloadModel> downloadModelList);
 
     void remove(final int id);
 
