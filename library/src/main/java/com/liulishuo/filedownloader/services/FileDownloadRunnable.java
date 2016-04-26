@@ -371,7 +371,7 @@ public class FileDownloadRunnable implements Runnable {
             if (!TextUtils.isEmpty(model.getETag())) {
                 builder.addHeader("If-Match", model.getETag());
             }
-            builder.addHeader("Range", String.format("bytes=%d-", model.getSoFar()));
+            builder.addHeader("Range", FileDownloadUtils.formatString("bytes=%d-", model.getSoFar()));
         }
     }
 

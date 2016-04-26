@@ -28,6 +28,7 @@ import java.io.FileDescriptor;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 import okhttp3.Headers;
 
@@ -258,5 +259,9 @@ public class FileDownloadUtils {
         }
 
         return freeSpaceBytes;
+    }
+
+    public static String formatString(final String msg, Object... args) {
+        return String.format(Locale.ENGLISH, msg, args);
     }
 }
