@@ -35,7 +35,7 @@ public class FileDownloadHttpException extends RuntimeException {
     private final HeaderWrap responseHeaderWrap;
 
     public FileDownloadHttpException(final Request request, final Response response) {
-        super(String.format("response code error: %d, \n request headers: %s \n " +
+        super(FileDownloadUtils.formatString("response code error: %d, \n request headers: %s \n " +
                 "response headers: %s", response.code(), request.headers(), response.headers()));
 
         this.code = response.code();

@@ -66,7 +66,7 @@ public class FileDownloadLog {
             return;
         }
 
-        Log.println(priority, getTag(o), String.format(message, args));
+        Log.println(priority, getTag(o), FileDownloadUtils.formatString(message, args));
         if (throwable != null) {
             throwable.printStackTrace();
         }

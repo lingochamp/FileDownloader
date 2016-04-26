@@ -316,8 +316,9 @@ public class FileDownloadRunnable implements Runnable {
 
                 // Step 5, check whether file is changed by others
                 if (accessFile.length() < soFar) {
-                    throw new RuntimeException(String.format("the file was changed by others when" +
-                            " downloading. %d %d", accessFile.length(), soFar));
+                    throw new RuntimeException(
+                            FileDownloadUtils.formatString("the file was changed by others when" +
+                                    " downloading. %d %d", accessFile.length(), soFar));
                 } else {
                     // callback on progressing
                     onProgress(soFar, total, fd);
@@ -346,7 +347,7 @@ public class FileDownloadRunnable implements Runnable {
                 return true;
             } else {
                 throw new RuntimeException(
-                        String.format("sofar[%d] not equal total[%d]", soFar, total));
+                        FileDownloadUtils.formatString("sofar[%d] not equal total[%d]", soFar, total));
             }
         } finally {
             if (inputStream != null) {

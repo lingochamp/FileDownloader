@@ -18,6 +18,8 @@ package com.liulishuo.filedownloader.exception;
 import android.annotation.TargetApi;
 import android.os.Build;
 
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
+
 import java.io.IOException;
 
 /**
@@ -38,7 +40,7 @@ public class FileDownloadOutOfSpaceException extends IOException {
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public FileDownloadOutOfSpaceException(long freeSpaceBytes, long requiredSpaceBytes,
                                            long breakpointBytes, Throwable cause) {
-        super(String.format("The file is too large to store, breakpoint in bytes: " +
+        super(FileDownloadUtils.formatString("The file is too large to store, breakpoint in bytes: " +
                 " %d, required space in bytes: %d, but free space in bytes: " +
                 "%d", breakpointBytes, requiredSpaceBytes, freeSpaceBytes), cause);
 
@@ -47,7 +49,7 @@ public class FileDownloadOutOfSpaceException extends IOException {
 
     public FileDownloadOutOfSpaceException(long freeSpaceBytes, long requiredSpaceBytes,
                                            long breakpointBytes) {
-        super(String.format("The file is too large to store, breakpoint in bytes: " +
+        super(FileDownloadUtils.formatString("The file is too large to store, breakpoint in bytes: " +
                 " %d, required space in bytes: %d, but free space in bytes: " +
                 "%d", breakpointBytes, requiredSpaceBytes, freeSpaceBytes));
 

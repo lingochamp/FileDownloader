@@ -393,9 +393,10 @@ public abstract class BaseDownloadTask {
 
         if (using) {
             if (FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this)) {
-                throw new IllegalStateException(String.format("This task is running %d, if you" +
-                        " want to start the same task, please create a new one by" +
-                        " FileDownloader.create", getDownloadId()));
+                throw new IllegalStateException(
+                        FileDownloadUtils.formatString("This task is running %d, if you" +
+                                " want to start the same task, please create a new one by" +
+                                " FileDownloader.create", getDownloadId()));
             } else {
                 throw new IllegalStateException("This task is dirty to restart, If you want to " +
                         "reuse this task, please invoke #reuse method manually and retry to " +
@@ -761,7 +762,8 @@ public abstract class BaseDownloadTask {
     private void setStatus(byte status) {
         if (status > FileDownloadStatus.MAX_INT ||
                 status < FileDownloadStatus.MIN_INT) {
-            throw new RuntimeException(String.format("status undefined, %d", status));
+            throw new RuntimeException(
+                    FileDownloadUtils.formatString("status undefined, %d", status));
         }
         this.status = status;
     }
@@ -1085,7 +1087,7 @@ public abstract class BaseDownloadTask {
 
     @Override
     public String toString() {
-        return String.format("%d@%s", getDownloadId(), super.toString());
+        return FileDownloadUtils.formatString("%d@%s", getDownloadId(), super.toString());
     }
 
 }
