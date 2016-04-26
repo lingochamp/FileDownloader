@@ -247,7 +247,7 @@ class FileDownloadTask extends BaseDownloadTask {
                                 o.start();
                             } else {
                                 /** already handled
-                                 * by {@link FileDownloadEventPool#send2Service(DownloadTaskEvent)}
+                                 * by {@link FileDownloadEventPool#launchTask(DownloadTaskEvent)}
                                  * **/
                             }
                         }

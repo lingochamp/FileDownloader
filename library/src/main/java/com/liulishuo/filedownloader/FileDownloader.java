@@ -251,7 +251,7 @@ public class FileDownloader {
      * @see #pause(int)
      */
     public void pause(final FileDownloadListener listener) {
-        FileDownloadEventPool.getImpl().shutdownSendPool(listener);
+        FileDownloadTaskLauncher.getImpl().expire(listener);
         final List<BaseDownloadTask> downloadList = FileDownloadList.getImpl().copy(listener);
         synchronized (pauseLock) {
             for (BaseDownloadTask baseDownloadTask : downloadList) {
@@ -269,7 +269,7 @@ public class FileDownloader {
      * Pause all task
      */
     public void pauseAll() {
-        FileDownloadEventPool.getImpl().shutdownSendPool();
+        FileDownloadTaskLauncher.getImpl().expireAll();
         final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
         synchronized (pauseLock) {
             for (BaseDownloadTask baseDownloadTask : downloadList) {

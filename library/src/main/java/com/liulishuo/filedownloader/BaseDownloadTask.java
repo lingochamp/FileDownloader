@@ -20,8 +20,6 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
-import com.liulishuo.filedownloader.event.IDownloadEvent;
-import com.liulishuo.filedownloader.event.IDownloadListener;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -103,25 +101,6 @@ public abstract class BaseDownloadTask {
         driver = new FileDownloadDriver(this);
     }
 
-    // --------------------------------------- FOLLOWING FUNCTION FOR INIT -----------------------------------------------
-
-    static {
-        FileDownloadEventPool.getImpl().addListener(DownloadTaskEvent.ID, new IDownloadListener() {
-            @Override
-            public boolean callback(IDownloadEvent event) {
-                final DownloadTaskEvent taskEvent = (DownloadTaskEvent) event;
-                switch (taskEvent.getOperate()) {
-                    case DownloadTaskEvent.Operate.REQUEST_START:
-                        taskEvent.consume()._start();
-                        break;
-                    default:
-                        FileDownloadLog.e(DownloadTaskEvent.ID, "exception: do not recognize" +
-                                " operate %s", taskEvent.getOperate());
-                }
-                return true;
-            }
-        });
-    }
     // --------------------------------------- FOLLOWING FUNCTION FOR OUTSIDE ----------------------------------------------
 
     /**
@@ -377,8 +356,7 @@ public abstract class BaseDownloadTask {
         }
 
         if (ready) {
-            FileDownloadEventPool.getImpl().send2Service(new DownloadTaskEvent(this)
-                    .requestStart());
+           FileDownloadTaskLauncher.getImpl().launch(this);
         }
 
 
@@ -682,7 +660,7 @@ public abstract class BaseDownloadTask {
         }
     }
 
-    private void _start() {
+    void _start() {
 
         try {
 
