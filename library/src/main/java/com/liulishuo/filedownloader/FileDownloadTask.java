@@ -104,7 +104,7 @@ class FileDownloadTask extends BaseDownloadTask {
             return false;
         }
 
-        final FileDownloadTransferModel model = FileDownloadServiceProxy.getImpl().checkReuse(getDownloadId());
+        final FileDownloadTransferModel model = FileDownloadServiceProxy.getImpl().checkReuse(getId());
         if (model != null) {
             FileDownloadEventPool.getImpl().publish(new DownloadTransferEvent(model));
 
@@ -122,7 +122,7 @@ class FileDownloadTask extends BaseDownloadTask {
                 if (!FileDownloadServiceProxy.getImpl().isConnected()) {
                     // 没有连上 服务
                     if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(this, "no connect service !! %s", getDownloadId());
+                        FileDownloadLog.d(this, "no connect service !! %s", getId());
                     }
                     FileDownloadServiceProxy.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
                     if (!NEED_RESTART_LIST.contains(this)) {
@@ -163,7 +163,7 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     protected boolean _pauseExecute() {
-        return FileDownloadServiceProxy.getImpl().pauseDownloader(getDownloadId());
+        return FileDownloadServiceProxy.getImpl().pauseDownloader(getId());
     }
 
     @Override
@@ -179,14 +179,14 @@ class FileDownloadTask extends BaseDownloadTask {
 
                 // For fewer copies,do not carry all data in transfer model.
                 final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
-                final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getList(transfer.getDownloadId());
+                final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getList(transfer.getId());
 
 
                 if (taskList.size() > 0) {
 
                     if (FileDownloadLog.NEED_LOG) {
                         FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d",
-                                transfer.getDownloadId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
+                                transfer.getId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
                     }
 
                     final String updateSync = FileDownloadUtils.formatString("%s%s", taskList.get(0).getUrl(),
@@ -207,7 +207,7 @@ class FileDownloadTask extends BaseDownloadTask {
                         }
 
                         if (!consumed) {
-                            String log = "The flow callback did not consumed, id:" + transfer.getDownloadId() + " status:"
+                            String log = "The flow callback did not consumed, id:" + transfer.getId() + " status:"
                                     + transfer.getStatus() + " task-count:" + taskList.size();
                             for (BaseDownloadTask task : taskList) {
                                 log += " | " + task.getStatus();

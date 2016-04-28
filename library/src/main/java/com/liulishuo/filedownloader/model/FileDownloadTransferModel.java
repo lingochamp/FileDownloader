@@ -30,7 +30,7 @@ import junit.framework.Assert;
 public class FileDownloadTransferModel implements Parcelable {
 
     private byte status;
-    private int downloadId;
+    private int id;
     private long soFarBytes;
 
     // Total bytes
@@ -54,7 +54,7 @@ public class FileDownloadTransferModel implements Parcelable {
     }
 
     public void update(FileDownloadModel model) {
-        this.downloadId = model.getId();
+        this.id = model.getId();
         this.status = model.getStatus();
         this.soFarBytes = model.getSoFar();
         this.totalBytes = model.getTotal();
@@ -93,12 +93,12 @@ public class FileDownloadTransferModel implements Parcelable {
         this.status = status;
     }
 
-    public int getDownloadId() {
-        return downloadId;
+    public int getId() {
+        return id;
     }
 
-    public void setDownloadId(int downloadId) {
-        this.downloadId = downloadId;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public long getSoFarBytes() {
@@ -149,7 +149,7 @@ public class FileDownloadTransferModel implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeByte(this.status);
-        dest.writeInt(this.downloadId);
+        dest.writeInt(this.id);
 
         // For fewer copies
         switch (this.status) {
@@ -191,7 +191,7 @@ public class FileDownloadTransferModel implements Parcelable {
      */
     protected FileDownloadTransferModel(Parcel in) {
         this.status = in.readByte();
-        this.downloadId = in.readInt();
+        this.id = in.readInt();
 
         // For fewer copies
         switch (this.status) {
@@ -232,7 +232,7 @@ public class FileDownloadTransferModel implements Parcelable {
         final FileDownloadTransferModel model = new FileDownloadTransferModel();
 
         model.status = this.status;
-        model.downloadId = this.downloadId;
+        model.id = this.id;
         model.soFarBytes = this.soFarBytes;
         model.totalBytes = this.totalBytes;
         model.etag = this.etag;

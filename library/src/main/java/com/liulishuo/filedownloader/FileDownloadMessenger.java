@@ -318,6 +318,6 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public String toString() {
-        return FileDownloadUtils.formatString("%d:%s", task.getDownloadId(), super.toString());
+        return FileDownloadUtils.formatString("%d:%s", task.getId(), super.toString());
     }
 }

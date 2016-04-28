@@ -385,7 +385,7 @@ public class FileDownloader {
         }
 
         task.setListener(listener);
-        return task.getDownloadId();
+        return task.getId();
     }
 
     /**

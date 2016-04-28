@@ -45,7 +45,7 @@ public class FileDownloadFlowThreadPool {
         FlowSingleExecutor targetPool = null;
         try {
             synchronized (executorList) {
-                final int id = event.getTransfer().getDownloadId();
+                final int id = event.getTransfer().getId();
                 // Case 1. already had same task in executorList, so execute this event after
                 // before-one.
                 for (FlowSingleExecutor executor : executorList) {
@@ -100,7 +100,7 @@ public class FileDownloadFlowThreadPool {
                 @Override
                 public void run() {
                     FileDownloadEventPool.getImpl().publish(event);
-                    enQueueTaskIdList.remove((Integer) model.getDownloadId());
+                    enQueueTaskIdList.remove((Integer) model.getId());
                 }
             });
         }

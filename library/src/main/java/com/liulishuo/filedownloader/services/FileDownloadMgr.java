@@ -79,7 +79,7 @@ class FileDownloadMgr {
             }
             // warn
             final FileDownloadTransferModel warnModel = new FileDownloadTransferModel();
-            warnModel.setDownloadId(id);
+            warnModel.setId(id);
             warnModel.setTotalBytes(model.getTotal());
             warnModel.setSoFarBytes(model.getSoFar());
             warnModel.setStatus(FileDownloadStatus.warn);

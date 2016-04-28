@@ -60,7 +60,7 @@ public class FileDownloadList {
         int size = 0;
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
-                if (baseDownloadTask.getDownloadId() == id) {
+                if (baseDownloadTask.getId() == id) {
                     size++;
                 }
             }
@@ -72,7 +72,7 @@ public class FileDownloadList {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
                 // when FileDownloadMgr#checkDownloading
-                if (baseDownloadTask.getDownloadId() == id) {
+                if (baseDownloadTask.getId() == id) {
                     return baseDownloadTask;
                 }
             }
@@ -84,7 +84,7 @@ public class FileDownloadList {
         final List<BaseDownloadTask> list = new ArrayList<>();
         synchronized (this.list) {
             for (BaseDownloadTask baseDownloadTask : this.list) {
-                if (baseDownloadTask.getDownloadId() == id) {
+                if (baseDownloadTask.getId() == id) {
                     list.add(baseDownloadTask);
                 }
             }

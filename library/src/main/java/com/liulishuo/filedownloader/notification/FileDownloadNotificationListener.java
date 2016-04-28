@@ -73,10 +73,10 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
             return;
         }
 
-        this.helper.showIndeterminate(task.getDownloadId(), task.getStatus());
+        this.helper.showIndeterminate(task.getId(), task.getStatus());
 
         final BaseNotificationItem n = this.helper.
-                remove(task.getDownloadId());
+                remove(task.getId());
         if (!interceptCancel(task, n) && n != null) {
             n.cancel();
         }
@@ -87,7 +87,7 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
             return;
         }
 
-        this.helper.showIndeterminate(task.getDownloadId(), task.getStatus());
+        this.helper.showIndeterminate(task.getId(), task.getStatus());
     }
 
     public void showProgress(BaseDownloadTask task, int soFarBytes,
@@ -96,7 +96,7 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
             return;
         }
 
-        this.helper.showProgress(task.getDownloadId(), task.getSmallFileSoFarBytes(),
+        this.helper.showProgress(task.getId(), task.getSmallFileSoFarBytes(),
                 task.getSmallFileTotalBytes());
     }
 
