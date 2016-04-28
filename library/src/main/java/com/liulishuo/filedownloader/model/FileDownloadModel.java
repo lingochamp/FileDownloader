@@ -28,6 +28,7 @@ import android.os.Parcelable;
  * @see com.liulishuo.filedownloader.services.FileDownloadDBHelper
  * @see com.liulishuo.filedownloader.services.FileDownloadDBOpenHelper
  */
+@SuppressWarnings("WeakerAccess")
 public class FileDownloadModel implements Parcelable {
 
     public final static int DEFAULT_CALLBACK_PROGRESS_TIMES = 100;

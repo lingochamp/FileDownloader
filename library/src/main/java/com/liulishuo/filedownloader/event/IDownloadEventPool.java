@@ -26,7 +26,7 @@ import android.os.Looper;
  * @see IDownloadEvent
  * @see IDownloadListener
  */
-public interface IDownloadEventPool {
+interface IDownloadEventPool {
 
     boolean addListener(final String eventId, final IDownloadListener listener);
 

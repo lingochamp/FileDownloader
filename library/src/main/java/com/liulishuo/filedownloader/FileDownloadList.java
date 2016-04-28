@@ -27,6 +27,7 @@ import java.util.List;
  * <p/>
  * Storing all tasks in processing in the Main-Process.
  */
+@SuppressWarnings("UnusedReturnValue")
 public class FileDownloadList {
 
 
@@ -121,7 +122,7 @@ public class FileDownloadList {
     /**
      * Divert all data in list 2 destination list
      */
-    void divert(final List<BaseDownloadTask> destination) {
+    void divert(@SuppressWarnings("SameParameterValue") final List<BaseDownloadTask> destination) {
         synchronized (list) {
             synchronized (destination) {
                 destination.addAll(list);
@@ -154,7 +155,7 @@ public class FileDownloadList {
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#completed}
      *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#error}
      */
-    boolean remove(final BaseDownloadTask willRemoveDownload, final byte removeByStatus) {
+    private boolean remove(final BaseDownloadTask willRemoveDownload, final byte removeByStatus) {
         boolean succeed;
         synchronized (list) {
             succeed = list.remove(willRemoveDownload);

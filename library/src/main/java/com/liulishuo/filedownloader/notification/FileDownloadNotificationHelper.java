@@ -26,6 +26,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  * @see BaseNotificationItem
  * @see FileDownloadNotificationListener
  */
+@SuppressWarnings("WeakerAccess")
 public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
 
     private final SparseArray<T> notificationArray = new SparseArray<>();

@@ -153,6 +153,7 @@ class FileDownloadMgr {
         return checkDownloading(FileDownloadUtils.generateId(url, path));
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean checkDownloading(int downloadId) {
         final FileDownloadModel model = mHelper.find(downloadId);
         if (model == null) {
@@ -241,7 +242,6 @@ class FileDownloadMgr {
                             downloadId, fileLength, model.getSoFar(), model.getTotal());
                 }
                 break;
-
             }
 
             result = true;

@@ -64,9 +64,9 @@ public class FileDownloadMessage {
         return new FileDownloadMessage(task, snapShot);
     }
 
-    private BaseDownloadTask task;
+    private final BaseDownloadTask task;
 
-    private MessageSnapShot snapshot;
+    private final MessageSnapShot snapshot;
 
     private FileDownloadMessage(BaseDownloadTask task, MessageSnapShot snapshot) {
         this.task = task;

@@ -26,6 +26,7 @@ import java.util.List;
  *
  * @see FileDownloader#start(FileDownloadListener, boolean)
  */
+@SuppressWarnings({"SameParameterValue", "WeakerAccess"})
 public class FileDownloadQueueSet {
 
     private FileDownloadListener target;

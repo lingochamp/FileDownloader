@@ -47,10 +47,11 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
 
     private final RemoteCallbackList<IFileDownloadIPCCallback> callbackList = new RemoteCallbackList<>();
     private final FileDownloadMgr downloadManager;
-    private DownloadEventSampleListener mListener;
-    private WeakReference<FileDownloadService> wService;
+    private final DownloadEventSampleListener mListener;
+    private final WeakReference<FileDownloadService> wService;
 
-    protected synchronized int callback(FileDownloadTransferModel transfer) {
+    @SuppressWarnings("UnusedReturnValue")
+    private synchronized int callback(FileDownloadTransferModel transfer) {
         final int n = callbackList.beginBroadcast();
         try {
             for (int i = 0; i < n; i++) {

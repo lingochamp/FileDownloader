@@ -23,6 +23,7 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
  * <p/>
  * An atom event.
  */
+@SuppressWarnings({"WeakerAccess", "CanBeFinal"})
 public abstract class IDownloadEvent {
     public Runnable callback = null;
 
@@ -41,6 +42,7 @@ public abstract class IDownloadEvent {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected final String id;
 
     public final String getId() {

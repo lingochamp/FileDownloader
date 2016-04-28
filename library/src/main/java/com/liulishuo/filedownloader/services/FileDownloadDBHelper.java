@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Jacksgong on 9/24/15.
@@ -53,17 +52,6 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
         db = openHelper.getWritableDatabase();
 
         refreshDataFromDB();
-    }
-
-
-    @Override
-    public Set<FileDownloadModel> getAllUnComplete() {
-        return null;
-    }
-
-    @Override
-    public Set<FileDownloadModel> getAllCompleted() {
-        return null;
     }
 
     @Override

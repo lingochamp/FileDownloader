@@ -20,7 +20,6 @@ package com.liulishuo.filedownloader.services;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Jacksgong on 9/24/15.
@@ -28,10 +27,6 @@ import java.util.Set;
  * The DB helper for handling all {@link FileDownloadModel} updating to DB.
  */
 interface IFileDownloadDBHelper {
-
-    Set<FileDownloadModel> getAllUnComplete();
-
-    Set<FileDownloadModel> getAllCompleted();
 
     void refreshDataFromDB();
 

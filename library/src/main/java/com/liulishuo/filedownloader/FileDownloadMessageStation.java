@@ -32,12 +32,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  * <p/>
  * The message station to transfer the task event to {@link FileDownloadListener}
  */
+@SuppressWarnings("WeakerAccess")
 public class FileDownloadMessageStation {
 
-    private Executor blockCompletedPool = Executors.newFixedThreadPool(5);
+    private final Executor blockCompletedPool = Executors.newFixedThreadPool(5);
 
     private final Handler handler;
-    private LinkedBlockingQueue<IFileDownloadMessenger> waitingQueue;
+    private final LinkedBlockingQueue<IFileDownloadMessenger> waitingQueue;
 
     private final static class HolderClass {
         private final static FileDownloadMessageStation INSTANCE = new FileDownloadMessageStation();
@@ -56,7 +57,8 @@ public class FileDownloadMessageStation {
         requestEnqueue(messenger, false);
     }
 
-    void requestEnqueue(final IFileDownloadMessenger messenger, boolean immediately) {
+    void requestEnqueue(final IFileDownloadMessenger messenger,
+                        @SuppressWarnings("SameParameterValue") boolean immediately) {
         /** @see #notify(FileDownloadEvent) **/
         if (!messenger.hasReceiver()) {
             if (FileDownloadLog.NEED_LOG) {
@@ -155,7 +157,7 @@ public class FileDownloadMessageStation {
 
     final static int HANDOVER_A_MESSENGER = 1;
     final static int DISPOSE_MESSENGER_LIST = 2;
-    private ArrayList<IFileDownloadMessenger> disposingList = new ArrayList<>();
+    private final ArrayList<IFileDownloadMessenger> disposingList = new ArrayList<>();
 
     private static class UIHandlerCallback implements Handler.Callback {
 

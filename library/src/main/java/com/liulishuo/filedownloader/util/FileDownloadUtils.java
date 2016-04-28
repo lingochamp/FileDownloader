@@ -38,6 +38,7 @@ import okhttp3.Headers;
  * <p/>
  * Wrapping some static utils for FileDownloader.
  */
+@SuppressWarnings({"SameParameterValue", "WeakerAccess"})
 public class FileDownloadUtils {
 
     private static int MIN_PROGRESS_STEP = 65536;
@@ -104,6 +105,7 @@ public class FileDownloadUtils {
     /**
      * Checks whether the filename looks legitimate
      */
+    @SuppressWarnings("SameReturnValue")
     public static boolean isFilenameValid(String filename) {
 //        filename = filename.replaceFirst("/+", "/"); // normalize leading
         // slashes
@@ -124,6 +126,7 @@ public class FileDownloadUtils {
         if (FileDownloadHelper.getAppContext().getExternalCacheDir() == null) {
             return Environment.getDownloadCacheDirectory().getAbsolutePath();
         } else {
+            //noinspection ConstantConditions
             return FileDownloadHelper.getAppContext().getExternalCacheDir().getAbsolutePath();
         }
     }
@@ -178,8 +181,6 @@ public class FileDownloadUtils {
         return hex.toString();
     }
 
-
-    // stack
 
     public static String getStack() {
         return getStack(true);

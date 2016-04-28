@@ -23,6 +23,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  *
  * For file size greater than 1.99G
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class FileDownloadLargeFileListener extends FileDownloadListener {
 
     public FileDownloadLargeFileListener() {
@@ -109,8 +110,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      */
+    @SuppressWarnings("EmptyMethod")
     protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue, final long soFarBytes, final long totalBytes) {
-
     }
 
     /**
@@ -135,8 +136,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param retryingTimes How many times will retry
      * @param soFarBytes    Number of bytes download so far
      */
+    @SuppressWarnings("EmptyMethod")
     protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final long soFarBytes) {
-
     }
 
     // final width below methods

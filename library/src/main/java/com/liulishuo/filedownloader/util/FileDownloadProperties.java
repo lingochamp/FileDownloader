@@ -112,7 +112,7 @@ public class FileDownloadProperties {
     private final static String TRUE_STRING = "true";
     private final static String FALSE_STRING = "false";
 
-    public FileDownloadProperties() {
+    private FileDownloadProperties() {
         if (FileDownloadHelper.getAppContext() == null) {
             throw new IllegalStateException("Please invoke the FileDownloader#init in " +
                     "Application#onCreate first.");

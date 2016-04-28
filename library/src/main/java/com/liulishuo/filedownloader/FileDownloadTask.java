@@ -75,6 +75,7 @@ class FileDownloadTask extends BaseDownloadTask {
                         getHeader());
 
         if (!succeed) {
+            //noinspection StatementWithEmptyBody
             if (_checkCanStart()) {
                 catchException(new RuntimeException("Occur Unknow Error, when request to start" +
                         " maybe some problem in binder, maybe the process was killed in unexpected."));
@@ -148,6 +149,7 @@ class FileDownloadTask extends BaseDownloadTask {
     private void handleNoNeedRestart() {
 
         // connected
+        //noinspection StatementWithEmptyBody
         if (NEED_RESTART_LIST.size() > 0) {
             synchronized (NEED_RESTART_LIST) {
                 NEED_RESTART_LIST.remove(this);
@@ -245,6 +247,7 @@ class FileDownloadTask extends BaseDownloadTask {
                                 o.ready();
                                 continue;
                             }
+                            //noinspection StatementWithEmptyBody
                             if (!o.using) {
                                 o.start();
                             } else {

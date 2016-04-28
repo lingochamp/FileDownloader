@@ -27,6 +27,7 @@ import junit.framework.Assert;
  * <p/>
  * ui进程与:downloader进程 相互通信对象
  */
+@SuppressWarnings("SameParameterValue")
 public class FileDownloadTransferModel implements Parcelable {
 
     private byte status;

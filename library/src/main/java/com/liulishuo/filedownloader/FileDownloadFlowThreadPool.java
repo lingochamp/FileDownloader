@@ -34,7 +34,7 @@ public class FileDownloadFlowThreadPool {
 
     private final List<FlowSingleExecutor> executorList;
 
-    public FileDownloadFlowThreadPool(final int poolCount) {
+    public FileDownloadFlowThreadPool(@SuppressWarnings("SameParameterValue") final int poolCount) {
         executorList = new ArrayList<>();
         for (int i = 0; i < poolCount; i++) {
             executorList.add(new FlowSingleExecutor());
@@ -73,16 +73,18 @@ public class FileDownloadFlowThreadPool {
                     }
                 }
 
+                //noinspection ConstantConditions
                 targetPool.enqueue(id);
             }
         } finally {
+            //noinspection ConstantConditions
             targetPool.execute(event);
         }
     }
 
     public static class FlowSingleExecutor extends ThreadPoolExecutor {
 
-        private List<Integer> enQueueTaskIdList = new ArrayList<>();
+        private final List<Integer> enQueueTaskIdList = new ArrayList<>();
 
         public FlowSingleExecutor() {
             super(1, 1, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());

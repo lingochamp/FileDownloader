@@ -259,7 +259,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         }
     }
 
-    public boolean messageArrived(int status) {
+    private boolean messageArrived(int status) {
         if (FileDownloadStatus.isOver(status)) {
             if (!parcelQueue.isEmpty()) {
                 throw new IllegalStateException(

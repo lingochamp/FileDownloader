@@ -305,6 +305,7 @@ public class FileDownloadRunnable implements Runnable {
     /**
      * @return Whether finish looper or not.
      */
+    @SuppressWarnings("SameReturnValue")
     private boolean fetch(Response response, boolean isSucceedContinue,
                           long soFar, long total) throws Throwable {
         // fetching datum
@@ -371,6 +372,7 @@ public class FileDownloadRunnable implements Runnable {
                 inputStream.close();
             }
 
+            //noinspection ConstantConditions
             if (accessFile != null) {
                 accessFile.close();
             }
@@ -588,6 +590,7 @@ public class FileDownloadRunnable implements Runnable {
             throw new RuntimeException("found invalid internal destination path, empty");
         }
 
+        //noinspection ConstantConditions
         if (!FileDownloadUtils.isFilenameValid(path)) {
             throw new RuntimeException(
                     FileDownloadUtils.formatString("found invalid internal destination filename" +
@@ -643,6 +646,7 @@ public class FileDownloadRunnable implements Runnable {
             this.isResumeDownloadAvailable = false;
             // delete dirty file
             File file = new File(model.getPath());
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
     }

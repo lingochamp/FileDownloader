@@ -33,6 +33,7 @@ import java.io.IOException;
  * The Chunked resource will be handled when the free space is not enough to store the following chunk:
  * {@link com.liulishuo.filedownloader.services.FileDownloadRunnable#exFiltrate(Throwable)}
  */
+@SuppressWarnings("SameParameterValue")
 public class FileDownloadOutOfSpaceException extends IOException {
 
     private long freeSpaceBytes, requiredSpaceBytes, breakpointBytes;

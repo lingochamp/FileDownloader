@@ -47,6 +47,7 @@ import okhttp3.OkHttpClient;
  * @see com.liulishuo.filedownloader.services.FileDownloadService The service for FileDownloader.
  * @see FileDownloadProperties
  */
+@SuppressWarnings("WeakerAccess")
 public class FileDownloader {
 
     /**
@@ -563,14 +564,12 @@ public class FileDownloader {
                     new SerialFinishListener(new WeakReference<>(this));
         }
 
-        public Handler.Callback setHandler(final Handler handler) {
+        public void setHandler(final Handler handler) {
             this.handler = handler;
-            return this;
         }
 
-        public Handler.Callback setList(List<BaseDownloadTask> list) {
+        public void setList(List<BaseDownloadTask> list) {
             this.list = list;
-            return this;
         }
 
         @Override
@@ -651,7 +650,7 @@ public class FileDownloader {
     }
 
     private static class SerialFinishListener implements BaseDownloadTask.FinishListener {
-        private WeakReference<SerialHandlerCallback> wSerialHandlerCallback;
+        private final WeakReference<SerialHandlerCallback> wSerialHandlerCallback;
 
         private SerialFinishListener(WeakReference<SerialHandlerCallback> wSerialHandlerCallback) {
             this.wSerialHandlerCallback = wSerialHandlerCallback;

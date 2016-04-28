@@ -27,7 +27,7 @@ import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownload
  *
  * @see FileDownloadMgr
  */
-public interface IFileDownloadServiceHandler {
+interface IFileDownloadServiceHandler {
     /**
      * Will used to handling the onConnected in {@link FileDownloadServiceSharedConnection}.
      * <p/>

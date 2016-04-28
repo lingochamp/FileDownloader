@@ -91,6 +91,7 @@ public class FileDownloadHttpException extends RuntimeException {
                 }
             } while (false);
 
+            assert namesAndValues != null : "the header is empty!";
             return Headers.of(namesAndValues);
         }
     }

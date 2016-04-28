@@ -39,7 +39,7 @@ import java.util.List;
 public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
         implements IFileDownloadServiceHandler {
     private final FileDownloadMgr downloadManager;
-    private WeakReference<FileDownloadService> wService;
+    private final WeakReference<FileDownloadService> wService;
 
     FDServiceSharedHandler(WeakReference<FileDownloadService> wService) {
         this.wService = wService;
@@ -131,6 +131,7 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
 
     @Override
     public void onStartCommand(Intent intent, int flags, int startId) {
+        //noinspection ConstantConditions
         FileDownloadServiceProxy.getConnectionListener().onConnected(this);
     }
 
@@ -141,6 +142,7 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
 
     @Override
     public void onDestroy() {
+        //noinspection ConstantConditions
         FileDownloadServiceProxy.getConnectionListener().onDisconnected();
     }
 

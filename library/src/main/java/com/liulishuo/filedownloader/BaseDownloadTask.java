@@ -38,6 +38,7 @@ import java.util.ArrayList;
  * @see FileDownloader
  * @see FileDownloadTask
  */
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public abstract class BaseDownloadTask {
 
     private int downloadId;
@@ -660,7 +661,7 @@ public abstract class BaseDownloadTask {
         }
 
         if (!file.getParentFile().exists()) {
-            //TODO file check really
+            //noinspection ResultOfMethodCallIgnored
             file.getParentFile().mkdirs();
         }
     }
@@ -1022,6 +1023,7 @@ public abstract class BaseDownloadTask {
                     FileDownloadLog.w(this, "warn, but no listener to receive progress, " +
                             "switch to pending %d %d", getId(), currentStatus);
 
+                    //noinspection StatementWithEmptyBody
                     if (FileDownloadStatus.isIng(currentStatus)) {
                         // ing, has callbacks
                         // keep and wait callback

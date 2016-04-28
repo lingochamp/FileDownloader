@@ -42,13 +42,13 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
             10, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>());
 
-    protected final FileDownloadFlowThreadPool flowThreadPool = new FileDownloadFlowThreadPool(5);
+    private final FileDownloadFlowThreadPool flowThreadPool = new FileDownloadFlowThreadPool(5);
 
     private final HashMap<String, LinkedList<IDownloadListener>> listenersMap = new HashMap<>();
 
     private final Handler handler;
 
-    public DownloadEventPoolImpl() {
+    protected DownloadEventPoolImpl() {
         handler = new Handler(Looper.getMainLooper());
     }
 
@@ -102,7 +102,8 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         }
     }
 
-    public boolean post2UI(final Runnable runnable) {
+    @SuppressWarnings("UnusedReturnValue")
+    private boolean post2UI(final Runnable runnable) {
         return handler != null && handler.post(runnable);
     }
 

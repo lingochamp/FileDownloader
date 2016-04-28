@@ -75,7 +75,7 @@ class FileDownloadServiceUIGuard extends
         service.unregisterCallback(fileDownloadServiceCallback);
     }
 
-    public static class FileDownloadServiceCallback extends IFileDownloadIPCCallback.Stub {
+    protected static class FileDownloadServiceCallback extends IFileDownloadIPCCallback.Stub {
 
         @Override
         public void callback(FileDownloadTransferModel transfer) throws RemoteException {

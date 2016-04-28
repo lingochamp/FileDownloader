@@ -26,6 +26,7 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
  * @see FileDownloadNotificationHelper
  * @see FileDownloadNotificationListener
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class BaseNotificationItem {
 
     private int id, sofar, total;

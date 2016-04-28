@@ -31,6 +31,7 @@ import java.util.List;
  *
  * @see com.liulishuo.filedownloader.FileDownloader#setTaskCompleted(List)
  */
+@SuppressWarnings("WeakerAccess")
 public class FileDownloadTaskAtom implements Parcelable {
     private String url;
     private String path;
