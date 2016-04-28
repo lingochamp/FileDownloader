@@ -209,7 +209,7 @@ public class NotificationDemoActivity extends AppCompatActivity {
                     desc += " started";
                     break;
                 case FileDownloadStatus.progress:
-                    desc += " progress";
+                    desc += " progress " + getSpeed() + "KB/s";
                     break;
                 case FileDownloadStatus.retry:
                     desc += " retry";

@@ -28,7 +28,7 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
  */
 public abstract class BaseNotificationItem {
 
-    private int id, sofar, total;
+    private int id, sofar, total, speed;
     private String title, desc;
 
     private int status = FileDownloadStatus.INVALID_STATUS;
@@ -50,9 +50,10 @@ public abstract class BaseNotificationItem {
      */
     public abstract void show(boolean statusChanged, int status, boolean isShowProgress);
 
-    public void update(final int sofar, final int total) {
+    public void update(final int sofar, final int total, final int speed) {
         this.sofar = sofar;
         this.total = total;
+        this.speed = speed;
         show(true);
     }
 
@@ -95,6 +96,14 @@ public abstract class BaseNotificationItem {
 
     public void setTotal(int total) {
         this.total = total;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
     }
 
     public String getTitle() {
