@@ -255,6 +255,7 @@ public class FileDownloadUtils {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             freeSpaceBytes = statFs.getAvailableBytes();
         } else {
+            //noinspection deprecation
             freeSpaceBytes = statFs.getAvailableBlocks() * (long) statFs.getBlockSize();
         }
 

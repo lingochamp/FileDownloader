@@ -155,7 +155,8 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
     @Override
     public void onConnected(final FDServiceSharedHandler handler) {
         this.handler = handler;
-        final List<Runnable> runnableList = (List<Runnable>) connectedRunnableList.clone();
+        @SuppressWarnings("unchecked") final List<Runnable> runnableList =
+                (List<Runnable>) connectedRunnableList.clone();
         connectedRunnableList.clear();
         for (Runnable runnable : runnableList) {
             runnable.run();

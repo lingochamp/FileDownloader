@@ -59,6 +59,7 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
 
         final BaseNotificationItem n = create(task);
         if (n != null) {
+            //noinspection unchecked
             this.helper.add(n);
         }
     }

@@ -882,7 +882,7 @@ public abstract class BaseDownloadTask {
         }
 
         if (finishListenerList != null) {
-            final ArrayList<FinishListener> listenersCopy =
+            @SuppressWarnings("unchecked") final ArrayList<FinishListener> listenersCopy =
                     (ArrayList<FinishListener>) finishListenerList.clone();
             final int numListeners = listenersCopy.size();
             for (int i = 0; i < numListeners; ++i) {

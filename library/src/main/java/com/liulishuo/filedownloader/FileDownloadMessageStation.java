@@ -164,6 +164,7 @@ public class FileDownloadMessageStation {
             if (msg.what == HANDOVER_A_MESSENGER) {
                 ((IFileDownloadMessenger) msg.obj).handoverMessage();
             } else if (msg.what == DISPOSE_MESSENGER_LIST) {
+                //noinspection unchecked
                 dispose((ArrayList<IFileDownloadMessenger>) msg.obj);
                 FileDownloadMessageStation.getImpl().push();
             }

@@ -236,6 +236,7 @@ class FileDownloadTask extends BaseDownloadTask {
                     List<BaseDownloadTask> needRestartList;
 
                     synchronized (NEED_RESTART_LIST) {
+                        //noinspection unchecked
                         needRestartList = (List<BaseDownloadTask>) NEED_RESTART_LIST.clone();
                         NEED_RESTART_LIST.clear();
 

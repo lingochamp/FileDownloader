@@ -125,7 +125,7 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
      * clear and cancel all notifications which inside this helper {@link #notificationArray}
      */
     public void clear() {
-        SparseArray<BaseNotificationItem> cloneArray =
+        @SuppressWarnings("unchecked") SparseArray<BaseNotificationItem> cloneArray =
                 (SparseArray<BaseNotificationItem>) notificationArray.clone();
         notificationArray.clear();
 

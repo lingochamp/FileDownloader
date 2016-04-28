@@ -33,6 +33,7 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @deprecated not handle priority any more
      */
     public FileDownloadLargeFileListener(int priority) {
+        //noinspection deprecation
         super(priority);
     }
 

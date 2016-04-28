@@ -80,7 +80,8 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             e.printStackTrace();
         }
 
-        final List<Runnable> runnableList = (List<Runnable>) connectedRunnableList.clone();
+        @SuppressWarnings("unchecked") final List<Runnable> runnableList =
+                (List<Runnable>) connectedRunnableList.clone();
         connectedRunnableList.clear();
         for (Runnable runnable : runnableList) {
             runnable.run();

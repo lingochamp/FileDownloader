@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.services;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -33,6 +34,7 @@ import java.lang.ref.WeakReference;
  * FileDownloadService runs in the main process, and by default the FileDownloadService runs in the
  * separate `:filedownloader` process.
  */
+@SuppressLint("Registered")
 public class FileDownloadService extends Service {
 
     private IFileDownloadServiceHandler handler;
