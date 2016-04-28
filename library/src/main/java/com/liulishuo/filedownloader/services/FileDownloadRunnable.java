@@ -548,19 +548,23 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         if (!FileDownloadUtils.isFilenameValid(path)) {
-            throw new RuntimeException(String.format("found invalid internal destination filename" +
-                    " %s", path));
+            throw new RuntimeException(
+                    FileDownloadUtils.formatString("found invalid internal destination filename" +
+                            " %s", path));
         }
 
         File file = new File(path);
 
         if (file.exists() && file.isDirectory()) {
-            throw new RuntimeException(String.format("found invalid internal destination path[%s]," +
-                    " & path is directory[%B]", path, file.isDirectory()));
+            throw new RuntimeException(
+                    FileDownloadUtils.formatString("found invalid internal destination path[%s]," +
+                            " & path is directory[%B]", path, file.isDirectory()));
         }
         if (!file.exists()) {
             if (!file.createNewFile()) {
-                throw new IOException(String.format("create new file error  %s", file.getAbsolutePath()));
+                throw new IOException(
+                        FileDownloadUtils.formatString("create new file error  %s",
+                                file.getAbsolutePath()));
             }
         }
 

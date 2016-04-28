@@ -25,6 +25,7 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -117,7 +118,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(this, "delete %s", args);
                 }
-                db.execSQL(String.format("DELETE FROM %s WHERE %s IN (%s);",
+                db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
                         TABLE_NAME, FileDownloadModel.ID, args));
             }
 

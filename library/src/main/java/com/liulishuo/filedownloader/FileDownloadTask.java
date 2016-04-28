@@ -25,6 +25,7 @@ import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -188,7 +189,7 @@ class FileDownloadTask extends BaseDownloadTask {
                                 transfer.getDownloadId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
                     }
 
-                    final String updateSync = String.format("%s%s", taskList.get(0).getUrl(),
+                    final String updateSync = FileDownloadUtils.formatString("%s%s", taskList.get(0).getUrl(),
                             taskList.get(0).getPath());
 
                     synchronized (updateSync.intern()) {

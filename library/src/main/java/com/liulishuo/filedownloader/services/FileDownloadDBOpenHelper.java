@@ -21,6 +21,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 
 /**
@@ -47,7 +48,7 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS " +
                 FileDownloadDBHelper.TABLE_NAME +
-                String.format(
+                FileDownloadUtils.formatString(
                         "(" +
                                 "%s INTEGER PRIMARY KEY, " + // id
                                 "%s VARCHAR, " + //url

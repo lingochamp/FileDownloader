@@ -162,7 +162,7 @@ public class FileDownloadProperties {
         if (httpLenient != null) {
             if (!httpLenient.equals(TRUE_STRING) && !httpLenient.equals(FALSE_STRING)) {
                 throw new IllegalStateException(
-                        String.format("the value of '%s' must be '%s' or '%s'",
+                        FileDownloadUtils.formatString("the value of '%s' must be '%s' or '%s'",
                                 KEY_HTTP_LENIENT, TRUE_STRING, FALSE_STRING));
             }
             HTTP_LENIENT = httpLenient.equals(TRUE_STRING);
@@ -175,7 +175,7 @@ public class FileDownloadProperties {
             if (!processNonSeparate.equals(TRUE_STRING) &&
                     !processNonSeparate.equals(FALSE_STRING)) {
                 throw new IllegalStateException(
-                        String.format("the value of '%s' must be '%s' or '%s'",
+                        FileDownloadUtils.formatString("the value of '%s' must be '%s' or '%s'",
                                 KEY_PROCESS_NON_SEPARATE, TRUE_STRING, FALSE_STRING));
             }
             PROCESS_NON_SEPARATE = processNonSeparate.equals(TRUE_STRING);

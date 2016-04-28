@@ -129,7 +129,7 @@ public class FileDownloadUtils {
     }
 
     public static String getDefaultSaveFilePath(final String url) {
-        return String.format("%s%s%s", getDefaultSaveRootPath(), File.separator, md5(url));
+        return formatString("%s%s%s", getDefaultSaveRootPath(), File.separator, md5(url));
     }
 
     /**
@@ -157,7 +157,7 @@ public class FileDownloadUtils {
 //    }
 
     public static int generateId(final String url, final String path) {
-        return md5(String.format("%sp%s", url, path)).hashCode();
+        return md5(formatString("%sp%s", url, path)).hashCode();
     }
 
     private static String md5(String string) {

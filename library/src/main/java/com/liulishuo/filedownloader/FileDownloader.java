@@ -532,8 +532,9 @@ public class FileDownloader {
         Assert.assertTrue("create serial handler list must not empty", serialTasks != null && serialTasks.size() > 0);
 
 
-        final HandlerThread serialThread = new HandlerThread(String.format("filedownloader serial thread %s",
-                serialTasks.get(0).getListener()));
+        final HandlerThread serialThread = new HandlerThread(
+                FileDownloadUtils.formatString("filedownloader serial thread %s",
+                        serialTasks.get(0).getListener()));
         serialThread.start();
 
         final SerialHandlerCallback callback = new SerialHandlerCallback();
