@@ -195,7 +195,8 @@ public class FileDownloadList {
             }
 
         } else {
-            FileDownloadLog.e(this, "remove error, not exist: %s", willRemoveDownload);
+            FileDownloadLog.e(this, "remove error, not exist: %s %d", willRemoveDownload,
+                    removeByStatus);
         }
 
         return succeed;

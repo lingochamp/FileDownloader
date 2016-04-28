@@ -391,30 +391,40 @@ public abstract class BaseDownloadTask {
     // -------------- Another Operations ---------------------
 
     /**
-     * Pause task
-     * <p/>
-     * 停止任务, 对于线程而言会直接关闭，清理所有相关数据，不会hold住任何东西
-     * <p/>
-     * 如果重新启动，默认会断点续传，所以为pause
+     * Why pause? not stop? because invoke this method(pause) will clear all data about this task
+     * in memory, and stop the total processing about this task. but when you start the paused task,
+     * it would be continue downloading from the breakpoint as default.
+     *
+     * @return If true, successful pause this task by status of pause, otherwise this task has
+     * already in over status before invoke this method(Maybe occur high concurrent situation).
+     * @see FileDownloader#pause(int)
+     * @see FileDownloader#pause(FileDownloadListener)
+     * @see FileDownloader#pauseAll()
      */
     public boolean pause() {
+        if (FileDownloadStatus.isOver(getStatus())) {
+            if (FileDownloadLog.NEED_LOG) {
+                /**
+                 * The over-status call-backed and set the over-status to this task between here
+                 * area and remove from the {@link FileDownloadList}.
+                 *
+                 * High concurrent cause.
+                 */
+                FileDownloadLog.d(this, "High concurrent cause, Already is over, can't pause " +
+                        "again, %d %d", getStatus(), getDownloadId());
+            }
+            return false;
+        }
         setStatus(FileDownloadStatus.paused);
 
-        final boolean result = _pauseExecute();
+        _pauseExecute();
 
         calcAverageSpeed(this.soFarBytes);
         // For make sure already added event listener for receive paused event
         FileDownloadList.getImpl().add(this);
-        if (result) {
-            FileDownloadList.getImpl().removeByPaused(this);
-        } else {
-            FileDownloadLog.w(this, "paused false %s", toString());
-            // 一直依赖不在下载进程队列中
-            // 只有可能是 串行 还没有执行到 or 并行还没来得及加入进的
-            FileDownloadList.getImpl().removeByPaused(this);
+        FileDownloadList.getImpl().removeByPaused(this);
 
-        }
-        return result;
+        return true;
     }
 
     // ------------------- get -----------------------
@@ -667,7 +677,6 @@ public abstract class BaseDownloadTask {
     void _start() {
 
         try {
-
             // Whether service was already started.
             if (!_checkCanStart()) {
                 this.using = false;
@@ -874,11 +883,29 @@ public abstract class BaseDownloadTask {
     }
 
     boolean updateKeepFlow(final FileDownloadTransferModel transfer) {
-        if (!FileDownloadStatus.isKeepFlow(getStatus(), transfer.getStatus())) {
+        final int currentStatus = getStatus();
+        final int nextStatus = transfer.getStatus();
+
+        if (FileDownloadStatus.paused == currentStatus && FileDownloadStatus.isIng(nextStatus)) {
+            if (FileDownloadLog.NEED_LOG) {
+                /**
+                 * Occur such situation, must be the running-status waiting for turning up in flow
+                 * thread pool(or binder thread) when there is someone invoked the {@link #pause()} .
+                 *
+                 * High concurrent cause.
+                 */
+                FileDownloadLog.d(this, "High concurrent cause, callback pending, but has already" +
+                        " be paused %d", getDownloadId());
+            }
+            return true;
+        }
+
+        if (!FileDownloadStatus.isKeepFlow(currentStatus, nextStatus)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "can't update status change by keep flow, %d, but the" +
                         " current status is %d, %d", status, getStatus(), getDownloadId());
             }
+
             return false;
         }
 
@@ -929,16 +956,16 @@ public abstract class BaseDownloadTask {
                 getMessenger().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
-                this.soFarBytes= transfer.getSoFarBytes();
+                this.soFarBytes = transfer.getSoFarBytes();
                 calcSpeed(transfer.getSoFarBytes());
 
                 // notify
                 getMessenger().notifyProgress();
                 break;
 //            case FileDownloadStatus.blockComplete:
-                /**
-                 * Handled by {@link FileDownloadList#removeByCompleted(BaseDownloadTask)}
-                 */
+            /**
+             * Handled by {@link FileDownloadList#removeByCompleted(BaseDownloadTask)}
+             */
 //                break;
             case FileDownloadStatus.retry:
                 this.soFarBytes = transfer.getSoFarBytes();

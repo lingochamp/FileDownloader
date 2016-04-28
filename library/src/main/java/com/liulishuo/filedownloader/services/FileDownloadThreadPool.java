@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader.services;
 
 import android.util.SparseArray;
 
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 
 import java.util.ArrayList;
@@ -41,10 +42,10 @@ class FileDownloadThreadPool {
 
     public void execute(FileDownloadRunnable runnable) {
         runnable.onPending();
-        threadPool.execute(runnable);
         synchronized (this) {
             runnablePool.put(runnable.getId(), runnable);
         }
+        threadPool.execute(runnable);
 
         final int CHECK_THRESHOLD_VALUE = 600;
         if (mIgnoreCheckTimes >= CHECK_THRESHOLD_VALUE) {
@@ -61,7 +62,12 @@ class FileDownloadThreadPool {
             FileDownloadRunnable r = runnablePool.get(id);
             if (r != null) {
                 r.cancelRunnable();
-                threadPool.remove(r);
+                boolean result = threadPool.remove(r);
+                if (FileDownloadLog.NEED_LOG) {
+                    // If {@code result} is false, must be: the Runnable has been running before
+                    // invoke this method.
+                    FileDownloadLog.d(this, "successful cancel %d %B", id, result);
+                }
             }
             runnablePool.remove(id);
         }

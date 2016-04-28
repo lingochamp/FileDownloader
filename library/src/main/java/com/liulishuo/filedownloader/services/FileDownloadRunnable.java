@@ -21,6 +21,7 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.text.TextUtils;
 
+import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
@@ -132,10 +133,26 @@ public class FileDownloadRunnable implements Runnable {
 
             // Step 2, check status
             if (model.getStatus() != FileDownloadStatus.pending) {
-                FileDownloadLog.e(this, "start runnable but status err %s", model.getStatus());
-
-                // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
-                onError(new RuntimeException(String.format("start runnable but status err %s", model.getStatus())));
+                if (model.getStatus() == FileDownloadStatus.paused) {
+                    if (FileDownloadLog.NEED_LOG) {
+                        /**
+                         * @see FileDownloadThreadPool#cancel(int), the invoking simultaneously
+                         * with here. And this area is invoking before there, so, {@code cancel(int)}
+                         * is fail.
+                         *
+                         * High concurrent cause.
+                         */
+                        FileDownloadLog.d(this, "High concurrent cause, start runnable but " +
+                                "already paused %d", getId());
+                    }
+                } else {
+                    FileDownloadLog.e(this, "start runnable but status err %s %d",
+                            model.getStatus(), getId());
+                    // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
+                    onError(new RuntimeException(
+                            FileDownloadUtils.formatString("start runnable but status err %s %d",
+                                    model.getStatus())));
+                }
 
                 return;
             }
@@ -506,8 +523,7 @@ public class FileDownloadRunnable implements Runnable {
 
         helper.updatePause(getId(), model.getSoFar());
 
-        // 这边没有必要从服务端再回调，由于直接调pause看是否已经成功
-//        onStatusChanged(model.getStatus());
+        onStatusChanged(model.getStatus());
     }
 
     private void onStarted() {
@@ -527,12 +543,37 @@ public class FileDownloadRunnable implements Runnable {
         onStatusChanged(model.getStatus());
     }
 
+    private final Object statusChangedNotifyLock = new Object();
+
     private void onStatusChanged(int status) {
-        transferModel.update(model);
+        // In current situation, it maybe invoke this method simultaneously between #onPause() and
+        // others.
+        synchronized (statusChangedNotifyLock) {
+            if (model.getStatus() == FileDownloadStatus.paused) {
+                if (FileDownloadLog.NEED_LOG) {
+                    /**
+                     * Already paused or the current status is paused.
+                     *
+                     * We don't need to call-back to Task in here, because the pause status has
+                     * already handled by {@link BaseDownloadTask#pause()} manually.
+                     *
+                     * In some case, it will arrive here by High concurrent cause.  For performance
+                     * more make sense.
+                     *
+                     * High concurrent cause.
+                     */
+                    FileDownloadLog.d(this, "High concurrent cause, Already paused and we don't " +
+                            "need to call-back to Task in here, %d", getId());
+                }
+                return;
+            }
+
+            transferModel.update(model);
 
 
-        FileDownloadEventPool.getImpl().
-                asyncPublishInFlow(new DownloadTransferEvent(transferModel.copy()));
+            FileDownloadEventPool.getImpl().
+                    asyncPublishInFlow(new DownloadTransferEvent(transferModel.copy()));
+        }
     }
 
     private boolean isCancelled() {
