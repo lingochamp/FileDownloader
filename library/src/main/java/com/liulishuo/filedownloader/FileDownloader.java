@@ -122,16 +122,16 @@ public class FileDownloader {
      * For Avoid Missing Screen Frames.
      * 避免掉帧
      * <p/>
-     * Every {@link FileDownloadEventPool#INTERVAL} milliseconds post 1 message to the ui thread at most,
-     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events(callbacks) on the ui thread.
+     * Every {@link FileDownloadMessageStation#INTERVAL} milliseconds post 1 message to the ui thread at most,
+     * and will handle up to {@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} events(callbacks) on the ui thread.
      * <p/>
-     * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
-     * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
+     * 每{@link FileDownloadMessageStation#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
+     * 在ui线程最多处理处理{@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} 个回调。
      * <p/>
      * 默认值是10ms，当该值小于0时，每个回调都会立刻抛回ui线程，可能会对UI的Looper照成较大压力，也可能引发掉帧。
      *
      * @param intervalMillisecond interval for ui {@link Handler#post(Runnable)}
-     *                            default is {@link FileDownloadEventPool#DEFAULT_INTERVAL}
+     *                            default is {@link FileDownloadMessageStation#DEFAULT_INTERVAL}
      *                            if the value is less than 0, each callback will always
      *                            {@link Handler#post(Runnable)} to ui thread immediately, may will
      *                            cause drop frames, may will produce great pressure on the UI Thread Looper
@@ -140,28 +140,28 @@ public class FileDownloader {
      * @see #setGlobalHandleSubPackageSize(int)
      */
     public static void setGlobalPost2UIInterval(final int intervalMillisecond) {
-        FileDownloadEventPool.INTERVAL = intervalMillisecond;
+        FileDownloadMessageStation.INTERVAL = intervalMillisecond;
     }
 
     /**
      * For Avoid Missing Screen Frames.
      * 避免掉帧
      * <p/>
-     * Every {@link FileDownloadEventPool#INTERVAL} milliseconds post 1 message to the ui thread at most,
-     * and will handle up to {@link FileDownloadEventPool#SUB_PACKAGE_SIZE} events(callbacks) on the ui thread.
+     * Every {@link FileDownloadMessageStation#INTERVAL} milliseconds post 1 message to the ui thread at most,
+     * and will handle up to {@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} events(callbacks) on the ui thread.
      * <p/>
-     * 每{@link FileDownloadEventPool#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
-     * 在ui线程最多处理处理{@link FileDownloadEventPool#SUB_PACKAGE_SIZE} 个回调。
+     * 每{@link FileDownloadMessageStation#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
+     * 在ui线程最多处理处理{@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} 个回调。
      *
      * @param packageSize per sub-package size for handle event on 1 ui {@link Handler#post(Runnable)}
-     *                    default is {@link FileDownloadEventPool#DEFAULT_SUB_PACKAGE_SIZE}
+     *                    default is {@link FileDownloadMessageStation#DEFAULT_SUB_PACKAGE_SIZE}
      * @see #setGlobalPost2UIInterval(int)
      */
     public static void setGlobalHandleSubPackageSize(final int packageSize) {
         if (packageSize <= 0) {
             throw new IllegalArgumentException("sub package size must more than 0");
         }
-        FileDownloadEventPool.SUB_PACKAGE_SIZE = packageSize;
+        FileDownloadMessageStation.SUB_PACKAGE_SIZE = packageSize;
     }
 
     /**
@@ -172,7 +172,7 @@ public class FileDownloader {
      * @see #setGlobalPost2UIInterval(int)
      */
     public static void enableAvoidDropFrame() {
-        setGlobalPost2UIInterval(FileDownloadEventPool.DEFAULT_INTERVAL);
+        setGlobalPost2UIInterval(FileDownloadMessageStation.DEFAULT_INTERVAL);
     }
 
     /**
@@ -193,7 +193,7 @@ public class FileDownloader {
      * @see #setGlobalPost2UIInterval(int)
      */
     public static boolean isEnabledAvoidDropFrame() {
-        return FileDownloadEventPool.isIntervalValid();
+        return FileDownloadMessageStation.isIntervalValid();
     }
 
     /**

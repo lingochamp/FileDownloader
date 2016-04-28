@@ -15,7 +15,7 @@ import android.widget.TextView;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.event.IDownloadEvent;
+import com.liulishuo.filedownloader.FileDownloadMessage;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -165,11 +165,11 @@ public class HybridTestActivity extends AppCompatActivity {
         return new FileDownloadListener() {
 
             @Override
-            public boolean callback(IDownloadEvent event) {
+            public boolean callback(FileDownloadMessage message) {
                 if (isFinishing()) {
                     return false;
                 }
-                return super.callback(event);
+                return super.callback(message);
             }
 
             @Override

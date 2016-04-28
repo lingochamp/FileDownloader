@@ -26,7 +26,7 @@ import java.io.FileDescriptor;
  *
  * @see com.liulishuo.filedownloader.model.FileDownloadStatus
  */
-interface IFileDownloadMessage {
+interface IFileDownloadMessenger {
 
     /**
      * The task is just received to handle.
@@ -130,4 +130,37 @@ interface IFileDownloadMessage {
      * @see FileDownloadList#removeByCompleted(BaseDownloadTask)
      */
     void notifyCompleted();
+
+    /**
+     * handover a message to {@link FileDownloadListener}.
+     */
+    void handoverMessage();
+
+    /**
+     * @return Whether handover a message to {@link FileDownloadListener} directly, do not need post
+     * to UI thread.
+     * @see BaseDownloadTask#syncCallback
+     */
+    boolean handoverDirectly();
+
+    /**
+     * @return Whether has receiver(bound task has listener) to receiver messages.
+     * @see BaseDownloadTask#getListener()
+     */
+    boolean hasReceiver();
+
+    /**
+     * @param task Re-appointment for this task, when this messenger has already accomplished the
+     *             old one.
+     */
+    void reAppointment(BaseDownloadTask task);
+
+    /**
+     * The 'block completed'(status) message will be handover in the non-UI thread and block the
+     * 'completed'(status) message.
+     *
+     * @return Whether the status of the current message is
+     * {@link com.liulishuo.filedownloader.model.FileDownloadStatus#blockComplete}.
+     */
+    boolean isBlockingCompleted();
 }

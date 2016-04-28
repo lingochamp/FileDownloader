@@ -16,7 +16,6 @@
 
 package com.liulishuo.filedownloader;
 
-import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
@@ -39,58 +38,51 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
 
 
     @Override
-    public boolean callback(IDownloadEvent event) {
-        if (!(event instanceof FileDownloadEvent)) {
-            return false;
-        }
+    public boolean callback(FileDownloadMessage message) {
+        final FileDownloadMessage.MessageSnapShot snapShot = message.getSnapshot();
 
-        final FileDownloadEvent downloaderEvent = ((FileDownloadEvent) event);
-
-
-        switch (downloaderEvent.getStatus()) {
+        switch (snapShot.getStatus()) {
             case FileDownloadStatus.pending:
-                pending(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
+                pending(message.getTask(),
+                        snapShot.getLargeSoFarBytes(),
+                        snapShot.getLargeTotalBytes());
                 break;
             case FileDownloadStatus.connected:
-                connected(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getEtag(),
-                        downloaderEvent.getDownloader().isResuming(),
-                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
+                connected(message.getTask(),
+                        snapShot.getEtag(),
+                        snapShot.isResuming(),
+                        snapShot.getLargeSoFarBytes(),
+                        snapShot.getLargeTotalBytes());
                 break;
             case FileDownloadStatus.progress:
-                progress(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
-                break;
-
-            case FileDownloadStatus.blockComplete:
-                blockComplete(downloaderEvent.getDownloader());
+                progress(message.getTask(),
+                        snapShot.getLargeSoFarBytes(),
+                        snapShot.getLargeTotalBytes());
                 break;
             case FileDownloadStatus.retry:
-                retry(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getEx(),
-                        downloaderEvent.getDownloader().getRetryingTimes(),
-                        downloaderEvent.getDownloader().getLargeFileSoFarBytes());
+                retry(message.getTask(),
+                        snapShot.getException(),
+                        snapShot.getRetryingTimes(),
+                        snapShot.getLargeSoFarBytes());
                 break;
-
+            case FileDownloadStatus.blockComplete:
+                blockComplete(message.getTask());
+                break;
             case FileDownloadStatus.completed:
-                completed(downloaderEvent.getDownloader());
+                completed(message.getTask());
                 break;
             case FileDownloadStatus.error:
-                error(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getEx());
+                error(message.getTask(),
+                        snapShot.getException());
                 break;
             case FileDownloadStatus.paused:
-                paused(downloaderEvent.getDownloader(),
-                        downloaderEvent.getDownloader().getLargeFileSoFarBytes(),
-                        downloaderEvent.getDownloader().getLargeFileTotalBytes());
+                paused(message.getTask(),
+                        snapShot.getLargeSoFarBytes(),
+                        snapShot.getLargeTotalBytes());
                 break;
             case FileDownloadStatus.warn:
                 // already same url & path in pending/running list
-                warn(downloaderEvent.getDownloader());
+                warn(message.getTask());
                 break;
         }
 

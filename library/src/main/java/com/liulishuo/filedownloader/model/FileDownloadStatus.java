@@ -19,7 +19,7 @@ package com.liulishuo.filedownloader.model;
 /**
  * Created by Jacksgong on 11/26/15.
  *
- * @see com.liulishuo.filedownloader.IFileDownloadMessage
+ * @see com.liulishuo.filedownloader.IFileDownloadMessenger
  * @see <a href="https://raw.githubusercontent.com/lingochamp/FileDownloader/master/art/filedownloadlistener_callback_flow.png">Callback-Flow</a>
  */
 public class FileDownloadStatus {
@@ -33,6 +33,7 @@ public class FileDownloadStatus {
      **/
     public final static byte blockComplete = 4;
     public final static byte retry = 5;
+
     public final static byte error = -1;
     public final static byte paused = -2;
     public final static byte completed = -3;

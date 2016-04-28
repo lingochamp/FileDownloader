@@ -85,7 +85,7 @@ public abstract class BaseDownloadTask {
 
     volatile boolean using = false;
 
-    private final FileDownloadDriver driver;
+    private final IFileDownloadMessenger messenger;
 
     private long lastCalcSpeedSofarTime;
     private long lastCalcSpeedSofar;
@@ -98,7 +98,7 @@ public abstract class BaseDownloadTask {
 
     BaseDownloadTask(final String url) {
         this.url = url;
-        driver = new FileDownloadDriver(this);
+        messenger = new FileDownloadMessenger(this);
     }
 
     // --------------------------------------- FOLLOWING FUNCTION FOR OUTSIDE ----------------------------------------------
@@ -327,6 +327,7 @@ public abstract class BaseDownloadTask {
         setStatus(FileDownloadStatus.INVALID_STATUS);
         this.soFarBytes = 0;
         this.totalBytes = 0;
+        messenger.reAppointment(this);
 
         return true;
     }
@@ -419,10 +420,13 @@ public abstract class BaseDownloadTask {
     // ------------------- get -----------------------
 
     /**
-     * Get download id (generate by url & path)
-     * id生成与url和path相关
+     * Get download id (generate by Url & Path)
      *
-     * @return 获得有效的对应当前download task的id
+     * @return The identify id.
+     * @see FileDownloader#pause(int)
+     * @see FileDownloader#getStatus(int)
+     * @see FileDownloader#getTotal(int)
+     * @see FileDownloader#getSoFar(int)
      */
     public int getDownloadId() {
         // TODO 这里和savePah有关，但是savePath如果为空在start以后会重新生成因此有坑
@@ -802,16 +806,6 @@ public abstract class BaseDownloadTask {
 
     // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
 
-    FileDownloadEvent getOverEvent() {
-        // Clean references after the end
-        return new FileDownloadEvent(this).callback(_getOverCallback());
-    }
-
-    FileDownloadEvent getIngEvent() {
-        return new FileDownloadEvent(this);
-    }
-    // ----------
-
     // Clear References
     void clear() {
         if (FileDownloadLog.NEED_LOG) {
@@ -835,9 +829,9 @@ public abstract class BaseDownloadTask {
         this.ex = ex;
     }
 
-    // Driver
-    FileDownloadDriver getDriver() {
-        return this.driver;
+    // Messenger
+    IFileDownloadMessenger getMessenger() {
+        return this.messenger;
     }
 
     // ------------------
@@ -917,11 +911,11 @@ public abstract class BaseDownloadTask {
                 this.totalBytes = transfer.getTotalBytes();
 
                 // notify
-                getDriver().notifyPending();
+                getMessenger().notifyPending();
                 break;
             case FileDownloadStatus.started:
                 // notify
-                getDriver().notifyStarted();
+                getMessenger().notifyStarted();
                 break;
             case FileDownloadStatus.connected:
                 this.totalBytes = transfer.getTotalBytes();
@@ -932,20 +926,20 @@ public abstract class BaseDownloadTask {
                 markStartDownload();
 
                 // notify
-                getDriver().notifyConnected();
+                getMessenger().notifyConnected();
                 break;
             case FileDownloadStatus.progress:
                 this.soFarBytes= transfer.getSoFarBytes();
                 calcSpeed(transfer.getSoFarBytes());
 
                 // notify
-                getDriver().notifyProgress();
+                getMessenger().notifyProgress();
                 break;
-            case FileDownloadStatus.blockComplete:
+//            case FileDownloadStatus.blockComplete:
                 /**
                  * Handled by {@link FileDownloadList#removeByCompleted(BaseDownloadTask)}
                  */
-                break;
+//                break;
             case FileDownloadStatus.retry:
                 this.soFarBytes = transfer.getSoFarBytes();
                 this.ex = transfer.getThrowable();
@@ -953,7 +947,7 @@ public abstract class BaseDownloadTask {
 
                 resetSpeed();
                 // notify
-                getDriver().notifyRetry();
+                getMessenger().notifyRetry();
                 break;
             case FileDownloadStatus.error:
                 this.ex = transfer.getThrowable();
@@ -1002,7 +996,7 @@ public abstract class BaseDownloadTask {
 
                         markStartDownload();
 
-                        getDriver().notifyPending();
+                        getMessenger().notifyPending();
                         break;
                     } else {
                         // already over and no callback

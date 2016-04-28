@@ -169,27 +169,27 @@ public class FileDownloadList {
             // Notify 2 Listener
             switch (removeByStatus) {
                 case FileDownloadStatus.warn:
-                    willRemoveDownload.getDriver().notifyWarn();
+                    willRemoveDownload.getMessenger().notifyWarn();
                     break;
                 case FileDownloadStatus.error:
-                    willRemoveDownload.getDriver().notifyError();
+                    willRemoveDownload.getMessenger().notifyError();
                     break;
                 case FileDownloadStatus.paused:
-                    willRemoveDownload.getDriver().notifyPaused();
+                    willRemoveDownload.getMessenger().notifyPaused();
                     break;
                 case FileDownloadStatus.completed:
                     Throwable ex = null;
                     try {
-                        willRemoveDownload.getDriver().notifyBlockComplete();
+                        willRemoveDownload.getMessenger().notifyBlockComplete();
                     } catch (Throwable e) {
                         ex = e;
                     }
 
                     if (ex != null) {
                         willRemoveDownload.catchException(ex);
-                        willRemoveDownload.getDriver().notifyError();
+                        willRemoveDownload.getMessenger().notifyError();
                     } else {
-                        willRemoveDownload.getDriver().notifyCompleted();
+                        willRemoveDownload.getMessenger().notifyCompleted();
                     }
                     break;
             }
@@ -205,7 +205,7 @@ public class FileDownloadList {
         ready(downloadInternal);
 
         // Notify 2 Listener
-        downloadInternal.getDriver().notifyBegin();
+        downloadInternal.getMessenger().notifyBegin();
     }
 
     void ready(final BaseDownloadTask task) {
