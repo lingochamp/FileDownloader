@@ -174,18 +174,18 @@ public class HybridTestActivity extends AppCompatActivity {
 
             @Override
             protected void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
-                updateDisplay(String.format("[pending] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
+                updateDisplay(String.format("[pending] id[%d] %d/%d", task.getId(), soFarBytes, totalBytes));
             }
 
             @Override
             protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
                 super.connected(task, etag, isContinue, soFarBytes, totalBytes);
-                updateDisplay(String.format("[connected] id[%d] %s %B %d/%d", task.getDownloadId(), etag, isContinue, soFarBytes, totalBytes));
+                updateDisplay(String.format("[connected] id[%d] %s %B %d/%d", task.getId(), etag, isContinue, soFarBytes, totalBytes));
             }
 
             @Override
             protected void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
-                updateDisplay(String.format("[progress] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
+                updateDisplay(String.format("[progress] id[%d] %d/%d", task.getId(), soFarBytes, totalBytes));
             }
 
             @Override
@@ -193,7 +193,7 @@ public class HybridTestActivity extends AppCompatActivity {
                 downloadMsgTv.post(new Runnable() {
                     @Override
                     public void run() {
-                        updateDisplay(String.format("[blockComplete] id[%d]", task.getDownloadId()));
+                        updateDisplay(String.format("[blockComplete] id[%d]", task.getId()));
                     }
                 });
             }
@@ -202,14 +202,14 @@ public class HybridTestActivity extends AppCompatActivity {
             protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
                 super.retry(task, ex, retryingTimes, soFarBytes);
                 updateDisplay(String.format("[retry] id[%d] %s %d %d",
-                        task.getDownloadId(), ex.getMessage(), retryingTimes, soFarBytes));
+                        task.getId(), ex.getMessage(), retryingTimes, soFarBytes));
             }
 
             @Override
             protected void completed(BaseDownloadTask task) {
                 finalCounts++;
                 updateDisplay(String.format("[completed] id[%d] oldFile[%B]",
-                        task.getDownloadId(),
+                        task.getId(),
                         task.isReusedOldFile()));
                 updateDisplay(String.format("---------------------------------- %d", (Integer) task.getTag()));
             }
@@ -217,7 +217,7 @@ public class HybridTestActivity extends AppCompatActivity {
             @Override
             protected void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 finalCounts++;
-                updateDisplay(String.format("[paused] id[%d] %d/%d", task.getDownloadId(), soFarBytes, totalBytes));
+                updateDisplay(String.format("[paused] id[%d] %d/%d", task.getId(), soFarBytes, totalBytes));
                 updateDisplay(String.format("############################## %d", (Integer) task.getTag()));
             }
 
@@ -225,7 +225,7 @@ public class HybridTestActivity extends AppCompatActivity {
             protected void error(BaseDownloadTask task, Throwable e) {
                 finalCounts++;
                 updateDisplay(Html.fromHtml(String.format("[error] id[%d] %s %s",
-                        task.getDownloadId(),
+                        task.getId(),
                         e.getMessage(),
                         FileDownloadUtils.getStack(e.getStackTrace(), false))));
 
@@ -235,7 +235,7 @@ public class HybridTestActivity extends AppCompatActivity {
             @Override
             protected void warn(BaseDownloadTask task) {
                 finalCounts++;
-                updateDisplay(String.format("[warn] id[%d]", task.getDownloadId()));
+                updateDisplay(String.format("[warn] id[%d]", task.getId()));
                 updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", (Integer) task.getTag()));
             }
         };

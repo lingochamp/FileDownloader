@@ -115,7 +115,7 @@ public class NotificationDemoActivity extends AppCompatActivity {
 
         @Override
         protected BaseNotificationItem create(BaseDownloadTask task) {
-            return new NotificationItem(task.getDownloadId(), "demo title", "demo desc");
+            return new NotificationItem(task.getId(), "demo title", "demo desc");
         }
 
         @Override

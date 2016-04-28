@@ -198,7 +198,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
             private TaskItemViewHolder checkCurrentHolder(final BaseDownloadTask task) {
                 final TaskItemViewHolder tag = (TaskItemViewHolder) task.getTag();
-                if (tag.id != task.getDownloadId()) {
+                if (tag.id != task.getId()) {
                     return null;
                 }
 
@@ -264,7 +264,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
                 tag.updateNotDownloaded(FileDownloadStatus.error, task.getLargeFileSoFarBytes()
                         , task.getLargeFileTotalBytes());
-                TasksManager.getImpl().removeTaskForViewHolder(task.getDownloadId());
+                TasksManager.getImpl().removeTaskForViewHolder(task.getId());
             }
 
             @Override
@@ -277,7 +277,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
                 tag.updateNotDownloaded(FileDownloadStatus.paused, soFarBytes, totalBytes);
                 tag.taskStatusTv.setText(R.string.tasks_manager_demo_status_paused);
-                TasksManager.getImpl().removeTaskForViewHolder(task.getDownloadId());
+                TasksManager.getImpl().removeTaskForViewHolder(task.getId());
             }
 
             @Override
@@ -289,7 +289,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
                 }
 
                 tag.updateDownloaded();
-                TasksManager.getImpl().removeTaskForViewHolder(task.getDownloadId());
+                TasksManager.getImpl().removeTaskForViewHolder(task.getId());
             }
         };
         private View.OnClickListener taskActionOnClickListener = new View.OnClickListener() {
@@ -425,7 +425,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
         private SparseArray<BaseDownloadTask> taskSparseArray = new SparseArray<>();
 
         public void addTaskForViewHolder(final BaseDownloadTask task) {
-            taskSparseArray.put(task.getDownloadId(), task);
+            taskSparseArray.put(task.getId(), task);
         }
 
         public void removeTaskForViewHolder(final int id) {
