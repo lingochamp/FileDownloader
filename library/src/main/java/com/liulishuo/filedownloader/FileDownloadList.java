@@ -124,10 +124,7 @@ public class FileDownloadList {
      */
     void divert(@SuppressWarnings("SameParameterValue") final List<BaseDownloadTask> destination) {
         synchronized (list) {
-            synchronized (destination) {
-                destination.addAll(list);
-            }
-
+            destination.addAll(list);
             list.clear();
         }
     }
