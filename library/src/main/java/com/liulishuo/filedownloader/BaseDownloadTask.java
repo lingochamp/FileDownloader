@@ -717,8 +717,6 @@ public abstract class BaseDownloadTask {
 
     /**
      * Execute start
-     *
-     * @return succeed
      */
     protected abstract void _startExecute();
 
@@ -1081,6 +1079,7 @@ public abstract class BaseDownloadTask {
 
 
     // ---------------------------------------------
+    @SuppressWarnings("UnusedParameters")
     public interface FinishListener {
         /**
          * Will be invoked when the {@code task} is over({@link FileDownloadStatus#isOver(int)}).

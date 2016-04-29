@@ -27,6 +27,7 @@ import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownload
  *
  * @see FileDownloadMgr
  */
+@SuppressWarnings("UnusedParameters")
 interface IFileDownloadServiceHandler {
     /**
      * Will used to handling the onConnected in {@link FileDownloadServiceSharedConnection}.

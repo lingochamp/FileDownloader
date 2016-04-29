@@ -62,6 +62,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
         Cursor c = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
 
         List<Integer> dirtyList = new ArrayList<>();
+        //noinspection TryFinallyCanBeTryWithResources
         try {
             while (c.moveToNext()) {
                 FileDownloadModel model = new FileDownloadModel();
@@ -248,7 +249,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateRetry(int id, String errMsg, int retryingTimes) {
+    public void updateRetry(int id, String errMsg) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
             downloadModel.setStatus(FileDownloadStatus.retry);

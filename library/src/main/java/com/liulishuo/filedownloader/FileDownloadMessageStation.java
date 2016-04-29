@@ -191,13 +191,9 @@ public class FileDownloadMessageStation {
 
     /**
      * For avoid dropped ui refresh frame.
-     * 避免掉帧
      * <p/>
-     * Every {@link FileDownloadMessageStation#INTERVAL} milliseconds post 1 message to the ui thread at most,
+     * Every {@code INTERVAL} milliseconds post 1 message to the ui thread at most,
      * and will handle up to {@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} events on the ui thread at most.
-     * <p/>
-     * 每{@link FileDownloadMessageStation#INTERVAL}毫秒抛最多1个Message到ui线程，并且每次抛到ui线程后，
-     * 在ui线程最多处理处理{@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} 个回调。
      */
     static int INTERVAL = DEFAULT_INTERVAL;// 10ms, 0.01s, ui refresh 16ms per frame.
     static int SUB_PACKAGE_SIZE = DEFAULT_SUB_PACKAGE_SIZE; // the size of one package for callback on the ui thread.

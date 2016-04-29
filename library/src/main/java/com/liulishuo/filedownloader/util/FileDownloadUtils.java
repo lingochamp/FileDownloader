@@ -105,7 +105,7 @@ public class FileDownloadUtils {
     /**
      * Checks whether the filename looks legitimate
      */
-    @SuppressWarnings("SameReturnValue")
+    @SuppressWarnings({"SameReturnValue", "UnusedParameters"})
     public static boolean isFilenameValid(String filename) {
 //        filename = filename.replaceFirst("/+", "/"); // normalize leading
         // slashes

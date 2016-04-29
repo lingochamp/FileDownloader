@@ -60,6 +60,7 @@ import okhttp3.Response;
  * @see #fetch(Response, boolean, long, long)
  * @see FileDownloadThreadPool
  */
+@SuppressWarnings("WeakerAccess")
 public class FileDownloadRunnable implements Runnable {
 
     private static final int BUFFER_SIZE = 1024 * 4;
@@ -473,7 +474,7 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         ex = exFiltrate(ex);
-        helper.updateRetry(getId(), ex.getMessage(), retryTimes);
+        helper.updateRetry(getId(), ex.getMessage());
 
         transferModel.setThrowable(ex);
         transferModel.setRetryingTimes(retryTimes);
@@ -534,6 +535,7 @@ public class FileDownloadRunnable implements Runnable {
 
     private final Object statusChangedNotifyLock = new Object();
 
+    @SuppressWarnings("UnusedParameters")
     private void onStatusChanged(int status) {
         // In current situation, it maybe invoke this method simultaneously between #onPause() and
         // others.

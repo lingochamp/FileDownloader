@@ -28,7 +28,7 @@ import junit.framework.Assert;
  * @see FileDownloadNotificationHelper
  * @see BaseNotificationItem
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "UnusedParameters"})
 public abstract class FileDownloadNotificationListener extends FileDownloadListener {
     private final FileDownloadNotificationHelper helper;
 

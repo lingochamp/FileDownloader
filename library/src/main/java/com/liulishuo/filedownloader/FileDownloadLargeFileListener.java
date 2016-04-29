@@ -23,7 +23,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  *
  * For file size greater than 1.99G
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "UnusedParameters"})
 public abstract class FileDownloadLargeFileListener extends FileDownloadListener {
 
     public FileDownloadLargeFileListener() {
@@ -99,7 +99,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param soFarBytes Already downloaded bytes stored in the db
      * @param totalBytes Total bytes stored in the db
      */
-    protected abstract void pending(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
+    protected abstract void pending(final BaseDownloadTask task, final long soFarBytes,
+                                    final long totalBytes);
 
     /**
      * Connected
@@ -111,7 +112,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param totalBytes Total size of the download in bytes
      */
     @SuppressWarnings("EmptyMethod")
-    protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue, final long soFarBytes, final long totalBytes) {
+    protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue,
+                             final long soFarBytes, final long totalBytes) {
     }
 
     /**
@@ -119,7 +121,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      */
-    protected abstract void progress(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
+    protected abstract void progress(final BaseDownloadTask task, final long soFarBytes,
+                                     final long totalBytes);
 
     /**
      * Block completed in new thread
@@ -137,7 +140,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param soFarBytes    Number of bytes download so far
      */
     @SuppressWarnings("EmptyMethod")
-    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final long soFarBytes) {
+    protected void retry(final BaseDownloadTask task, final Throwable ex,
+                         final int retryingTimes, final long soFarBytes) {
     }
 
     // final width below methods
@@ -156,7 +160,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
      */
-    protected abstract void paused(final BaseDownloadTask task, final long soFarBytes, final long totalBytes);
+    protected abstract void paused(final BaseDownloadTask task, final long soFarBytes,
+                                   final long totalBytes);
 
     /**
      * Download error

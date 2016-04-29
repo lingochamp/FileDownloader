@@ -18,6 +18,8 @@ package com.liulishuo.filedownloader.event;
 
 /**
  * Created by Jacksgong on 15/6/23.
+ * <p/>
+ * Simplify the listener architecture.
  */
 public class DownloadEventSampleListener extends IDownloadListener {
     private final IEventListener i;

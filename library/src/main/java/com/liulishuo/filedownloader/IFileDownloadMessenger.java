@@ -58,7 +58,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Already connected to the server, and received the Http-response.
      *
-     * @see FileDownloadRunnable#onConnected(boolean, long, long)
+     * @see FileDownloadRunnable#onConnected(boolean, long, String)
      */
     void notifyConnected();
 

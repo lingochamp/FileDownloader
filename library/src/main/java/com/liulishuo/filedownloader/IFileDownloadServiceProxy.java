@@ -18,14 +18,16 @@ package com.liulishuo.filedownloader;
 import android.app.Notification;
 import android.content.Context;
 
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 
 import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
+ * <p/>
+ * The interface to access the FileDownloadService.
  */
 public interface IFileDownloadServiceProxy {
     boolean startDownloader(final String url, final String path,
