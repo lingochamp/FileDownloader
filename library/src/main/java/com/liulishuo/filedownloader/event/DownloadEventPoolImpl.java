@@ -96,7 +96,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         synchronized (eventId.intern()) {
             boolean succeed = container.remove(listener);
             if (container.size() <= 0) {
-                listenersMap.remove(container);
+                listenersMap.remove(eventId);
             }
             return succeed;
         }
