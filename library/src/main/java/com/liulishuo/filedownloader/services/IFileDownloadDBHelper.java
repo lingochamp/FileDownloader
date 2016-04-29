@@ -44,11 +44,9 @@ interface IFileDownloadDBHelper {
 
     void remove(final int id);
 
-    void update(final int id, final byte status, final long soFar, final long total);
+    void updateConnected(final int id, final long total, final String etag);
 
     void updateProgress(final FileDownloadModel model, final long soFar);
-
-    void updateHeader(final int id, final String etag);
 
     void updateError(final int id, final String errMsg, final long sofar);
 

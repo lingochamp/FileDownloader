@@ -193,21 +193,28 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void update(int id, byte status, long soFar, long total) {
+    public void updateConnected(int id, long total, String etag) {
         final FileDownloadModel downloadModel = find(id);
         if (downloadModel != null) {
-            downloadModel.setStatus(status);
-            downloadModel.setSoFar(soFar);
+            downloadModel.setStatus(FileDownloadStatus.connected);
             downloadModel.setTotal(total);
+
 
             // db
             ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.STATUS, status);
-            cv.put(FileDownloadModel.SOFAR, soFar);
+            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.connected);
             cv.put(FileDownloadModel.TOTAL, total);
+
+
+            final String oldEtag = downloadModel.getETag();
+            if ((etag != null && !etag.equals(oldEtag)) ||
+                    (oldEtag != null && !oldEtag.equals(etag))) {
+                downloadModel.setETag(etag);
+                cv.put(FileDownloadModel.ETAG, etag);
+            }
+
             db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
-
     }
 
     @Override
@@ -221,19 +228,6 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
         cv.put(FileDownloadModel.SOFAR, soFar);
         db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ",
                 new String[]{String.valueOf(model.getId())});
-    }
-
-    @Override
-    public void updateHeader(int id, String etag) {
-        final FileDownloadModel downloadModel = find(id);
-        if (downloadModel != null) {
-            downloadModel.setETag(etag);
-
-            //db
-            ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.ETAG, etag);
-            db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
-        }
     }
 
     @Override

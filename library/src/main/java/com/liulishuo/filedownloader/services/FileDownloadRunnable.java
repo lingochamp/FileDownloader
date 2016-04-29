@@ -265,12 +265,10 @@ public class FileDownloadRunnable implements Runnable {
                         soFar = model.getSoFar();
                     }
 
-                    // Step 6, update header to db. for save etag.
-                    updateHeader(response);
-                    // Step 7, callback on connected.
-                    onConnected(isSucceedResume, soFar, total);
+                    // Step 6, callback on connected, and update header to db. for save etag.
+                    onConnected(isSucceedResume, total, findEtag(response));
 
-                    // Step 8, start fetch datum from input stream & write to file
+                    // Step 7, start fetch datum from input stream & write to file
                     if (fetch(response, isSucceedResume, soFar, total)) {
                         break;
                     }
@@ -395,29 +393,18 @@ public class FileDownloadRunnable implements Runnable {
         }
     }
 
-    private void updateHeader(Response response) {
+    private String findEtag(Response response) {
         if (response == null) {
-            throw new RuntimeException("response is null when updateHeader");
+            throw new RuntimeException("response is null when findEtag");
         }
 
-        boolean needRefresh = false;
-        final String oldEtag = model.getETag();
         final String newEtag = response.header("Etag");
 
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "etag find by header %d %s", getId(), newEtag);
         }
 
-        if (oldEtag == null && newEtag != null) {
-            needRefresh = true;
-        } else if (oldEtag != null && newEtag != null && !oldEtag.equals(newEtag)) {
-            needRefresh = true;
-        }
-
-        if (needRefresh) {
-            helper.updateHeader(getId(), newEtag);
-        }
-
+        return newEtag;
     }
 
     public void cancelRunnable() {
@@ -425,8 +412,8 @@ public class FileDownloadRunnable implements Runnable {
         onPause();
     }
 
-    private void onConnected(final boolean resuming, final long soFar, final long total) {
-        helper.update(getId(), FileDownloadStatus.connected, soFar, total);
+    private void onConnected(final boolean resuming, final long total, final String etag) {
+        helper.updateConnected(getId(), total, etag);
 
         transferModel.setResuming(resuming);
 
