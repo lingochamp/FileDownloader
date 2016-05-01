@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.message.MessageSnapshot;
+import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
@@ -129,30 +131,11 @@ public class FileDownloadList {
         }
     }
 
-    boolean removeByWarn(final BaseDownloadTask willRemoveDownload) {
-        return remove(willRemoveDownload, FileDownloadStatus.warn);
-    }
-
-    boolean removeByError(final BaseDownloadTask willRemoveDownload) {
-        return remove(willRemoveDownload, FileDownloadStatus.error);
-    }
-
-    boolean removeByPaused(final BaseDownloadTask willRemoveDownload) {
-        return remove(willRemoveDownload, FileDownloadStatus.paused);
-    }
-
-    boolean removeByCompleted(final BaseDownloadTask willRemoveDownload) {
-        return remove(willRemoveDownload, FileDownloadStatus.completed);
-    }
-
     /**
      * @param willRemoveDownload will be remove
-     * @param removeByStatus     must remove by status {@link com.liulishuo.filedownloader.model.FileDownloadStatus#warn}
-     *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#paused}
-     *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#completed}
-     *                           {@link com.liulishuo.filedownloader.model.FileDownloadStatus#error}
      */
-    private boolean remove(final BaseDownloadTask willRemoveDownload, final byte removeByStatus) {
+    public boolean remove(final BaseDownloadTask willRemoveDownload, MessageSnapshot snapshot) {
+        final byte removeByStatus = snapshot.getStatus();
         boolean succeed;
         synchronized (list) {
             succeed = list.remove(willRemoveDownload);
@@ -167,27 +150,29 @@ public class FileDownloadList {
             // Notify 2 Listener
             switch (removeByStatus) {
                 case FileDownloadStatus.warn:
-                    willRemoveDownload.getMessenger().notifyWarn();
+                    willRemoveDownload.getMessenger().notifyWarn(snapshot);
                     break;
                 case FileDownloadStatus.error:
-                    willRemoveDownload.getMessenger().notifyError();
+                    willRemoveDownload.getMessenger().notifyError(snapshot);
                     break;
                 case FileDownloadStatus.paused:
-                    willRemoveDownload.getMessenger().notifyPaused();
+                    willRemoveDownload.getMessenger().notifyPaused(snapshot);
                     break;
                 case FileDownloadStatus.completed:
                     Throwable ex = null;
                     try {
-                        willRemoveDownload.getMessenger().notifyBlockComplete();
+                        willRemoveDownload.getMessenger().
+                                notifyBlockComplete(MessageSnapshotTaker.
+                                        takeBlockCompleted(snapshot));
                     } catch (Throwable e) {
                         ex = e;
                     }
 
                     if (ex != null) {
-                        willRemoveDownload.catchException(ex);
-                        willRemoveDownload.getMessenger().notifyError();
+                        willRemoveDownload.getMessenger().
+                                notifyError(willRemoveDownload.catchException(ex));
                     } else {
-                        willRemoveDownload.getMessenger().notifyCompleted();
+                        willRemoveDownload.getMessenger().notifyCompleted(snapshot);
                     }
                     break;
             }
@@ -201,10 +186,10 @@ public class FileDownloadList {
     }
 
     void add(final BaseDownloadTask downloadInternal) {
-        ready(downloadInternal);
 
-        // Notify 2 Listener
-        downloadInternal.getMessenger().notifyBegin();
+        if(downloadInternal.getMessenger().notifyBegin()){
+            ready(downloadInternal);
+        }
     }
 
     void ready(final BaseDownloadTask task) {

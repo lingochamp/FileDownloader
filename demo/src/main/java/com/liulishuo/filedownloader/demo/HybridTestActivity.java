@@ -15,7 +15,7 @@ import android.widget.TextView;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.FileDownloadMessage;
+import com.liulishuo.filedownloader.message.FileDownloadMessage;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;

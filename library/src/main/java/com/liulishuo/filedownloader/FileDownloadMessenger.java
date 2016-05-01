@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.message.FileDownloadMessage;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -34,7 +36,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 class FileDownloadMessenger implements IFileDownloadMessenger {
 
-    private boolean largeMessage;
     private BaseDownloadTask task;
 
     private Queue<FileDownloadMessage> parcelQueue;
@@ -49,51 +50,57 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     }
 
     @Override
-    public void notifyBegin() {
+    public boolean notifyBegin() {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify begin %s", task);
         }
 
+        if (task == null) {
+            FileDownloadLog.w(this, "can't begin the task, the holder fo the messenger is nil, %d",
+                    parcelQueue.size());
+            return false;
+        }
+
         task.begin();
 
-        largeMessage = task.getListener() instanceof FileDownloadLargeFileListener;
+        return true;
     }
 
     @Override
-    public void notifyPending() {
+    public void notifyPending(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify pending %s", task);
         }
 
         task.ing();
 
-        process(FileDownloadStatus.pending);
+        process(snapshot);
     }
 
     @Override
-    public void notifyStarted() {
+    public void notifyStarted(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify started %s", task);
         }
 
         task.ing();
 
-        process(FileDownloadStatus.started);
+        process(snapshot);
     }
 
     @Override
-    public void notifyConnected() {
+    public void notifyConnected(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify connected %s", task);
         }
 
         task.ing();
 
-        process(FileDownloadStatus.connected);
+        process(snapshot);
     }
 
     @Override
-    public void notifyProgress() {
+    public void notifyProgress(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify progress %s %d %d",
                     task, task.getLargeFileSoFarBytes(), task.getLargeFileTotalBytes());
@@ -107,7 +114,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
         task.ing();
 
-        process(FileDownloadStatus.progress);
+        process(snapshot);
 
     }
 
@@ -115,18 +122,18 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
      * sync
      */
     @Override
-    public void notifyBlockComplete() {
+    public void notifyBlockComplete(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify block completed %s %s", task, Thread.currentThread().getName());
         }
 
         task.ing();
 
-        process(FileDownloadStatus.blockComplete);
+        process(snapshot);
     }
 
     @Override
-    public void notifyRetry() {
+    public void notifyRetry(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify retry %s %d %d %s", task,
                     task.getAutoRetryTimes(), task.getRetryingTimes(), task.getEx());
@@ -134,65 +141,66 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
         task.ing();
 
-        process(FileDownloadStatus.retry);
+        process(snapshot);
     }
 
     // Over state, from FileDownloadList, to user -----------------------------
     @Override
-    public void notifyWarn() {
+    public void notifyWarn(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify warn %s", task);
         }
 
         task.over();
 
-        process(FileDownloadStatus.warn);
+        process(snapshot);
     }
 
     @Override
-    public void notifyError() {
+    public void notifyError(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify error %s %s", task, task.getEx());
         }
 
         task.over();
 
-        process(FileDownloadStatus.error);
+        process(snapshot);
     }
 
     @Override
-    public void notifyPaused() {
+    public void notifyPaused(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify paused %s", task);
         }
 
         task.over();
 
-        process(FileDownloadStatus.paused);
+        process(snapshot);
     }
 
     @Override
-    public void notifyCompleted() {
+    public void notifyCompleted(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify completed %s", task);
         }
 
         task.over();
 
-        process(FileDownloadStatus.completed);
+        process(snapshot);
     }
 
     private final Object blockCompletedLock = new Object();
 
-    private void process(int status) {
+    private void process(MessageSnapshot snapshot) {
         final boolean send;
+        final byte status = snapshot.getStatus();
 
         if (status == FileDownloadStatus.blockComplete || status == FileDownloadStatus.completed) {
             synchronized (blockCompletedLock) {
-                send = offer(status);
+                send = offer(snapshot);
             }
         } else {
-            send = offer(status);
+            send = offer(snapshot);
         }
 
         if (send) {
@@ -201,22 +209,17 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     }
 
-    private boolean offer(int status) {
+    private boolean offer(MessageSnapshot snapshot) {
+        final byte status = snapshot.getStatus();
         Assert.assertTrue(
                 FileDownloadUtils.formatString("request process message %d, but has already over %d",
                         status, parcelQueue.size()), task != null);
 
 
         final boolean send;
-        final FileDownloadMessage message;
+        final FileDownloadMessage message = new FileDownloadMessage(task, snapshot);
 
         final boolean needWaitingForComplete = !parcelQueue.isEmpty();
-
-        if (largeMessage) {
-            message = FileDownloadMessage.writeLargeFileMessage(task, status);
-        } else {
-            message = FileDownloadMessage.writeMessage(task, status);
-        }
 
         if (needWaitingForComplete &&
                 (status == FileDownloadStatus.blockComplete || status == FileDownloadStatus.completed)) {

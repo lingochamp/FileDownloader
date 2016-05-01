@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.liulishuo.filedownloader;
-
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
+package com.liulishuo.filedownloader.message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,25 +24,29 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Jacksgong on 4/8/16.
  * <p/>
- * For guaranteeing only one-flow for one-task, in other words, for the call-back status can be
- * updated FIFO for a task.
+ * For guaranteeing only one-thread-pool for one-task, in other words, it's statuses only can be
+ * progressed in  FIFO as far as a task concern.
  */
-public class FileDownloadFlowThreadPool {
+public class MessageSnapshotThreadPool {
 
     private final List<FlowSingleExecutor> executorList;
 
-    public FileDownloadFlowThreadPool(@SuppressWarnings("SameParameterValue") final int poolCount) {
+    private final MessageSnapshotFlow.MessageReceiver receiver;
+
+    MessageSnapshotThreadPool(@SuppressWarnings("SameParameterValue") final int poolCount,
+                                     MessageSnapshotFlow.MessageReceiver receiver) {
+        this.receiver = receiver;
         executorList = new ArrayList<>();
         for (int i = 0; i < poolCount; i++) {
             executorList.add(new FlowSingleExecutor());
         }
     }
 
-    public void execute(final DownloadTransferEvent event) {
+    public void execute(final MessageSnapshot snapshot) {
         FlowSingleExecutor targetPool = null;
         try {
             synchronized (executorList) {
-                final int id = event.getTransfer().getId();
+                final int id = snapshot.getId();
                 // Case 1. already had same task in executorList, so execute this event after
                 // before-one.
                 for (FlowSingleExecutor executor : executorList) {
@@ -78,11 +79,11 @@ public class FileDownloadFlowThreadPool {
             }
         } finally {
             //noinspection ConstantConditions
-            targetPool.execute(event);
+            targetPool.execute(snapshot);
         }
     }
 
-    public static class FlowSingleExecutor extends ThreadPoolExecutor {
+    public class FlowSingleExecutor extends ThreadPoolExecutor {
 
         private final List<Integer> enQueueTaskIdList = new ArrayList<>();
 
@@ -94,15 +95,12 @@ public class FileDownloadFlowThreadPool {
             enQueueTaskIdList.add(id);
         }
 
-        public void execute(final DownloadTransferEvent event) {
-            final FileDownloadTransferModel model = event.getTransfer();
-
-
+        public void execute(final MessageSnapshot snapshot) {
             execute(new Runnable() {
                 @Override
                 public void run() {
-                    FileDownloadEventPool.getImpl().publish(event);
-                    enQueueTaskIdList.remove((Integer) model.getId());
+                    receiver.receive(snapshot);
+                    enQueueTaskIdList.remove((Integer) snapshot.getId());
                 }
             });
         }

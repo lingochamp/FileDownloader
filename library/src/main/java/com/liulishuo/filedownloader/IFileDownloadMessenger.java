@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.services.FileDownloadRunnable;
 
@@ -32,8 +33,10 @@ interface IFileDownloadMessenger {
      * The task is just received to handle.
      * <p/>
      * FileDownloader accept the task.
+     *
+     * @return Whether allow it to begin.
      */
-    void notifyBegin();
+    boolean notifyBegin();
 
     /**
      * The task is pending.
@@ -42,7 +45,7 @@ interface IFileDownloadMessenger {
      *
      * @see com.liulishuo.filedownloader.services.FileDownloadThreadPool
      */
-    void notifyPending();
+    void notifyPending(MessageSnapshot snapshot);
 
     /**
      * The download runnable of the task has started running.
@@ -51,7 +54,7 @@ interface IFileDownloadMessenger {
      *
      * @see FileDownloadRunnable#onStarted()
      */
-    void notifyStarted();
+    void notifyStarted(MessageSnapshot snapshot);
 
     /**
      * The task is running.
@@ -60,7 +63,7 @@ interface IFileDownloadMessenger {
      *
      * @see FileDownloadRunnable#onConnected(boolean, long, String)
      */
-    void notifyConnected();
+    void notifyConnected(MessageSnapshot snapshot);
 
     /**
      * The task is running.
@@ -69,7 +72,7 @@ interface IFileDownloadMessenger {
      *
      * @see FileDownloadRunnable#onProgress(long, long, FileDescriptor)
      */
-    void notifyProgress();
+    void notifyProgress(MessageSnapshot snapshot);
 
     /**
      * The task is running.
@@ -77,9 +80,8 @@ interface IFileDownloadMessenger {
      * Already completed download, and block the current thread to do something, such as unzip,etc.
      *
      * @see FileDownloadRunnable#onComplete(long)
-     * @see FileDownloadList#removeByCompleted(BaseDownloadTask)
      */
-    void notifyBlockComplete();
+    void notifyBlockComplete(MessageSnapshot snapshot);
 
     /**
      * The task over.
@@ -87,7 +89,7 @@ interface IFileDownloadMessenger {
      * Occur a exception when downloading, but has retry
      * chance {@link BaseDownloadTask#setAutoRetryTimes(int)}, so retry(re-connect,re-download).
      */
-    void notifyRetry();
+    void notifyRetry(MessageSnapshot snapshot);
 
     /**
      * The task over.
@@ -98,7 +100,7 @@ interface IFileDownloadMessenger {
      * @see com.liulishuo.filedownloader.services.FileDownloadMgr#start(String, String, int, int, FileDownloadHeader)
      * @see com.liulishuo.filedownloader.services.FileDownloadMgr#checkDownloading(String, String)
      */
-    void notifyWarn();
+    void notifyWarn(MessageSnapshot snapshot);
 
     /**
      * The task over.
@@ -110,7 +112,7 @@ interface IFileDownloadMessenger {
      * @see com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException
      * @see com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException
      */
-    void notifyError();
+    void notifyError(MessageSnapshot snapshot);
 
     /**
      * The task over.
@@ -119,7 +121,7 @@ interface IFileDownloadMessenger {
      *
      * @see BaseDownloadTask#pause()
      */
-    void notifyPaused();
+    void notifyPaused(MessageSnapshot snapshot);
 
     /**
      * The task over.
@@ -127,9 +129,8 @@ interface IFileDownloadMessenger {
      * Achieve complete ceremony.
      *
      * @see FileDownloadRunnable#onComplete(long)
-     * @see FileDownloadList#removeByCompleted(BaseDownloadTask)
      */
-    void notifyCompleted();
+    void notifyCompleted(MessageSnapshot snapshot);
 
     /**
      * handover a message to {@link FileDownloadListener}.

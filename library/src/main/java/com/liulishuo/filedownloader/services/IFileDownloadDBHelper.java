@@ -44,17 +44,17 @@ interface IFileDownloadDBHelper {
 
     void remove(final int id);
 
-    void updateConnected(final int id, final long total, final String etag);
+    void updateConnected(final FileDownloadModel model, final long total, final String etag);
 
     void updateProgress(final FileDownloadModel model, final long soFar);
 
-    void updateError(final int id, final String errMsg, final long sofar);
+    void updateError(final FileDownloadModel model, final String errMsg, final long sofar);
 
-    void updateRetry(final int id, final String errMsg);
+    void updateRetry(final FileDownloadModel model, final String errMsg);
 
-    void updateComplete(final int id, final long total);
+    void updateComplete(final FileDownloadModel model, final long total);
 
-    void updatePause(final int id, final long sofar);
+    void updatePause(final FileDownloadModel model, final long sofar);
 
-    void updatePending(final int id);
+    void updatePending(final FileDownloadModel model);
 }

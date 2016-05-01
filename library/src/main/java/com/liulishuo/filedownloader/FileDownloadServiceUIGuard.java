@@ -20,13 +20,13 @@ import android.app.Notification;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService.SeparateProcessService;
 
@@ -78,8 +78,8 @@ class FileDownloadServiceUIGuard extends
     protected static class FileDownloadServiceCallback extends IFileDownloadIPCCallback.Stub {
 
         @Override
-        public void callback(FileDownloadTransferModel transfer) throws RemoteException {
-            FileDownloadEventPool.getImpl().asyncPublishInFlow(new DownloadTransferEvent(transfer));
+        public void callback(MessageSnapshot snapshot) throws RemoteException {
+            MessageSnapshotFlow.getImpl().inflow(snapshot);
         }
     }
 
@@ -125,7 +125,7 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public FileDownloadTransferModel checkReuse(final String url, final String path) {
+    public MessageSnapshot checkReuse(final String url, final String path) {
         if (getService() == null) {
             return null;
         }
@@ -140,7 +140,7 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public FileDownloadTransferModel checkReuse(final int id) {
+    public MessageSnapshot checkReuse(final int id) {
         if (getService() == null) {
             return null;
         }

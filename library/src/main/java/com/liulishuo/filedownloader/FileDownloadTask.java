@@ -20,9 +20,9 @@ import android.os.Handler;
 
 import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -43,7 +43,7 @@ class FileDownloadTask extends BaseDownloadTask {
     static {
         DOWNLOAD_INTERNAL_LIS = new DownloadEventSampleListener(new FileDownloadInternalLis());
         FileDownloadEventPool.getImpl().addListener(DownloadServiceConnectChangedEvent.ID, DOWNLOAD_INTERNAL_LIS);
-        FileDownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, DOWNLOAD_INTERNAL_LIS);
+        MessageSnapshotFlow.getImpl().setReceiver(new InternalMessageReceiver());
     }
 
     FileDownloadTask(String url) {
@@ -77,8 +77,9 @@ class FileDownloadTask extends BaseDownloadTask {
         if (!succeed) {
             //noinspection StatementWithEmptyBody
             if (_checkCanStart()) {
-                catchException(new RuntimeException("Occur Unknow Error, when request to start" +
-                        " maybe some problem in binder, maybe the process was killed in unexpected."));
+                final MessageSnapshot snapshot = catchException(
+                        new RuntimeException("Occur Unknow Error, when request to start" +
+                                " maybe some problem in binder, maybe the process was killed in unexpected."));
                 if (!FileDownloadList.getImpl().contains(this)) {
                     synchronized (NEED_RESTART_LIST) {
                         if (NEED_RESTART_LIST.contains(this)) {
@@ -88,7 +89,7 @@ class FileDownloadTask extends BaseDownloadTask {
                     FileDownloadList.getImpl().add(this);
                 }
 
-                FileDownloadList.getImpl().removeByError(this);
+                FileDownloadList.getImpl().remove(this, snapshot);
 
             } else {
                 // the process was killed when request stating. will be restarted by NEED_RESTART_LIST.
@@ -105,10 +106,9 @@ class FileDownloadTask extends BaseDownloadTask {
             return false;
         }
 
-        final FileDownloadTransferModel model = FileDownloadServiceProxy.getImpl().checkReuse(getId());
-        if (model != null) {
-            FileDownloadEventPool.getImpl().publish(new DownloadTransferEvent(model));
-
+        final MessageSnapshot snapshot = FileDownloadServiceProxy.getImpl().checkReuse(getId());
+        if (snapshot != null) {
+            MessageSnapshotFlow.getImpl().inflow(snapshot);
             return true;
         }
 
@@ -173,61 +173,63 @@ class FileDownloadTask extends BaseDownloadTask {
         return FileDownloadServiceProxy.getImpl().getStatus(downloadId);
     }
 
+    private static class InternalMessageReceiver implements MessageSnapshotFlow.MessageReceiver {
+
+        @Override
+        public void receive(MessageSnapshot snapshot) {
+
+            // For fewer copies,do not carry all data in transfer model.
+            final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getList(snapshot.getId());
+
+
+            if (taskList.size() > 0) {
+
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d",
+                            snapshot.getId(), taskList.get(0).getStatus(), snapshot.getStatus(), taskList.size());
+                }
+
+                final String updateSync = FileDownloadUtils.formatString("%s%s", taskList.get(0).getUrl(),
+                        taskList.get(0).getPath());
+
+                synchronized (updateSync.intern()) {
+                    boolean consumed = false;
+                    for (BaseDownloadTask task : taskList) {
+                        if (task.updateKeepFlow(snapshot)) {
+                            consumed = true;
+                            break;
+                        }
+                    }
+
+                    if (!consumed && taskList.size() == 1) {
+                        // Cover the most case for restarting from the low memory status.
+                        consumed = taskList.get(0).updateKeepAhead(snapshot);
+                    }
+
+                    if (!consumed) {
+                        String log = "The flow callback did not consumed, id:" + snapshot.getId() + " status:"
+                                + snapshot.getStatus() + " task-count:" + taskList.size();
+                        for (BaseDownloadTask task : taskList) {
+                            log += " | " + task.getStatus();
+                        }
+                        FileDownloadLog.w(FileDownloadTask.class, log);
+                    }
+
+                }
+
+            } else {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d," +
+                            " but is contains false", snapshot.getStatus());
+                }
+            }
+        }
+    }
+
     private static class FileDownloadInternalLis implements DownloadEventSampleListener.IEventListener {
 
         @Override
         public boolean callback(IDownloadEvent event) {
-            if (event instanceof DownloadTransferEvent) {
-
-                // For fewer copies,do not carry all data in transfer model.
-                final FileDownloadTransferModel transfer = ((DownloadTransferEvent) event).getTransfer();
-                final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getList(transfer.getId());
-
-
-                if (taskList.size() > 0) {
-
-                    if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d",
-                                transfer.getId(), taskList.get(0).getStatus(), transfer.getStatus(), taskList.size());
-                    }
-
-                    final String updateSync = FileDownloadUtils.formatString("%s%s", taskList.get(0).getUrl(),
-                            taskList.get(0).getPath());
-
-                    synchronized (updateSync.intern()) {
-                        boolean consumed = false;
-                        for (BaseDownloadTask task : taskList) {
-                            if (task.updateKeepFlow(transfer)) {
-                                consumed = true;
-                                break;
-                            }
-                        }
-
-                        if (!consumed && taskList.size() == 1) {
-                            // Cover the most case for restarting from the low memory status.
-                            consumed = taskList.get(0).updateKeepAhead(transfer);
-                        }
-
-                        if (!consumed) {
-                            String log = "The flow callback did not consumed, id:" + transfer.getId() + " status:"
-                                    + transfer.getStatus() + " task-count:" + taskList.size();
-                            for (BaseDownloadTask task : taskList) {
-                                log += " | " + task.getStatus();
-                            }
-                            FileDownloadLog.w(FileDownloadTask.class, log);
-                        }
-
-                    }
-
-                } else {
-                    if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d," +
-                                " but is contains false", transfer.getStatus());
-                    }
-                }
-                return true;
-            }
-
             if (event instanceof DownloadServiceConnectChangedEvent) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s",

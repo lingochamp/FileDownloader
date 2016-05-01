@@ -22,9 +22,9 @@ import android.os.IBinder;
 import com.liulishuo.filedownloader.FileDownloadServiceProxy;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -55,12 +55,12 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
-    public FileDownloadTransferModel checkReuse(String url, String path) {
+    public MessageSnapshot checkReuse(String url, String path) {
         return downloadManager.checkReuse(FileDownloadUtils.generateId(url, path));
     }
 
     @Override
-    public FileDownloadTransferModel checkReuse2(int id) {
+    public MessageSnapshot checkReuse2(int id) {
         return downloadManager.checkReuse(id);
     }
 

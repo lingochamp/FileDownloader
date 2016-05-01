@@ -22,15 +22,14 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloadEventPool;
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
 import com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException;
+import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -64,11 +63,13 @@ import okhttp3.Response;
 public class FileDownloadRunnable implements Runnable {
 
     private static final int BUFFER_SIZE = 1024 * 4;
-    private final FileDownloadTransferModel transferModel;
 
     private long progressThresholdBytes;
     private int maxProgressCount = 0;
     private boolean isResumeDownloadAvailable;
+    private boolean isResuming;
+    private Throwable throwable;
+    private int retryingTimes;
 
     private FileDownloadModel model;
 
@@ -93,7 +94,6 @@ public class FileDownloadRunnable implements Runnable {
         this.helper = helper;
         this.header = header;
 
-        transferModel = new FileDownloadTransferModel(model);
         maxProgressCount = model.getCallbackProgressTimes();
         maxProgressCount = maxProgressCount <= 0 ? 0 : maxProgressCount;
 
@@ -110,6 +110,18 @@ public class FileDownloadRunnable implements Runnable {
 
     public boolean isExist() {
         return isPending || isRunning;
+    }
+
+    public boolean isResuming() {
+        return isResuming;
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
+    public int getRetryingTimes() {
+        return retryingTimes;
     }
 
     @Override
@@ -414,9 +426,9 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     private void onConnected(final boolean resuming, final long total, final String etag) {
-        helper.updateConnected(getId(), total, etag);
+        helper.updateConnected(model, total, etag);
 
-        transferModel.setResuming(resuming);
+        this.isResuming = resuming;
 
         onStatusChanged(model.getStatus());
     }
@@ -474,10 +486,10 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         ex = exFiltrate(ex);
-        helper.updateRetry(getId(), ex.getMessage());
+        helper.updateRetry(model, ex.getMessage());
 
-        transferModel.setThrowable(ex);
-        transferModel.setRetryingTimes(retryTimes);
+        this.throwable = ex;
+        this.retryingTimes = retryTimes;
 
         onStatusChanged(model.getStatus());
     }
@@ -488,9 +500,9 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         ex = exFiltrate(ex);
-        helper.updateError(getId(), ex.getMessage(), model.getSoFar());
+        helper.updateError(model, ex.getMessage(), model.getSoFar());
 
-        transferModel.setThrowable(ex);
+        this.throwable = ex;
 
         onStatusChanged(model.getStatus());
     }
@@ -499,7 +511,7 @@ public class FileDownloadRunnable implements Runnable {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "On completed %d %d %B", getId(), total, isCancelled());
         }
-        helper.updateComplete(getId(), total);
+        helper.updateComplete(model, total);
 
         onStatusChanged(model.getStatus());
     }
@@ -511,7 +523,7 @@ public class FileDownloadRunnable implements Runnable {
                     model.getSoFar(), model.getTotal());
         }
 
-        helper.updatePause(getId(), model.getSoFar());
+        helper.updatePause(model, model.getSoFar());
 
         onStatusChanged(model.getStatus());
     }
@@ -528,7 +540,7 @@ public class FileDownloadRunnable implements Runnable {
 
         this.isPending = true;
 
-        helper.updatePending(getId());
+        helper.updatePending(model);
 
         onStatusChanged(model.getStatus());
     }
@@ -536,7 +548,7 @@ public class FileDownloadRunnable implements Runnable {
     private final Object statusChangedNotifyLock = new Object();
 
     @SuppressWarnings("UnusedParameters")
-    private void onStatusChanged(int status) {
+    private void onStatusChanged(final byte status) {
         // In current situation, it maybe invoke this method simultaneously between #onPause() and
         // others.
         synchronized (statusChangedNotifyLock) {
@@ -559,11 +571,8 @@ public class FileDownloadRunnable implements Runnable {
                 return;
             }
 
-            transferModel.update(model);
-
-
-            FileDownloadEventPool.getImpl().
-                    asyncPublishInFlow(new DownloadTransferEvent(transferModel.copy()));
+            MessageSnapshotFlow.getImpl().
+                    inflow(MessageSnapshotTaker.take(status, model, this));
         }
     }
 

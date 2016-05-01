@@ -14,23 +14,35 @@
  * limitations under the License.
  */
 
-package com.liulishuo.filedownloader.event;
+package com.liulishuo.filedownloader.message;
 
 /**
- * Created by Jacksgong on 15/6/23.
+ * Created by Jacksgong on 5/1/16.
  * <p/>
- * The event pool to store the event and listener, and drive them.
- *
- * @see IDownloadEvent
- * @see IDownloadListener
+ * A snapshot interface.
  */
-interface IDownloadEventPool {
+interface IMessageSnapshot {
+    int getId();
 
-    boolean addListener(final String eventId, final IDownloadListener listener);
+    byte getStatus();
 
-    boolean removeListener(final String eventId, final IDownloadListener listener);
+    Throwable getThrowable();
 
-    boolean publish(final IDownloadEvent event);
+    int getRetryingTimes();
 
-    void asyncPublishInNewThread(final IDownloadEvent event);
+    boolean isResuming();
+
+    String getEtag();
+
+    long getLargeSofarBytes();
+
+    long getLargeTotalBytes();
+
+    int getSmallSofarBytes();
+
+    int getSmallTotalBytes();
+
+    boolean isReusedDownloadedFile();
+
+    boolean isLargeFile();
 }

@@ -71,8 +71,8 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)));
 //                model.setCallbackProgressTimes(c.getInt(c.getColumnIndex(FileDownloadModel.CALLBACK_PROGRESS_TIMES)));
                 model.setStatus((byte) c.getShort(c.getColumnIndex(FileDownloadModel.STATUS)));
-                model.setSoFar(c.getInt(c.getColumnIndex(FileDownloadModel.SOFAR)));
-                model.setTotal(c.getInt(c.getColumnIndex(FileDownloadModel.TOTAL)));
+                model.setSoFar(c.getLong(c.getColumnIndex(FileDownloadModel.SOFAR)));
+                model.setTotal(c.getLong(c.getColumnIndex(FileDownloadModel.TOTAL)));
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
                 model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
                 if (model.getStatus() == FileDownloadStatus.progress ||
@@ -194,28 +194,28 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateConnected(int id, long total, String etag) {
-        final FileDownloadModel downloadModel = find(id);
-        if (downloadModel != null) {
-            downloadModel.setStatus(FileDownloadStatus.connected);
-            downloadModel.setTotal(total);
+    public void updateConnected(FileDownloadModel model, long total, String etag) {
+        model.setStatus(FileDownloadStatus.connected);
 
 
-            // db
-            ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.connected);
+        // db
+        ContentValues cv = new ContentValues();
+        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.connected);
+
+        final long oldTotal = model.getTotal();
+        if (oldTotal != total) {
+            model.setTotal(total);
             cv.put(FileDownloadModel.TOTAL, total);
-
-
-            final String oldEtag = downloadModel.getETag();
-            if ((etag != null && !etag.equals(oldEtag)) ||
-                    (oldEtag != null && !oldEtag.equals(etag))) {
-                downloadModel.setETag(etag);
-                cv.put(FileDownloadModel.ETAG, etag);
-            }
-
-            db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
         }
+
+        final String oldEtag = model.getETag();
+        if ((etag != null && !etag.equals(oldEtag)) ||
+                (oldEtag != null && !oldEtag.equals(etag))) {
+            model.setETag(etag);
+            cv.put(FileDownloadModel.ETAG, etag);
+        }
+
+        update(model.getId(), cv);
     }
 
     @Override
@@ -227,84 +227,72 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
         ContentValues cv = new ContentValues();
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.progress);
         cv.put(FileDownloadModel.SOFAR, soFar);
-        db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ",
-                new String[]{String.valueOf(model.getId())});
+        update(model.getId(), cv);
     }
 
     @Override
-    public void updateError(int id, String errMsg, long sofar) {
-        final FileDownloadModel downloadModel = find(id);
-        if (downloadModel != null) {
-            downloadModel.setStatus(FileDownloadStatus.error);
-            downloadModel.setErrMsg(errMsg);
-            downloadModel.setSoFar(sofar);
+    public void updateError(FileDownloadModel model, String errMsg, long sofar) {
+        model.setStatus(FileDownloadStatus.error);
+        model.setErrMsg(errMsg);
+        model.setSoFar(sofar);
 
-            // db
-            ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.ERR_MSG, errMsg);
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.error);
-            cv.put(FileDownloadModel.SOFAR, sofar);
-            db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
-        }
+        // db
+        ContentValues cv = new ContentValues();
+        cv.put(FileDownloadModel.ERR_MSG, errMsg);
+        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.error);
+        cv.put(FileDownloadModel.SOFAR, sofar);
+        update(model.getId(), cv);
     }
 
     @Override
-    public void updateRetry(int id, String errMsg) {
-        final FileDownloadModel downloadModel = find(id);
-        if (downloadModel != null) {
-            downloadModel.setStatus(FileDownloadStatus.retry);
-            downloadModel.setErrMsg(errMsg);
+    public void updateRetry(FileDownloadModel model, String errMsg) {
+        model.setStatus(FileDownloadStatus.retry);
+        model.setErrMsg(errMsg);
 
-            // db
-            ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.ERR_MSG, errMsg);
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.retry);
-            db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
-        }
+        // db
+        ContentValues cv = new ContentValues();
+        cv.put(FileDownloadModel.ERR_MSG, errMsg);
+        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.retry);
+        update(model.getId(), cv);
     }
 
     @Override
-    public void updateComplete(int id, final long total) {
-        final FileDownloadModel downloadModel = find(id);
-        if (downloadModel != null) {
-            downloadModel.setStatus(FileDownloadStatus.completed);
-            downloadModel.setSoFar(total);
-            downloadModel.setTotal(total);
-        }
+    public void updateComplete(FileDownloadModel model, final long total) {
+        model.setStatus(FileDownloadStatus.completed);
+        model.setSoFar(total);
+        model.setTotal(total);
 
         //db
         ContentValues cv = new ContentValues();
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.completed);
         cv.put(FileDownloadModel.TOTAL, total);
         cv.put(FileDownloadModel.SOFAR, total);
+        update(model.getId(), cv);
+    }
+
+    @Override
+    public void updatePause(FileDownloadModel model, long sofar) {
+        model.setStatus(FileDownloadStatus.paused);
+        model.setSoFar(sofar);
+
+        // db
+        ContentValues cv = new ContentValues();
+        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.paused);
+        cv.put(FileDownloadModel.SOFAR, sofar);
+        update(model.getId(), cv);
+    }
+
+    @Override
+    public void updatePending(FileDownloadModel model) {
+        model.setStatus(FileDownloadStatus.pending);
+
+        // db
+        ContentValues cv = new ContentValues();
+        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.pending);
+        update(model.getId(), cv);
+    }
+
+    private void update(final int id, final ContentValues cv) {
         db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
-    }
-
-    @Override
-    public void updatePause(int id, long sofar) {
-        final FileDownloadModel downloadModel = find(id);
-        if (downloadModel != null) {
-            downloadModel.setStatus(FileDownloadStatus.paused);
-            downloadModel.setSoFar(sofar);
-
-            // db
-            ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.paused);
-            cv.put(FileDownloadModel.SOFAR, sofar);
-            db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
-        }
-    }
-
-    @Override
-    public void updatePending(int id) {
-        final FileDownloadModel downloadModel = find(id);
-        if (downloadModel != null) {
-            downloadModel.setStatus(FileDownloadStatus.pending);
-
-            // db
-            ContentValues cv = new ContentValues();
-            cv.put(FileDownloadModel.STATUS, FileDownloadStatus.pending);
-            db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
-        }
     }
 }

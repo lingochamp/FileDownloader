@@ -19,13 +19,13 @@ package com.liulishuo.filedownloader.services;
 
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.FileDownloadEventPool;
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
+import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -78,14 +78,8 @@ class FileDownloadMgr {
                 FileDownloadLog.d(this, "has already started download %d", id);
             }
             // warn
-            final FileDownloadTransferModel warnModel = new FileDownloadTransferModel();
-            warnModel.setId(id);
-            warnModel.setTotalBytes(model.getTotal());
-            warnModel.setSoFarBytes(model.getSoFar());
-            warnModel.setStatus(FileDownloadStatus.warn);
-
-            FileDownloadEventPool.getImpl()
-                    .publish(new DownloadTransferEvent(warnModel));
+            MessageSnapshotFlow.getImpl().
+                    inflow(MessageSnapshotTaker.take(FileDownloadStatus.warn, model));
             return;
         }
 
@@ -251,17 +245,18 @@ class FileDownloadMgr {
         return result;
     }
 
-    public FileDownloadTransferModel checkReuse(final int downloadId) {
-        FileDownloadTransferModel transferModel = null;
+    public MessageSnapshot checkReuse(final int downloadId) {
+        final MessageSnapshot snapshot;
 
         final FileDownloadModel model = mHelper.find(downloadId);
         final boolean canReuse = checkReuse(downloadId, model);
         if (canReuse) {
-            transferModel = new FileDownloadTransferModel(model);
-            transferModel.markAsReusedOldFile();
+            snapshot = MessageSnapshotTaker.take(model.getStatus(), model, true);
+        } else {
+            snapshot = null;
         }
 
-        return transferModel;
+        return snapshot;
     }
 
     /**

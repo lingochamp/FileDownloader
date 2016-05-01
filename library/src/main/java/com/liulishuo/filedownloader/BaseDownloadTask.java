@@ -20,10 +20,12 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
+import com.liulishuo.filedownloader.message.MessageSnapshotThreadPool;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
+import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -65,6 +67,8 @@ public abstract class BaseDownloadTask {
 
     private boolean resuming;
     private String etag;
+
+    private boolean isLargeFile;
 
     /**
      * 如果是true 会直接在下载线程回调，而不会调用{@link android.os.Handler#post(Runnable)} 抛到UI线程。
@@ -202,7 +206,7 @@ public abstract class BaseDownloadTask {
 
     /**
      * This listener's method {@link FinishListener#over()} will be invoked in Internal-Flow-Thread
-     * directly, which is controlled by {@link FileDownloadFlowThreadPool}.
+     * directly, which is controlled by {@link MessageSnapshotThreadPool}.
      *
      * @param finishListener Just consider whether the task is over.
      * @see FileDownloadStatus#isOver(int)
@@ -352,18 +356,18 @@ public abstract class BaseDownloadTask {
         } catch (Throwable e) {
             ready = false;
 
-            catchException(e);
             FileDownloadList.getImpl().add(this);
-            FileDownloadList.getImpl().removeByError(this);
+            FileDownloadList.getImpl().remove(this, catchException(e));
         }
 
         if (ready) {
-           FileDownloadTaskLauncher.getImpl().launch(this);
+            FileDownloadTaskLauncher.getImpl().launch(this);
         }
 
 
         return getId();
     }
+
     /**
      * start the task.
      *
@@ -423,7 +427,7 @@ public abstract class BaseDownloadTask {
         calcAverageSpeed(this.soFarBytes);
         // For make sure already added event listener for receive paused event
         FileDownloadList.getImpl().add(this);
-        FileDownloadList.getImpl().removeByPaused(this);
+        FileDownloadList.getImpl().remove(this, MessageSnapshotTaker.catchPause(this));
 
         return true;
     }
@@ -650,6 +654,15 @@ public abstract class BaseDownloadTask {
         return syncCallback;
     }
 
+    /**
+     * @return Whether the length of downloading file is more than or equal to 2G.
+     * @see #getLargeFileSoFarBytes()
+     * @see #getLargeFileTotalBytes()
+     */
+    public boolean isLargeFile() {
+        return isLargeFile;
+    }
+
     // --------------------------------------- ABOVE FUNCTIONS FOR OUTSIDE ----------------------------------------------
 
     // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL --------------------------------------------------
@@ -709,8 +722,7 @@ public abstract class BaseDownloadTask {
         } catch (Throwable e) {
             e.printStackTrace();
 
-            catchException(e);
-            FileDownloadList.getImpl().removeByError(this);
+            FileDownloadList.getImpl().remove(this, catchException(e));
         }
 
     }
@@ -819,6 +831,7 @@ public abstract class BaseDownloadTask {
             lastCalcSpeedSofarTime = SystemClock.uptimeMillis();
         }
     }
+
     // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL --------------------------------------------------
 
     // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
@@ -841,9 +854,10 @@ public abstract class BaseDownloadTask {
         return this.header;
     }
 
-    void catchException(Throwable ex) {
+    MessageSnapshot catchException(Throwable ex) {
         setStatus(FileDownloadStatus.error);
         this.ex = ex;
+        return MessageSnapshotTaker.catchException(this);
     }
 
     // Messenger
@@ -890,9 +904,9 @@ public abstract class BaseDownloadTask {
         }
     }
 
-    boolean updateKeepFlow(final FileDownloadTransferModel transfer) {
+    boolean updateKeepFlow(final MessageSnapshot snapshot) {
         final int currentStatus = getStatus();
-        final int nextStatus = transfer.getStatus();
+        final int nextStatus = snapshot.getStatus();
 
         if (FileDownloadStatus.paused == currentStatus && FileDownloadStatus.isIng(nextStatus)) {
             if (FileDownloadLog.NEED_LOG) {
@@ -917,12 +931,12 @@ public abstract class BaseDownloadTask {
             return false;
         }
 
-        update(transfer);
+        update(snapshot);
         return true;
     }
 
-    boolean updateKeepAhead(final FileDownloadTransferModel transfer) {
-        if (!FileDownloadStatus.isKeepAhead(getStatus(), transfer.getStatus())) {
+    boolean updateKeepAhead(final MessageSnapshot snapshot) {
+        if (!FileDownloadStatus.isKeepAhead(getStatus(), snapshot.getStatus())) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "can't update status change by keep ahead, %d, but the" +
                         " current status is %d, %d", status, getStatus(), getId());
@@ -930,45 +944,42 @@ public abstract class BaseDownloadTask {
             return false;
         }
 
-        update(transfer);
+        update(snapshot);
         return true;
     }
 
-    /**
-     * @param transfer In order to optimize some of the data in some cases is not back
-     */
-    private void update(final FileDownloadTransferModel transfer) {
-        setStatus(transfer.getStatus());
+    private void update(final MessageSnapshot snapshot) {
+        setStatus(snapshot.getStatus());
+        this.isLargeFile = snapshot.isLargeFile();
 
-        switch (transfer.getStatus()) {
+        switch (snapshot.getStatus()) {
             case FileDownloadStatus.pending:
-                this.soFarBytes = transfer.getSoFarBytes();
-                this.totalBytes = transfer.getTotalBytes();
+                this.soFarBytes = snapshot.getLargeSofarBytes();
+                this.totalBytes = snapshot.getLargeTotalBytes();
 
                 // notify
-                getMessenger().notifyPending();
+                getMessenger().notifyPending(snapshot);
                 break;
             case FileDownloadStatus.started:
                 // notify
-                getMessenger().notifyStarted();
+                getMessenger().notifyStarted(snapshot);
                 break;
             case FileDownloadStatus.connected:
-                this.totalBytes = transfer.getTotalBytes();
-                this.soFarBytes = transfer.getSoFarBytes();
-                this.resuming = transfer.isResuming();
-                this.etag = transfer.getEtag();
+                this.totalBytes = snapshot.getLargeTotalBytes();
+                this.resuming = snapshot.isResuming();
+                this.etag = snapshot.getEtag();
 
                 markStartDownload();
 
                 // notify
-                getMessenger().notifyConnected();
+                getMessenger().notifyConnected(snapshot);
                 break;
             case FileDownloadStatus.progress:
-                this.soFarBytes = transfer.getSoFarBytes();
-                calcSpeed(transfer.getSoFarBytes());
+                this.soFarBytes = snapshot.getLargeSofarBytes();
+                calcSpeed(snapshot.getLargeSofarBytes());
 
                 // notify
-                getMessenger().notifyProgress();
+                getMessenger().notifyProgress(snapshot);
                 break;
 //            case FileDownloadStatus.blockComplete:
             /**
@@ -976,21 +987,21 @@ public abstract class BaseDownloadTask {
              */
 //                break;
             case FileDownloadStatus.retry:
-                this.soFarBytes = transfer.getSoFarBytes();
-                this.ex = transfer.getThrowable();
-                _setRetryingTimes(transfer.getRetryingTimes());
+                this.soFarBytes = snapshot.getLargeSofarBytes();
+                this.ex = snapshot.getThrowable();
+                _setRetryingTimes(snapshot.getRetryingTimes());
 
                 resetSpeed();
                 // notify
-                getMessenger().notifyRetry();
+                getMessenger().notifyRetry(snapshot);
                 break;
             case FileDownloadStatus.error:
-                this.ex = transfer.getThrowable();
-                this.soFarBytes = transfer.getSoFarBytes();
+                this.ex = snapshot.getThrowable();
+                this.soFarBytes = snapshot.getLargeSofarBytes();
 
                 calcAverageSpeed(this.soFarBytes);
                 // to FileDownloadList
-                FileDownloadList.getImpl().removeByError(this);
+                FileDownloadList.getImpl().remove(this, snapshot);
 
                 break;
             case FileDownloadStatus.paused:
@@ -999,14 +1010,17 @@ public abstract class BaseDownloadTask {
                  */
                 break;
             case FileDownloadStatus.completed:
-                this.isReusedOldFile = transfer.isReusedOldFile();
+                this.isReusedOldFile = snapshot.isReusedDownloadedFile();
+                if (snapshot.isReusedDownloadedFile()) {
+                    this.etag = snapshot.getEtag();
+                }
                 // only carry total data back
-                this.soFarBytes = transfer.getTotalBytes();
-                this.totalBytes = transfer.getTotalBytes();
+                this.soFarBytes = snapshot.getLargeTotalBytes();
+                this.totalBytes = snapshot.getLargeTotalBytes();
 
                 calcAverageSpeed(this.soFarBytes);
                 // to FileDownloadList
-                FileDownloadList.getImpl().removeByCompleted(this);
+                FileDownloadList.getImpl().remove(this, snapshot);
 
                 break;
             case FileDownloadStatus.warn:
@@ -1027,12 +1041,13 @@ public abstract class BaseDownloadTask {
                         // keep and wait callback
 
                         setStatus(FileDownloadStatus.pending);
-                        this.totalBytes = transfer.getTotalBytes();
-                        this.soFarBytes = transfer.getSoFarBytes();
+                        this.totalBytes = snapshot.getLargeTotalBytes();
+                        this.soFarBytes = snapshot.getLargeSofarBytes();
 
                         markStartDownload();
 
-                        getMessenger().notifyPending();
+                        ((MessageSnapshot.IWarnMessageSnapshot) snapshot).turnToPending();
+                        getMessenger().notifyPending(snapshot);
                         break;
                     } else {
                         // already over and no callback
@@ -1041,7 +1056,7 @@ public abstract class BaseDownloadTask {
                 }
 
                 // to FileDownloadList
-                FileDownloadList.getImpl().removeByWarn(this);
+                FileDownloadList.getImpl().remove(this, snapshot);
                 break;
         }
     }
@@ -1084,7 +1099,7 @@ public abstract class BaseDownloadTask {
         /**
          * Will be invoked when the {@code task} is over({@link FileDownloadStatus#isOver(int)}).
          * This method will be invoked in Non-UI-Thread and this thread is controlled by
-         * {@link FileDownloadFlowThreadPool}.
+         * {@link MessageSnapshotThreadPool}.
          *
          * @param task is over, the status would be one of below:
          *             {@link FileDownloadStatus#completed}、{@link FileDownloadStatus#warn}、

@@ -21,15 +21,12 @@ import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 
-import com.liulishuo.filedownloader.FileDownloadEventPool;
-import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
-import com.liulishuo.filedownloader.event.DownloadTransferEvent;
-import com.liulishuo.filedownloader.event.IDownloadEvent;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -43,19 +40,18 @@ import java.util.List;
  * For handling the case of the FileDownloadService runs in separate `:filedownloader` process.
  */
 public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
-        implements DownloadEventSampleListener.IEventListener, IFileDownloadServiceHandler {
+        implements MessageSnapshotFlow.MessageReceiver, IFileDownloadServiceHandler {
 
     private final RemoteCallbackList<IFileDownloadIPCCallback> callbackList = new RemoteCallbackList<>();
     private final FileDownloadMgr downloadManager;
-    private final DownloadEventSampleListener mListener;
     private final WeakReference<FileDownloadService> wService;
 
     @SuppressWarnings("UnusedReturnValue")
-    private synchronized int callback(FileDownloadTransferModel transfer) {
+    private synchronized int callback(MessageSnapshot snapShot) {
         final int n = callbackList.beginBroadcast();
         try {
             for (int i = 0; i < n; i++) {
-                callbackList.getBroadcastItem(i).callback(transfer);
+                callbackList.getBroadcastItem(i).callback(snapShot);
             }
         } catch (RemoteException e) {
             FileDownloadLog.e(this, e, "callback error");
@@ -70,8 +66,7 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
         this.wService = wService;
         this.downloadManager = new FileDownloadMgr(FileDownloadHelper.getOkHttpClient());
 
-        mListener = new DownloadEventSampleListener(this);
-        FileDownloadEventPool.getImpl().addListener(DownloadTransferEvent.ID, mListener);
+        MessageSnapshotFlow.getImpl().setReceiver(this);
     }
 
     @Override
@@ -85,12 +80,12 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
-    public FileDownloadTransferModel checkReuse(String url, String path) throws RemoteException {
+    public MessageSnapshot checkReuse(String url, String path) throws RemoteException {
         return downloadManager.checkReuse(FileDownloadUtils.generateId(url, path));
     }
 
     @Override
-    public FileDownloadTransferModel checkReuse2(int id) throws RemoteException {
+    public MessageSnapshot checkReuse2(int id) throws RemoteException {
         return downloadManager.checkReuse(id);
     }
 
@@ -160,14 +155,7 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
-    public boolean callback(IDownloadEvent event) {
-        callback(((DownloadTransferEvent) event).getTransfer());
-        return false;
-    }
-
-    @Override
     public void onStartCommand(Intent intent, int flags, int startId) {
-
     }
 
     @Override
@@ -177,6 +165,11 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
 
     @Override
     public void onDestroy() {
-        FileDownloadEventPool.getImpl().removeListener(DownloadTransferEvent.ID, mListener);
+        MessageSnapshotFlow.getImpl().setReceiver(null);
+    }
+
+    @Override
+    public void receive(MessageSnapshot snapShot) {
+        callback(snapShot);
     }
 }

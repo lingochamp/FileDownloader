@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.message.FileDownloadMessage;
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
@@ -41,31 +43,31 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
 
     @Override
     public boolean callback(FileDownloadMessage message) {
-        final FileDownloadMessage.MessageSnapShot snapShot = message.getSnapshot();
+        final MessageSnapshot snapShot = message.getSnapshot();
 
         switch (snapShot.getStatus()) {
             case FileDownloadStatus.pending:
                 pending(message.getTask(),
-                        snapShot.getLargeSoFarBytes(),
+                        snapShot.getLargeSofarBytes(),
                         snapShot.getLargeTotalBytes());
                 break;
             case FileDownloadStatus.connected:
                 connected(message.getTask(),
                         snapShot.getEtag(),
                         snapShot.isResuming(),
-                        snapShot.getLargeSoFarBytes(),
+                        message.getTask().getLargeFileSoFarBytes(),
                         snapShot.getLargeTotalBytes());
                 break;
             case FileDownloadStatus.progress:
                 progress(message.getTask(),
-                        snapShot.getLargeSoFarBytes(),
-                        snapShot.getLargeTotalBytes());
+                        snapShot.getLargeSofarBytes(),
+                        message.getTask().getLargeFileTotalBytes());
                 break;
             case FileDownloadStatus.retry:
                 retry(message.getTask(),
-                        snapShot.getException(),
+                        snapShot.getThrowable(),
                         snapShot.getRetryingTimes(),
-                        snapShot.getLargeSoFarBytes());
+                        snapShot.getLargeSofarBytes());
                 break;
             case FileDownloadStatus.blockComplete:
                 blockComplete(message.getTask());
@@ -75,11 +77,11 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
                 break;
             case FileDownloadStatus.error:
                 error(message.getTask(),
-                        snapShot.getException());
+                        snapShot.getThrowable());
                 break;
             case FileDownloadStatus.paused:
                 paused(message.getTask(),
-                        snapShot.getLargeSoFarBytes(),
+                        snapShot.getLargeSofarBytes(),
                         snapShot.getLargeTotalBytes());
                 break;
             case FileDownloadStatus.warn:

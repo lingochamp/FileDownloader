@@ -18,9 +18,9 @@ package com.liulishuo.filedownloader;
 import android.app.Notification;
 import android.content.Context;
 
+import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
-import com.liulishuo.filedownloader.model.FileDownloadTransferModel;
 
 import java.util.List;
 
@@ -36,9 +36,9 @@ public interface IFileDownloadServiceProxy {
 
     boolean pauseDownloader(final int downloadId);
 
-    FileDownloadTransferModel checkReuse(final String url, final String path);
+    MessageSnapshot checkReuse(final String url, final String path);
 
-    FileDownloadTransferModel checkReuse(final int id);
+    MessageSnapshot checkReuse(final int id);
 
     boolean checkIsDownloading(final String url, final String path);
 

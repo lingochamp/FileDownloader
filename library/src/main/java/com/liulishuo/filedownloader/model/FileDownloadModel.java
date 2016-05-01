@@ -17,8 +17,6 @@
 package com.liulishuo.filedownloader.model;
 
 import android.content.ContentValues;
-import android.os.Parcel;
-import android.os.Parcelable;
 
 /**
  * Created by Jacksgong on 9/24/15.
@@ -29,7 +27,7 @@ import android.os.Parcelable;
  * @see com.liulishuo.filedownloader.services.FileDownloadDBOpenHelper
  */
 @SuppressWarnings("WeakerAccess")
-public class FileDownloadModel implements Parcelable {
+public class FileDownloadModel {
 
     public final static int DEFAULT_CALLBACK_PROGRESS_TIMES = 100;
 
@@ -85,6 +83,7 @@ public class FileDownloadModel implements Parcelable {
     }
 
     public void setTotal(long total) {
+        this.isLargeFile = total > Integer.MAX_VALUE;
         this.total = total;
     }
 
@@ -149,47 +148,10 @@ public class FileDownloadModel implements Parcelable {
         return cv;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+
+    private boolean isLargeFile;
+
+    public boolean isLargeFile() {
+        return isLargeFile;
     }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(this.id);
-        dest.writeString(this.url);
-        dest.writeString(this.path);
-        dest.writeInt(this.callbackProgressTimes);
-        dest.writeByte(this.status);
-        dest.writeInt(this.status);
-        dest.writeLong(this.soFar);
-        dest.writeLong(this.total);
-        dest.writeString(this.errMsg);
-        dest.writeString(this.eTag);
-    }
-
-    public FileDownloadModel() {
-    }
-
-    protected FileDownloadModel(Parcel in) {
-        this.id = in.readInt();
-        this.url = in.readString();
-        this.path = in.readString();
-        this.callbackProgressTimes = in.readInt();
-        this.status = in.readByte();
-        this.soFar = in.readLong();
-        this.total = in.readLong();
-        this.errMsg = in.readString();
-        this.eTag = in.readString();
-    }
-
-    public static final Creator<FileDownloadModel> CREATOR = new Creator<FileDownloadModel>() {
-        public FileDownloadModel createFromParcel(Parcel source) {
-            return new FileDownloadModel(source);
-        }
-
-        public FileDownloadModel[] newArray(int size) {
-            return new FileDownloadModel[size];
-        }
-    };
 }
