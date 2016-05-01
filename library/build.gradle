@@ -20,7 +20,9 @@ android {
     lintOptions{
         // This seems to be firing due to okio referencing java.nio.File
         // which is harmless for us.
-        warning 'InvalidPackage'
+        warning 'InvalidPackage',
+                // don't need parcel creator for the sub-class of MessageSnapshot.
+                'ParcelCreator'
     }
 }
 
