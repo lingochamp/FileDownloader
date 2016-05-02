@@ -2,6 +2,26 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.2.8
+
+_2016-05-02_
+
+#### 新接口
+
+- 添加 `BaseDownloadTask#getId():int`: 弃用(没有删除该接口) `getDownloadId()`, 建议使用 `getId()` 代替.
+
+#### 性能与提高
+
+- 提高稳定性: 重构任务启动器，使得启动任务更加可维护，以及标记任务过期更加可靠。
+- 提高稳定性: 重构将事件派发给`FileDownloadListener`的体系，新的体系就如同，派件员与快递驿站的关系，每次都会对事件进行快照，打包为一个消息快件，派发到驿站，转包给 `FileDownloadListener`。
+- 提高稳定性: 覆盖所有的有关暂停的高并发情况，删掉一些符合预期的警告性日志。
+- 提高性能: 减少FileDownloader database I/O.
+- 提高性能: 减少创建对象(更少的内存分配请求，对于GC友好)对于每次回调, 对于一个下载状态的更新，只创建一个快照，整个通讯架构使用。
+
+#### 修复
+
+- 修复: 提供明确的locale用于格式化字符串，避免一些默认locale是非预期的情况发生。Closes #127
+
 ## Version 0.2.7
 
 _2016-04-22_

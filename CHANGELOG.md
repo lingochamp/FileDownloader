@@ -2,6 +2,26 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.8
+
+_2016-05-02_
+
+#### New Interfaces
+
+- Add `BaseDownloadTask#getId():int`: deprecate `getDownloadId()`, and using the `getId()` instead, for `BaseDownloadTask`.
+
+#### Enhancement
+
+- Improve Robust: Refactor the launcher for launching tasks more make sense, and expire tasks with listener or expire all waiting-tasks more stable.
+- Improve Robust: Refactor the architecture which is used to handle the event send to `FileDownloadListener`, the new architecture just like a messenger and message-station, each tasks would write snapshot messages to message-station.
+- Improve Robust: Cover all high concurrent situations about pausing a task, remove some expected warn logs about it.
+- Improve Performance: Reduce the FileDownloader database I/O.
+- Improve Performance: Reduce creating object(less allocating memory request, friendly to GC) for each call-back, Taking a message snapshot for a status updating, and through whole communication architecture just use it.
+
+#### Fix
+
+- Fix: Provide the definite locale for formatting strings, prevent unexpected-locale as Default happening. Closes #127
+
 ## Version 0.2.7
 
 _2016-04-22_

@@ -28,6 +28,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 - 当下载的文件大小可能大于1.99GB(2^31-1`=2_147_483_647 = 1.99GB`)的时候, 请使用`FileDownloadLargeFileListener`而不是`FileDownloadListener`(同理使用`getLargeFileSofarBytes()`与`getLargeFileTotalBytes()`)
 - 暂停: paused, 恢复: 直接调用start，默认就是断点续传
 - 引擎默认会打开避免掉帧的处理(使得在有些情况下回调(FileDownloadListener)不至于太频繁导致ui线程被ddos), 如果你希望关闭这个功能（关闭以后，所有回调会与0.1.9之前的版本一样，所有的回调会立马抛一个消息ui线程(Handler)）
+- 如果没有特殊需要，直接通过配置`filedownloader.properties`将`process.non-separate`置为`true`，可以有效减少每次回调IPC带来的I/O。
 
 #### 使用okHttp并使用其中的一些默认属性
 
@@ -60,7 +61,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.7'
+compile 'com.liulishuo.filedownloader:library:0.2.8'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -275,7 +276,7 @@ if (parallel) {
 | ready(void) | 用于队列下载的单任务的结束符(见上面:启动多任务下载的案例)
 | start(void) | 启动下载任务
 | pause(void) | 暂停下载任务(也可以理解为停止下载，但是在start的时候默认会断点续传)
-| getDownloadId(void):int | 获取唯一Id(内部通过url与path生成)
+| getId(void):int | 获取唯一Id(内部通过url与path生成)
 | getUrl(void):String | 获取下载连接
 | getCallbackProgressTimes(void):int | 获得progress最大回调次数
 | getPath(void):String | 获取下载文件存储路径
