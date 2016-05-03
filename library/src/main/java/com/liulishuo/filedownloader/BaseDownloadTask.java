@@ -20,9 +20,9 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
-import com.liulishuo.filedownloader.message.MessageSnapshotThreadPool;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
+import com.liulishuo.filedownloader.message.MessageSnapshotThreadPool;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -313,7 +313,7 @@ public abstract class BaseDownloadTask {
      * @return Successful reuse or not.
      */
     public boolean reuse() {
-        if (FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this)) {
+        if (isRunning()) {
             FileDownloadLog.w(this, "This task is running %d, if you want start the same task," +
                     " please create a new one by FileDownloader.create", getId());
             return false;
@@ -335,6 +335,31 @@ public abstract class BaseDownloadTask {
         messenger.reAppointment(this);
 
         return true;
+    }
+
+    /**
+     * @return Whether this task object has already started and used in FileDownload Engine. If true,
+     * it isn't allow to {@link #start()} again for this task object.
+     * @see #isRunning()
+     * @see #start()
+     * @see #reuse()
+     */
+    public boolean isUsing() {
+        return this.using;
+    }
+
+    /**
+     * @return Whether this task object is running in FileDownload Engine. If true, it isn't allow
+     * to {@link #start()} again for this task object, and even not allow to {@link #reuse()}.
+     * @see #isUsing()
+     * @see #start()
+     */
+    public boolean isRunning() {
+        if (!isUsing()) {
+            return false;
+        }
+
+        return FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this);
     }
 
     private int startUnchecked() {
@@ -375,8 +400,8 @@ public abstract class BaseDownloadTask {
      */
     public int start() {
 
-        if (using) {
-            if (FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this)) {
+        if (isUsing()) {
+            if (isRunning()) {
                 throw new IllegalStateException(
                         FileDownloadUtils.formatString("This task is running %d, if you" +
                                 " want to start the same task, please create a new one by" +

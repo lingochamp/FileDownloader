@@ -21,8 +21,8 @@ import android.os.Handler;
 import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
-import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -50,6 +50,19 @@ class FileDownloadTask extends BaseDownloadTask {
         super(url);
     }
 
+    private static boolean inNeedRestartList(BaseDownloadTask task) {
+        return !NEED_RESTART_LIST.isEmpty() && NEED_RESTART_LIST.contains(task);
+    }
+
+    @Override
+    public boolean isUsing() {
+        return super.isUsing() || inNeedRestartList(this);
+    }
+
+    @Override
+    public boolean isRunning() {
+        return super.isRunning() || inNeedRestartList(this);
+    }
 
     @Override
     public void clear() {
@@ -250,7 +263,7 @@ class FileDownloadTask extends BaseDownloadTask {
                                 continue;
                             }
                             //noinspection StatementWithEmptyBody
-                            if (!o.using) {
+                            if (!o.isUsing()) {
                                 o.start();
                             } else {
                                 /** already handled
