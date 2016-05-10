@@ -20,6 +20,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.services.FileDownloadRunnable;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 /**
@@ -148,7 +149,28 @@ public class MessageSnapshotTaker {
                 }
                 break;
             default:
-                snapShot = null;
+                // deal with as error.
+                final String message = FileDownloadUtils.
+                        formatString("it can't takes a snapshot for the task(%s) when its status " +
+                                "is %d,", model, status);
+
+                FileDownloadLog.w(MessageSnapshotTaker.class, message);
+
+                final Throwable throwable;
+                if (runnable.getThrowable() != null) {
+                    throwable = new IllegalStateException(message, runnable.getThrowable());
+                } else {
+                    throwable = new IllegalStateException(message);
+                }
+
+                if (model.isLargeFile()) {
+                    snapShot = new LargeMessageSnapshot.ErrorMessageSnapshot(id, status,
+                            model.getSoFar(), throwable);
+                } else {
+                    snapShot = new SmallMessageSnapshot.ErrorMessageSnapshot(id, status,
+                            (int) model.getSoFar(), throwable);
+                }
+                break;
         }
 
         return snapShot;

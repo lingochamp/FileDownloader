@@ -18,6 +18,8 @@ package com.liulishuo.filedownloader.model;
 
 import android.content.ContentValues;
 
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
+
 /**
  * Created by Jacksgong on 9/24/15.
  * <p/>
@@ -153,5 +155,12 @@ public class FileDownloadModel {
 
     public boolean isLargeFile() {
         return isLargeFile;
+    }
+
+    @Override
+    public String toString() {
+        return FileDownloadUtils.formatString("id[%d], url[%s], path[%s], status[%d], sofar[%d]," +
+                        " total[%d], etag[%s], %s", id, url, path, status, soFar, total, eTag,
+                super.toString());
     }
 }
