@@ -2,6 +2,19 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.2.9
+
+_2016-05-10_
+
+#### New Interfaces
+
+- Add `BaseDownloadTask#isUsing():boolean`: Whether this task object has already started and used in FileDownload Engine. Closes #137 .
+
+#### Fix
+
+- Fix(high-concurrency-npe): Providing the default snapshot when a task's status is unexpected, preventing the npe is occurred in this case.
+- Fix(response-416): Covering the response status code is 416 or still resume from breakpoint when its so far bytes more than or equal to total bytes.
+
 ## Version 0.2.8
 
 _2016-05-02_

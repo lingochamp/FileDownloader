@@ -2,20 +2,33 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.2.9
+
+_2016-05-10_
+
+#### 新接口
+
+- 添加 `BaseDownloadTask#isUsing():boolean`: 用于判断当前的Task对象是否在引擎中启动过. Closes #137 。
+
+#### 修复
+
+- 修复(高并发情况下的npe): 当任务的状态是一个未预期的状态是，提供一个默认的错误快照，避免出现npe 。
+- 修复(返回错误码-416): 覆盖返回错误码是416或者当出现已下载大小大于等于文件总大小的时候依然断点续传的bug。
+
 ## Version 0.2.8
 
 _2016-05-02_
 
 #### 新接口
 
-- 添加 `BaseDownloadTask#getId():int`: 弃用(没有删除该接口) `getDownloadId()`, 建议使用 `getId()` 代替.
+- 添加 `BaseDownloadTask#getId():int`: 弃用(没有删除该接口) `getDownloadId()`, 建议使用 `getId()` 代替 。
 
 #### 性能与提高
 
 - 提高稳定性: 重构任务启动器，使得启动任务更加可维护，以及标记任务过期更加可靠。
 - 提高稳定性: 重构将事件派发给`FileDownloadListener`的体系，新的体系就如同，派件员与快递驿站的关系，每次都会对事件进行快照，打包为一个消息快件，派发到驿站，转包给 `FileDownloadListener`。
 - 提高稳定性: 覆盖所有的有关暂停的高并发情况，删掉一些符合预期的警告性日志。
-- 提高性能: 减少FileDownloader database I/O.
+- 提高性能: 减少FileDownloader database I/O 。
 - 提高性能: 减少创建对象(更少的内存分配请求，对于GC友好)对于每次回调, 对于一个下载状态的更新，只创建一个快照，整个通讯架构使用。
 
 #### 修复

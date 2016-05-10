@@ -61,7 +61,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.2.8'
+compile 'com.liulishuo.filedownloader:library:0.2.9'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -295,6 +295,7 @@ if (parallel) {
 | getRetryingTimes(void):int | 当前重试次数。将要开始重试的时候，会将接下来是第几次
 | isSyncCallback(void):boolean | 是否是设置了所有FileDownloadListener中的回调都直接在下载线程直接回调而不抛到ui线程
 | getSpeed():int | 获取任务的下载速度, 下载过程中为实时速度，下载结束状态为平均速度
+| isUsing():boolean | 判断当前的Task对象是否在引擎中启动过
 
 #### 监听器(`FileDownloadListener`)说明
 
