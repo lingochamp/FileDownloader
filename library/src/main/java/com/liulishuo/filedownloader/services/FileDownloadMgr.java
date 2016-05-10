@@ -19,8 +19,8 @@ package com.liulishuo.filedownloader.services;
 
 import android.text.TextUtils;
 
-import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -227,12 +227,15 @@ class FileDownloadMgr {
                 break;
             }
 
-            if (fileLength < model.getSoFar()
-                    || (model.getTotal() != -1  // not chunk transfer encoding data
-                    && fileLength > model.getTotal())) {
+            if (fileLength < model.getSoFar() ||
+                    (model.getTotal() != -1  // not chunk transfer encoding data
+                            &&
+                            (fileLength > model.getTotal() || model.getSoFar() >= model.getTotal()))
+                    ) {
                 // dirty data.
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data fileLength[%d] sofar[%d] total[%d]",
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data" +
+                                    " fileLength[%d] sofar[%d] total[%d]",
                             downloadId, fileLength, model.getSoFar(), model.getTotal());
                 }
                 break;

@@ -22,10 +22,10 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
 import com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -61,6 +61,14 @@ import okhttp3.Response;
  */
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadRunnable implements Runnable {
+
+    /**
+     * None of the ranges in the request's Range header field overlap the current extent of the
+     * selected resource or that the set of ranges requested has been rejected due to invalid
+     * ranges or an excessive request of small or overlapping ranges.
+     */
+    private static final int HTTP_REQUESTED_RANGE_NOT_SATISFIABLE = 416;
+
 
     private static final int BUFFER_SIZE = 1024 * 4;
 
@@ -184,6 +192,7 @@ public class FileDownloadRunnable implements Runnable {
 
     private void loop(FileDownloadModel model) {
         int retryingTimes = 0;
+        boolean revisedInterval = false;
 
         do {
             // loop for retry
@@ -287,7 +296,26 @@ public class FileDownloadRunnable implements Runnable {
                     }
 
                 } else {
-                    throw new FileDownloadHttpException(request, response);
+                    final FileDownloadHttpException httpException =
+                            new FileDownloadHttpException(request, response);
+
+                    if (revisedInterval) {
+                        throw httpException;
+                    }
+                    revisedInterval = true;
+
+                    switch (response.code()) {
+                        case HTTP_REQUESTED_RANGE_NOT_SATISFIABLE:
+                            deleteTargetFile();
+                            FileDownloadLog.w(FileDownloadRunnable.class, "%d response code %d, " +
+                                            "range[%d] isn't make sense, so delete dirty file[%s]" +
+                                            ", and try to redownload it from byte-0.", getId(),
+                                    response.code(), model.getSoFar(), model.getPath());
+                            onRetry(httpException, retryingTimes++);
+                            break;
+                        default:
+                            throw httpException;
+                    }
                 }
 
 
@@ -642,11 +670,14 @@ public class FileDownloadRunnable implements Runnable {
             this.isResumeDownloadAvailable = true;
         } else {
             this.isResumeDownloadAvailable = false;
-            // delete dirty file
-            File file = new File(model.getPath());
-            //noinspection ResultOfMethodCallIgnored
-            file.delete();
+            deleteTargetFile();
         }
+    }
+
+    private void deleteTargetFile() {
+        File file = new File(model.getPath());
+        //noinspection ResultOfMethodCallIgnored
+        file.delete();
     }
 
     private Throwable exFiltrate(Throwable ex) {
