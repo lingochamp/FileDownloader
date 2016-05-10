@@ -355,6 +355,7 @@ public abstract class BaseDownloadTask {
      * @see #start()
      */
     public boolean isRunning() {
+        //noinspection SimplifiableIfStatement
         if (!isUsing()) {
             return false;
         }
