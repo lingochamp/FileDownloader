@@ -8,7 +8,7 @@ _2016-05-13_
 
 #### 修复
 
-> 为什么FileDownload服务可以运行在UI线程? 参考 [filedownloader.properties](https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties).
+> 为什么FileDownload服务可以运行在UI进程? 参考 [filedownloader.properties](https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties).
 
 - 修复(下载服务共享UI进程时): 修复在下载服务不是运行在独立进程的情况下（非默认情况），附加的header没有带上请求的bug。Closes #149.
 
