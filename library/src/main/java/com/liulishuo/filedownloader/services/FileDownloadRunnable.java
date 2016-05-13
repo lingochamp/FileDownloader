@@ -419,11 +419,36 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     private void addHeader(Request.Builder builder) {
-        if (header != null && header.getNamesAndValues() != null) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.v(this, "%d add outside header: %s", getId(), header);
+        final Headers additionHeaders;
+        if (header != null) {
+            if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
+                /**
+                 * In case of the FileDownloadService is not in separate process, the
+                 * function {@link FileDownloadHeader#writeToParcel} would never be invoked, so
+                 * {@link FileDownloadHeader#checkAndInitValues} would never be invoked.
+                 *
+                 * Instead, we can use {@link FileDownloadHeader#headerBuilder} directly.
+                 */
+                additionHeaders = header.getHeaders();
+            } else {
+                /**
+                 * In case of the FileDownloadService is in separate process to UI process,
+                 * the headers value would be carried by the parcel with
+                 * {@link FileDownloadHeader#checkAndInitValues()} .
+                 */
+                if (header.getNamesAndValues() != null) {
+                    additionHeaders = Headers.of(header.getNamesAndValues());
+                } else {
+                    additionHeaders = null;
+                }
             }
-            builder.headers(Headers.of(header.getNamesAndValues()));
+
+            if (additionHeaders != null) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.v(this, "%d add outside header: %s", getId(), additionHeaders);
+                }
+                builder.headers(additionHeaders);
+            }
         }
 
         if (isResumeDownloadAvailable) {

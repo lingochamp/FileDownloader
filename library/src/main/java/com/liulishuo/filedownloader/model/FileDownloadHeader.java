@@ -19,6 +19,7 @@ package com.liulishuo.filedownloader.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import okhttp3.Headers;
@@ -82,11 +83,23 @@ public class FileDownloadHeader implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
 
+        checkAndInitValues();
+        dest.writeString(nameAndValuesString);
+    }
+
+    private void checkAndInitValues() {
         if (headerBuilder != null) {
             nameAndValuesString = headerBuilder.build().toString();
         }
+    }
 
-        dest.writeString(nameAndValuesString);
+    public Headers getHeaders() {
+        if (!FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
+            throw new IllegalStateException("the headers object isn't accessible, when the " +
+                    "FileDownloadService in the separate process to UI process.");
+        }
+
+        return headerBuilder == null ? null : headerBuilder.build();
     }
 
     public FileDownloadHeader() {
