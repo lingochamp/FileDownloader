@@ -2,6 +2,17 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.3.0
+
+_2016-05-13_
+
+#### Fix
+
+> Why FileDownload can run in UI process? Ref [filedownloader.properties](https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties).
+
+- Fix(shared-UI-process): fix the addition header does not attach to Http-request when the FileDownload service isn't running in the separate process to UI process. Closes #149.
+
+
 ## Version 0.2.9
 
 _2016-05-10_
