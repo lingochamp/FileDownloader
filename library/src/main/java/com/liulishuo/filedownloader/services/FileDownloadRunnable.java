@@ -411,9 +411,15 @@ public class FileDownloadRunnable implements Runnable {
                 inputStream.close();
             }
 
-            //noinspection ConstantConditions
-            if (accessFile != null) {
-                accessFile.close();
+            try {
+                if (fd != null) {
+                    fd.sync();
+                }
+            } finally {
+                //noinspection ConstantConditions
+                if (accessFile != null) {
+                    accessFile.close();
+                }
             }
         }
     }
