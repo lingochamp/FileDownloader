@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.3.1
+
+_2016-05-19_
+
+#### 性能与提高
+
+- 提高稳定性: 在结束下载时确保缓存中的数据都写入文件。
+
 ## Version 0.3.0
 
 _2016-05-13_

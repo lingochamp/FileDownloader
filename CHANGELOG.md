@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.3.1
+
+_2016-05-19_
+
+#### Enhancement
+
+- Improve Robust: Ensuring buffer is written out to the device when at the end of fetching data.
+
 ## Version 0.3.0
 
 _2016-05-13_
