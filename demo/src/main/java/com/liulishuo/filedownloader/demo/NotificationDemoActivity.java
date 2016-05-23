@@ -17,9 +17,13 @@
 package com.liulishuo.filedownloader.demo;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -49,7 +53,7 @@ public class NotificationDemoActivity extends AppCompatActivity {
     private NotificationListener listener;
 
     private final String savePath = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "notification";
-    private final String url = Constant.BIG_FILE_URLS[4];
+    private final String url = Constant.BIG_FILE_URLS[7];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +79,10 @@ public class NotificationDemoActivity extends AppCompatActivity {
             // Avoid the task has passed 'pending' status, so we must create notification manually.
             listener.addNotificationItem(downloadId);
         }
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(KEY_PAUSE);
+        registerReceiver(pauseReceiver, intentFilter);
     }
 
     private int downloadId = 0;
@@ -183,6 +191,8 @@ public class NotificationDemoActivity extends AppCompatActivity {
     public static class NotificationItem extends BaseNotificationItem {
 
         PendingIntent pendingIntent;
+        NotificationCompat.Builder builder;
+
         private NotificationItem(int id, String title, String desc) {
             super(id, title, desc);
             Intent[] intents = new Intent[2];
@@ -193,12 +203,26 @@ public class NotificationDemoActivity extends AppCompatActivity {
             this.pendingIntent = PendingIntent.getActivities(DemoApplication.CONTEXT, 0, intents,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
+            builder = new NotificationCompat.
+                    Builder(FileDownloadHelper.getAppContext());
+            Intent pauseIntent = new Intent(KEY_PAUSE);
+            pauseIntent.putExtra(KEY_ID, getId());
+            PendingIntent pausePendingIntent = PendingIntent.getBroadcast(DemoApplication.CONTEXT,
+                    0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            builder.setDefaults(Notification.DEFAULT_LIGHTS)
+                    .setOngoing(true)
+                    .setPriority(NotificationCompat.PRIORITY_MIN)
+                    .setContentTitle(getTitle())
+                    .setContentText(desc)
+                    .setContentIntent(pendingIntent)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .addAction(R.mipmap.ic_launcher, "pause", pausePendingIntent);
+
         }
 
         @Override
         public void show(boolean statusChanged, int status, boolean isShowProgress) {
-            NotificationCompat.Builder builder = new NotificationCompat.
-                    Builder(FileDownloadHelper.getAppContext());
 
             String desc = getDesc();
             switch (status) {
@@ -228,34 +252,40 @@ public class NotificationDemoActivity extends AppCompatActivity {
                     break;
             }
 
-            builder.setDefaults(Notification.DEFAULT_LIGHTS)
-                    .setOngoing(true)
-                    .setPriority(NotificationCompat.PRIORITY_MIN)
-                    .setContentTitle(getTitle())
-                    .setContentText(desc)
-                    .setContentIntent(pendingIntent)
-                    .setSmallIcon(R.mipmap.ic_launcher);
+            builder.setContentTitle(getTitle())
+                    .setContentText(desc);
+
 
             if (statusChanged) {
                 builder.setTicker(desc);
             }
 
             builder.setProgress(getTotal(), getSofar(), !isShowProgress);
-//            getManager().notify(getId(), builder.build());
-            FileDownloader.getImpl().startForeground(getId(), builder.build());
+            getManager().notify(getId(), builder.build());
         }
 
         @Override
         public void cancel() {
-//            super.cancel();
-            FileDownloader.getImpl().stopForeground(true);
+            super.cancel();
         }
     }
 
+    public final static String KEY_PAUSE = "key.filedownloader.notification.pause";
+    private final static String KEY_ID = "key.filedownloader.notification.id";
+    public BroadcastReceiver pauseReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(KEY_PAUSE)) {
+                final int id = intent.getIntExtra(KEY_ID, 0);
+                FileDownloader.getImpl().pause(id);
+            }
+        }
+    };
+
     @Override
     protected void onDestroy() {
-
         super.onDestroy();
+        unregisterReceiver(pauseReceiver);
     }
 
     @Override
@@ -274,9 +304,8 @@ public class NotificationDemoActivity extends AppCompatActivity {
         /**
          * why not use {@link FileDownloadNotificationHelper#clear()} directly?
          */
-//        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).
-//                cancel(downloadId);
-        FileDownloader.getImpl().stopForeground(true);
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).
+                cancel(downloadId);
     }
 
     private CheckBox showNotificationCb;
