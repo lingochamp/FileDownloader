@@ -167,12 +167,10 @@ public class FileDownloadRunnable implements Runnable {
                                 "already paused %d", getId());
                     }
                 } else {
-                    FileDownloadLog.e(this, "start runnable but status err %s %d",
-                            model.getStatus(), getId());
-                    // 极低概率事件，相同url与path的任务被放到了线程池中(目前在入池之前是有检测的，但是还是存在极低概率的同步问题) 执行的时候有可能会遇到
                     onError(new RuntimeException(
-                            FileDownloadUtils.formatString("start runnable but status err %s %d",
-                                    model.getStatus())));
+                            FileDownloadUtils.formatString("Task[%d] can't start the download" +
+                                            " runnable, because its status is %d not %d",
+                                    getId(), model.getStatus(), FileDownloadStatus.pending)));
                 }
 
                 return;
