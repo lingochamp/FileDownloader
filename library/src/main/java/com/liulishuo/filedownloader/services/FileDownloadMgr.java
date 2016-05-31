@@ -132,10 +132,10 @@ class FileDownloadMgr {
                 break;
             }
 
-            if (checkReuse(downloadId, model)) {
-                break;
-            }
-
+            /**
+             * The task doesn't need to ensure whether it has already downloaded in here,
+             * because it has already handled in  {@link FileDownloadTask#_checkCanReuse()}.
+             */
             needStart = true;
 
         } while (false);
