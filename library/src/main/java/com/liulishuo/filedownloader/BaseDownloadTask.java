@@ -77,7 +77,10 @@ public abstract class BaseDownloadTask {
      * by {@link android.os.Handler#post(Runnable)}
      */
     private boolean syncCallback = false;
+
+    public final static int DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS = 10;
     private int callbackProgressTimes = FileDownloadModel.DEFAULT_CALLBACK_PROGRESS_TIMES;
+    private int callbackProgressMinIntervalMillis = DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS;
 
     private boolean isForceReDownload = false;
 
@@ -145,15 +148,48 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * Set maximal callback times on
-     * callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     * Set the maximal callback count of
+     * {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} during the entire process
+     * of downloading.
+     * <p>
+     * Note: this function will not work if the URL is refer to 'chucked' resource.
      *
-     * @param callbackProgressTimes Maximal callback progress status times,
-     *                              Default 100, <=0 will not have any progress callback
+     * @param callbackProgressCount The maximal callback count of
+     *                              {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     *                              during the entire process of downloading.
+     *                              Default value is 100, If the value less than or equal to 0, you
+     *                              will not receive any callback of
+     *                              {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     *                              .
+     * @see #setCallbackProgressMinInterval(int)
      */
-    public BaseDownloadTask setCallbackProgressTimes(int callbackProgressTimes) {
-        this.callbackProgressTimes = callbackProgressTimes;
+    public BaseDownloadTask setCallbackProgressTimes(int callbackProgressCount) {
+        this.callbackProgressTimes = callbackProgressCount;
         return this;
+    }
+
+    /**
+     * Set the minimum time interval between each callback of
+     * {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}.
+     *
+     * @param minIntervalMillis The minimum time bytes interval between each callback of
+     *                          {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     *                          Unit: millisecond.
+     *                          Default value is {@link #DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS}.
+     *                          Scope: [5, {@link Integer#MAX_VALUE}
+     * @see #setCallbackProgressTimes(int)
+     */
+    public BaseDownloadTask setCallbackProgressMinInterval(int minIntervalMillis) {
+        this.callbackProgressMinIntervalMillis = minIntervalMillis;
+        return this;
+    }
+
+    /**
+     * Ignore all callbacks of {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     * during the entire process of downloading.
+     */
+    public BaseDownloadTask setCallbackProgressIgnored() {
+        return setCallbackProgressTimes(-1);
     }
 
     /**
@@ -501,11 +537,20 @@ public abstract class BaseDownloadTask {
     }
 
     /**
-     * @return maximal callback times on
-     * callback {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
+     * @return The maximal callback count of
+     * {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} during the entire process
+     * of downloading.
      */
     public int getCallbackProgressTimes() {
         return callbackProgressTimes;
+    }
+
+    /**
+     * @return The minimum time interval between each callback of
+     * {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} .
+     */
+    public int getCallbackProgressMinInterval() {
+        return callbackProgressMinIntervalMillis;
     }
 
     /**

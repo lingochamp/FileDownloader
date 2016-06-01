@@ -46,12 +46,15 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
     private final static Class<?> SERVICE_CLASS = SharedMainProcessService.class;
 
     @Override
-    public boolean startDownloader(String url, String path, int callbackProgressTimes, int autoRetryTimes, FileDownloadHeader header) {
+    public boolean startDownloader(String url, String path, int callbackProgressTimes,
+                                   int callbackProgressMinIntervalMillis,
+                                   int autoRetryTimes, FileDownloadHeader header) {
         if (handler == null) {
             return false;
         }
 
-        handler.start(url, path, callbackProgressTimes, autoRetryTimes, header);
+        handler.start(url, path, callbackProgressTimes, callbackProgressMinIntervalMillis,
+                autoRetryTimes, header);
         return true;
     }
 

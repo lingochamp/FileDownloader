@@ -31,7 +31,9 @@ import java.util.List;
  */
 public interface IFileDownloadServiceProxy {
     boolean startDownloader(final String url, final String path,
-                            final int callbackProgressTimes, final int autoRetryTimes,
+                            final int callbackProgressTimes,
+                            final int callbackProgressMinIntervalMillis,
+                            final int autoRetryTimes,
                             final FileDownloadHeader header);
 
     boolean pauseDownloader(final int downloadId);

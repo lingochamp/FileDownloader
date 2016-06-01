@@ -19,7 +19,9 @@ interface IFileDownloadIPCService {
     // and in this way(not is `oneway`), we can block the download before its launch only
     // by {@link FileDownloadEventPool#shutdownSendPool} according to the context, because it
     // will execute sync on the {@link FileDownloadEventPool#sendPool}
-    void start(String url, String path, int callbackProgressTimes, int autoRetryTimes, in FileDownloadHeader header);
+    void start(String url, String path, int callbackProgressTimes,
+                int callbackProgressMinIntervalMillis, int autoRetryTimes,
+                in FileDownloadHeader header);
     boolean pause(int downloadId);
     void pauseAllTasks();
 

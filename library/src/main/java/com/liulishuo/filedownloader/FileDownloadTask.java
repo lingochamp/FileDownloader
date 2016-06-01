@@ -83,7 +83,7 @@ class FileDownloadTask extends BaseDownloadTask {
                 startDownloader(
                         getUrl(),
                         getPath(),
-                        getCallbackProgressTimes(),
+                        getCallbackProgressTimes(), getCallbackProgressMinInterval(),
                         getAutoRetryTimes(),
                         getHeader());
 

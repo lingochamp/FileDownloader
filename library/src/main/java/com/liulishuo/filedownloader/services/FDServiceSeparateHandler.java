@@ -21,12 +21,12 @@ import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 
-import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -62,7 +62,7 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
         return n;
     }
 
-    FDServiceSeparateHandler( WeakReference<FileDownloadService> wService) {
+    FDServiceSeparateHandler(WeakReference<FileDownloadService> wService) {
         this.wService = wService;
         this.downloadManager = new FileDownloadMgr(FileDownloadHelper.getOkHttpClient());
 
@@ -95,9 +95,11 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
-    public void start(String url, String path, int callbackProgressTimes, int autoRetryTimes,
+    public void start(String url, String path, int callbackProgressTimes,
+                      int callbackProgressMinIntervalMillis, int autoRetryTimes,
                       FileDownloadHeader header) throws RemoteException {
-        downloadManager.start(url, path, callbackProgressTimes, autoRetryTimes, header);
+        downloadManager.start(url, path, callbackProgressTimes, callbackProgressMinIntervalMillis,
+                autoRetryTimes, header);
     }
 
     @Override

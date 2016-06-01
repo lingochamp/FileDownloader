@@ -38,6 +38,7 @@ public class FileDownloadQueueSet {
     private Boolean syncCallback;
     private Boolean isForceReDownload;
     private Integer callbackProgressTimes;
+    private Integer callbackProgressMinIntervalMillis;
     private Object tag;
 
     private BaseDownloadTask[] tasks;
@@ -125,6 +126,10 @@ public class FileDownloadQueueSet {
                 task.setCallbackProgressTimes(callbackProgressTimes);
             }
 
+            if (callbackProgressMinIntervalMillis != null) {
+                task.setCallbackProgressMinInterval(callbackProgressMinIntervalMillis);
+            }
+
             if (tag != null) {
                 task.setTag(tag);
             }
@@ -167,6 +172,22 @@ public class FileDownloadQueueSet {
      */
     public FileDownloadQueueSet setCallbackProgressTimes(final int callbackProgressTimes) {
         this.callbackProgressTimes = callbackProgressTimes;
+        return this;
+    }
+
+    /**
+     * @see BaseDownloadTask#setCallbackProgressMinInterval(int)
+     */
+    public FileDownloadQueueSet setCallbackProgressMinInterval(int minIntervalMillis) {
+        this.callbackProgressMinIntervalMillis = minIntervalMillis;
+        return this;
+    }
+
+    /**
+     * @see BaseDownloadTask#setCallbackProgressIgnored()
+     */
+    public FileDownloadQueueSet ignoreEachTaskInternalProgress() {
+        setCallbackProgressTimes(-1);
         return this;
     }
 

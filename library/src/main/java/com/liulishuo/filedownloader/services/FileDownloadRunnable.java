@@ -68,11 +68,15 @@ public class FileDownloadRunnable implements Runnable {
      * ranges or an excessive request of small or overlapping ranges.
      */
     private static final int HTTP_REQUESTED_RANGE_NOT_SATISFIABLE = 416;
+    private static final int NO_ANY_PROGRESS_CALLBACK = -1;
+    private static final int TOTAL_VALUE_IN_CHUNKED_RESOURCE = -1;
 
+
+    private static final int CALLBACK_SAFE_MIN_INTERVAL_BYTES = 1;//byte
+    private static final int CALLBACK_SAFE_MIN_INTERVAL_MILLIS = 5;//ms
 
     private static final int BUFFER_SIZE = 1024 * 4;
 
-    private long progressThresholdBytes;
     private int maxProgressCount = 0;
     private boolean isResumeDownloadAvailable;
     private boolean isResuming;
@@ -92,9 +96,12 @@ public class FileDownloadRunnable implements Runnable {
 
     private volatile boolean isCanceled = false;
 
+    private final int callbackMinIntervalMillis;
+    private long callbackMinIntervalBytes;
+
     public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model,
                                 final IFileDownloadDBHelper helper, final int autoRetryTimes,
-                                final FileDownloadHeader header) {
+                                final FileDownloadHeader header, final int minIntervalMillis) {
         isPending = true;
         isRunning = false;
 
@@ -102,8 +109,11 @@ public class FileDownloadRunnable implements Runnable {
         this.helper = helper;
         this.header = header;
 
+        this.callbackMinIntervalMillis =
+                minIntervalMillis < CALLBACK_SAFE_MIN_INTERVAL_MILLIS ?
+                        CALLBACK_SAFE_MIN_INTERVAL_MILLIS : minIntervalMillis;
+
         maxProgressCount = model.getCallbackProgressTimes();
-        maxProgressCount = maxProgressCount <= 0 ? 0 : maxProgressCount;
 
         this.isResumeDownloadAvailable = false;
 
@@ -252,7 +262,7 @@ public class FileDownloadRunnable implements Runnable {
                             total = response.body().contentLength();
                         } else {
                             // if transfer not nil, ignore content-length
-                            total = -1;
+                            total = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
                         }
                     }
 
@@ -266,7 +276,7 @@ public class FileDownloadRunnable implements Runnable {
                             if (FileDownloadProperties.getImpl().HTTP_LENIENT) {
                                 // do not response content-length either not chunk transfer encoding,
                                 // but HTTP lenient is true, so handle as the case of transfer encoding chunk
-                                total = -1;
+                                total = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
                                 if (FileDownloadLog.NEED_LOG) {
                                     FileDownloadLog.d(this, "%d response header is not legal but " +
                                             "HTTP lenient is true, so handle as the case of " +
@@ -353,7 +363,8 @@ public class FileDownloadRunnable implements Runnable {
             // Step 1, get input stream
             inputStream = response.body().byteStream();
             byte[] buff = new byte[BUFFER_SIZE];
-            progressThresholdBytes = maxProgressCount <= 0 ? -1 : total / (maxProgressCount + 1);
+
+            callbackMinIntervalBytes = calculateCallbackMinIntervalBytes(total, maxProgressCount);
 
             // enter fetching loop(Step 2->6)
             do {
@@ -390,7 +401,7 @@ public class FileDownloadRunnable implements Runnable {
 
 
             // Step 7, adapter chunked transfer encoding
-            if (total == -1) {
+            if (total == TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
                 total = soFar;
             }
 
@@ -419,6 +430,17 @@ public class FileDownloadRunnable implements Runnable {
                     accessFile.close();
                 }
             }
+        }
+    }
+
+    private long calculateCallbackMinIntervalBytes(final long total, final long maxProgressCount) {
+        if (maxProgressCount <= 0) {
+            return NO_ANY_PROGRESS_CALLBACK;
+        } else if (total == TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
+            return CALLBACK_SAFE_MIN_INTERVAL_BYTES;
+        } else {
+            final long minIntervalBytes = total / (maxProgressCount + 1);
+            return minIntervalBytes <= 0 ? CALLBACK_SAFE_MIN_INTERVAL_BYTES : minIntervalBytes;
         }
     }
 
@@ -490,7 +512,8 @@ public class FileDownloadRunnable implements Runnable {
         onStatusChanged(model.getStatus());
     }
 
-    private long lastProgressBytes = 0;
+    private long lastCallbackBytes = 0;
+    private long lastCallbackTime = 0;
 
     private long lastUpdateBytes = 0;
     private long lastUpdateTime = 0;
@@ -501,9 +524,9 @@ public class FileDownloadRunnable implements Runnable {
             return;
         }
 
-        long now = SystemClock.elapsedRealtime();
-        long bytesDelta = soFar - lastUpdateBytes;
-        long timeDelta = now - lastUpdateTime;
+        final long now = SystemClock.elapsedRealtime();
+        final long bytesDelta = soFar - lastUpdateBytes;
+        final long timeDelta = now - lastUpdateTime;
 
         if (bytesDelta > FileDownloadUtils.getMinProgressStep() &&
                 timeDelta > FileDownloadUtils.getMinProgressTime()) {
@@ -522,12 +545,21 @@ public class FileDownloadRunnable implements Runnable {
             model.setSoFar(soFar);
         }
 
-        if (progressThresholdBytes < 0 ||
-                soFar - lastProgressBytes < progressThresholdBytes) {
+        final long callbackBytesDelta = soFar - lastCallbackBytes;
+        final long callbackTimeDelta = now - lastCallbackTime;
+
+        if (callbackMinIntervalBytes == NO_ANY_PROGRESS_CALLBACK ||
+                callbackBytesDelta < callbackMinIntervalBytes) {
             return;
         }
 
-        lastProgressBytes = soFar;
+        if (callbackTimeDelta < callbackMinIntervalMillis) {
+            return;
+        }
+
+        lastCallbackTime = now;
+        lastCallbackBytes = soFar;
+
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "On progress %d %d %d", getId(), soFar, total);
         }
@@ -714,7 +746,7 @@ public class FileDownloadRunnable implements Runnable {
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
          * in {@link #getRandomAccessFile(boolean, long)}.
          */
-        if (model.getTotal() == -1 && ex instanceof IOException &&
+        if (model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE && ex instanceof IOException &&
                 new File(model.getPath()).exists()) {
             // chunked
             final long freeSpaceBytes = FileDownloadUtils.

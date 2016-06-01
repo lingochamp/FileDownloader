@@ -22,8 +22,8 @@ import android.os.RemoteException;
 
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
-import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
@@ -92,14 +92,16 @@ class FileDownloadServiceUIGuard extends
      */
     @Override
     public boolean startDownloader(final String url, final String path,
-                                   final int callbackProgressTimes, final int autoRetryTimes,
-                                   final FileDownloadHeader header) {
+                                   final int callbackProgressTimes,
+                                   final int callbackProgressMinIntervalMillis,
+                                   final int autoRetryTimes, final FileDownloadHeader header) {
         if (getService() == null) {
             return false;
         }
 
         try {
-            getService().start(url, path, callbackProgressTimes, autoRetryTimes, header);
+            getService().start(url, path, callbackProgressTimes, callbackProgressMinIntervalMillis,
+                    autoRetryTimes, header);
         } catch (RemoteException e) {
             e.printStackTrace();
 

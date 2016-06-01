@@ -40,7 +40,7 @@ import okhttp3.OkHttpClient;
  * <p/>
  * The Download Manager in FileDownloadService, which is used to control all download-inflow.
  * <p/>
- * Handling real {@link #start(String, String, int, int, FileDownloadHeader)}; Handing real
+ * Handling real {@link #start(String, String, int, int, int, FileDownloadHeader)}; Handing real
  * {@link #checkReuse(int, FileDownloadModel)} (int, FileDownloadModel)}
  *
  * @see FileDownloadThreadPool
@@ -67,7 +67,9 @@ class FileDownloadMgr {
 
 
     // synchronize for safe: check downloading, check resume, update data, execute runnable
-    public synchronized void start(final String url, final String path, final int callbackProgressTimes,
+    public synchronized void start(final String url, final String path,
+                                   final int callbackProgressTimes,
+                                   final int callbackProgressMinIntervalMillis,
                                    final int autoRetryTimes, final FileDownloadHeader header) {
         final int id = FileDownloadUtils.generateId(url, path);
         FileDownloadModel model = mHelper.find(id);
@@ -115,7 +117,8 @@ class FileDownloadMgr {
         }
 
         // - execute
-        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes, header));
+        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes, header,
+                callbackProgressMinIntervalMillis));
 
     }
 
