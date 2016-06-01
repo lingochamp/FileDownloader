@@ -41,7 +41,6 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.io.SyncFailedException;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 
 import okhttp3.CacheControl;
 import okhttp3.Call;
@@ -575,7 +574,7 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         ex = exFiltrate(ex);
-        helper.updateRetry(model, ex.getMessage());
+        helper.updateRetry(model, ex);
 
         this.throwable = ex;
         this.retryingTimes = retryTimes;
@@ -589,7 +588,7 @@ public class FileDownloadRunnable implements Runnable {
         }
 
         ex = exFiltrate(ex);
-        helper.updateError(model, ex.getMessage(), model.getSoFar());
+        helper.updateError(model, ex, model.getSoFar());
 
         this.throwable = ex;
 
@@ -770,13 +769,6 @@ public class FileDownloadRunnable implements Runnable {
                             downloadedSize);
                 }
 
-            }
-        }
-
-        // Provide the exception message.
-        else if (TextUtils.isEmpty(ex.getMessage())) {
-            if (ex instanceof SocketTimeoutException) {
-                ex = new RuntimeException(ex.getClass().getSimpleName(), ex);
             }
         }
 

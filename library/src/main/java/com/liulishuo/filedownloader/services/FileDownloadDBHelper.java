@@ -231,7 +231,9 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateError(FileDownloadModel model, String errMsg, long sofar) {
+    public void updateError(FileDownloadModel model, Throwable throwable, long sofar) {
+        final String errMsg = throwable.toString();
+
         model.setStatus(FileDownloadStatus.error);
         model.setErrMsg(errMsg);
         model.setSoFar(sofar);
@@ -245,7 +247,9 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateRetry(FileDownloadModel model, String errMsg) {
+    public void updateRetry(FileDownloadModel model, Throwable throwable) {
+        final String errMsg = throwable.toString();
+
         model.setStatus(FileDownloadStatus.retry);
         model.setErrMsg(errMsg);
 

@@ -48,9 +48,9 @@ interface IFileDownloadDBHelper {
 
     void updateProgress(final FileDownloadModel model, final long soFar);
 
-    void updateError(final FileDownloadModel model, final String errMsg, final long sofar);
+    void updateError(final FileDownloadModel model, final Throwable throwable, final long sofar);
 
-    void updateRetry(final FileDownloadModel model, final String errMsg);
+    void updateRetry(final FileDownloadModel model, final Throwable throwable);
 
     void updateComplete(final FileDownloadModel model, final long total);
 
