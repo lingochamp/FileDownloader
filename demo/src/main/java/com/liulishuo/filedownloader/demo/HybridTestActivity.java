@@ -202,7 +202,7 @@ public class HybridTestActivity extends AppCompatActivity {
             protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
                 super.retry(task, ex, retryingTimes, soFarBytes);
                 updateDisplay(String.format("[retry] id[%d] %s %d %d",
-                        task.getId(), ex.getMessage(), retryingTimes, soFarBytes));
+                        task.getId(), ex, retryingTimes, soFarBytes));
             }
 
             @Override
@@ -226,7 +226,7 @@ public class HybridTestActivity extends AppCompatActivity {
                 finalCounts++;
                 updateDisplay(Html.fromHtml(String.format("[error] id[%d] %s %s",
                         task.getId(),
-                        e.getMessage(),
+                        e,
                         FileDownloadUtils.getStack(e.getStackTrace(), false))));
 
                 updateDisplay(String.format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %d", (Integer) task.getTag()));

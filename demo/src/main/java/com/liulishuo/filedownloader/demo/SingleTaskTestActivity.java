@@ -229,7 +229,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         }
 
         public void updateError(final Throwable ex, final int speed) {
-            toast(String.format("error %d %s", position, ex.getMessage()));
+            toast(String.format("error %d %s", position, ex));
             updateSpeed(speed);
             pb.setIndeterminate(false);
         }
