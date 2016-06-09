@@ -35,10 +35,44 @@ class FileDownloadThreadPool {
 
     private SparseArray<FileDownloadRunnable> runnablePool = new SparseArray<>();
 
-    private final ThreadPoolExecutor threadPool =
-            (ThreadPoolExecutor) Executors.
-                    newFixedThreadPool(FileDownloadProperties.getImpl().
-                            DOWNLOAD_MAX_NETWORK_THREAD_COUNT);
+    private ThreadPoolExecutor threadPool;
+
+    FileDownloadThreadPool(int maxNetworkThreadCount) {
+        if (maxNetworkThreadCount == 0) {
+            maxNetworkThreadCount = FileDownloadProperties.getImpl().DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
+        } else {
+            maxNetworkThreadCount = FileDownloadProperties.
+                    getValidNetworkThreadCount(maxNetworkThreadCount);
+        }
+
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(maxNetworkThreadCount);
+    }
+
+    public synchronized boolean setMaxNetworkThreadCount(int count) {
+        if (exactSize() > 0) {
+            FileDownloadLog.w(this, "Can't change the max network thread count, because the " +
+                    " network thread pool isn't in IDLE, please try again after all running" +
+                    " tasks are completed or invoking FileDownloader#pauseAll directly.");
+            return false;
+        }
+
+        final int validCount = FileDownloadProperties.getValidNetworkThreadCount(count);
+
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "change the max network thread count, from %d to %d",
+                    threadPool.getCorePoolSize(), validCount);
+        }
+
+        final List<Runnable> taskQueue = threadPool.shutdownNow();
+        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(validCount);
+
+        if (taskQueue.size() > 0) {
+            FileDownloadLog.w(this, "recreate the network thread pool and discard %d tasks",
+                    taskQueue.size());
+        }
+
+        return true;
+    }
 
     public void execute(FileDownloadRunnable runnable) {
         runnable.onPending();
@@ -94,7 +128,7 @@ class FileDownloadThreadPool {
         return runnable != null && runnable.isExist();
     }
 
-    public synchronized int exactSize(){
+    public synchronized int exactSize() {
         checkNoExist();
         return runnablePool.size();
     }

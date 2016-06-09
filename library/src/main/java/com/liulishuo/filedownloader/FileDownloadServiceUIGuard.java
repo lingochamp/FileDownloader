@@ -309,4 +309,19 @@ class FileDownloadServiceUIGuard extends
 
         return false;
     }
+
+    @Override
+    public boolean setMaxNetworkThreadCount(int count) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.setMaxNetworkThreadCount(count);
+        }
+
+        try {
+            return getService().setMaxNetworkThreadCount(count);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

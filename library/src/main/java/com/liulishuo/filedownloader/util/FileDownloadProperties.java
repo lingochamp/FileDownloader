@@ -203,10 +203,8 @@ public class FileDownloadProperties {
 
         //download.max-network-thread-count
         if (downloadMaxNetworkThreadCount != null) {
-            int processDownloadMaxNetworkThreadCount = Integer.valueOf(downloadMaxNetworkThreadCount);
-            processDownloadMaxNetworkThreadCount = Math.max(1, processDownloadMaxNetworkThreadCount);
-            processDownloadMaxNetworkThreadCount = Math.min(12, processDownloadMaxNetworkThreadCount);
-            DOWNLOAD_MAX_NETWORK_THREAD_COUNT = processDownloadMaxNetworkThreadCount;
+            DOWNLOAD_MAX_NETWORK_THREAD_COUNT = getValidNetworkThreadCount(
+                    Integer.valueOf(downloadMaxNetworkThreadCount));
         } else {
             DOWNLOAD_MAX_NETWORK_THREAD_COUNT = 3;
         }
@@ -223,4 +221,22 @@ public class FileDownloadProperties {
         }
     }
 
+    public static int getValidNetworkThreadCount(int requireCount) {
+        int MAX_VALID_NETWORK_THREAD_COUNT = 12;
+        int MIN_VALID_NETWORK_THREAD_COUNT = 1;
+
+        if (requireCount > MAX_VALID_NETWORK_THREAD_COUNT) {
+            FileDownloadLog.w(FileDownloadProperties.class, "require the count of network thread  " +
+                            "is %d, what is more than the max valid count(%d), so adjust to %d auto",
+                    requireCount, MAX_VALID_NETWORK_THREAD_COUNT, MAX_VALID_NETWORK_THREAD_COUNT);
+            return MAX_VALID_NETWORK_THREAD_COUNT;
+        } else if (requireCount < MIN_VALID_NETWORK_THREAD_COUNT) {
+            FileDownloadLog.w(FileDownloadProperties.class, "require the count of network thread  " +
+                            "is %d, what is less than the min valid count(%d), so adjust to %d auto",
+                    requireCount, MIN_VALID_NETWORK_THREAD_COUNT, MIN_VALID_NETWORK_THREAD_COUNT);
+            return MIN_VALID_NETWORK_THREAD_COUNT;
+        }
+
+        return requireCount;
+    }
 }

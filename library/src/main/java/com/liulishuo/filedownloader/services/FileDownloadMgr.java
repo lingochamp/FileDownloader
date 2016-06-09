@@ -26,6 +26,7 @@ import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -51,10 +52,28 @@ class FileDownloadMgr {
 
     private OkHttpClient client = null;
 
-    private final FileDownloadThreadPool mThreadPool = new FileDownloadThreadPool();
+    private final FileDownloadThreadPool mThreadPool;
 
-    public FileDownloadMgr(final OkHttpClient client) {
+    public FileDownloadMgr() {
+
+        final DownloadMgrInitialParams params = FileDownloadHelper.getDownloadMgrInitialParams();
         mHelper = new FileDownloadDBHelper();
+
+        final OkHttpClient client;
+        final int maxNetworkThreadCount;
+        if (params != null) {
+            client = params.makeCustomOkHttpClient();
+            maxNetworkThreadCount = params.getMaxNetworkThreadCount();
+        } else {
+            client = null;
+            maxNetworkThreadCount = 0;
+        }
+
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "init the download manager with initialParams: " +
+                            "okhttpClient[is customize: %B], maxNetworkThreadCount[%d]",
+                    client != null, maxNetworkThreadCount);
+        }
 
         // init client
         if (this.client != client) {
@@ -63,6 +82,8 @@ class FileDownloadMgr {
             // in this case, the client must be null, see #41
             this.client = new OkHttpClient();
         }
+
+        mThreadPool = new FileDownloadThreadPool(maxNetworkThreadCount);
     }
 
 
@@ -480,6 +501,10 @@ class FileDownloadMgr {
         }
 
         return model;
+    }
+
+    public synchronized boolean setMaxNetworkThreadCount(int count) {
+        return mThreadPool.setMaxNetworkThreadCount(count);
     }
 
 }

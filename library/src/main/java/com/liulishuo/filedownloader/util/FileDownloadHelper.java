@@ -19,6 +19,8 @@ package com.liulishuo.filedownloader.util;
 import android.app.Application;
 import android.content.Context;
 
+import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
+
 import okhttp3.OkHttpClient;
 
 /**
@@ -31,9 +33,8 @@ import okhttp3.OkHttpClient;
 public class FileDownloadHelper {
 
     private static Context APP_CONTEXT;
+    private static DownloadMgrInitialParams DOWNLOAD_MANAGER_INITIAL_PARAMS;
 
-    // only effect on the ':filedownloader' progress.
-    private static OkHttpClient OK_HTTP_CLIENT;
 
     public static void holdContext(final Context context) {
         APP_CONTEXT = context;
@@ -43,12 +44,20 @@ public class FileDownloadHelper {
         return APP_CONTEXT;
     }
 
-    public static void setOkHttpClient(OkHttpClient client) {
-        OK_HTTP_CLIENT = client;
+    public static void initializeDownloadMgrParams(final OkHttpClientCustomMaker maker,
+                                                   final int maxNetworkThreadCount) {
+        if (!FileDownloadUtils.isDownloaderProcess(FileDownloadHelper.getAppContext())) {
+            throw new IllegalStateException(
+                    FileDownloadUtils.formatString("the DownloadMgrInitialParams is only " +
+                            "can be touched in the process which the download service settles on"));
+        }
+
+        DOWNLOAD_MANAGER_INITIAL_PARAMS = new DownloadMgrInitialParams(maker,
+                maxNetworkThreadCount);
     }
 
-    public static OkHttpClient getOkHttpClient() {
-        return OK_HTTP_CLIENT;
+    public static DownloadMgrInitialParams getDownloadMgrInitialParams() {
+        return DOWNLOAD_MANAGER_INITIAL_PARAMS;
     }
 
     public interface OkHttpClientCustomMaker {

@@ -41,7 +41,7 @@ import java.util.List;
  *
  * @see FileDownloadServiceUIGuard
  */
-public class FileDownloadServiceSharedTransmit implements
+class FileDownloadServiceSharedTransmit implements
         IFileDownloadServiceProxy, FileDownloadServiceSharedConnection {
 
     private final static Class<?> SERVICE_CLASS = SharedMainProcessService.class;
@@ -207,6 +207,15 @@ public class FileDownloadServiceSharedTransmit implements
         }
 
         return handler.setTaskCompleted1(taskAtomList);
+    }
+
+    @Override
+    public boolean setMaxNetworkThreadCount(int count) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.setMaxNetworkThreadCount(count);
+        }
+
+        return handler.setMaxNetworkThreadCount(count);
     }
 
     private FDServiceSharedHandler handler;

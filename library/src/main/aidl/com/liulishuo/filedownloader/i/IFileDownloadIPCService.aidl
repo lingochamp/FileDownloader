@@ -25,6 +25,8 @@ interface IFileDownloadIPCService {
     boolean pause(int downloadId);
     void pauseAllTasks();
 
+    boolean setMaxNetworkThreadCount(int count);
+
     long getSofar(int downloadId);
     long getTotal(int downloadId);
     int getStatus(int downloadId);

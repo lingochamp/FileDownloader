@@ -127,4 +127,11 @@ public class DownloadServiceNotConnectedHelper {
         return false;
     }
 
+    public static boolean setMaxNetworkThreadCount(int count) {
+        FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
+                "request set the max network thread count[%d] in the download service," +
+                        " but the download service isn't connected yet.", count);
+        return false;
+    }
+
 }

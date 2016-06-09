@@ -53,10 +53,20 @@ public class FileDownloader {
     /**
      * Just cache Application's Context
      *
-     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker)
+     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
      */
     public static void init(final Context context) {
         init(context, null);
+    }
+
+
+    /**
+     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
+     */
+    public static void init(final Context context,
+                            /** Nullable **/FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker) {
+        init(context, okHttpClientCustomMaker, 0);
+
     }
 
     /**
@@ -70,20 +80,26 @@ public class FileDownloader {
      *                                use {@link Application#getApplicationContext()}.
      * @param okHttpClientCustomMaker Nullable, For Customize {@link OkHttpClient},
      *                                Only be used on the ':filedownloader' progress.
+     * @param maxNetworkThreadCount   The max network thread count, what is the number of
+     *                                simultaneous downloads in FileDownloader.
+     *                                If this value is 0, the value will be ignored and use
+     *                                {@link FileDownloadProperties#DOWNLOAD_MAX_NETWORK_THREAD_COUNT}
+     *                                which is defined in filedownloader.properties instead.
      * @see #init(Application)
      * @see com.liulishuo.filedownloader.util.FileDownloadHelper.OkHttpClientCustomMaker
+     * @see #setMaxNetworkThreadCount(int)
      */
     public static void init(final Context context,
-                            FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker) {
+                            /** Nullable **/final FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker,
+                            /** [1,12] **/final int maxNetworkThreadCount) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(FileDownloader.class, "init Downloader");
         }
         FileDownloadHelper.holdContext(context);
 
         if (FileDownloadUtils.isDownloaderProcess(context)) {
-            if (okHttpClientCustomMaker != null) {
-                FileDownloadHelper.setOkHttpClient(okHttpClientCustomMaker.customMake());
-            }
+            FileDownloadHelper.initializeDownloadMgrParams(okHttpClientCustomMaker,
+                    maxNetworkThreadCount);
 
             try {
                 FileDownloadUtils.setMinProgressStep(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_STEP);
@@ -267,7 +283,7 @@ public class FileDownloader {
     private final static Object pauseLock = new Object();
 
     /**
-     * Pause all task
+     * Pause all tasks
      */
     public void pauseAll() {
         FileDownloadTaskLauncher.getImpl().expireAll();
@@ -527,6 +543,28 @@ public class FileDownloader {
      */
     public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
         return FileDownloadServiceProxy.getImpl().setTaskCompleted(taskAtomList);
+    }
+
+    /**
+     * Set the max network thread count, what is the number of simultaneous downloads in
+     * FileDownloader.
+     *
+     * @param count the number of simultaneous downloads, scope: [1, 12].
+     * @return whether is successful to set the max network thread count.
+     * If there are any actively executing tasks in FileDownloader, you will receive a warn
+     * priority log int the logcat and this operation would be failed.
+     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
+     */
+    public boolean setMaxNetworkThreadCount(final int count) {
+        if (!FileDownloadList.getImpl().isEmpty()) {
+            FileDownloadLog.w(this, "Can't change the max network thread count, because there " +
+                    "are actively executing tasks in FileDownloader, please try again after all" +
+                    " actively executing tasks are completed or invoking FileDownloader#pauseAll" +
+                    " directly.");
+            return false;
+        }
+
+        return FileDownloadServiceProxy.getImpl().setMaxNetworkThreadCount(count);
     }
 
     private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {

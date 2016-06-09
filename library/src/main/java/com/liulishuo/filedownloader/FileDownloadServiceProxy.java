@@ -154,4 +154,9 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
         return handler.setTaskCompleted(taskAtomList);
     }
+
+    @Override
+    public boolean setMaxNetworkThreadCount(int count) {
+        return handler.setMaxNetworkThreadCount(count);
+    }
 }

@@ -25,7 +25,6 @@ import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
-import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.lang.ref.WeakReference;
@@ -43,7 +42,7 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
 
     FDServiceSharedHandler(WeakReference<FileDownloadService> wService) {
         this.wService = wService;
-        this.downloadManager = new FileDownloadMgr(FileDownloadHelper.getOkHttpClient());
+        this.downloadManager = new FileDownloadMgr();
     }
 
     @Override
@@ -85,6 +84,11 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     @Override
     public void pauseAllTasks() {
         downloadManager.pauseAll();
+    }
+
+    @Override
+    public boolean setMaxNetworkThreadCount(int count) {
+        return downloadManager.setMaxNetworkThreadCount(count);
     }
 
     @Override

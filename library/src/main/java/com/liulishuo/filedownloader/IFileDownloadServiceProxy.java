@@ -69,4 +69,6 @@ public interface IFileDownloadServiceProxy {
     boolean setTaskCompleted(String url, String path, long totalBytes);
 
     boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList);
+
+    boolean setMaxNetworkThreadCount(int count);
 }
