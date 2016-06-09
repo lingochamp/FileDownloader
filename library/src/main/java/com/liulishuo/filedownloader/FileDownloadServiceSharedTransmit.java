@@ -26,6 +26,7 @@ import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownloadServiceSharedConnection;
 import com.liulishuo.filedownloader.services.FileDownloadService.SharedMainProcessService;
+import com.liulishuo.filedownloader.util.DownloadServiceNotConnectedHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,17 +41,17 @@ import java.util.List;
  *
  * @see FileDownloadServiceUIGuard
  */
-public class FileDownloadServiceSharedTransmit implements IFileDownloadServiceProxy,
-        FileDownloadServiceSharedConnection {
+public class FileDownloadServiceSharedTransmit implements
+        IFileDownloadServiceProxy, FileDownloadServiceSharedConnection {
 
     private final static Class<?> SERVICE_CLASS = SharedMainProcessService.class;
 
     @Override
-    public boolean startDownloader(String url, String path, int callbackProgressTimes,
-                                   int callbackProgressMinIntervalMillis,
-                                   int autoRetryTimes, FileDownloadHeader header) {
-        if (handler == null) {
-            return false;
+    public boolean start(String url, String path, int callbackProgressTimes,
+                         int callbackProgressMinIntervalMillis,
+                         int autoRetryTimes, FileDownloadHeader header) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.start(url, path);
         }
 
         handler.start(url, path, callbackProgressTimes, callbackProgressMinIntervalMillis,
@@ -59,47 +60,84 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
     }
 
     @Override
-    public boolean pauseDownloader(int downloadId) {
-        return handler.pause(downloadId);
+    public boolean pause(int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.pause(id);
+        }
+
+        return handler.pause(id);
     }
 
     @Override
-    public MessageSnapshot checkReuse(String url, String path) {
+    public MessageSnapshot isDownloaded(String url, String path) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isDownloaded(url, path);
+        }
+
         return handler.checkReuse(url, path);
     }
 
     @Override
-    public MessageSnapshot checkReuse(int id) {
+    public MessageSnapshot isDownloaded(int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isDownloaded(id);
+        }
+
         return handler.checkReuse2(id);
     }
 
     @Override
-    public boolean checkIsDownloading(String url, String path) {
+    public boolean isDownloading(String url, String path) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isDownloading(url, path);
+        }
+
         return handler.checkDownloading(url, path);
     }
 
     @Override
-    public long getSofar(int downloadId) {
-        return handler.getSofar(downloadId);
+    public long getSofar(int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.getSofar(id);
+        }
+
+        return handler.getSofar(id);
     }
 
     @Override
-    public long getTotal(int downloadId) {
-        return handler.getTotal(downloadId);
+    public long getTotal(int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.getTotal(id);
+        }
+
+        return handler.getTotal(id);
     }
 
     @Override
-    public int getStatus(int downloadId) {
-        return handler.getStatus(downloadId);
+    public int getStatus(int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.getStatus(id);
+        }
+
+        return handler.getStatus(id);
     }
 
     @Override
     public void pauseAllTasks() {
+        if (!isConnected()) {
+            DownloadServiceNotConnectedHelper.pauseAllTasks();
+            return;
+        }
+
         handler.pauseAllTasks();
     }
 
     @Override
     public boolean isIdle() {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isIdle();
+        }
+
         return handler.isIdle();
     }
 
@@ -134,22 +172,40 @@ public class FileDownloadServiceSharedTransmit implements IFileDownloadServicePr
     }
 
     @Override
-    public void startForeground(int id, Notification notification) {
-        handler.startForeground(id, notification);
+    public void startForeground(int notificationId, Notification notification) {
+        if (!isConnected()) {
+            DownloadServiceNotConnectedHelper.startForeground(notificationId, notification);
+            return;
+        }
+
+        handler.startForeground(notificationId, notification);
     }
 
     @Override
     public void stopForeground(boolean removeNotification) {
+        if (!isConnected()) {
+            DownloadServiceNotConnectedHelper.stopForeground(removeNotification);
+            return;
+        }
+
         handler.stopForeground(removeNotification);
     }
 
     @Override
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.setTaskCompleted(url, path, totalBytes);
+        }
+
         return handler.setTaskCompleted(url, path, totalBytes);
     }
 
     @Override
     public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.setTaskCompleted(taskAtomList);
+        }
+
         return handler.setTaskCompleted1(taskAtomList);
     }
 

@@ -40,10 +40,9 @@ import java.util.List;
  * <p/>
  * A UI-Guard in Main-Process for IPC. which is the only Class can access the other process in
  * Main-Process with Binder.
- *
  */
 public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE extends IInterface>
-        implements ServiceConnection, IFileDownloadServiceProxy {
+        implements IFileDownloadServiceProxy, ServiceConnection {
 
     private final CALLBACK callback;
     private INTERFACE service;

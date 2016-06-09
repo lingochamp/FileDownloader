@@ -80,7 +80,7 @@ class FileDownloadTask extends BaseDownloadTask {
     @Override
     protected void _startExecute() {
         final boolean succeed = FileDownloadServiceProxy.getImpl().
-                startDownloader(
+                start(
                         getUrl(),
                         getPath(),
                         getCallbackProgressTimes(), getCallbackProgressMinInterval(),
@@ -119,7 +119,7 @@ class FileDownloadTask extends BaseDownloadTask {
             return false;
         }
 
-        final MessageSnapshot snapshot = FileDownloadServiceProxy.getImpl().checkReuse(getId());
+        final MessageSnapshot snapshot = FileDownloadServiceProxy.getImpl().isDownloaded(getId());
         if (snapshot != null) {
             MessageSnapshotFlow.getImpl().inflow(snapshot);
             return true;
@@ -178,7 +178,15 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     protected boolean _pauseExecute() {
-        return FileDownloadServiceProxy.getImpl().pauseDownloader(getId());
+        if (!FileDownloadServiceProxy.getImpl().isConnected()) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "request pause the task[%d] to the download service, but" +
+                        " the download service isn't connected yet.", getId());
+            }
+            return false;
+        } else {
+            return FileDownloadServiceProxy.getImpl().pause(getId());
+        }
     }
 
     @Override

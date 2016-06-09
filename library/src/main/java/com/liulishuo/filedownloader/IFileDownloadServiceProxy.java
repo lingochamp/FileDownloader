@@ -30,19 +30,19 @@ import java.util.List;
  * The interface to access the FileDownloadService.
  */
 public interface IFileDownloadServiceProxy {
-    boolean startDownloader(final String url, final String path,
-                            final int callbackProgressTimes,
-                            final int callbackProgressMinIntervalMillis,
-                            final int autoRetryTimes,
-                            final FileDownloadHeader header);
+    boolean start(final String url, final String path,
+                  final int callbackProgressTimes,
+                  final int callbackProgressMinIntervalMillis,
+                  final int autoRetryTimes,
+                  final FileDownloadHeader header);
 
-    boolean pauseDownloader(final int downloadId);
+    boolean pause(final int id);
 
-    MessageSnapshot checkReuse(final String url, final String path);
+    MessageSnapshot isDownloaded(final String url, final String path);
 
-    MessageSnapshot checkReuse(final int id);
+    MessageSnapshot isDownloaded(final int id);
 
-    boolean checkIsDownloading(final String url, final String path);
+    boolean isDownloading(final String url, final String path);
 
     long getSofar(final int downloadId);
 

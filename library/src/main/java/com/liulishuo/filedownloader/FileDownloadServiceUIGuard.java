@@ -29,6 +29,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService.SeparateProcessService;
+import com.liulishuo.filedownloader.util.DownloadServiceNotConnectedHelper;
 
 import java.util.List;
 
@@ -91,12 +92,12 @@ class FileDownloadServiceUIGuard extends
      * @param header                for http header
      */
     @Override
-    public boolean startDownloader(final String url, final String path,
-                                   final int callbackProgressTimes,
-                                   final int callbackProgressMinIntervalMillis,
-                                   final int autoRetryTimes, final FileDownloadHeader header) {
-        if (getService() == null) {
-            return false;
+    public boolean start(final String url, final String path,
+                         final int callbackProgressTimes,
+                         final int callbackProgressMinIntervalMillis,
+                         final int autoRetryTimes, final FileDownloadHeader header) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.start(url, path);
         }
 
         try {
@@ -112,13 +113,13 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public boolean pauseDownloader(final int downloadId) {
-        if (getService() == null) {
-            return false;
+    public boolean pause(final int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.pause(id);
         }
 
         try {
-            return getService().pause(downloadId);
+            return getService().pause(id);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -127,9 +128,9 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public MessageSnapshot checkReuse(final String url, final String path) {
-        if (getService() == null) {
-            return null;
+    public MessageSnapshot isDownloaded(final String url, final String path) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isDownloaded(url, path);
         }
 
         try {
@@ -142,9 +143,9 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public MessageSnapshot checkReuse(final int id) {
-        if (getService() == null) {
-            return null;
+    public MessageSnapshot isDownloaded(final int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isDownloaded(id);
         }
 
         try {
@@ -157,9 +158,9 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public boolean checkIsDownloading(final String url, final String path) {
-        if (getService() == null) {
-            return false;
+    public boolean isDownloading(final String url, final String path) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isDownloading(url, path);
         }
 
         try {
@@ -172,14 +173,14 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public long getSofar(final int downloadId) {
-        long val = 0;
-        if (getService() == null) {
-            return val;
+    public long getSofar(final int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.getSofar(id);
         }
 
+        long val = 0;
         try {
-            val = getService().getSofar(downloadId);
+            val = getService().getSofar(id);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -188,14 +189,14 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public long getTotal(final int downloadId) {
-        long val = 0;
-        if (getService() == null) {
-            return val;
+    public long getTotal(final int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.getTotal(id);
         }
 
+        long val = 0;
         try {
-            val = getService().getTotal(downloadId);
+            val = getService().getTotal(id);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -204,14 +205,14 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public int getStatus(final int downloadId) {
+    public int getStatus(final int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.getStatus(id);
+        }
+
         int status = FileDownloadStatus.INVALID_STATUS;
-        if (getService() == null) {
-            return status;
-        }
-
         try {
-            status = getService().getStatus(downloadId);
+            status = getService().getStatus(id);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -221,7 +222,8 @@ class FileDownloadServiceUIGuard extends
 
     @Override
     public void pauseAllTasks() {
-        if (getService() == null) {
+        if (!isConnected()) {
+            DownloadServiceNotConnectedHelper.pauseAllTasks();
             return;
         }
 
@@ -237,8 +239,8 @@ class FileDownloadServiceUIGuard extends
      */
     @Override
     public boolean isIdle() {
-        if (getService() == null) {
-            return true;
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.isIdle();
         }
 
         try {
@@ -251,13 +253,14 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public void startForeground(int id, Notification notification) {
-        if (getService() == null) {
+    public void startForeground(int notificationId, Notification notification) {
+        if (!isConnected()) {
+            DownloadServiceNotConnectedHelper.startForeground(notificationId, notification);
             return;
         }
 
         try {
-            getService().startForeground(id, notification);
+            getService().startForeground(notificationId, notification);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -265,7 +268,8 @@ class FileDownloadServiceUIGuard extends
 
     @Override
     public void stopForeground(boolean removeNotification) {
-        if (getService() == null) {
+        if (!isConnected()) {
+            DownloadServiceNotConnectedHelper.stopForeground(removeNotification);
             return;
         }
 
@@ -278,8 +282,8 @@ class FileDownloadServiceUIGuard extends
 
     @Override
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
-        if (getService() == null) {
-            return false;
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.setTaskCompleted(url, path, totalBytes);
         }
 
         try {
@@ -293,8 +297,8 @@ class FileDownloadServiceUIGuard extends
 
     @Override
     public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
-        if (getService() == null) {
-            return false;
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.setTaskCompleted(taskAtomList);
         }
 
         try {

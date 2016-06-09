@@ -63,46 +63,46 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     }
 
     @Override
-    public boolean startDownloader(String url, String path, int callbackProgressTimes,
-                                   int callbackProgressMinIntervalMillis,
-                                   int autoRetryTimes, FileDownloadHeader header) {
-        return handler.startDownloader(url, path, callbackProgressTimes,
+    public boolean start(String url, String path, int callbackProgressTimes,
+                         int callbackProgressMinIntervalMillis,
+                         int autoRetryTimes, FileDownloadHeader header) {
+        return handler.start(url, path, callbackProgressTimes,
                 callbackProgressMinIntervalMillis, autoRetryTimes, header);
     }
 
     @Override
-    public boolean pauseDownloader(int downloadId) {
-        return handler.pauseDownloader(downloadId);
+    public boolean pause(int id) {
+        return handler.pause(id);
     }
 
     @Override
-    public MessageSnapshot checkReuse(String url, String path) {
-        return handler.checkReuse(url, path);
+    public MessageSnapshot isDownloaded(String url, String path) {
+        return handler.isDownloaded(url, path);
     }
 
     @Override
-    public MessageSnapshot checkReuse(int id) {
-        return handler.checkReuse(id);
+    public MessageSnapshot isDownloaded(int id) {
+        return handler.isDownloaded(id);
     }
 
     @Override
-    public boolean checkIsDownloading(String url, String path) {
-        return handler.checkIsDownloading(url, path);
+    public boolean isDownloading(String url, String path) {
+        return handler.isDownloading(url, path);
     }
 
     @Override
-    public long getSofar(int downloadId) {
-        return handler.getSofar(downloadId);
+    public long getSofar(int id) {
+        return handler.getSofar(id);
     }
 
     @Override
-    public long getTotal(int downloadId) {
-        return handler.getTotal(downloadId);
+    public long getTotal(int id) {
+        return handler.getTotal(id);
     }
 
     @Override
-    public int getStatus(int downloadId) {
-        return handler.getStatus(downloadId);
+    public int getStatus(int id) {
+        return handler.getStatus(id);
     }
 
     @Override
@@ -136,8 +136,8 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     }
 
     @Override
-    public void startForeground(int id, Notification notification) {
-        handler.startForeground(id, notification);
+    public void startForeground(int notificationId, Notification notification) {
+        handler.startForeground(notificationId, notification);
     }
 
     @Override
