@@ -8,7 +8,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
 
-> 本引擎依赖okhttp 3.2.0
+> 本引擎依赖okhttp 3.3.1
 
 ---
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
@@ -61,7 +61,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.3.1'
+compile 'com.liulishuo.filedownloader:library:0.3.2'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -233,6 +233,7 @@ if (parallel) {
 | --- | ---
 | init(Context) |  缓存Context，不会启动下载进程
 | init(Context, OkHttpClientCustomMaker) | 缓存Context，不会启动下载进程；在下载进程启动的时候，初始化OkHttpClient
+| init(Context, OkHttpClientCustomMaker, int) | 缓存Context，不会启动下载进程；在下载进程启动的时候，初始化OkHttpClient，并且根据提供的最大同时下载数创建网络线程线程池
 | create(url:String) | 创建一个下载任务
 | start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
@@ -254,6 +255,7 @@ if (parallel) {
 | stopForeground(removeNotification:boolean) | 取消FileDownloadService的前台模式
 | setTaskCompleted(url:String, path:String, totalBytes:long) | 用于告诉FileDownloader引擎，以指定Url与Path的任务已经通过其他方式(非FileDownloader)下载完成
 | setTaskCompleted(taskAtomList:List<FileDownloadTaskAtom>) | 用于告诉FileDownloader引擎，指定的一系列的任务都已经通过其他方式(非FileDownloader)下载完成
+| setMaxNetworkThreadCount(int) | 设置最大并行下载的数目(网络下载线程数), [1,12]
 
 
 #### Task接口说明
@@ -262,7 +264,9 @@ if (parallel) {
 | --- | ---
 | setPath(path:String) | 下载文件的存储绝对路径
 | setListener(listener:FileDownloadListener) | 设置监听，可以以相同监听组成队列
-| setCallbackProgressTimes(times:int) | 设置FileDownloadListener#progress最大回调次数
+| setCallbackProgressTimes(times:int) | 设置整个下载过程中`FileDownloadListener#progress`最大回调次数
+| setCallbackProgressIgnored() | 忽略所有的`FileDownloadListener#progress`的回调
+| setCallbackProgressMinInterval(minIntervalMillis:int) | 设置每个`FileDownloadListener#progress`之间回调间隔(ms)
 | setTag(tag:Object) | 内部不会使用，在回调的时候用户自己使用
 | setTag(key:int, tag:Object) | 用于存储任意的变量方便回调中使用，以key作为索引
 | setForceReDownload(isForceReDownload:boolean) | 强制重新下载，将会忽略检测文件是否健在
@@ -279,6 +283,7 @@ if (parallel) {
 | getId(void):int | 获取唯一Id(内部通过url与path生成)
 | getUrl(void):String | 获取下载连接
 | getCallbackProgressTimes(void):int | 获得progress最大回调次数
+| getCallbackProgressMinInterval(void):int | 获得每个progress之间的回调间隔(ms)
 | getPath(void):String | 获取下载文件存储路径
 | getListener(void):FileDownloadListener | 获取监听器
 | getSoFarBytes(void):int | 获取已经下载的字节数

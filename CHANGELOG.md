@@ -2,6 +2,32 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.3.2
+
+_2016-06-12_
+
+#### New Interfaces
+
+- Add `BaseDownloadTask#setCallbackProgressMinInterval`: Set the minimum time interval between each callback of 'progress'. Closes #167.
+- Add `FileDownloader#setMaxNetworkThreadCount`: Change the number of simultaneous downloads(the number of the simultaneously running network threads) at the code side. Closes #168.
+- Add `FileDownloader#init(Context,OkHttpClientCustomMaker,int)`: Accept initializing the number of simultaneous downloads(the number of the simultaneously running network threads) with the FileDownloadService initializes. Closes #168.
+
+#### Enhancement
+
+- Improve Robust: Ensure the minimum time interval between each callback of 'progress' is 5ms, To prevent internal callback of 'progress' too frequent happening. Closes #167.
+- Improve Practicability: Print the 'warn' priority log when a request does something in the FileDownloadService but it isn't connected yet.
+- Improve Performance: Using the `SparseArray` instead of `HashMap` for mapping all `FileDownloadModel`.
+
+#### Fix
+
+- Fix(crash): Fix provided wrong params in formatting character string when to starting download runnable occur the unexpected downloading status.
+- Fix(force-re-download): Fix the wrong logic: In the case of `BaseDownloadTask#setForceReDownload(true)` and the task has already downloaded will trigger 'warn' callback. Closes #169 .
+- Fix(class-type): Keep the class type of `SocketTimeOutException`, and no longer care about whether the message of Throwable is empty, this is very redundant.
+
+#### Others
+
+- Upgrade dependency okhttp from `3.2.0` to `3.3.1`.
+
 ## Version 0.3.1
 
 _2016-05-19_

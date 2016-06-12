@@ -2,6 +2,32 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.3.2
+
+_2016-06-12_
+
+#### 新接口
+
+- 添加 `BaseDownloadTask#setCallbackProgressMinInterval`: 用于设置每个'progress'方法回调的间隔。 Closes #167 .
+- 添加 `FileDownloader#setMaxNetworkThreadCount`: 用于设置最大同时下载的数目（最大同时运行的网络线程）。 Closes #168.
+- 添加 `FileDownloader#init(Context,OkHttpClientCustomMaker,int)`: 在下载服务初始化的时候接受设置最大同时下载数目（最大同时运行的网络线程）。 Closes #168.
+
+#### 性能与提高
+
+- 提高稳定性: 确保每个'progress'回调方法之间的最小间隔是5ms，防止对于一个任务而言'progress'回调太频繁导致'防掉帧队列'极速膨胀导致各类Action响应都延时。 Closes #167.
+- 提高实用性: 在请求的操作需要在下载服务中完成，但是还未连接上下载服务时，输出对应的'warn'级别的日志。
+- 提高性能: 使用`SparseArray`代替`HashMap`用于索引所有的`FileDownloadModel`。
+
+#### 修复
+
+- 修复(crash): 修复在某个下载任务开始下载时，发现任务的状态不正确的情况下，输出日志中提供了错误的参数类型导致的Crash。
+- 修复(强制重新下载): 修复错误逻辑导致设置`BaseDownloadTask#setForceReDownload(true)`并且任务已经下载完成会促发'warn'的回调，却没有进行强制重新下载的Bug。
+- 修复(class-type): 保持`SocketTimeOutException`的Class类型，不再关心`Throwable`的`message`是否为空。
+
+#### 其他
+
+- 所依赖的okhttp从`3.2.0`升到`3.3.1`。
+
 ## Version 0.3.1
 
 _2016-05-19_
