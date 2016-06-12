@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
+import android.util.SparseArray;
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -28,9 +29,7 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Jacksgong on 9/24/15.
@@ -44,7 +43,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
     public final static String TABLE_NAME = "filedownloader";
 
-    private final Map<Integer, FileDownloadModel> downloaderModelMap = new HashMap<>();
+    private final SparseArray<FileDownloadModel> downloaderModelMap = new SparseArray<>();
 
     public FileDownloadDBHelper() {
         FileDownloadDBOpenHelper openHelper = new FileDownloadDBOpenHelper(FileDownloadHelper.getAppContext());
