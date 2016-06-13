@@ -313,11 +313,11 @@ public class FileDownloadRunnable implements Runnable {
 
                     switch (response.code()) {
                         case HTTP_REQUESTED_RANGE_NOT_SATISFIABLE:
-                            deleteTargetFile();
+                            deleteTempFile();
                             FileDownloadLog.w(FileDownloadRunnable.class, "%d response code %d, " +
-                                            "range[%d] isn't make sense, so delete dirty file[%s]" +
+                                            "range[%d] isn't make sense, so delete the dirty file[%s]" +
                                             ", and try to redownload it from byte-0.", getId(),
-                                    response.code(), model.getSoFar(), model.getPath());
+                                    response.code(), model.getSoFar(), model.getTempPath());
                             onRetry(httpException, retryingTimes++);
                             break;
                         default:
@@ -404,9 +404,13 @@ public class FileDownloadRunnable implements Runnable {
                 total = soFar;
             }
 
-            // Step 8, complete download
+            // Step 8, Compare between the downloaded so far bytes with the total bytes.
             if (soFar == total) {
-                // callback on completed
+
+                // Step 9, rename the temp file to the completed file.
+                renameTempFile();
+
+                // callback completed
                 onComplete(total);
 
                 return true;
@@ -416,17 +420,59 @@ public class FileDownloadRunnable implements Runnable {
             }
         } finally {
             if (inputStream != null) {
+                //noinspection ThrowFromFinallyBlock
                 inputStream.close();
             }
 
             try {
                 if (fd != null) {
+                    //noinspection ThrowFromFinallyBlock
                     fd.sync();
                 }
             } finally {
                 //noinspection ConstantConditions
                 if (accessFile != null) {
+                    //noinspection ThrowFromFinallyBlock
                     accessFile.close();
+                }
+            }
+        }
+    }
+
+    private void renameTempFile() {
+        final String tempPath = model.getTempPath();
+        final String targetPath = model.getPath();
+
+        final File tempFile = new File(tempPath);
+        try {
+            final File targetFile = new File(targetPath);
+
+            if (targetFile.exists()) {
+                final long oldTargetFileLength = targetFile.length();
+                if (!targetFile.delete()) {
+                    throw new IllegalStateException(FileDownloadUtils.formatString(
+                            "Can't delete the old file([%s], [%d]), " +
+                                    "so can't replace it with the new downloaded one.",
+                            targetPath, oldTargetFileLength
+                    ));
+                } else {
+                    FileDownloadLog.w(this, "The target file([%s], [%d]) will be replaced with" +
+                                    " the new downloaded file[%d]",
+                            targetPath, oldTargetFileLength, tempFile.length());
+                }
+            }
+
+            if (!tempFile.renameTo(targetFile)) {
+                throw new IllegalStateException(FileDownloadUtils.formatString(
+                        "Can't rename the  temp downloaded file(%s) to the target file(%s)",
+                        tempPath, targetPath
+                ));
+            }
+        } finally {
+            if (tempFile.exists()) {
+                if (!tempFile.delete()) {
+                    FileDownloadLog.w(this, "delete the temp file(%s) failed, on completed downloading.",
+                            tempPath);
                 }
             }
         }
@@ -671,24 +717,24 @@ public class FileDownloadRunnable implements Runnable {
     // ----------------------------------
     private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes)
             throws IOException {
-        final String path = model.getPath();
-        if (TextUtils.isEmpty(path)) {
+        final String tempPath = model.getTempPath();
+        if (TextUtils.isEmpty(tempPath)) {
             throw new RuntimeException("found invalid internal destination path, empty");
         }
 
         //noinspection ConstantConditions
-        if (!FileDownloadUtils.isFilenameValid(path)) {
+        if (!FileDownloadUtils.isFilenameValid(tempPath)) {
             throw new RuntimeException(
                     FileDownloadUtils.formatString("found invalid internal destination filename" +
-                            " %s", path));
+                            " %s", tempPath));
         }
 
-        File file = new File(path);
+        File file = new File(tempPath);
 
         if (file.exists() && file.isDirectory()) {
             throw new RuntimeException(
                     FileDownloadUtils.formatString("found invalid internal destination path[%s]," +
-                            " & path is directory[%B]", path, file.isDirectory()));
+                            " & path is directory[%B]", tempPath, file.isDirectory()));
         }
         if (!file.exists()) {
             if (!file.createNewFile()) {
@@ -705,7 +751,7 @@ public class FileDownloadRunnable implements Runnable {
             final long breakpointBytes = outFd.length();
             final long requiredSpaceBytes = totalBytes - breakpointBytes;
 
-            final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(path);
+            final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(tempPath);
 
             if (freeSpaceBytes < requiredSpaceBytes) {
                 outFd.close();
@@ -730,30 +776,30 @@ public class FileDownloadRunnable implements Runnable {
             this.isResumeDownloadAvailable = true;
         } else {
             this.isResumeDownloadAvailable = false;
-            deleteTargetFile();
+            deleteTempFile();
         }
     }
 
-    private void deleteTargetFile() {
-        File file = new File(model.getPath());
+    private void deleteTempFile() {
         //noinspection ResultOfMethodCallIgnored
-        file.delete();
+        new File(model.getTempPath()).delete();
     }
 
     private Throwable exFiltrate(Throwable ex) {
+        final String tempPath = model.getTempPath();
         /**
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
          * in {@link #getRandomAccessFile(boolean, long)}.
          */
         if (model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE && ex instanceof IOException &&
-                new File(model.getPath()).exists()) {
+                new File(tempPath).exists()) {
             // chunked
             final long freeSpaceBytes = FileDownloadUtils.
-                    getFreeSpaceBytes(model.getPath());
+                    getFreeSpaceBytes(tempPath);
             if (freeSpaceBytes <= BUFFER_SIZE) {
                 // free space is not enough.
                 long downloadedSize = 0;
-                final File file = new File(model.getPath());
+                final File file = new File(tempPath);
                 if (!file.exists()) {
                     FileDownloadLog.e(FileDownloadRunnable.class, ex, "Exception with: free " +
                             "space isn't enough, and the target file not exist.");

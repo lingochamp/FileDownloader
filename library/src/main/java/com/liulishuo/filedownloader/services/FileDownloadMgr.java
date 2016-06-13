@@ -219,6 +219,11 @@ class FileDownloadMgr {
      * @return can resume by break point
      */
     public static boolean checkBreakpointAvailable(final int downloadId, final FileDownloadModel model) {
+        return checkBreakpointAvailable(downloadId, model, model.getTempPath());
+    }
+
+    public static boolean checkBreakpointAvailable(final int downloadId, final FileDownloadModel model,
+                                                   final String path) {
         boolean result = false;
 
         do {
@@ -229,7 +234,7 @@ class FileDownloadMgr {
                 break;
             }
 
-            File file = new File(model.getPath());
+            File file = new File(path);
             final boolean isExists = file.exists();
             final boolean isDirectory = file.isDirectory();
 

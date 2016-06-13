@@ -28,6 +28,7 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,10 +54,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
         refreshDataFromDB();
     }
 
-    @Override
-    public void refreshDataFromDB() {
-        // TODO 优化，分段加载，数据多了以后
-        // TODO 自动清理一个月前的数据
+    private void refreshDataFromDB() {
         long start = System.currentTimeMillis();
         Cursor c = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
 
@@ -81,24 +79,41 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                     model.setStatus(FileDownloadStatus.paused);
                 }
 
+
+                if (model.getStatus() == FileDownloadStatus.paused &&
+                        FileDownloadMgr.checkBreakpointAvailable(model.getId(), model,
+                                model.getPath())) {
+                    // can be reused in the old mechanism(no-temp-file).
+
+                    final File tempFile = new File(model.getTempPath());
+                    final File targetFile = new File(model.getPath());
+
+                    if (!tempFile.exists() && targetFile.exists()) {
+                        final boolean successRename = targetFile.renameTo(tempFile);
+                        if (FileDownloadLog.NEED_LOG) {
+                            FileDownloadLog.d(this,
+                                    "resume from the old no-temp-file architecture [%B], [%s]->[%s]",
+                                    successRename, targetFile.getPath(), tempFile.getPath());
+
+                        }
+                    }
+                }
+
                 // consider check in new thread, but SQLite lock | file lock aways effect, so sync
                 if (model.getStatus() == FileDownloadStatus.pending) {
-                    //脏数据 在数据库中是pending或是progress，说明是之前
                     dirtyList.add(model.getId());
-                } else if (!FileDownloadMgr.checkReuse(model.getId(), model)
-                        && !FileDownloadMgr.checkBreakpointAvailable(model.getId(), model)) {
-                    // can't use to reuse old file & can't use to resume form break point
+                } else if (!FileDownloadMgr.checkReuse(model.getId(), model) &&
+                        !FileDownloadMgr.checkBreakpointAvailable(model.getId(), model)) {
+                    // can't reuse old file & can't resume form break point
                     // = dirty
                     dirtyList.add(model.getId());
+                } else {
+                    downloaderModelMap.put(model.getId(), model);
                 }
-                downloaderModelMap.put(model.getId(), model);
+
             }
         } finally {
             c.close();
-
-            for (Integer integer : dirtyList) {
-                downloaderModelMap.remove(integer);
-            }
 
             // db
             if (dirtyList.size() > 0) {
@@ -106,6 +121,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(this, "delete %s", args);
                 }
+                //noinspection ThrowFromFinallyBlock
                 db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
                         TABLE_NAME, FileDownloadModel.ID, args));
             }

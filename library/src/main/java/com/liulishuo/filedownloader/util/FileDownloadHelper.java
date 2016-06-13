@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.util;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 
@@ -32,6 +33,7 @@ import okhttp3.OkHttpClient;
  */
 public class FileDownloadHelper {
 
+    @SuppressLint("StaticFieldLeak")
     private static Context APP_CONTEXT;
     private static DownloadMgrInitialParams DOWNLOAD_MANAGER_INITIAL_PARAMS;
 

@@ -28,8 +28,6 @@ import java.util.List;
  */
 interface IFileDownloadDBHelper {
 
-    void refreshDataFromDB();
-
     /**
      * @param id download id
      */

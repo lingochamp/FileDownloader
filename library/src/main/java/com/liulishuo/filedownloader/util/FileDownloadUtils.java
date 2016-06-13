@@ -145,19 +145,14 @@ public class FileDownloadUtils {
         DEFAULT_SAVE_ROOT_PATH = path;
     }
 
-//    public static Integer getActiveNetworkType(final Context context) {
-//        ConnectivityManager connectivity = (ConnectivityManager) context
-//                .getSystemService(Context.CONNECTIVITY_SERVICE);
-//        if (connectivity == null) {
-//            return null;
-//        }
-//
-//        NetworkInfo activeInfo = connectivity.getActiveNetworkInfo();
-//        if (activeInfo == null) {
-//            return null;
-//        }
-//        return activeInfo.getType();
-//    }
+    /**
+     * @param targetPath The target path for the download task.
+     * @return The temp path is {@code targetPath} in downloading status; The temp path is used for
+     * storing the file not completed downloaded yet.
+     */
+    public static String getTempPath(final String targetPath) {
+        return FileDownloadUtils.formatString("%s.temp", targetPath);
+    }
 
     public static int generateId(final String url, final String path) {
         return md5(formatString("%sp%s", url, path)).hashCode();

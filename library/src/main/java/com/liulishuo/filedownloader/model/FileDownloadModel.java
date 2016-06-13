@@ -101,6 +101,10 @@ public class FileDownloadModel {
         return path;
     }
 
+    public String getTempPath() {
+        return FileDownloadUtils.getTempPath(path);
+    }
+
     public byte getStatus() {
         return status;
     }
