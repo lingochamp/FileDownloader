@@ -362,7 +362,8 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
                     // start task, but file not created yet
                     holder.updateDownloading(status, TasksManager.getImpl().getSoFar(model.getId())
                             , TasksManager.getImpl().getTotal(model.getId()));
-                } else if (!TasksManager.getImpl().isExist(model.getId())) {
+                } else if (!new File(model.getPath()).exists() &&
+                        !new File(FileDownloadUtils.getTempPath(model.getPath())).exists()) {
                     // not exist file
                     holder.updateNotDownloaded(status, 0, 0);
                 } else if (TasksManager.getImpl().isDownloaded(status)) {
@@ -511,10 +512,6 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
          */
         public boolean isDownloaded(final int status) {
             return status == FileDownloadStatus.completed;
-        }
-
-        public boolean isExist(final int id) {
-            return new File(getById(id).getPath()).exists();
         }
 
         public int getStatus(final int id) {
