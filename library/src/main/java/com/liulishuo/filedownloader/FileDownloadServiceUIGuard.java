@@ -26,12 +26,9 @@ import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService.SeparateProcessService;
 import com.liulishuo.filedownloader.util.DownloadServiceNotConnectedHelper;
-
-import java.util.List;
 
 
 /**
@@ -128,36 +125,6 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public MessageSnapshot isDownloaded(final String url, final String path) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.isDownloaded(url, path);
-        }
-
-        try {
-            return getService().checkReuse(url, path);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    @Override
-    public MessageSnapshot isDownloaded(final int id) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.isDownloaded(id);
-        }
-
-        try {
-            return getService().checkReuse2(id);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    @Override
     public boolean isDownloading(final String url, final String path) {
         if (!isConnected()) {
             return DownloadServiceNotConnectedHelper.isDownloading(url, path);
@@ -205,12 +172,12 @@ class FileDownloadServiceUIGuard extends
     }
 
     @Override
-    public int getStatus(final int id) {
+    public byte getStatus(final int id) {
         if (!isConnected()) {
             return DownloadServiceNotConnectedHelper.getStatus(id);
         }
 
-        int status = FileDownloadStatus.INVALID_STATUS;
+        byte status = FileDownloadStatus.INVALID_STATUS;
         try {
             status = getService().getStatus(id);
         } catch (RemoteException e) {
@@ -278,36 +245,6 @@ class FileDownloadServiceUIGuard extends
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public boolean setTaskCompleted(String url, String path, long totalBytes) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.setTaskCompleted(url, path, totalBytes);
-        }
-
-        try {
-            return getService().setTaskCompleted(url, path, totalBytes);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.setTaskCompleted(taskAtomList);
-        }
-
-        try {
-            return getService().setTaskCompleted1(taskAtomList);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        return false;
     }
 
     @Override

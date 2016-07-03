@@ -166,14 +166,12 @@ public class SmallMessageSnapshot extends MessageSnapshot {
 
     public static class CompletedSnapshot extends SmallMessageSnapshot {
         private boolean reusedDownloadedFile;
-        private String etag;
         private int totalBytes;
 
-        CompletedSnapshot(int id, byte status, boolean reusedDownloadedFile, String etag,
+        CompletedSnapshot(int id, byte status, boolean reusedDownloadedFile,
                           int totalBytes) {
             super(id, status);
             this.reusedDownloadedFile = reusedDownloadedFile;
-            this.etag = etag;
             this.totalBytes = totalBytes;
         }
 
@@ -186,20 +184,13 @@ public class SmallMessageSnapshot extends MessageSnapshot {
         public void writeToParcel(Parcel dest, int flags) {
             super.writeToParcel(dest, flags);
             dest.writeByte(reusedDownloadedFile ? (byte) 1 : (byte) 0);
-            dest.writeString(this.etag);
             dest.writeInt(this.totalBytes);
         }
 
         CompletedSnapshot(Parcel in) {
             super(in);
             this.reusedDownloadedFile = in.readByte() != 0;
-            this.etag = in.readString();
             this.totalBytes = in.readInt();
-        }
-
-        @Override
-        public String getEtag() {
-            return etag;
         }
 
         @Override

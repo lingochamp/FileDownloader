@@ -18,11 +18,7 @@ package com.liulishuo.filedownloader;
 import android.app.Notification;
 import android.content.Context;
 
-import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
-
-import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -38,17 +34,13 @@ public interface IFileDownloadServiceProxy {
 
     boolean pause(final int id);
 
-    MessageSnapshot isDownloaded(final String url, final String path);
-
-    MessageSnapshot isDownloaded(final int id);
-
     boolean isDownloading(final String url, final String path);
 
     long getSofar(final int downloadId);
 
     long getTotal(final int downloadId);
 
-    int getStatus(final int downloadId);
+    byte getStatus(final int downloadId);
 
     void pauseAllTasks();
 
@@ -65,10 +57,6 @@ public interface IFileDownloadServiceProxy {
     void startForeground(int id, Notification notification);
 
     void stopForeground(boolean removeNotification);
-
-    boolean setTaskCompleted(String url, String path, long totalBytes);
-
-    boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList);
 
     boolean setMaxNetworkThreadCount(int count);
 }

@@ -194,7 +194,6 @@ public class FileDownloadRunnable implements Runnable {
             isRunning = false;
         }
 
-
     }
 
     private void loop(FileDownloadModel model) {
@@ -409,6 +408,9 @@ public class FileDownloadRunnable implements Runnable {
 
                 // Step 9, rename the temp file to the completed file.
                 renameTempFile();
+
+                // Step 10, remove data from DB.
+                helper.remove(getId());
 
                 // callback completed
                 onComplete(total);

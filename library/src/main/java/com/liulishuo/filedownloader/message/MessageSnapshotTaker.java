@@ -23,6 +23,8 @@ import com.liulishuo.filedownloader.services.FileDownloadRunnable;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.io.File;
+
 /**
  * Created by Jacksgong on 5/1/16.
  * <p/>
@@ -31,17 +33,18 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 public class MessageSnapshotTaker {
 
     public static MessageSnapshot take(byte status, FileDownloadModel model) {
-        return take(status, model, null, false);
+        return take(status, model, null);
     }
 
-    public static MessageSnapshot take(byte status, FileDownloadModel model,
-                                       FileDownloadRunnable runnable) {
-        return take(status, model, runnable, false);
-    }
-
-    public static MessageSnapshot take(byte status, FileDownloadModel model,
-                                       boolean reusedDownloadedFile) {
-        return take(status, model, null, reusedDownloadedFile);
+    public static MessageSnapshot catchCanReusedOldFile(int id, File oldFile) {
+        final long totalBytes = oldFile.length();
+        if (totalBytes > Integer.MAX_VALUE) {
+            return new LargeMessageSnapshot.CompletedSnapshot(id,
+                    FileDownloadStatus.completed, true, totalBytes);
+        } else {
+            return new SmallMessageSnapshot.CompletedSnapshot(id,
+                    FileDownloadStatus.completed, true, (int) totalBytes);
+        }
     }
 
     public static MessageSnapshot catchException(BaseDownloadTask task) {
@@ -74,9 +77,8 @@ public class MessageSnapshotTaker {
         return new MessageSnapshot(snapshot.getId(), FileDownloadStatus.blockComplete);
     }
 
-    private static MessageSnapshot take(byte status, FileDownloadModel model,
-                                        FileDownloadRunnable runnable,
-                                        boolean reusedDownloadedFile) {
+    public static MessageSnapshot take(byte status, FileDownloadModel model,
+                                        FileDownloadRunnable runnable) {
         final MessageSnapshot snapShot;
         final int id = model.getId();
         switch (status) {
@@ -120,13 +122,12 @@ public class MessageSnapshotTaker {
                 }
                 break;
             case FileDownloadStatus.completed:
-                final String etag = reusedDownloadedFile ? model.getETag() : null;
                 if (model.isLargeFile()) {
                     snapShot = new LargeMessageSnapshot.CompletedSnapshot(id, status,
-                            reusedDownloadedFile, etag, model.getTotal());
+                            false, model.getTotal());
                 } else {
                     snapShot = new SmallMessageSnapshot.CompletedSnapshot(id, status,
-                            reusedDownloadedFile, etag, (int) model.getTotal());
+                            false, (int) model.getTotal());
                 }
                 break;
             case FileDownloadStatus.retry:

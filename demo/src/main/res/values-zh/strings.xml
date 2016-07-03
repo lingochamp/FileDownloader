@@ -32,7 +32,7 @@
     <string name="performance_test_output">写文件性能测试</string>
 
     <string name="tasks_manager_demo_title">任务管理器案例</string>
-    <string name="tasks_manager_demo_name" formatted="false">任务: %s</string>
+    <string name="tasks_manager_demo_name" formatted="false">任务: %d</string>
     <string name="tasks_manager_demo_status_loading">状态: 加载中...</string>
     <string name="tasks_manager_demo_status_pending">状态: 队列中</string>
     <string name="tasks_manager_demo_status_started">状态: 开始下载</string>

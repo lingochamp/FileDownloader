@@ -20,9 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
-import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownloadServiceSharedConnection;
 import com.liulishuo.filedownloader.services.FileDownloadService.SharedMainProcessService;
@@ -69,24 +67,6 @@ class FileDownloadServiceSharedTransmit implements
     }
 
     @Override
-    public MessageSnapshot isDownloaded(String url, String path) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.isDownloaded(url, path);
-        }
-
-        return handler.checkReuse(url, path);
-    }
-
-    @Override
-    public MessageSnapshot isDownloaded(int id) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.isDownloaded(id);
-        }
-
-        return handler.checkReuse2(id);
-    }
-
-    @Override
     public boolean isDownloading(String url, String path) {
         if (!isConnected()) {
             return DownloadServiceNotConnectedHelper.isDownloading(url, path);
@@ -114,7 +94,7 @@ class FileDownloadServiceSharedTransmit implements
     }
 
     @Override
-    public int getStatus(int id) {
+    public byte getStatus(int id) {
         if (!isConnected()) {
             return DownloadServiceNotConnectedHelper.getStatus(id);
         }
@@ -189,24 +169,6 @@ class FileDownloadServiceSharedTransmit implements
         }
 
         handler.stopForeground(removeNotification);
-    }
-
-    @Override
-    public boolean setTaskCompleted(String url, String path, long totalBytes) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.setTaskCompleted(url, path, totalBytes);
-        }
-
-        return handler.setTaskCompleted(url, path, totalBytes);
-    }
-
-    @Override
-    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
-        if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.setTaskCompleted(taskAtomList);
-        }
-
-        return handler.setTaskCompleted1(taskAtomList);
     }
 
     @Override

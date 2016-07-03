@@ -23,10 +23,12 @@ import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
+import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -119,12 +121,12 @@ class FileDownloadTask extends BaseDownloadTask {
             return false;
         }
 
-        final MessageSnapshot snapshot = FileDownloadServiceProxy.getImpl().isDownloaded(getId());
-        if (snapshot != null) {
-            MessageSnapshotFlow.getImpl().inflow(snapshot);
+        final File file = new File(getPath());
+        if (file.exists()) {
+            MessageSnapshotFlow.getImpl().inflow(MessageSnapshotTaker.
+                    catchCanReusedOldFile(getId(), file));
             return true;
         }
-
 
         return super._checkCanReuse();
     }

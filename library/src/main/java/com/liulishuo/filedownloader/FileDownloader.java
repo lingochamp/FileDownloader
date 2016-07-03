@@ -25,6 +25,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -33,6 +34,7 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import junit.framework.Assert;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
@@ -229,6 +231,7 @@ public class FileDownloader {
     public void start(final FileDownloadListener listener, final boolean isSerial) {
 
         if (listener == null) {
+            //TODO PROVIDING LOG.
             return;
         }
 
@@ -351,16 +354,52 @@ public class FileDownloader {
     }
 
     /**
-     * @param downloadId Download Id
-     * @return download status,
+     * @param downloadId The downloadId.
+     * @return The downloading status without cover the completed status (if completed you will receive
+     * {@link FileDownloadStatus#INVALID_STATUS} ).
+     * @see #getStatus(String, String)
+     * @see #getStatus(int, String)
      */
-    public int getStatus(final int downloadId) {
+    public byte getStatusIgnoreCompleted(final int downloadId) {
+        return getStatus(downloadId, null);
+    }
+
+    /**
+     * @param url  The downloading URL.
+     * @param path The downloading file's path.
+     * @return The downloading status.
+     * @see #getStatus(int, String)
+     * @see #getStatusIgnoreCompleted(int)
+     */
+    public byte getStatus(final String url, final String path) {
+        return getStatus(FileDownloadUtils.generateId(url, path), path);
+    }
+
+    /**
+     * @param downloadId The downloadId.
+     * @param path       Use to judge whether has already completed downloading.
+     * @return the downloading status.
+     * @see FileDownloadStatus
+     * @see #getStatus(String, String)
+     * @see #getStatusIgnoreCompleted(int)
+     */
+    public byte getStatus(final int downloadId, final String path) {
+        byte status;
         BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
         if (downloadTask == null) {
-            return FileDownloadServiceProxy.getImpl().getStatus(downloadId);
+            status = FileDownloadServiceProxy.getImpl().getStatus(downloadId);
+        } else {
+            status = downloadTask.getStatus();
         }
 
-        return downloadTask.getStatus();
+        if (path != null && status == FileDownloadStatus.INVALID_STATUS) {
+            if (FileDownloadUtils.isFileNameConverted(FileDownloadHelper.getAppContext()) &&
+                    new File(path).exists()) {
+                status = FileDownloadStatus.completed;
+            }
+        }
+
+        return status;
     }
 
     /**
@@ -501,6 +540,17 @@ public class FileDownloader {
     }
 
     /**
+     * @param url        The url of the completed task.
+     * @param path       The absolute path of the completed task's save file.
+     * @param totalBytes The content-length of the completed task, the length of the file in the
+     *                   {@code path} must be equal to this value.
+     * @return Whether is successful to set the task completed. If the {@code path} not exist will be
+     * false; If the length of the file in {@code path} is not equal to {@code totalBytes} will be
+     * false; If the task with {@code url} and {@code path} is downloading will be false. Otherwise
+     * will be true.
+     * @see FileDownloadUtils#isFileNameConverted(Context)
+     * <p>
+     * <p/>
      * Recommend used to telling the FileDownloader Engine that the task with the {@code url}  and
      * the {@code path} has already completed downloading, in case of your task has already
      * downloaded by other ways(not by FileDownloader Engine), and after success to set the task
@@ -511,19 +561,15 @@ public class FileDownloader {
      * the {@code url} and the {@code path} has already downloaded in other way, FileDownloader
      * Engine will ignore the exist file and redownload it, because FileDownloader Engine don't know
      * the exist file whether it is valid.
-     *
-     * @param url        The url of the completed task.
-     * @param path       The absolute path of the completed task's save file.
-     * @param totalBytes The content-length of the completed task, the length of the file in the
-     *                   {@code path} must be equal to this value.
-     * @return Whether is successful to set the task completed. If the {@code path} not exist will be
-     * false; If the length of the file in {@code path} is not equal to {@code totalBytes} will be
-     * false; If the task with {@code url} and {@code path} is downloading will be false. Otherwise
-     * will be true.
      * @see #setTaskCompleted(List)
+     * @deprecated If you invoked this method, please remove it directly feel free, it doesn't need
+     * any longer. In new mechanism(filedownloader 0.3.3 or higher), FileDownloader doesn't store
+     * completed tasks in Database anymore, because all downloading files have temp a file name.
      */
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
-        return FileDownloadServiceProxy.getImpl().setTaskCompleted(url, path, totalBytes);
+        FileDownloadLog.w(this, "If you invoked this method, please remove it directly feel free, " +
+                "it doesn't need any longer");
+        return true;
     }
 
     /**
@@ -537,12 +583,17 @@ public class FileDownloader {
      * @param taskAtomList The bulk of tasks.
      * @return Whether is successful to update all tasks' status to the Filedownloader Engine. If
      * one task atom among them is not match the Rules in
-     * {@link com.liulishuo.filedownloader.services.FileDownloadMgr#obtainCompletedTaskShelfModel(String, String, long)}
+     * FileDownloadMgr#obtainCompletedTaskShelfModel(String, String, long)
      * will receive false, and non of them would be updated to DB.
      * @see #setTaskCompleted(String, String, long)
+     * @deprecated If you invoked this method, please remove it directly feel free, it doesn't need
+     * any longer. In new mechanism(filedownloader 0.3.3 or higher), FileDownloader doesn't store
+     * completed tasks in Database anymore, because all downloading files have temp a file name.
      */
     public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
-        return FileDownloadServiceProxy.getImpl().setTaskCompleted(taskAtomList);
+        FileDownloadLog.w(this, "If you invoked this method, please remove it directly feel free, " +
+                "it doesn't need any longer");
+        return true;
     }
 
     /**

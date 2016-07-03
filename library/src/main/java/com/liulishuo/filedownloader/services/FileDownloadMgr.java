@@ -17,21 +17,16 @@
 package com.liulishuo.filedownloader.services;
 
 
-import android.text.TextUtils;
-
-import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -41,8 +36,7 @@ import okhttp3.OkHttpClient;
  * <p/>
  * The Download Manager in FileDownloadService, which is used to control all download-inflow.
  * <p/>
- * Handling real {@link #start(String, String, int, int, int, FileDownloadHeader)}; Handing real
- * {@link #checkReuse(int, FileDownloadModel)} (int, FileDownloadModel)}
+ * Handling real {@link #start(String, String, int, int, int, FileDownloadHeader)};
  *
  * @see FileDownloadThreadPool
  * @see FileDownloadRunnable
@@ -96,13 +90,25 @@ class FileDownloadMgr {
         FileDownloadModel model = mHelper.find(id);
 
         // check has already in download pool
-        if (!needStart(id)) {
+        if (checkDownloading(id)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already started download %d", id);
             }
             // warn
             MessageSnapshotFlow.getImpl().
                     inflow(MessageSnapshotTaker.take(FileDownloadStatus.warn, model));
+            return;
+        }
+
+        final File oldFile = new File(path);
+        if (oldFile.exists()) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "has already completed downloading %d", id);
+            }
+
+            // completed
+            MessageSnapshotFlow.getImpl().
+                    inflow(MessageSnapshotTaker.catchCanReusedOldFile(id, oldFile));
             return;
         }
 
@@ -277,78 +283,6 @@ class FileDownloadMgr {
         return result;
     }
 
-    public MessageSnapshot checkReuse(final int downloadId) {
-        final MessageSnapshot snapshot;
-
-        final FileDownloadModel model = mHelper.find(downloadId);
-        final boolean canReuse = checkReuse(downloadId, model);
-        if (canReuse) {
-            snapshot = MessageSnapshotTaker.take(model.getStatus(), model, true);
-        } else {
-            snapshot = null;
-        }
-
-        return snapshot;
-    }
-
-    /**
-     * @return Already succeed & exists
-     */
-    public static boolean checkReuse(final int downloadId, final FileDownloadModel model) {
-        boolean result = false;
-        // 这个方法判断应该在checkDownloading之后，如果在下载中，那么这些判断都将产生错误。
-        // 存在小概率事件，有可能，此方法判断过程中，刚好下载完成, 这里需要对同一DownloadId的Runnable与该方法同步
-        do {
-            if (model == null) {
-                // 数据不存在
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d model not exist", downloadId);
-                }
-                break;
-            }
-
-            if (model.getStatus() != FileDownloadStatus.completed) {
-                // 数据状态没完成
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d status not completed %s",
-                            downloadId, model.getStatus());
-                }
-                break;
-            }
-
-            final File file = new File(model.getPath());
-            if (!file.exists() || !file.isFile()) {
-                // 文件不存在
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d file not exists", downloadId);
-                }
-                break;
-            }
-
-            if (model.getSoFar() != model.getTotal()) {
-                // 脏数据
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d soFar[%d] not equal total[%d] %d",
-                            downloadId, model.getSoFar(), model.getTotal());
-                }
-                break;
-            }
-
-            if (file.length() != model.getTotal()) {
-                // 无效文件
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't reuse %d file length[%d] not equal total[%d]",
-                            downloadId, file.length(), model.getTotal());
-                }
-                break;
-            }
-
-            result = true;
-        } while (false);
-
-        return result;
-    }
-
     public boolean pause(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {
@@ -402,7 +336,7 @@ class FileDownloadMgr {
         return model.getTotal();
     }
 
-    public int getStatus(final int id) {
+    public byte getStatus(final int id) {
         final FileDownloadModel model = mHelper.find(id);
         if (model == null) {
             return FileDownloadStatus.INVALID_STATUS;
@@ -413,99 +347,6 @@ class FileDownloadMgr {
 
     public boolean isIdle() {
         return mThreadPool.exactSize() <= 0;
-    }
-
-    // synchronized with #start, for avoid start downloading and updating db simultaneously.
-    public synchronized boolean setTaskCompleted(String url, String path, long totalBytes) {
-        final FileDownloadModel model = obtainCompletedTaskShelfModel(url, path, totalBytes);
-        if (model == null) {
-            return false;
-        }
-
-        if (model.getTotal() == totalBytes &&
-                model.getStatus() == FileDownloadStatus.completed) {
-            return true;
-        }
-
-        model.setSoFar(totalBytes);
-        model.setTotal(totalBytes);
-        model.setStatus(FileDownloadStatus.completed);
-
-        mHelper.update(model);
-        return true;
-    }
-
-    // synchronized with #start, for avoid start downloading and updating db simultaneously.
-    public synchronized boolean setTaskCompleted(final List<FileDownloadTaskAtom> taskAtomList) {
-        // TODO Maybe need in IDL for updating a bulk of tasks.
-        final List<FileDownloadModel> modelList = new ArrayList<>();
-
-        for (FileDownloadTaskAtom task : taskAtomList) {
-            final FileDownloadModel model =
-                    obtainCompletedTaskShelfModel(task.getUrl(), task.getPath(), task.getTotalBytes());
-            if (model == null) {
-                return false;
-            }
-
-            if (model.getTotal() == task.getTotalBytes() &&
-                    model.getStatus() == FileDownloadStatus.completed) {
-                continue;
-            }
-
-            model.setSoFar(task.getTotalBytes());
-            model.setTotal(task.getTotalBytes());
-            model.setStatus(FileDownloadStatus.completed);
-
-            modelList.add(model);
-        }
-
-        if (modelList.isEmpty()) {
-            return true;
-        }
-
-        mHelper.update(modelList);
-        return true;
-    }
-
-    private FileDownloadModel obtainCompletedTaskShelfModel(String url, String path, long totalBytes) {
-        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(path) || totalBytes <= 0) {
-            FileDownloadLog.w(this, "Want to obtain a completed task model, but find invalid value" +
-                    " %s %s %d", url, path, totalBytes);
-            return null;
-        }
-
-        final int id = FileDownloadUtils.generateId(url, path);
-
-        if (checkDownloading(id)) {
-            FileDownloadLog.w(this, "Want to obtain a completed task model, but the task " +
-                    "with url[%s] and path[%s] is downloading", url, path);
-            return null;
-        }
-
-        final File file = new File(path);
-        if (!file.exists()) {
-            FileDownloadLog.w(this, "Want to obtain a completed task model, but the task " +
-                    "with url[%s] and path[%s] is not exist", url, path);
-            return null;
-        }
-
-        if (file.length() != totalBytes) {
-            FileDownloadLog.w(this, "Want to obtain a completed task model, but the task " +
-                    "with url[%s] and path[%s], the length of its file [%d] not equal to provided" +
-                    " totalBytes[%d]", url, path, file.length(), totalBytes);
-            return null;
-        }
-
-        FileDownloadModel model = mHelper.find(id);
-
-        if (model == null) {
-            model = new FileDownloadModel();
-            model.setId(id);
-            model.setUrl(url);
-            model.setPath(path);
-        }
-
-        return model;
     }
 
     public synchronized boolean setMaxNetworkThreadCount(int count) {

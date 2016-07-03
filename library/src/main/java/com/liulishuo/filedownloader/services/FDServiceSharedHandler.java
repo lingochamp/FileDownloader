@@ -22,13 +22,9 @@ import android.os.IBinder;
 import com.liulishuo.filedownloader.FileDownloadServiceProxy;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
-import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
-import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -51,16 +47,6 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
 
     @Override
     public void unregisterCallback(IFileDownloadIPCCallback callback) {
-    }
-
-    @Override
-    public MessageSnapshot checkReuse(String url, String path) {
-        return downloadManager.checkReuse(FileDownloadUtils.generateId(url, path));
-    }
-
-    @Override
-    public MessageSnapshot checkReuse2(int id) {
-        return downloadManager.checkReuse(id);
     }
 
     @Override
@@ -102,7 +88,7 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
-    public int getStatus(int downloadId) {
+    public byte getStatus(int downloadId) {
         return downloadManager.getStatus(downloadId);
     }
 
@@ -123,16 +109,6 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
         if (this.wService != null && this.wService.get() != null) {
             this.wService.get().stopForeground(removeNotification);
         }
-    }
-
-    @Override
-    public boolean setTaskCompleted(String url, String path, long totalBytes) {
-        return downloadManager.setTaskCompleted(url, path, totalBytes);
-    }
-
-    @Override
-    public boolean setTaskCompleted1(List<FileDownloadTaskAtom> taskList) {
-        return downloadManager.setTaskCompleted(taskList);
     }
 
     @Override

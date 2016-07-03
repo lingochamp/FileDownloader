@@ -23,8 +23,11 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
 
+import com.liulishuo.filedownloader.services.FileDownloadService;
+
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -260,5 +263,38 @@ public class FileDownloadUtils {
 
     public static String formatString(final String msg, Object... args) {
         return String.format(Locale.ENGLISH, msg, args);
+    }
+
+    private final static String INTERNAL_DOCUMENT_NAME = "filedownloader";
+    private final static String OLD_FILE_CONVERTED_FILE_NAME = ".old_file_converted";
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void markConverted(final Context context) {
+        final File file = getConvertedMarkedFile(context);
+        try {
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @return Whether has converted all files' name from 'filename'(in old architecture) to
+     * 'filename.temp', if it's in downloading state.
+     * <p>
+     * If {@code true}, You can check whether the file has completed downloading with
+     * {@link File#exists()} directly.
+     * <p>
+     * when {@link FileDownloadService#onCreate()} is invoked, This value will be assigned to
+     * {@code true} only once since you upgrade the filedownloader version to 0.3.3 or higher.
+     */
+    public static boolean isFileNameConverted(final Context context) {
+        return getConvertedMarkedFile(context).exists();
+    }
+
+    public static File getConvertedMarkedFile(final Context context) {
+        return new File(context.getFilesDir().getAbsolutePath() + File.separator +
+                INTERNAL_DOCUMENT_NAME, OLD_FILE_CONVERTED_FILE_NAME);
     }
 }

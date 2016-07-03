@@ -15,7 +15,7 @@
 
 
     <string name="tasks_manager_demo_title">Tasks Manager Demo</string>
-    <string name="tasks_manager_demo_name" formatted="false">task: %s</string>
+    <string name="tasks_manager_demo_name" formatted="false">task: %d</string>
     <string name="tasks_manager_demo_status_loading">Status: loading...</string>
     <string name="tasks_manager_demo_status_pending">Status: pending</string>
     <string name="tasks_manager_demo_status_started">Status: started</string>

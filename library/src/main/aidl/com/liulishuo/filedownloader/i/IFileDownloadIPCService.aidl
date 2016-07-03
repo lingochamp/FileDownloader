@@ -11,8 +11,6 @@ interface IFileDownloadIPCService {
     oneway void registerCallback(in IFileDownloadIPCCallback callback);
     oneway void unregisterCallback(in IFileDownloadIPCCallback callback);
 
-    MessageSnapshot checkReuse(String url, String path);
-    MessageSnapshot checkReuse2(int id);
     boolean checkDownloading(String url, String path);
     // why not use `oneway` to optimize the performance of the below `start` method? because if we
     // use `oneway` it will be very hard to decide how is the binder thread going according to the context.
@@ -29,12 +27,10 @@ interface IFileDownloadIPCService {
 
     long getSofar(int downloadId);
     long getTotal(int downloadId);
-    int getStatus(int downloadId);
+    byte getStatus(int downloadId);
     boolean isIdle();
 
     oneway void startForeground(int id, in Notification notification);
     oneway void stopForeground(boolean removeNotification);
 
-    boolean setTaskCompleted(String url, String path, long totalBytes);
-    boolean setTaskCompleted1(in List<FileDownloadTaskAtom> taskList);
 }

@@ -81,6 +81,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                     model.setStatus(FileDownloadStatus.paused);
                 }
 
+                final File targetFile = new File(model.getPath());
 
                 // consider check in new thread, but SQLite lock | file lock aways effect, so sync
                 if (model.getStatus() == FileDownloadStatus.paused &&
@@ -89,7 +90,6 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                     // can be reused in the old mechanism(no-temp-file).
 
                     final File tempFile = new File(model.getTempPath());
-                    final File targetFile = new File(model.getPath());
 
                     if (!tempFile.exists() && targetFile.exists()) {
                         final boolean successRename = targetFile.renameTo(tempFile);
@@ -110,8 +110,11 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 if (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() <= 0) {
                     // This model is redundant.
                     dirtyList.add(model.getId());
-                } else if (!FileDownloadMgr.checkReuse(model.getId(), model) &&
-                        !FileDownloadMgr.checkBreakpointAvailable(model.getId(), model)) {
+                } else if (!FileDownloadMgr.checkBreakpointAvailable(model.getId(), model)) {
+                    // It can't used to resuming from breakpoint.
+                    dirtyList.add(model.getId());
+                } else if (targetFile.exists()) {
+                    // It has already completed downloading.
                     dirtyList.add(model.getId());
                 } else {
                     downloaderModelMap.put(model.getId(), model);
@@ -120,6 +123,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
             }
         } finally {
             c.close();
+            FileDownloadUtils.markConverted(FileDownloadHelper.getAppContext());
 
             // db
             if (dirtyList.size() > 0) {

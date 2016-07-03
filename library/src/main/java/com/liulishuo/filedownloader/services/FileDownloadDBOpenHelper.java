@@ -34,7 +34,6 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
  *
  * @see FileDownloadDBHelper
  * @see FileDownloadMgr#checkBreakpointAvailable(int, FileDownloadModel)
- * @see FileDownloadMgr#checkReuse(int, FileDownloadModel)
  */
 class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "filedownloader.db";

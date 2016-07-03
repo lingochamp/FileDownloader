@@ -18,13 +18,9 @@ package com.liulishuo.filedownloader;
 import android.app.Notification;
 import android.content.Context;
 
-import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
-
-import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -76,16 +72,6 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     }
 
     @Override
-    public MessageSnapshot isDownloaded(String url, String path) {
-        return handler.isDownloaded(url, path);
-    }
-
-    @Override
-    public MessageSnapshot isDownloaded(int id) {
-        return handler.isDownloaded(id);
-    }
-
-    @Override
     public boolean isDownloading(String url, String path) {
         return handler.isDownloading(url, path);
     }
@@ -101,7 +87,7 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     }
 
     @Override
-    public int getStatus(int id) {
+    public byte getStatus(int id) {
         return handler.getStatus(id);
     }
 
@@ -143,16 +129,6 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     @Override
     public void stopForeground(boolean removeNotification) {
         handler.stopForeground(removeNotification);
-    }
-
-    @Override
-    public boolean setTaskCompleted(String url, String path, long totalBytes) {
-        return handler.setTaskCompleted(url, path, totalBytes);
-    }
-
-    @Override
-    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
-        return handler.setTaskCompleted(taskAtomList);
     }
 
     @Override

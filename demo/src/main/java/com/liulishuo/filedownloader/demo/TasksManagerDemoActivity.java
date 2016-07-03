@@ -356,7 +356,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
 
             if (TasksManager.getImpl().isReady()) {
-                final int status = TasksManager.getImpl().getStatus(model.getId());
+                final int status = TasksManager.getImpl().getStatus(model.getId(), model.getPath());
                 if (status == FileDownloadStatus.pending || status == FileDownloadStatus.started ||
                         status == FileDownloadStatus.connected) {
                     // start task, but file not created yet
@@ -514,8 +514,8 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             return status == FileDownloadStatus.completed;
         }
 
-        public int getStatus(final int id) {
-            return FileDownloader.getImpl().getStatus(id);
+        public int getStatus(final int id, String path) {
+            return FileDownloader.getImpl().getStatus(id, path);
         }
 
         public long getTotal(final int id) {

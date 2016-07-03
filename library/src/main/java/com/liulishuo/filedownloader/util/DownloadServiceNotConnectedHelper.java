@@ -17,11 +17,7 @@ package com.liulishuo.filedownloader.util;
 
 import android.app.Notification;
 
-import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
-
-import java.util.List;
 
 /**
  * Created by Jacksgong on 6/9/16.
@@ -45,20 +41,6 @@ public class DownloadServiceNotConnectedHelper {
         return false;
     }
 
-    public static MessageSnapshot isDownloaded(final String url, final String path) {
-        FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
-                "request check the task([%s], [%s]) whether downloaded in the download service," +
-                        " but the download service isn't connected yet.", url, path);
-        return null;
-    }
-
-    public static MessageSnapshot isDownloaded(final int id) {
-        FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
-                "request check the task[%d] whether downloaded in the download service," +
-                        " but the download service isn't connected yet.", id);
-        return null;
-    }
-
     public static boolean isDownloading(final String url, final String path) {
         FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
                 "request check the task([%s], [%s]) is downloading in the download service," +
@@ -80,7 +62,7 @@ public class DownloadServiceNotConnectedHelper {
         return 0;
     }
 
-    public static int getStatus(final int id) {
+    public static byte getStatus(final int id) {
         FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
                 "request get the status for the task[%d] in the download service," +
                         " but the download service isn't connected yet.", id);
@@ -110,21 +92,6 @@ public class DownloadServiceNotConnectedHelper {
         FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
                 "request cancel the foreground status[%B] for the download service," +
                         " but the download service isn't connected yet.", removeNotification);
-    }
-
-    public static boolean setTaskCompleted(String url, String path, long totalBytes) {
-        FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
-                "request set the task([%s],[%s],[%d]) completed in the download service," +
-                        " but the download service isn't connected yet.", url, path, totalBytes);
-        return false;
-    }
-
-    public static boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
-        FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
-                "request set tasks[%d] completed in the download service," +
-                        " but the download service isn't connected yet.",
-                taskAtomList == null ? 0 : taskAtomList.size());
-        return false;
     }
 
     public static boolean setMaxNetworkThreadCount(int count) {

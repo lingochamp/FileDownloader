@@ -26,12 +26,9 @@ import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
-import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 /**
  * Created by Jacksgong on 4/17/16.
@@ -79,16 +76,6 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
-    public MessageSnapshot checkReuse(String url, String path) throws RemoteException {
-        return downloadManager.checkReuse(FileDownloadUtils.generateId(url, path));
-    }
-
-    @Override
-    public MessageSnapshot checkReuse2(int id) throws RemoteException {
-        return downloadManager.checkReuse(id);
-    }
-
-    @Override
     public boolean checkDownloading(String url, String path) throws RemoteException {
         return downloadManager.checkDownloading(url, path);
     }
@@ -127,7 +114,7 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
-    public int getStatus(int downloadId) throws RemoteException {
+    public byte getStatus(int downloadId) throws RemoteException {
         return downloadManager.getStatus(downloadId);
     }
 
@@ -148,16 +135,6 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
         if (this.wService != null && this.wService.get() != null) {
             this.wService.get().stopForeground(removeNotification);
         }
-    }
-
-    @Override
-    public boolean setTaskCompleted(String url, String path, long totalBytes) throws RemoteException {
-        return downloadManager.setTaskCompleted(url, path, totalBytes);
-    }
-
-    @Override
-    public boolean setTaskCompleted1(List<FileDownloadTaskAtom> taskList) throws RemoteException {
-        return downloadManager.setTaskCompleted(taskList);
     }
 
     @Override

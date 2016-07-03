@@ -84,11 +84,6 @@ public abstract class BaseDownloadTask {
 
     private boolean isForceReDownload = false;
 
-    /**
-     * 如果{@link #isForceReDownload}为false
-     * 并且检查文件是正确的{@link com.liulishuo.filedownloader.services.FileDownloadMgr#checkReuse(int, FileDownloadModel)}
-     * 则不启动下载直接成功返回，此时该变量为true
-     */
     private boolean isReusedOldFile = false;
 
     volatile boolean using = false;
@@ -502,7 +497,7 @@ public abstract class BaseDownloadTask {
      *
      * @return The identify id for this task.
      * @see FileDownloader#pause(int)
-     * @see FileDownloader#getStatus(int)
+     * @see FileDownloader#getStatus(String, String)
      * @see FileDownloader#getTotal(int)
      * @see FileDownloader#getSoFar(int)
      */
@@ -652,7 +647,7 @@ public abstract class BaseDownloadTask {
 
 
     /**
-     * @return Is reused downloaded old file, 是否是使用了已经存在的有效文件，而非启动下载
+     * @return Whether reused the downloaded file by past.
      * @see #isReusedOldFile
      */
     public boolean isReusedOldFile() {
@@ -1082,9 +1077,6 @@ public abstract class BaseDownloadTask {
                 break;
             case FileDownloadStatus.completed:
                 this.isReusedOldFile = snapshot.isReusedDownloadedFile();
-                if (snapshot.isReusedDownloadedFile()) {
-                    this.etag = snapshot.getEtag();
-                }
                 // only carry total data back
                 this.soFarBytes = snapshot.getLargeTotalBytes();
                 this.totalBytes = snapshot.getLargeTotalBytes();
