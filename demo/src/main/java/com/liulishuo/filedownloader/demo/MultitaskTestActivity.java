@@ -265,12 +265,13 @@ public class MultitaskTestActivity extends AppCompatActivity {
 
     private void pause() {
         FileDownloader.getImpl().pause(downloadListener);
-        stopTimer();
+        stopTimeCount();
         taskCountSb.setEnabled(true);
     }
 
-    private void stopTimer() {
+    private void stopTimeCount() {
         isStopTimer = true;
+        timeConsumeTv.getHandler().removeCallbacks(timeCountRunnable);
         final long consume = System.currentTimeMillis() - start;
         if (timeConsumeTv != null) {
             timeConsumeTv.setText(String.valueOf(consume / 1000f));
@@ -411,7 +412,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
             Log.d(TAG, String.format("start[%d] over[%d]", GlobalMonitor.getImpl().getMarkStart(),
                     GlobalMonitor.getImpl().getMarkOver()));
 
-            stopTimer();
+            stopTimeCount();
             actionBtn.setTag(true);
             actionBtn.setText("Start");
             taskCountSb.setEnabled(true);
@@ -423,17 +424,19 @@ public class MultitaskTestActivity extends AppCompatActivity {
     private void goTimeCount() {
         final int time = (int) timeConsumeTv.getTag();
         timeConsumeTv.setText(String.valueOf(time));
-        timeConsumeTv.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (isStopTimer) {
-                    return;
-                }
-                timeConsumeTv.setTag(time + 1);
-                goTimeCount();
-            }
-        }, 1000);
+        timeConsumeTv.getHandler().postDelayed(timeCountRunnable, 1000);
     }
+
+    private Runnable timeCountRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isStopTimer) {
+                return;
+            }
+            timeConsumeTv.setTag((int)timeConsumeTv.getTag() + 1);
+            goTimeCount();
+        }
+    };
 
     private SeekBar taskCountSb;
     private TextView taskCountTv;
