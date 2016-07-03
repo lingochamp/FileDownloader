@@ -83,11 +83,12 @@ public class FileDownloadList {
         return null;
     }
 
-    List<BaseDownloadTask> getList(final int id) {
+    List<BaseDownloadTask> getDownloadingList(final int id) {
         final List<BaseDownloadTask> list = new ArrayList<>();
         synchronized (this.list) {
             for (BaseDownloadTask baseDownloadTask : this.list) {
-                if (baseDownloadTask.getId() == id) {
+                if (baseDownloadTask.getId() == id &&
+                        !FileDownloadStatus.isOver(baseDownloadTask.getStatus())) {
                     list.add(baseDownloadTask);
                 }
             }

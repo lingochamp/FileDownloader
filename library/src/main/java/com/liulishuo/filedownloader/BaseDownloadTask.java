@@ -970,6 +970,15 @@ public abstract class BaseDownloadTask {
         }
     }
 
+    boolean updateMoreLikelyCompleted(final MessageSnapshot snapshot) {
+        if (!FileDownloadStatus.isMoreLikelyCompleted(this)) {
+            return false;
+        }
+
+        update(snapshot);
+        return true;
+    }
+
     boolean updateKeepFlow(final MessageSnapshot snapshot) {
         final int currentStatus = getStatus();
         final int nextStatus = snapshot.getStatus();

@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader.model;
 
+import com.liulishuo.filedownloader.BaseDownloadTask;
+
 /**
  * Created by Jacksgong on 11/26/15.
  *
@@ -168,6 +170,11 @@ public class FileDownloadStatus {
             default:
                 return false;
         }
+
+    }
+
+    public static boolean isMoreLikelyCompleted(BaseDownloadTask task) {
+        return task.getStatus() == INVALID_STATUS || task.getStatus() == progress;
 
     }
 }

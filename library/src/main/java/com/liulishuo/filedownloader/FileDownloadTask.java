@@ -24,6 +24,7 @@ import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -202,7 +203,8 @@ class FileDownloadTask extends BaseDownloadTask {
         public void receive(MessageSnapshot snapshot) {
 
             // For fewer copies,do not carry all data in transfer model.
-            final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getList(snapshot.getId());
+            final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().
+                    getDownloadingList(snapshot.getId());
 
 
             if (taskList.size() > 0) {
@@ -217,10 +219,22 @@ class FileDownloadTask extends BaseDownloadTask {
 
                 synchronized (updateSync.intern()) {
                     boolean consumed = false;
-                    for (BaseDownloadTask task : taskList) {
-                        if (task.updateKeepFlow(snapshot)) {
-                            consumed = true;
-                            break;
+
+                    if (taskList.size() > 1 && snapshot.getStatus() == FileDownloadStatus.completed) {
+                        for (BaseDownloadTask task : taskList) {
+                            if (task.updateMoreLikelyCompleted(snapshot)) {
+                                consumed = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!consumed) {
+                        for (BaseDownloadTask task : taskList) {
+                            if (task.updateKeepFlow(snapshot)) {
+                                consumed = true;
+                                break;
+                            }
                         }
                     }
 
@@ -241,10 +255,8 @@ class FileDownloadTask extends BaseDownloadTask {
                 }
 
             } else {
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadTask.class, "callback event transfer %d," +
-                            " but is contains false", snapshot.getStatus());
-                }
+                FileDownloadLog.w(FileDownloadTask.class, "callback event transfer %d," +
+                        " but is contains false", snapshot.getStatus());
             }
         }
     }
