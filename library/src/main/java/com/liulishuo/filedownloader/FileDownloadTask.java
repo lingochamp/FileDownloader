@@ -27,7 +27,6 @@ import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
-import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -199,51 +198,48 @@ class FileDownloadTask extends BaseDownloadTask {
 
     private static class InternalMessageReceiver implements MessageSnapshotFlow.MessageReceiver {
 
+        private boolean transmitMessage(List<BaseDownloadTask> taskList, MessageSnapshot snapshot) {
+            if (taskList.size() > 1 && snapshot.getStatus() == FileDownloadStatus.completed) {
+                for (BaseDownloadTask task : taskList) {
+                    if (task.updateMoreLikelyCompleted(snapshot)) {
+                        return true;
+                    }
+                }
+            }
+
+            for (BaseDownloadTask task : taskList) {
+                if (task.updateKeepFlow(snapshot)) {
+                    return true;
+                }
+            }
+
+            //noinspection SimplifiableIfStatement
+            if (taskList.size() == 1) {
+                // Cover the most case for restarting from the low memory status.
+                return taskList.get(0).updateKeepAhead(snapshot);
+            }
+
+            return false;
+        }
+
         @Override
         public void receive(MessageSnapshot snapshot) {
 
-            // For fewer copies,do not carry all data in transfer model.
-            final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().
-                    getDownloadingList(snapshot.getId());
+            final String updateSyncLock = Integer.toString(snapshot.getId());
+            synchronized (updateSyncLock.intern()) {
+                final List<BaseDownloadTask> taskList = FileDownloadList.getImpl().
+                        getDownloadingList(snapshot.getId());
 
 
-            if (taskList.size() > 0) {
+                if (taskList.size() > 0) {
 
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d",
-                            snapshot.getId(), taskList.get(0).getStatus(), snapshot.getStatus(), taskList.size());
-                }
-
-                final String updateSync = FileDownloadUtils.formatString("%s%s", taskList.get(0).getUrl(),
-                        taskList.get(0).getPath());
-
-                synchronized (updateSync.intern()) {
-                    boolean consumed = false;
-
-                    if (taskList.size() > 1 && snapshot.getStatus() == FileDownloadStatus.completed) {
-                        for (BaseDownloadTask task : taskList) {
-                            if (task.updateMoreLikelyCompleted(snapshot)) {
-                                consumed = true;
-                                break;
-                            }
-                        }
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(FileDownloadTask.class, "~~~callback %s old[%s] new[%s] %d",
+                                snapshot.getId(), taskList.get(0).getStatus(), snapshot.getStatus(), taskList.size());
                     }
 
-                    if (!consumed) {
-                        for (BaseDownloadTask task : taskList) {
-                            if (task.updateKeepFlow(snapshot)) {
-                                consumed = true;
-                                break;
-                            }
-                        }
-                    }
+                    if (!transmitMessage(taskList, snapshot)) {
 
-                    if (!consumed && taskList.size() == 1) {
-                        // Cover the most case for restarting from the low memory status.
-                        consumed = taskList.get(0).updateKeepAhead(snapshot);
-                    }
-
-                    if (!consumed) {
                         String log = "The flow callback did not consumed, id:" + snapshot.getId() + " status:"
                                 + snapshot.getStatus() + " task-count:" + taskList.size();
                         for (BaseDownloadTask task : taskList) {
@@ -252,11 +248,12 @@ class FileDownloadTask extends BaseDownloadTask {
                         FileDownloadLog.w(FileDownloadTask.class, log);
                     }
 
+
+                } else {
+                    FileDownloadLog.w(FileDownloadTask.class, "callback event transfer %d," +
+                            " but is contains false", snapshot.getStatus());
                 }
 
-            } else {
-                FileDownloadLog.w(FileDownloadTask.class, "callback event transfer %d," +
-                        " but is contains false", snapshot.getStatus());
             }
         }
     }
