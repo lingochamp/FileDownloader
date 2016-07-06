@@ -9,6 +9,9 @@ public interface Constant {
             "http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086",
     };
 
+    String LIULISHUO_APK_URL = "http://cdn.llsapp.com/android/LLS-v3.5-570-20160705-153735.apk";
+    String LIULISHUO_CONTENT_DISPOSITION_FILENAME = "LLS-v3.5-570-20160705-153735.apk";
+
     String[] BIG_FILE_URLS = {
             // 5m
             "http://mirror.internode.on.net/pub/test/5meg.test5",
@@ -39,7 +42,7 @@ public interface Constant {
             // 22m
             "http://113.207.16.84/dd.myapp.com/16891/2E53C25B6BC55D3330AB85A1B7B57485.apk?mkey=5630b43973f537cf&f=cf87&fsname=com.htshuo.htsg_3.0.1_49.apk&asr=02f1&p=.apk",
             // 206m
-            "http://down.tech.sina.com.cn/download/d_load.php?d_id=49535&down_id=1&ip=42.81.45.159",
+            "http://down.tech.sina.com.cn/download/d_load.php?d_id=49535&down_id=1&ip=42.81.45.159"
     };
 
     String[] URLS = {
