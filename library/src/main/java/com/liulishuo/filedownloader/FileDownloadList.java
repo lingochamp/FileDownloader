@@ -74,7 +74,7 @@ public class FileDownloadList {
     public BaseDownloadTask get(final int id) {
         synchronized (list) {
             for (BaseDownloadTask baseDownloadTask : list) {
-                // when FileDownloadMgr#checkDownloading
+                // when FileDownloadMgr#isDownloading
                 if (baseDownloadTask.getId() == id) {
                     return baseDownloadTask;
                 }

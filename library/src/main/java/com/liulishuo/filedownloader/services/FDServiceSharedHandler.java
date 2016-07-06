@@ -51,15 +51,15 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
 
     @Override
     public boolean checkDownloading(String url, String path) {
-        return downloadManager.checkDownloading(url, path);
+        return downloadManager.isDownloading(url, path);
     }
 
     @Override
-    public void start(String url, String path, int callbackProgressTimes,
-                      int callbackProgressMinIntervalMillis, int autoRetryTimes,
+    public void start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
+                      int callbackProgressMinIntervalMillis, int autoRetryTimes, boolean forceReDownload,
                       FileDownloadHeader header) {
-        downloadManager.start(url, path, callbackProgressTimes, callbackProgressMinIntervalMillis,
-                autoRetryTimes, header);
+        downloadManager.start(url, path, pathAsDirectory, callbackProgressTimes,
+                callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header);
     }
 
     @Override

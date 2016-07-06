@@ -42,7 +42,8 @@ interface IFileDownloadDBHelper {
 
     void remove(final int id);
 
-    void updateConnected(final FileDownloadModel model, final long total, final String etag);
+    void updateConnected(final FileDownloadModel model, final long total, final String etag,
+                         final String fileName);
 
     void updateProgress(final FileDownloadModel model, final long soFar);
 

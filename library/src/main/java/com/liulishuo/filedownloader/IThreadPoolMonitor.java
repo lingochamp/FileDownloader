@@ -14,37 +14,16 @@
  * limitations under the License.
  */
 
-package com.liulishuo.filedownloader.message;
+package com.liulishuo.filedownloader;
+
+import com.liulishuo.filedownloader.model.FileDownloadModel;
 
 /**
- * Created by Jacksgong on 5/1/16.
- * <p/>
- * A snapshot interface.
+ * Created by Jacksgong on 7/5/16.
+ * <p>
+ * The FileDownload thread monitor interface.
  */
-interface IMessageSnapshot {
-    int getId();
 
-    byte getStatus();
-
-    Throwable getThrowable();
-
-    int getRetryingTimes();
-
-    boolean isResuming();
-
-    String getEtag();
-
-    long getLargeSofarBytes();
-
-    long getLargeTotalBytes();
-
-    int getSmallSofarBytes();
-
-    int getSmallTotalBytes();
-
-    boolean isReusedDownloadedFile();
-
-    boolean isLargeFile();
-
-    String getFileName();
+public interface IThreadPoolMonitor {
+    boolean isDownloading(FileDownloadModel model);
 }

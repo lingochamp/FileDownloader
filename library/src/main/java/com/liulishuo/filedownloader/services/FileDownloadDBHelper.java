@@ -65,13 +65,14 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 FileDownloadModel model = new FileDownloadModel();
                 model.setId(c.getInt(c.getColumnIndex(FileDownloadModel.ID)));
                 model.setUrl(c.getString(c.getColumnIndex(FileDownloadModel.URL)));
-                model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)));
-//                model.setCallbackProgressTimes(c.getInt(c.getColumnIndex(FileDownloadModel.CALLBACK_PROGRESS_TIMES)));
+                model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)),
+                        c.getShort(c.getColumnIndex(FileDownloadModel.PATH_AS_DIRECTORY)) == 1);
                 model.setStatus((byte) c.getShort(c.getColumnIndex(FileDownloadModel.STATUS)));
                 model.setSoFar(c.getLong(c.getColumnIndex(FileDownloadModel.SOFAR)));
                 model.setTotal(c.getLong(c.getColumnIndex(FileDownloadModel.TOTAL)));
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
                 model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
+                model.setFilename(c.getString(c.getColumnIndex(FileDownloadModel.FILENAME)));
                 if (model.getStatus() == FileDownloadStatus.progress ||
                         model.getStatus() == FileDownloadStatus.connected ||
                         model.getStatus() == FileDownloadStatus.error ||
@@ -81,15 +82,22 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                     model.setStatus(FileDownloadStatus.paused);
                 }
 
-                final File targetFile = new File(model.getPath());
+                final String targetFilePath = model.getTargetFilePath();
+                if (targetFilePath == null) {
+                    // no target file path, can't used to resume from breakpoint.
+                    dirtyList.add(model.getId());
+                    continue;
+                }
+
+                final File targetFile = new File(targetFilePath);
 
                 // consider check in new thread, but SQLite lock | file lock aways effect, so sync
                 if (model.getStatus() == FileDownloadStatus.paused &&
-                        FileDownloadMgr.checkBreakpointAvailable(model.getId(), model,
+                        FileDownloadMgr.isBreakpointAvailable(model.getId(), model,
                                 model.getPath())) {
                     // can be reused in the old mechanism(no-temp-file).
 
-                    final File tempFile = new File(model.getTempPath());
+                    final File tempFile = new File(model.getTempFilePath());
 
                     if (!tempFile.exists() && targetFile.exists()) {
                         final boolean successRename = targetFile.renameTo(tempFile);
@@ -110,7 +118,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 if (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() <= 0) {
                     // This model is redundant.
                     dirtyList.add(model.getId());
-                } else if (!FileDownloadMgr.checkBreakpointAvailable(model.getId(), model)) {
+                } else if (!FileDownloadMgr.isBreakpointAvailable(model.getId(), model)) {
                     // It can't used to resuming from breakpoint.
                     dirtyList.add(model.getId());
                 } else if (targetFile.exists()) {
@@ -219,7 +227,7 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void updateConnected(FileDownloadModel model, long total, String etag) {
+    public void updateConnected(FileDownloadModel model, long total, String etag, String filename) {
         model.setStatus(FileDownloadStatus.connected);
 
 
@@ -238,6 +246,13 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
                 (oldEtag != null && !oldEtag.equals(etag))) {
             model.setETag(etag);
             cv.put(FileDownloadModel.ETAG, etag);
+        }
+
+        if (model.isPathAsDirectory() &&
+                model.getFilename() == null && filename != null) {
+            model.setFilename(filename);
+
+            cv.put(FileDownloadModel.FILENAME, filename);
         }
 
         update(model.getId(), cv);

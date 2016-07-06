@@ -40,6 +40,7 @@ public class FileDownloadQueueSet {
     private Integer callbackProgressTimes;
     private Integer callbackProgressMinIntervalMillis;
     private Object tag;
+    private String directory;
 
     private BaseDownloadTask[] tasks;
 
@@ -140,12 +141,30 @@ public class FileDownloadQueueSet {
                 }
             }
 
+            if (this.directory != null) {
+                task.setPath(this.directory, true);
+            }
+
             task.ready();
         }
 
         FileDownloader.getImpl().start(target, isSerial);
     }
 
+    /**
+     * @param directory Set the {@code directory} to store files in this queue.
+     *                  All tasks in this queue will be invoked
+     *                  {@link BaseDownloadTask#setPath(String, boolean)} with params:
+     *                  ({@code directory}, {@code true}).
+     */
+    public FileDownloadQueueSet setDirectory(String directory) {
+        this.directory = directory;
+        return this;
+    }
+
+    /**
+     * @see BaseDownloadTask#setAutoRetryTimes(int)
+     */
     public FileDownloadQueueSet setAutoRetryTimes(int autoRetryTimes) {
         this.autoRetryTimes = autoRetryTimes;
         return this;

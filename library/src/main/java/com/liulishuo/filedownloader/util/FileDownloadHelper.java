@@ -20,7 +20,13 @@ import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 
+import com.liulishuo.filedownloader.IThreadPoolMonitor;
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
+import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
+import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
+
+import java.io.File;
 
 import okhttp3.OkHttpClient;
 
@@ -36,7 +42,6 @@ public class FileDownloadHelper {
     @SuppressLint("StaticFieldLeak")
     private static Context APP_CONTEXT;
     private static DownloadMgrInitialParams DOWNLOAD_MANAGER_INITIAL_PARAMS;
-
 
     public static void holdContext(final Context context) {
         APP_CONTEXT = context;
@@ -73,6 +78,34 @@ public class FileDownloadHelper {
          * @see OkHttpClient
          */
         OkHttpClient customMake();
+    }
+
+    public static boolean inspectAndInflowDownloaded(int id, String path, boolean forceReDownload) {
+        if (forceReDownload) {
+            return false;
+        }
+
+        if (path != null) {
+            final File file = new File(path);
+            if (file.exists()) {
+                MessageSnapshotFlow.getImpl().inflow(MessageSnapshotTaker.
+                        catchCanReusedOldFile(id, file));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean inspectAndInflowDownloading(int id, FileDownloadModel model,
+                                                      IThreadPoolMonitor monitor) {
+        if (monitor.isDownloading(model)) {
+            MessageSnapshotFlow.getImpl().
+                    inflow(MessageSnapshotTaker.catchWarn(id, model.getSoFar(), model.getTotal()));
+            return true;
+        }
+
+        return false;
     }
 }
 

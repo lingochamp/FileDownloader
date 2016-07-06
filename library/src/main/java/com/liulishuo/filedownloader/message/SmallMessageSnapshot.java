@@ -89,13 +89,15 @@ public class SmallMessageSnapshot extends MessageSnapshot {
         private final boolean resuming;
         private final int totalBytes;
         private final String etag;
+        private final String fileName;
 
         ConnectedMessageSnapshot(int id, byte status, boolean resuming, int totalBytes,
-                                 String etag) {
+                                 String etag, String fileName) {
             super(id, status);
             this.resuming = resuming;
             this.totalBytes = totalBytes;
             this.etag = etag;
+            this.fileName = fileName;
         }
 
         @Override
@@ -109,6 +111,7 @@ public class SmallMessageSnapshot extends MessageSnapshot {
             dest.writeByte(resuming ? (byte) 1 : (byte) 0);
             dest.writeInt(this.totalBytes);
             dest.writeString(this.etag);
+            dest.writeString(this.fileName);
         }
 
         ConnectedMessageSnapshot(Parcel in) {
@@ -116,6 +119,12 @@ public class SmallMessageSnapshot extends MessageSnapshot {
             this.resuming = in.readByte() != 0;
             this.totalBytes = in.readInt();
             this.etag = in.readString();
+            this.fileName = in.readString();
+        }
+
+        @Override
+        public String getFileName() {
+            return fileName;
         }
 
         @Override

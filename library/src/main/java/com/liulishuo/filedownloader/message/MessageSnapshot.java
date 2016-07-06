@@ -103,7 +103,14 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
     @Override
     public boolean isReusedDownloadedFile() {
         throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'reused downloaded file' in this message %d %d",
+                FileDownloadUtils.formatString("No reused downloaded file' in this message %d %d",
+                        id, status));
+    }
+
+    @Override
+    public String getFileName() {
+        throw new IllegalStateException(
+                FileDownloadUtils.formatString("No filename in this message %d %d",
                         id, status));
     }
 

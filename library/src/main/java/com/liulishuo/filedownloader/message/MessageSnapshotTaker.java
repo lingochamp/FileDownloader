@@ -47,6 +47,16 @@ public class MessageSnapshotTaker {
         }
     }
 
+    public static MessageSnapshot catchWarn(int id, long sofar, long total) {
+        if (total > Integer.MAX_VALUE) {
+            return new LargeMessageSnapshot.WarnMessageSnapshot(id, FileDownloadStatus.warn,
+                    sofar, total);
+        } else {
+            return new SmallMessageSnapshot.WarnMessageSnapshot(id, FileDownloadStatus.warn,
+                    (int) sofar, (int) total);
+        }
+    }
+
     public static MessageSnapshot catchException(BaseDownloadTask task) {
         if (task.isLargeFile()) {
             return new LargeMessageSnapshot.ErrorMessageSnapshot(task.getId(),
@@ -81,16 +91,12 @@ public class MessageSnapshotTaker {
                                         FileDownloadRunnable runnable) {
         final MessageSnapshot snapShot;
         final int id = model.getId();
+        if (status == FileDownloadStatus.warn) {
+            throw new IllegalStateException(FileDownloadUtils.
+                    formatString("please use #catchWarn instead %d", id));
+        }
+
         switch (status) {
-            case FileDownloadStatus.warn:
-                if (model.isLargeFile()) {
-                    snapShot = new LargeMessageSnapshot.WarnMessageSnapshot(id, status,
-                            model.getSoFar(), model.getTotal());
-                } else {
-                    snapShot = new SmallMessageSnapshot.WarnMessageSnapshot(id, status,
-                            (int) model.getSoFar(), (int) model.getTotal());
-                }
-                break;
             case FileDownloadStatus.pending:
                 if (model.isLargeFile()) {
                     snapShot = new LargeMessageSnapshot.PendingMessageSnapshot(id, status,
@@ -104,12 +110,14 @@ public class MessageSnapshotTaker {
                 snapShot = new MessageSnapshot(id, status);
                 break;
             case FileDownloadStatus.connected:
+                final String filename = model.isPathAsDirectory() ? model.getFilename() :
+                        null;
                 if (model.isLargeFile()) {
                     snapShot = new LargeMessageSnapshot.ConnectedMessageSnapshot(id, status,
-                            runnable.isResuming(), model.getTotal(), model.getETag());
+                            runnable.isResuming(), model.getTotal(), model.getETag(), filename);
                 } else {
                     snapShot = new SmallMessageSnapshot.ConnectedMessageSnapshot(id, status,
-                            runnable.isResuming(), (int) model.getTotal(), model.getETag());
+                            runnable.isResuming(), (int) model.getTotal(), model.getETag(), filename);
                 }
                 break;
             case FileDownloadStatus.progress:

@@ -97,13 +97,15 @@ public class LargeMessageSnapshot extends MessageSnapshot {
         private final boolean resuming;
         private final long totalBytes;
         private final String etag;
+        private final String fileName;
 
         ConnectedMessageSnapshot(int id, byte status, boolean resuming, long totalBytes,
-                                 String etag) {
+                                 String etag, String fileName) {
             super(id, status);
             this.resuming = resuming;
             this.totalBytes = totalBytes;
             this.etag = etag;
+            this.fileName = fileName;
         }
 
         @Override
@@ -117,6 +119,7 @@ public class LargeMessageSnapshot extends MessageSnapshot {
             dest.writeByte(resuming ? (byte) 1 : (byte) 0);
             dest.writeLong(this.totalBytes);
             dest.writeString(this.etag);
+            dest.writeString(this.fileName);
         }
 
         ConnectedMessageSnapshot(Parcel in) {
@@ -124,6 +127,12 @@ public class LargeMessageSnapshot extends MessageSnapshot {
             this.resuming = in.readByte() != 0;
             this.totalBytes = in.readLong();
             this.etag = in.readString();
+            this.fileName = in.readString();
+        }
+
+        @Override
+        public String getFileName() {
+            return fileName;
         }
 
         @Override

@@ -27,10 +27,10 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  */
 public class DownloadServiceNotConnectedHelper {
 
-    public static boolean start(final String url, final String path) {
+    public static boolean start(final String url, final String path, final boolean pathAsDirectory) {
         FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
-                "request start the task([%s],[%s]) in the download service," +
-                        " but the download service isn't connected yet.", url, path);
+                "request start the task([%s], [%s], [%B]) in the download service," +
+                        " but the download service isn't connected yet.", url, path, pathAsDirectory);
         return false;
     }
 

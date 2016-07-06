@@ -61,7 +61,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Already connected to the server, and received the Http-response.
      *
-     * @see FileDownloadRunnable#onConnected(boolean, long, String)
+     * @see FileDownloadRunnable#onConnected(boolean, long, String, String)
      */
     void notifyConnected(MessageSnapshot snapshot);
 
@@ -97,8 +97,8 @@ interface IFileDownloadMessenger {
      * There has already had some same Tasks(Same-URL & Same-SavePath) in Pending-Queue or is
      * running.
      *
-     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#start(String, String, int, int, int, FileDownloadHeader)
-     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#checkDownloading(String, String)
+     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#start(String, String, boolean, int, int, int, boolean, FileDownloadHeader)
+     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#isDownloading(String, String)
      */
     void notifyWarn(MessageSnapshot snapshot);
 

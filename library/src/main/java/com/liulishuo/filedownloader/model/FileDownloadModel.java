@@ -45,8 +45,12 @@ public class FileDownloadModel {
     private String path;
     public final static String PATH = "path";
 
-    private int callbackProgressTimes = DEFAULT_CALLBACK_PROGRESS_TIMES;
-    public final static String CALLBACK_PROGRESS_TIMES = "callbackProgressTimes";
+
+    private boolean pathAsDirectory;
+    public final static String PATH_AS_DIRECTORY = "pathAsDirectory";
+
+    private String filename;
+    public final static String FILENAME = "filename";
 
     private byte status;
     public final static String STATUS = "status";
@@ -72,8 +76,9 @@ public class FileDownloadModel {
         this.url = url;
     }
 
-    public void setPath(String path) {
+    public void setPath(String path, boolean pathAsDirectory) {
         this.path = path;
+        this.pathAsDirectory = pathAsDirectory;
     }
 
     public void setStatus(byte status) {
@@ -101,8 +106,15 @@ public class FileDownloadModel {
         return path;
     }
 
-    public String getTempPath() {
-        return FileDownloadUtils.getTempPath(path);
+    public String getTargetFilePath() {
+        return FileDownloadUtils.getTargetFilePath(getPath(), isPathAsDirectory(), getFilename());
+    }
+
+    public String getTempFilePath() {
+        if (getTargetFilePath() == null) {
+            return null;
+        }
+        return FileDownloadUtils.getTempPath(getTargetFilePath());
     }
 
     public byte getStatus() {
@@ -115,14 +127,6 @@ public class FileDownloadModel {
 
     public long getTotal() {
         return total;
-    }
-
-    public int getCallbackProgressTimes() {
-        return callbackProgressTimes;
-    }
-
-    public void setCallbackProgressTimes(int callbackProgressTimes) {
-        this.callbackProgressTimes = callbackProgressTimes;
     }
 
     public String getETag() {
@@ -141,16 +145,33 @@ public class FileDownloadModel {
         this.errMsg = errMsg;
     }
 
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public boolean isPathAsDirectory() {
+        return pathAsDirectory;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
     public ContentValues toContentValues() {
         ContentValues cv = new ContentValues();
-        cv.put(ID, id);
-        cv.put(URL, url);
-        cv.put(PATH, path);
-        cv.put(STATUS, status);
-        cv.put(SOFAR, soFar);
-        cv.put(TOTAL, total);
-        cv.put(ERR_MSG, errMsg);
-        cv.put(ETAG, eTag);
+        cv.put(ID, getId());
+        cv.put(URL, getUrl());
+        cv.put(PATH, getPath());
+        cv.put(STATUS, getStatus());
+        cv.put(SOFAR, getSoFar());
+        cv.put(TOTAL, getTotal());
+        cv.put(ERR_MSG, getErrMsg());
+        cv.put(ETAG, getETag());
+        cv.put(PATH_AS_DIRECTORY, isPathAsDirectory());
+        if (isPathAsDirectory() && getFilename() != null) {
+            cv.put(FILENAME, getFilename());
+        }
+
         return cv;
     }
 

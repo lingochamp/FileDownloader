@@ -89,17 +89,17 @@ class FileDownloadServiceUIGuard extends
      * @param header                for http header
      */
     @Override
-    public boolean start(final String url, final String path,
+    public boolean start(final String url, final String path, final boolean pathAsDirectory,
                          final int callbackProgressTimes,
                          final int callbackProgressMinIntervalMillis,
-                         final int autoRetryTimes, final FileDownloadHeader header) {
+                         final int autoRetryTimes, boolean forceReDownload, final FileDownloadHeader header) {
         if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.start(url, path);
+            return DownloadServiceNotConnectedHelper.start(url, path, pathAsDirectory);
         }
 
         try {
-            getService().start(url, path, callbackProgressTimes, callbackProgressMinIntervalMillis,
-                    autoRetryTimes, header);
+            getService().start(url, path, pathAsDirectory, callbackProgressTimes,
+                    callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header);
         } catch (RemoteException e) {
             e.printStackTrace();
 

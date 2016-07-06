@@ -17,8 +17,7 @@
 package com.liulishuo.filedownloader.services;
 
 
-import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
-import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
+import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -36,12 +35,12 @@ import okhttp3.OkHttpClient;
  * <p/>
  * The Download Manager in FileDownloadService, which is used to control all download-inflow.
  * <p/>
- * Handling real {@link #start(String, String, int, int, int, FileDownloadHeader)};
+ * Handling real {@link #start(String, String, boolean, int, int, int, boolean, FileDownloadHeader)};
  *
  * @see FileDownloadThreadPool
  * @see FileDownloadRunnable
  */
-class FileDownloadMgr {
+class FileDownloadMgr implements IThreadPoolMonitor {
     private final IFileDownloadDBHelper mHelper;
 
     private OkHttpClient client = null;
@@ -80,54 +79,68 @@ class FileDownloadMgr {
         mThreadPool = new FileDownloadThreadPool(maxNetworkThreadCount);
     }
 
-
     // synchronize for safe: check downloading, check resume, update data, execute runnable
-    public synchronized void start(final String url, final String path,
+    public synchronized void start(final String url, final String path, final boolean pathAsDirectory,
                                    final int callbackProgressTimes,
                                    final int callbackProgressMinIntervalMillis,
-                                   final int autoRetryTimes, final FileDownloadHeader header) {
-        final int id = FileDownloadUtils.generateId(url, path);
+                                   final int autoRetryTimes, final boolean forceReDownload,
+                                   final FileDownloadHeader header) {
+        final int id = FileDownloadUtils.generateId(url, path, pathAsDirectory);
         FileDownloadModel model = mHelper.find(id);
 
-        // check has already in download pool
-        if (checkDownloading(id)) {
+        if (!pathAsDirectory && model == null) {
+            // try dir data.
+            final int dirCaseId = FileDownloadUtils.generateId(url, FileDownloadUtils.getParent(path),
+                    true);
+            model = mHelper.find(dirCaseId);
+            if (model != null && path.equals(model.getTargetFilePath())) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(this, "task[%d] find model by dirCaseId[%d]", id, dirCaseId);
+                }
+            }
+        }
+
+        if (FileDownloadHelper.inspectAndInflowDownloading(id, model, this)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already started download %d", id);
             }
-            // warn
-            MessageSnapshotFlow.getImpl().
-                    inflow(MessageSnapshotTaker.take(FileDownloadStatus.warn, model));
             return;
         }
 
-        final File oldFile = new File(path);
-        if (oldFile.exists()) {
+        final String targetFilePath = model != null ? model.getTargetFilePath() :
+                FileDownloadUtils.getTargetFilePath(path, pathAsDirectory, null);
+
+        if (FileDownloadHelper.inspectAndInflowDownloaded(id, targetFilePath, forceReDownload)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already completed downloading %d", id);
             }
-
-            // completed
-            MessageSnapshotFlow.getImpl().
-                    inflow(MessageSnapshotTaker.catchCanReusedOldFile(id, oldFile));
             return;
         }
 
         // real start
-
         // - create model
         boolean needUpdate2DB;
         if (model != null &&
                 (model.getStatus() == FileDownloadStatus.paused ||
                         model.getStatus() == FileDownloadStatus.error) // FileDownloadRunnable invoke
-            // #checkBreakpointAvailable  to determine whether it is really invalid.
+            // #isBreakpointAvailable to determine whether it is really invalid.
                 ) {
-            needUpdate2DB = false;
+            if (model.getId() != id) {
+                // in try dir case.
+                mHelper.remove(model.getId());
+                model.setId(id);
+                model.setPath(path, pathAsDirectory);
+
+                needUpdate2DB = true;
+            } else {
+                needUpdate2DB = false;
+            }
         } else {
             if (model == null) {
                 model = new FileDownloadModel();
             }
             model.setUrl(url);
-            model.setPath(path);
+            model.setPath(path, pathAsDirectory);
 
             model.setId(id);
             model.setSoFar(0);
@@ -136,106 +149,54 @@ class FileDownloadMgr {
             needUpdate2DB = true;
         }
 
-        model.setCallbackProgressTimes(callbackProgressTimes);
-
         // - update model to db
         if (needUpdate2DB) {
             mHelper.update(model);
         }
 
         // - execute
-        mThreadPool.execute(new FileDownloadRunnable(client, model, mHelper, autoRetryTimes, header,
-                callbackProgressMinIntervalMillis));
+        mThreadPool.execute(new FileDownloadRunnable(client, this, model, mHelper, autoRetryTimes, header,
+                callbackProgressMinIntervalMillis, callbackProgressTimes, forceReDownload));
 
     }
 
-    private boolean needStart(int downloadId) {
-        final FileDownloadModel model = mHelper.find(downloadId);
-        if (model == null) {
-            return true;
-        }
-
-        boolean needStart = false;
-        do {
-
-            if (checkDownloading(downloadId)) {
-                break;
-            }
-
-            /**
-             * The task doesn't need to ensure whether it has already downloaded in here,
-             * because it has already handled in  {@link FileDownloadTask#_checkCanReuse()}.
-             */
-            needStart = true;
-
-        } while (false);
-
-        return needStart;
+    public boolean isDownloading(String url, String path) {
+        return isDownloading(FileDownloadUtils.generateId(url, path));
     }
 
-    public boolean checkDownloading(String url, String path) {
-        return checkDownloading(FileDownloadUtils.generateId(url, path));
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public boolean checkDownloading(int downloadId) {
-        final FileDownloadModel model = mHelper.find(downloadId);
-        if (model == null) {
-            return false;
-        }
-
-        final boolean isInPool = mThreadPool.isInThreadPool(downloadId);
-        boolean isDownloading;
-
-        do {
-            if (FileDownloadStatus.isOver(model.getStatus())) {
-
-                //noinspection RedundantIfStatement
-                if (isInPool) {
-                    // already finished, but still in the pool.
-                    // handle as downloading.
-                    isDownloading = true;
-                } else {
-                    // already finished, and not in the pool.
-                    // make sense.
-                    isDownloading = false;
-
-                }
-            } else {
-                if (isInPool) {
-                    // not finish, in the pool.
-                    // make sense.
-                    isDownloading = true;
-                } else {
-                    // not finish, but not in the pool.
-                    // beyond expectation.
-                    FileDownloadLog.e(this, "%d status is[%s](not finish) & but not in the pool",
-                            downloadId, model.getStatus());
-                    // handle as not in downloading, going to re-downloading.
-                    isDownloading = false;
-
-                }
-            }
-        } while (false);
-
-        return isDownloading;
+    public boolean isDownloading(int id) {
+        return isDownloading(mHelper.find(id));
     }
 
     /**
      * @return can resume by break point
      */
-    public static boolean checkBreakpointAvailable(final int downloadId, final FileDownloadModel model) {
-        return checkBreakpointAvailable(downloadId, model, model.getTempPath());
+    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model) {
+        if (model == null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d model == null", id);
+            }
+            return false;
+        }
+
+        if (model.getTempFilePath() == null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d temp path == null", id);
+            }
+            return false;
+        }
+
+        return isBreakpointAvailable(id, model, model.getTempFilePath());
     }
 
-    public static boolean checkBreakpointAvailable(final int downloadId, final FileDownloadModel model,
-                                                   final String path) {
+    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model,
+                                                final String path) {
         boolean result = false;
 
         do {
-            if (model == null) {
+            if (path == null) {
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d model == null", downloadId);
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d path = null", id);
                 }
                 break;
             }
@@ -247,7 +208,7 @@ class FileDownloadMgr {
             if (!isExists || isDirectory) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d file not suit, exists[%B], directory[%B]",
-                            downloadId, isExists, isDirectory);
+                            id, isExists, isDirectory);
                 }
                 break;
             }
@@ -257,7 +218,7 @@ class FileDownloadMgr {
             if (model.getSoFar() == 0) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d the downloaded-record is zero.",
-                            downloadId);
+                            id);
                 }
                 break;
             }
@@ -271,7 +232,7 @@ class FileDownloadMgr {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d dirty data" +
                                     " fileLength[%d] sofar[%d] total[%d]",
-                            downloadId, fileLength, model.getSoFar(), model.getTotal());
+                            id, fileLength, model.getSoFar(), model.getTotal());
                 }
                 break;
             }
@@ -353,5 +314,47 @@ class FileDownloadMgr {
         return mThreadPool.setMaxNetworkThreadCount(count);
     }
 
+    @Override
+    public boolean isDownloading(FileDownloadModel model) {
+        if (model == null) {
+            return false;
+        }
+
+        final boolean isInPool = mThreadPool.isInThreadPool(model.getId());
+        boolean isDownloading;
+
+        do {
+            if (FileDownloadStatus.isOver(model.getStatus())) {
+
+                //noinspection RedundantIfStatement
+                if (isInPool) {
+                    // already finished, but still in the pool.
+                    // handle as downloading.
+                    isDownloading = true;
+                } else {
+                    // already finished, and not in the pool.
+                    // make sense.
+                    isDownloading = false;
+
+                }
+            } else {
+                if (isInPool) {
+                    // not finish, in the pool.
+                    // make sense.
+                    isDownloading = true;
+                } else {
+                    // not finish, but not in the pool.
+                    // beyond expectation.
+                    FileDownloadLog.e(this, "%d status is[%s](not finish) & but not in the pool",
+                            model.getId(), model.getStatus());
+                    // handle as not in downloading, going to re-downloading.
+                    isDownloading = false;
+
+                }
+            }
+        } while (false);
+
+        return isDownloading;
+    }
 }
 

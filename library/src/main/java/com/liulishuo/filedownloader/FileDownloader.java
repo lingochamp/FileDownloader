@@ -354,14 +354,14 @@ public class FileDownloader {
     }
 
     /**
-     * @param downloadId The downloadId.
+     * @param id The downloadId.
      * @return The downloading status without cover the completed status (if completed you will receive
      * {@link FileDownloadStatus#INVALID_STATUS} ).
      * @see #getStatus(String, String)
      * @see #getStatus(int, String)
      */
-    public byte getStatusIgnoreCompleted(final int downloadId) {
-        return getStatus(downloadId, null);
+    public byte getStatusIgnoreCompleted(final int id) {
+        return getStatus(id, null);
     }
 
     /**
@@ -393,7 +393,7 @@ public class FileDownloader {
         }
 
         if (path != null && status == FileDownloadStatus.INVALID_STATUS) {
-            if (FileDownloadUtils.isFileNameConverted(FileDownloadHelper.getAppContext()) &&
+            if (FileDownloadUtils.isFilenameConverted(FileDownloadHelper.getAppContext()) &&
                     new File(path).exists()) {
                 status = FileDownloadStatus.completed;
             }
@@ -548,7 +548,7 @@ public class FileDownloader {
      * false; If the length of the file in {@code path} is not equal to {@code totalBytes} will be
      * false; If the task with {@code url} and {@code path} is downloading will be false. Otherwise
      * will be true.
-     * @see FileDownloadUtils#isFileNameConverted(Context)
+     * @see FileDownloadUtils#isFilenameConverted(Context)
      * <p>
      * <p/>
      * Recommend used to telling the FileDownloader Engine that the task with the {@code url}  and
@@ -590,7 +590,7 @@ public class FileDownloader {
      * any longer. In new mechanism(filedownloader 0.3.3 or higher), FileDownloader doesn't store
      * completed tasks in Database anymore, because all downloading files have temp a file name.
      */
-    public boolean setTaskCompleted(List<FileDownloadTaskAtom> taskAtomList) {
+    public boolean setTaskCompleted(@SuppressWarnings("deprecation") List<FileDownloadTaskAtom> taskAtomList) {
         FileDownloadLog.w(this, "If you invoked this method, please remove it directly feel free, " +
                 "it doesn't need any longer");
         return true;

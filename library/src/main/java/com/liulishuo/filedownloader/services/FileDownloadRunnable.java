@@ -22,6 +22,7 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
 import com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException;
@@ -30,6 +31,7 @@ import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -77,6 +79,7 @@ public class FileDownloadRunnable implements Runnable {
     private static final int BUFFER_SIZE = 1024 * 4;
 
     private int maxProgressCount = 0;
+    private boolean isForceReDownload;
     private boolean isResumeDownloadAvailable;
     private boolean isResuming;
     private Throwable throwable;
@@ -98,13 +101,18 @@ public class FileDownloadRunnable implements Runnable {
     private final int callbackMinIntervalMillis;
     private long callbackMinIntervalBytes;
 
-    public FileDownloadRunnable(final OkHttpClient client, final FileDownloadModel model,
+    private IThreadPoolMonitor threadPoolMonitor;
+
+    public FileDownloadRunnable(final OkHttpClient client, final IThreadPoolMonitor threadPoolMonitor,
+                                final FileDownloadModel model,
                                 final IFileDownloadDBHelper helper, final int autoRetryTimes,
-                                final FileDownloadHeader header, final int minIntervalMillis) {
+                                final FileDownloadHeader header, final int minIntervalMillis,
+                                final int callbackProgressTimes, final boolean isForceReDownload) {
         isPending = true;
         isRunning = false;
 
         this.client = client;
+        this.threadPoolMonitor = threadPoolMonitor;
         this.helper = helper;
         this.header = header;
 
@@ -112,7 +120,8 @@ public class FileDownloadRunnable implements Runnable {
                 minIntervalMillis < CALLBACK_SAFE_MIN_INTERVAL_MILLIS ?
                         CALLBACK_SAFE_MIN_INTERVAL_MILLIS : minIntervalMillis;
 
-        maxProgressCount = model.getCallbackProgressTimes();
+        this.maxProgressCount = callbackProgressTimes;
+        this.isForceReDownload = isForceReDownload;
 
         this.isResumeDownloadAvailable = false;
 
@@ -294,9 +303,46 @@ public class FileDownloadRunnable implements Runnable {
                     }
 
                     // Step 6, callback on connected, and update header to db. for save etag.
-                    onConnected(isSucceedResume, total, findEtag(response));
+                    onConnected(isSucceedResume, total, findEtag(response), findFilename(response));
 
-                    // Step 7, start fetch datum from input stream & write to file
+                    // Step 7, check whether has same task running after got filename from server/local generate.
+                    if (model.isPathAsDirectory()) {
+                        final int fileCaseId = FileDownloadUtils.generateId(model.getUrl(),
+                                model.getTargetFilePath());
+
+
+                        if (FileDownloadHelper.inspectAndInflowDownloaded(getId(),
+                                model.getTargetFilePath(),
+                                isForceReDownload)) {
+                            helper.remove(getId());
+                            break;
+                        }
+
+                        final FileDownloadModel fileCaseModel = helper.find(fileCaseId);
+
+                        if (fileCaseModel != null) {
+                            if (FileDownloadHelper.inspectAndInflowDownloading(getId(), fileCaseModel,
+                                    threadPoolMonitor)) {
+                                helper.remove(getId());
+                                break;
+                            }
+
+
+
+                            helper.remove(fileCaseId);
+
+                            if (FileDownloadMgr.isBreakpointAvailable(fileCaseId, fileCaseModel)) {
+                                model.setSoFar(fileCaseModel.getSoFar());
+                                model.setTotal(fileCaseModel.getTotal());
+                                model.setETag(fileCaseModel.getETag());
+                                helper.update(model);
+                                // re connect to resume from breakpoint.
+                                continue;
+                            }
+                        }
+                    }
+
+                    // Step 8, start fetch datum from input stream & write to file
                     if (fetch(response, isSucceedResume, soFar, total)) {
                         break;
                     }
@@ -316,7 +362,7 @@ public class FileDownloadRunnable implements Runnable {
                             FileDownloadLog.w(FileDownloadRunnable.class, "%d response code %d, " +
                                             "range[%d] isn't make sense, so delete the dirty file[%s]" +
                                             ", and try to redownload it from byte-0.", getId(),
-                                    response.code(), model.getSoFar(), model.getTempPath());
+                                    response.code(), model.getSoFar(), model.getTempFilePath());
                             onRetry(httpException, retryingTimes++);
                             break;
                         default:
@@ -397,7 +443,6 @@ public class FileDownloadRunnable implements Runnable {
 
             } while (true);
 
-
             // Step 7, adapter chunked transfer encoding
             if (total == TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
                 total = soFar;
@@ -442,8 +487,8 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     private void renameTempFile() {
-        final String tempPath = model.getTempPath();
-        final String targetPath = model.getPath();
+        final String tempPath = model.getTempFilePath();
+        final String targetPath = model.getTargetFilePath();
 
         final File tempFile = new File(tempPath);
         try {
@@ -546,13 +591,30 @@ public class FileDownloadRunnable implements Runnable {
         return newEtag;
     }
 
+    private String findFilename(Response response) {
+        String filename;
+        if (model.isPathAsDirectory() && model.getFilename() == null) {
+            filename = FileDownloadUtils.parseContentDisposition(response.
+                    header("Content-Disposition"));
+            if (TextUtils.isEmpty(filename)) {
+                filename = FileDownloadUtils.generateFileName(model.getUrl());
+            }
+        } else {
+            // no need generate filename.
+            filename = null;
+        }
+
+        return filename;
+    }
+
     public void cancelRunnable() {
         this.isCanceled = true;
         onPause();
     }
 
-    private void onConnected(final boolean resuming, final long total, final String etag) {
-        helper.updateConnected(model, total, etag);
+    private void onConnected(final boolean resuming, final long total, final String etag,
+                             final String filename) {
+        helper.updateConnected(model, total, etag, filename);
 
         this.isResuming = resuming;
 
@@ -719,7 +781,7 @@ public class FileDownloadRunnable implements Runnable {
     // ----------------------------------
     private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes)
             throws IOException {
-        final String tempPath = model.getTempPath();
+        final String tempPath = model.getTempFilePath();
         if (TextUtils.isEmpty(tempPath)) {
             throw new RuntimeException("found invalid internal destination path, empty");
         }
@@ -774,7 +836,7 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     private void checkIsResumeAvailable() {
-        if (FileDownloadMgr.checkBreakpointAvailable(getId(), this.model)) {
+        if (FileDownloadMgr.isBreakpointAvailable(getId(), this.model)) {
             this.isResumeDownloadAvailable = true;
         } else {
             this.isResumeDownloadAvailable = false;
@@ -783,12 +845,14 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     private void deleteTempFile() {
-        //noinspection ResultOfMethodCallIgnored
-        new File(model.getTempPath()).delete();
+        if (model.getTempFilePath() != null) {
+            //noinspection ResultOfMethodCallIgnored
+            new File(model.getTempFilePath()).delete();
+        }
     }
 
     private Throwable exFiltrate(Throwable ex) {
-        final String tempPath = model.getTempPath();
+        final String tempPath = model.getTempFilePath();
         /**
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
          * in {@link #getRandomAccessFile(boolean, long)}.

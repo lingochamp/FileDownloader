@@ -21,7 +21,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 
 /**
@@ -33,11 +32,11 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
  * target task.
  *
  * @see FileDownloadDBHelper
- * @see FileDownloadMgr#checkBreakpointAvailable(int, FileDownloadModel)
+ * @see FileDownloadMgr#isBreakpointAvailable(int, FileDownloadModel)
  */
 class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "filedownloader.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public FileDownloadDBOpenHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -46,32 +45,33 @@ class FileDownloadDBOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS " +
-                FileDownloadDBHelper.TABLE_NAME +
-                FileDownloadUtils.formatString(
-                        "(" +
-                                "%s INTEGER PRIMARY KEY, " + // id
-                                "%s VARCHAR, " + //url
-                                "%s VARCHAR, " + // path
-                                "%s INTEGER, " + // callbackProgressTimes // no need store, but SQLite not support remove a column
-                                "%s TINYINT, " + // status ,ps SQLite will auto change to integer.
-                                "%s INTEGER, " + // so far
-                                "%s INTEGER, " + // total
-                                "%s VARCHAR, " + // err msg
-                                "%s VARCHAR" + // e tag
-                                ")",
-                        FileDownloadModel.ID,
-                        FileDownloadModel.URL,
-                        FileDownloadModel.PATH,
-                        FileDownloadModel.CALLBACK_PROGRESS_TIMES,
-                        FileDownloadModel.STATUS,
-                        FileDownloadModel.SOFAR,
-                        FileDownloadModel.TOTAL,
-                        FileDownloadModel.ERR_MSG,
-                        FileDownloadModel.ETAG));
+                FileDownloadDBHelper.TABLE_NAME + "( " +
+                FileDownloadModel.ID + " INTEGER PRIMARY KEY, " + // id
+                FileDownloadModel.URL + " VARCHAR, " + // url
+                FileDownloadModel.PATH + " VARCHAR, " + // path
+                FileDownloadModel.STATUS + " TINYINT(7), " + // status ,ps SQLite will auto change to integer.
+                FileDownloadModel.SOFAR + " INTEGER, " +// so far
+                FileDownloadModel.TOTAL + " INTEGER, " +// total
+                FileDownloadModel.ERR_MSG + " VARCHAR, " + // error message
+                FileDownloadModel.ETAG + " VARCHAR, " +// e tag
+                FileDownloadModel.PATH_AS_DIRECTORY + " TINYINT(1) DEFAULT 0, " +// path as directory
+                FileDownloadModel.FILENAME + " VARCHAR" +// path as directory
+                ")");
 
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion == 1 && newVersion == 2) {
+            String addAsDirectoryColumn = "ALTER TABLE " + FileDownloadDBHelper.TABLE_NAME +
+                    " ADD COLUMN " + FileDownloadModel.PATH_AS_DIRECTORY +
+                    " TINYINT(1) DEFAULT 0";
+            db.execSQL(addAsDirectoryColumn);
+
+            String addFilenameColumn = "ALTER TABLE " + FileDownloadDBHelper.TABLE_NAME +
+                    " ADD COLUMN " + FileDownloadModel.FILENAME +
+                    " VARCHAR";
+            db.execSQL(addFilenameColumn);
+        }
     }
 }

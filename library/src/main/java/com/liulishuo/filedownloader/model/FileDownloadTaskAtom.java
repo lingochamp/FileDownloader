@@ -30,8 +30,9 @@ import java.util.List;
  * Used for telling the FileDownloader Engine that a task was downloaded by the other ways.
  *
  * @see com.liulishuo.filedownloader.FileDownloader#setTaskCompleted(List)
+ * @deprecated No used. {@link com.liulishuo.filedownloader.FileDownloader#setTaskCompleted(String, String, long)}
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "deprecation"})
 public class FileDownloadTaskAtom implements Parcelable {
     private String url;
     private String path;

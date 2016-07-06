@@ -45,15 +45,15 @@ class FileDownloadServiceSharedTransmit implements
     private final static Class<?> SERVICE_CLASS = SharedMainProcessService.class;
 
     @Override
-    public boolean start(String url, String path, int callbackProgressTimes,
+    public boolean start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
                          int callbackProgressMinIntervalMillis,
-                         int autoRetryTimes, FileDownloadHeader header) {
+                         int autoRetryTimes, boolean forceReDownload, FileDownloadHeader header) {
         if (!isConnected()) {
-            return DownloadServiceNotConnectedHelper.start(url, path);
+            return DownloadServiceNotConnectedHelper.start(url, path, pathAsDirectory);
         }
 
-        handler.start(url, path, callbackProgressTimes, callbackProgressMinIntervalMillis,
-                autoRetryTimes, header);
+        handler.start(url, path, pathAsDirectory, callbackProgressTimes, callbackProgressMinIntervalMillis,
+                autoRetryTimes, forceReDownload, header);
         return true;
     }
 

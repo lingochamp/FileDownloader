@@ -23,12 +23,10 @@ import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
-import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,8 +83,10 @@ class FileDownloadTask extends BaseDownloadTask {
                 start(
                         getUrl(),
                         getPath(),
+                        isPathAsDirectory(),
                         getCallbackProgressTimes(), getCallbackProgressMinInterval(),
                         getAutoRetryTimes(),
+                        isForceReDownload(),
                         getHeader());
 
         if (!succeed) {
@@ -117,18 +117,9 @@ class FileDownloadTask extends BaseDownloadTask {
 
     @Override
     protected boolean _checkCanReuse() {
-        if (isForceReDownload()) {
-            return false;
-        }
-
-        final File file = new File(getPath());
-        if (file.exists()) {
-            MessageSnapshotFlow.getImpl().inflow(MessageSnapshotTaker.
-                    catchCanReusedOldFile(getId(), file));
-            return true;
-        }
-
-        return super._checkCanReuse();
+        return FileDownloadHelper.inspectAndInflowDownloaded(getId(), getTargetFilePath(),
+                isForceReDownload()) ||
+                super._checkCanReuse();
     }
 
     @Override
@@ -210,6 +201,14 @@ class FileDownloadTask extends BaseDownloadTask {
             for (BaseDownloadTask task : taskList) {
                 if (task.updateKeepFlow(snapshot)) {
                     return true;
+                }
+            }
+
+            if (FileDownloadStatus.warn == snapshot.getStatus()) {
+                for (BaseDownloadTask task : taskList) {
+                    if (task.updateSameFilePathTaskRunning(snapshot)) {
+                        return true;
+                    }
                 }
             }
 
@@ -318,8 +317,6 @@ class FileDownloadTask extends BaseDownloadTask {
                                 FileDownloader.freezeSerialHandler(handler);
                             }
                         }
-
-
                     }
 
                 } else {

@@ -175,6 +175,5 @@ public class FileDownloadStatus {
 
     public static boolean isMoreLikelyCompleted(BaseDownloadTask task) {
         return task.getStatus() == INVALID_STATUS || task.getStatus() == progress;
-
     }
 }

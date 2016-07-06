@@ -32,6 +32,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.Headers;
 
@@ -135,7 +137,26 @@ public class FileDownloadUtils {
     }
 
     public static String getDefaultSaveFilePath(final String url) {
-        return formatString("%s%s%s", getDefaultSaveRootPath(), File.separator, md5(url));
+        return generateFilePath(getDefaultSaveRootPath(), generateFileName(url));
+    }
+
+    public static String generateFileName(final String url) {
+        return md5(url);
+    }
+
+    /**
+     * @see #getTargetFilePath(String, boolean, String)
+     */
+    public static String generateFilePath(String directory, String filename) {
+        if (filename == null) {
+            throw new IllegalStateException("can't generate real path, the file name is null");
+        }
+
+        if (directory == null) {
+            throw new IllegalStateException("can't generate real path, the directory is null");
+        }
+
+        return formatString("%s%s%s", directory, File.separator, filename);
     }
 
     /**
@@ -157,8 +178,29 @@ public class FileDownloadUtils {
         return FileDownloadUtils.formatString("%s.temp", targetPath);
     }
 
+    /**
+     * @param url  The downloading URL.
+     * @param path The absolute file path.
+     * @return The download id.
+     */
     public static int generateId(final String url, final String path) {
-        return md5(formatString("%sp%s", url, path)).hashCode();
+        return generateId(url, path, false);
+    }
+
+    /**
+     * @param url  The downloading URL.
+     * @param path If {@code pathAsDirectory} is {@code true}, {@code path} would be the absolute
+     *             directory to place the file;
+     *             If {@code pathAsDirectory} is {@code false}, {@code path} would be the absolute
+     *             file path.
+     * @return The download id.
+     */
+    public static int generateId(final String url, final String path, final boolean pathAsDirectory) {
+        if (pathAsDirectory) {
+            return md5(formatString("%sp%s@dir", url, path)).hashCode();
+        } else {
+            return md5(formatString("%sp%s", url, path)).hashCode();
+        }
     }
 
     private static String md5(String string) {
@@ -279,6 +321,8 @@ public class FileDownloadUtils {
         }
     }
 
+    private static Boolean FILENAME_CONVERTED = null;
+
     /**
      * @return Whether has converted all files' name from 'filename'(in old architecture) to
      * 'filename.temp', if it's in downloading state.
@@ -289,12 +333,94 @@ public class FileDownloadUtils {
      * when {@link FileDownloadService#onCreate()} is invoked, This value will be assigned to
      * {@code true} only once since you upgrade the filedownloader version to 0.3.3 or higher.
      */
-    public static boolean isFileNameConverted(final Context context) {
-        return getConvertedMarkedFile(context).exists();
+    public static boolean isFilenameConverted(final Context context) {
+        if (FILENAME_CONVERTED == null) {
+            FILENAME_CONVERTED = getConvertedMarkedFile(context).exists();
+        }
+
+        return FILENAME_CONVERTED;
     }
 
     public static File getConvertedMarkedFile(final Context context) {
         return new File(context.getFilesDir().getAbsolutePath() + File.separator +
                 INTERNAL_DOCUMENT_NAME, OLD_FILE_CONVERTED_FILE_NAME);
+    }
+
+    private static final Pattern CONTENT_DISPOSITION_PATTERN =
+            Pattern.compile("attachment;\\s*filename\\s*=\\s*\"([^\"]*)\"");
+
+    //
+
+    /**
+     * The same to com.android.providers.downloads.Helpers#parseContentDisposition.
+     * </p>
+     * Parse the Content-Disposition HTTP Header. The format of the header
+     * is defined here: http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
+     * This header provides a filename for content that is going to be
+     * downloaded to the file system. We only support the attachment type.
+     */
+    public static String parseContentDisposition(String contentDisposition) {
+        if (contentDisposition == null) {
+            return null;
+        }
+
+        try {
+            Matcher m = CONTENT_DISPOSITION_PATTERN.matcher(contentDisposition);
+            if (m.find()) {
+                return m.group(1);
+            }
+        } catch (IllegalStateException ex) {
+            // This function is defined as returning null when it can't parse the header
+        }
+        return null;
+    }
+
+    /**
+     * @param path            If {@code pathAsDirectory} is true, the {@code path} would be the
+     *                        absolute directory to settle down the file;
+     *                        If {@code pathAsDirectory} is false, the {@code path} would be the
+     *                        absolute file path.
+     * @param pathAsDirectory whether the {@code path} is a directory.
+     * @param filename        the file's name.
+     * @return the absolute path of the file. If can't find by params, will return {@code null}.
+     */
+    public static String getTargetFilePath(String path, boolean pathAsDirectory, String filename) {
+        if (path == null) {
+            return null;
+        }
+
+        if (pathAsDirectory) {
+            if (filename == null) {
+                return null;
+            }
+
+            return FileDownloadUtils.generateFilePath(path, filename);
+        } else {
+            return path;
+        }
+    }
+
+    /**
+     * The same to {@link File#getParent()}, for non-creating a file object.
+     *
+     * @return this file's parent pathname or {@code null}.
+     */
+    public static String getParent(final String path) {
+        int length = path.length(), firstInPath = 0;
+        if (File.separatorChar == '\\' && length > 2 && path.charAt(1) == ':') {
+            firstInPath = 2;
+        }
+        int index = path.lastIndexOf(File.separatorChar);
+        if (index == -1 && firstInPath > 0) {
+            index = 2;
+        }
+        if (index == -1 || path.charAt(length - 1) == File.separatorChar) {
+            return null;
+        }
+        if (path.indexOf(File.separatorChar) == index
+                && path.charAt(firstInPath) == File.separatorChar) {
+            return path.substring(0, index + 1);
+        }
+        return path.substring(0, index);
     }
 }

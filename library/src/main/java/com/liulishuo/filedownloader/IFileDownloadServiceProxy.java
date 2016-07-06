@@ -26,10 +26,10 @@ import com.liulishuo.filedownloader.model.FileDownloadHeader;
  * The interface to access the FileDownloadService.
  */
 public interface IFileDownloadServiceProxy {
-    boolean start(final String url, final String path,
+    boolean start(final String url, final String path, final boolean pathAsDirectory,
                   final int callbackProgressTimes,
                   final int callbackProgressMinIntervalMillis,
-                  final int autoRetryTimes,
+                  final int autoRetryTimes, boolean forceReDownload,
                   final FileDownloadHeader header);
 
     boolean pause(final int id);

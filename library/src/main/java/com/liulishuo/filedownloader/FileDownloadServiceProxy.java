@@ -59,11 +59,11 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     }
 
     @Override
-    public boolean start(String url, String path, int callbackProgressTimes,
+    public boolean start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
                          int callbackProgressMinIntervalMillis,
-                         int autoRetryTimes, FileDownloadHeader header) {
-        return handler.start(url, path, callbackProgressTimes,
-                callbackProgressMinIntervalMillis, autoRetryTimes, header);
+                         int autoRetryTimes, boolean forceReDownload, FileDownloadHeader header) {
+        return handler.start(url, path, pathAsDirectory, callbackProgressTimes,
+                callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header);
     }
 
     @Override
