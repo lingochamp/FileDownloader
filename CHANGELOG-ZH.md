@@ -2,6 +2,36 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.3.3
+
+_2016-07-10_
+
+#### 新接口
+
+- 添加 `FileDownloadUtils#getTempPath`: 获取用于存储还未下载完成文件的临时存储路径: `filename.temp`。 Refs #172.
+- 添加 `FileDownloadUtils#isFilenameConverted(context:Context)`: 判断是否所有数据库中下载中的任务的文件名都已经从`filename`(在旧架构中)转为`filename.temp`。
+- 添加 `FileDownloader#getStatusIgnoreCompleted(id:int)`:  获取不包含已完成状态的下载状态(如果任务已经下载完成，将收到`INVALID`)。
+- 添加 `FileDownloader#getStatus(id:int, path:String)`:  获取下载状态。
+- 添加 `FileDownloader#getStatus(url:String, path:String)`:  获取下载状态
+- 添加 `FileDownloadUtils#generateId(url:String, path:String, pathAsDirectory:boolean)`: 生成可以被FileDownloader识别的`Download Id`。
+- 添加 `BaseDownloadTask#setPath(path:String, pathAsDirectory:boolean)`: 如果`pathAsDirectory`是`true`,`path`就是存储下载文件的文件目录(而不是路径)，此时默认情况下文件名`filename`将会默认从`response#header`中的`contentDisposition`中获得。
+- 添加 `BaseDownloadTask#isPathAsDirectory`: 判断`BaseDownloadTask#getPath()`返回的路径是文件存储目录(`directory`)，还是文件存储路径(`directory/filename`)。
+- 添加 `BaseDownloadTask#getTargetFilePath`: 获取目标文件的存储路径。
+- 添加 `FileDownloadQueueSet#setDirectory`: 设置队列中所有任务文件存储的目录。
+
+#### 性能与提高
+
+- 提高实用性: 支持将`path`作为目录来存储文件，在这个情况下，文件名默认将从`response#header`中的`contentDisposition`中获得。 Refs #200.
+- 提高实用性: 将还未下载完成的文件存储在临时文件中(`filename.temp`)。 Refs #172.
+- 提高性能: FileDownloader不再将已经完成下载的任务存储在数据库中，判定任务是否已经下载完成，直接通过判断目标文件是否存在。 Refs #176, #172.
+- 提高稳定性: 选用状态是`INVALID`或`progress`优先接收`completed`消息, 以此确保`connected`状态的任务能够留下来接收`progress`状态的消息。 Refs #123
+- 提高稳定性: 扩张 __任务同步锁__ 到 __获取相同ID任务队列__ 的外面，以此修复由于有些状态在 __获取相同ID任务队列__ 与 __等待任务同步锁__ 的过程中已经被改变导致有些消息不能被消耗的问题。
+
+#### 修复
+
+- 修复(DB-维护): 保留状态是`pending`并且已经下载的字节数大于0的Model，因为这些Model可以用于恢复断点续传。 Closes #176.
+- 修复(crash-NPE): FileDownloader 可能遇到NPE当下载监听器被移除，但是对应任务还在FileDownloader中运行。 Closes #171.
+
 ## Version 0.3.2
 
 _2016-06-12_

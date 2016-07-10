@@ -2,6 +2,36 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.3.3
+
+_2016-07-10_
+
+#### New Interfaces
+
+- Add `FileDownloadUtils#getTempPath`: Get the temp path is used for storing the temporary file not completed downloading yet(`filename.temp`). Refs #172.
+- Add `FileDownloader#getStatusIgnoreCompleted(id:int)`:  Get the downloading status without cover the completed status(If completed you will receive `INVALID`).
+- Add `FileDownloader#getStatus(id:int, path:String)`:  Get the downloading status.
+- Add `FileDownloader#getStatus(url:String, path:String)`:  Get the downloading status.
+- Add `FileDownloadUtils#isFilenameConverted(context:Context)`: Whether tasks from FileDownloader Database has converted all files' name from `filename`(in old architecture) to `filename.temp`, if it is not completed downloading yet.
+- Add `FileDownloadUtils#generateId(url:String, path:String, pathAsDirectory:boolean)`: Generate a `Download Id` which can be recognized in FileDownloader.
+- Add `BaseDownloadTask#setPath(path:String, pathAsDirectory:boolean)`: If `pathAsDirectory` is `true`, the `path` would be the absolute directory to store the downloading file, and the `filename` will be found in `contentDisposition` from the `response#header` as default.
+- Add `BaseDownloadTask#isPathAsDirectory`: Whether the result of `BaseDownloadTask#getPath()` is a `directory` path or `directory/filename` path.
+- Add `BaseDownloadTask#getTargetFilePath`: Get the target file path to store the downloading file.
+- Add `FileDownloadQueueSet#setDirectory`: Set the `directory` to store files in this queue.
+
+#### Enhancement
+
+- Improve Practicability: Support the `path` of the task as the directory to store the file, and in this case, the `filename` will be found in `contentDisposition` from the `response#header` as default. Refs #200.
+- Improve Practicability: Using the temp path to store the file not completed downloading yet(`filename.temp`). Refs #172.
+- Improve Performance: FileDownloader doesn't store completed tasks in Database anymore, and check whether the task has completed downloading with `File#exists()` directly. Refs #176, #172.
+- Improve Robust: Choosing the task which status is `INVALID` or `progress` to receive `completed` message preferentially, to ensure the callback of `progress` can be handled. Refs #123
+- Improve Robust: Expanding task-sync-lock to the outside of getting-same-id-downloading-task, to fix some messages can't be consumed because status changed during getting-same-id-downloading-task and waiting for task-sync-lock.
+
+#### Fix
+
+- Fix(DB-maintain): Keeping models, whose status is `pending` and downloaded so far bytes is more than 0 because it can be used for resuming from the breakpoint. Closes #176.
+- Fix(crash-NPE): FileDownloader might occur NPE when the download-listener was removed, but the task is still running in FileDownloader. Closes #171.
+
 ## Version 0.3.2
 
 _2016-06-12_

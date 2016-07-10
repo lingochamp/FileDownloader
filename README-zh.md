@@ -61,7 +61,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.3.2'
+compile 'com.liulishuo.filedownloader:library:0.3.3'
 ```
 
 #### 全局初始化在`Application.onCreate`中
@@ -245,7 +245,9 @@ if (parallel) {
 | unBindService(void) | 主动关停下载进程
 | unBindServiceIfIdle(void) | 如果目前下载进程没有任务正在执行，则关停下载进程
 | isServiceConnected(void) | 是否已经启动并且连接上下载进程(可参考任务管理demo中的使用)
-| getStatus(downloadId) | 获取下载Id为downloadId的状态(可参考任务管理demo中的使用)
+| getStatusIgnoreCompleted(downloadId) | 获取不包含已完成状态的下载状态(如果任务已经下载完成，将收到`INVALID`)
+| getStatus(id:int, path:String) | 获取下载状态
+| getStatus(url:String, path:String) | 获取下载状态
 | setGlobalPost2UIInterval(intervalMillisecond:int) | 为了避免掉帧，这里是设置了最多每interval毫秒抛一个消息到ui线程(使用Handler)，防止由于回调的过于频繁导致ui线程被ddos导致掉帧。 默认值: 10ms. 如果设置小于0，将会失效，也就是说每个回调都直接抛一个消息到ui线程
 | setGlobalHandleSubPackageSize(packageSize:int) | 为了避免掉帧, 如果上面的方法设置的间隔是一个小于0的数，这个packageSize将不会生效。packageSize这个值是为了避免在ui线程中一次处理过多回调，结合上面的间隔，就是每个interval毫秒间隔抛一个消息到ui线程，而每个消息在ui线程中处理packageSize个回调。默认值: 5
 | enableAvoidDropFrame(void) | 开启 避免掉帧处理。就是将抛消息到ui线程的间隔设为默认值10ms, 很明显会影响的是回调不会立马通知到监听器(FileDownloadListener)中，默认值是: 最多10ms处理5个回调到监听器中
@@ -263,6 +265,7 @@ if (parallel) {
 | 方法名 | 备注
 | --- | ---
 | setPath(path:String) | 下载文件的存储绝对路径
+| setPath(path:String, pathAsDirectory:boolean) | 如果`pathAsDirectory`是`true`,`path`就是存储下载文件的文件目录(而不是路径)，此时默认情况下文件名`filename`将会默认从`response#header`中的`contentDisposition`中获得
 | setListener(listener:FileDownloadListener) | 设置监听，可以以相同监听组成队列
 | setCallbackProgressTimes(times:int) | 设置整个下载过程中`FileDownloadListener#progress`最大回调次数
 | setCallbackProgressIgnored() | 忽略所有的`FileDownloadListener#progress`的回调
@@ -284,7 +287,9 @@ if (parallel) {
 | getUrl(void):String | 获取下载连接
 | getCallbackProgressTimes(void):int | 获得progress最大回调次数
 | getCallbackProgressMinInterval(void):int | 获得每个progress之间的回调间隔(ms)
-| getPath(void):String | 获取下载文件存储路径
+| getPath(void):String | 获取文件路径 或 文件目录
+| isPathAsDirectory | 判断`getPath()`返回的路径是文件存储目录(`directory`)，还是文件存储路径(`directory/filename`)
+| getTargetFilePath | 获取目标文件的存储路径
 | getListener(void):FileDownloadListener | 获取监听器
 | getSoFarBytes(void):int | 获取已经下载的字节数
 | getTotalBytes(void):int | 获取下载文件总大小
@@ -375,6 +380,8 @@ blockComplete -> completed
 | 方法名 | 备注
 | --- | ---
 | setDefaultSaveRootPath(path:String) | 在整个引擎中没有设置路径时`BaseDownloadTask#setPath`这个路径将会作为它的Root path
+| getTempPath | 获取用于存储还未下载完成文件的临时存储路径: `filename.temp`
+| isFilenameConverted(context:Context) | 判断是否所有数据库中下载中的任务的文件名都已经从`filename`(在旧架构中)转为`filename.temp`
 
 #### `FileDownloadNotificationHelper`
 

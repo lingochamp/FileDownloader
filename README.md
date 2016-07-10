@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.3.2'
+    compile 'com.liulishuo.filedownloader:library:0.3.3'
 }
 ```
 
