@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -261,9 +262,19 @@ public class FileDownloadUtils {
         }
 
         int pid = android.os.Process.myPid();
-        final ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        final ActivityManager activityManager = (ActivityManager) context.
+                getSystemService(Context.ACTIVITY_SERVICE);
 
-        for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()) {
+        final List<ActivityManager.RunningAppProcessInfo> runningAppProcessInfoList =
+                activityManager.getRunningAppProcesses();
+
+        if (null == runningAppProcessInfoList || runningAppProcessInfoList.isEmpty()) {
+            FileDownloadLog.w(FileDownloadUtils.class, "The running app process info list from" +
+                    " ActivityManager is null or empty, maybe current App is not running.");
+            return false;
+        }
+
+        for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcessInfoList) {
             if (runningAppProcessInfo.pid == pid) {
                 return runningAppProcessInfo.processName.endsWith(":filedownloader");
             }
