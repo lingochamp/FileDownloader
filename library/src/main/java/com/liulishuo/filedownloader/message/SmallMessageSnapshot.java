@@ -37,11 +37,6 @@ public class SmallMessageSnapshot extends MessageSnapshot {
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        super.writeToParcel(dest, flags);
-    }
-
-    @Override
     public long getLargeTotalBytes() {
         return getSmallTotalBytes();
     }
@@ -174,8 +169,8 @@ public class SmallMessageSnapshot extends MessageSnapshot {
     }
 
     public static class CompletedSnapshot extends SmallMessageSnapshot {
-        private boolean reusedDownloadedFile;
-        private int totalBytes;
+        private final boolean reusedDownloadedFile;
+        private final int totalBytes;
 
         CompletedSnapshot(int id, byte status, boolean reusedDownloadedFile,
                           int totalBytes) {

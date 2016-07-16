@@ -79,7 +79,7 @@ public class FileDownloadRunnable implements Runnable {
     private static final int BUFFER_SIZE = 1024 * 4;
 
     private int maxProgressCount = 0;
-    private boolean isForceReDownload;
+    private final boolean isForceReDownload;
     private boolean isResumeDownloadAvailable;
     private boolean isResuming;
     private Throwable throwable;
@@ -101,7 +101,7 @@ public class FileDownloadRunnable implements Runnable {
     private final int callbackMinIntervalMillis;
     private long callbackMinIntervalBytes;
 
-    private IThreadPoolMonitor threadPoolMonitor;
+    private final IThreadPoolMonitor threadPoolMonitor;
 
     public FileDownloadRunnable(final OkHttpClient client, final IThreadPoolMonitor threadPoolMonitor,
                                 final FileDownloadModel model,
@@ -205,6 +205,7 @@ public class FileDownloadRunnable implements Runnable {
 
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void loop(FileDownloadModel model) {
         int retryingTimes = 0;
         boolean revisedInterval = false;

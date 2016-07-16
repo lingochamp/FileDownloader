@@ -182,8 +182,8 @@ public class LargeMessageSnapshot extends MessageSnapshot {
     }
 
     public static class CompletedSnapshot extends LargeMessageSnapshot {
-        private boolean reusedDownloadedFile;
-        private long totalBytes;
+        private final boolean reusedDownloadedFile;
+        private final long totalBytes;
 
         CompletedSnapshot(int id, byte status, boolean reusedDownloadedFile,
                           long totalBytes) {

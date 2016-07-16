@@ -566,6 +566,7 @@ public class FileDownloader {
      * any longer. In new mechanism(filedownloader 0.3.3 or higher), FileDownloader doesn't store
      * completed tasks in Database anymore, because all downloading files have temp a file name.
      */
+    @SuppressWarnings("UnusedParameters")
     public boolean setTaskCompleted(String url, String path, long totalBytes) {
         FileDownloadLog.w(this, "If you invoked this method, please remove it directly feel free, " +
                 "it doesn't need any longer");
@@ -590,6 +591,7 @@ public class FileDownloader {
      * any longer. In new mechanism(filedownloader 0.3.3 or higher), FileDownloader doesn't store
      * completed tasks in Database anymore, because all downloading files have temp a file name.
      */
+    @SuppressWarnings("UnusedParameters")
     public boolean setTaskCompleted(@SuppressWarnings("deprecation") List<FileDownloadTaskAtom> taskAtomList) {
         FileDownloadLog.w(this, "If you invoked this method, please remove it directly feel free, " +
                 "it doesn't need any longer");
