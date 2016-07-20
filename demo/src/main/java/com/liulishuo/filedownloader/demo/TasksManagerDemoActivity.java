@@ -448,9 +448,8 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
         private FileDownloadConnectListener listener;
 
-        public void onCreate(final WeakReference<TasksManagerDemoActivity> activityWeakReference) {
-            FileDownloader.getImpl().bindService();
-
+        private void registerServiceConnectionListener(final WeakReference<TasksManagerDemoActivity>
+                                                               activityWeakReference) {
             if (listener != null) {
                 FileDownloader.getImpl().removeServiceConnectListener(listener);
             }
@@ -481,9 +480,20 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             FileDownloader.getImpl().addServiceConnectListener(listener);
         }
 
-        public void onDestroy() {
+        private void unregisterServiceConnectionListener() {
             FileDownloader.getImpl().removeServiceConnectListener(listener);
             listener = null;
+        }
+
+        public void onCreate(final WeakReference<TasksManagerDemoActivity> activityWeakReference) {
+            if (!FileDownloader.getImpl().isServiceConnected()) {
+                FileDownloader.getImpl().bindService();
+                registerServiceConnectionListener(activityWeakReference);
+            }
+        }
+
+        public void onDestroy() {
+            unregisterServiceConnectionListener();
             releaseTask();
         }
 
