@@ -109,7 +109,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         deleteBtn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new File(llsApkDir).delete();
+                new File(normalTaskFilePath).delete();
             }
         });
     }
