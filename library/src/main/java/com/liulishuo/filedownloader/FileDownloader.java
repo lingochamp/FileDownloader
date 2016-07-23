@@ -326,18 +326,24 @@ public class FileDownloader {
     }
 
     /**
-     * Pause the download task by the downloadId
+     * Pause downloading tasks which download id is {@code id}.
      *
-     * @param downloadId pause download by download id
+     * @param id the {@code id} .
+     * @return The size of tasks successfully pause.
      * @see #pause(FileDownloadListener)
      */
-    public void pause(final int downloadId) {
-        BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
-        if (downloadTask == null) {
-            FileDownloadLog.w(this, "request pause but not exist %d", downloadId);
-            return;
+    public int pause(final int id) {
+        List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getDownloadingList(id);
+        if (null == taskList || taskList.isEmpty()) {
+            FileDownloadLog.w(this, "request pause but not exist %d", id);
+            return 0;
         }
-        downloadTask.pause();
+
+        for (BaseDownloadTask task : taskList) {
+            task.pause();
+        }
+
+        return taskList.size();
     }
 
     /**
