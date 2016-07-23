@@ -26,8 +26,8 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  */
 public class MessageSnapshotFlow {
 
-    private MessageSnapshotThreadPool flowThreadPool;
-    private MessageReceiver receiver;
+    private volatile MessageSnapshotThreadPool flowThreadPool;
+    private volatile MessageReceiver receiver;
 
     public final static class HolderClass {
         private final static MessageSnapshotFlow INSTANCE = new MessageSnapshotFlow();
@@ -39,22 +39,36 @@ public class MessageSnapshotFlow {
 
     public void setReceiver(MessageReceiver receiver) {
         this.receiver = receiver;
-        flowThreadPool = new MessageSnapshotThreadPool(5, receiver);
+        if (receiver == null) {
+            this.flowThreadPool = null;
+        } else {
+            this.flowThreadPool = new MessageSnapshotThreadPool(5, receiver);
+        }
     }
 
     public void inflow(final MessageSnapshot snapshot) {
+        boolean isReceivedImmediately = false;
         switch (snapshot.getStatus()) {
             case FileDownloadStatus.warn:
-                receiver.receive(snapshot);
-                return;
+                isReceivedImmediately = true;
+                break;
             case FileDownloadStatus.completed:
                 if (snapshot.isReusedDownloadedFile()) {
-                    receiver.receive(snapshot);
-                    return;
+                    isReceivedImmediately = true;
+                    break;
                 }
         }
 
-        flowThreadPool.execute(snapshot);
+        if (isReceivedImmediately) {
+            if (receiver != null) {
+                receiver.receive(snapshot);
+            }
+        } else {
+            if (flowThreadPool != null) {
+                flowThreadPool.execute(snapshot);
+            }
+        }
+
     }
 
 
