@@ -64,6 +64,8 @@ Android 文件下载引擎，稳定、高效、简单易用
 compile 'com.liulishuo.filedownloader:library:0.3.3'
 ```
 
+> 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
+
 #### 全局初始化在`Application.onCreate`中
 
 > 如果希望定制化用于下载的`OkHttpClient`，建议参考[DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java)
