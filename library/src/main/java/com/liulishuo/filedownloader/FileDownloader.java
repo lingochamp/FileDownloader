@@ -225,14 +225,16 @@ public class FileDownloader {
     /**
      * Start the download queue by the same listener
      *
-     * @param listener start download by same listener
-     * @param isSerial is execute them linearly
+     * @param listener Used to assemble tasks which is bound by the same {@code listener}
+     * @param isSerial Whether start tasks one by one rather than parallel.
+     * @return Whether start tasks successfully.
      */
-    public void start(final FileDownloadListener listener, final boolean isSerial) {
+    public boolean start(final FileDownloadListener listener, final boolean isSerial) {
 
         if (listener == null) {
-            //TODO PROVIDING LOG.
-            return;
+            FileDownloadLog.w(this, "Tasks with the listener can't start, because the listener " +
+                    "provided is null: [null, %B]", isSerial);
+            return false;
         }
 
         final List<BaseDownloadTask> list = FileDownloadList.getImpl().copy(listener);
@@ -242,7 +244,14 @@ public class FileDownloader {
         }
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(), listener, isSerial);
+            FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(),
+                    listener, isSerial);
+        }
+
+        if (null == list || list.isEmpty()) {
+            FileDownloadLog.w(this, "Tasks with the listener can't start, because can't find any " +
+                    "task with the provided listener: [%s, %B]", listener, isSerial);
+            return false;
         }
 
         if (isSerial) {
@@ -261,6 +270,8 @@ public class FileDownloader {
                 downloadTask.start();
             }
         }
+
+        return true;
     }
 
 
@@ -621,7 +632,8 @@ public class FileDownloader {
     }
 
     private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {
-        Assert.assertTrue("create serial handler list must not empty", serialTasks != null && serialTasks.size() > 0);
+        Assert.assertTrue("create serial handler list must not empty", serialTasks != null &&
+                serialTasks.size() > 0);
 
 
         final HandlerThread serialThread = new HandlerThread(
