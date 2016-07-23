@@ -40,7 +40,7 @@ interface IFileDownloadDBHelper {
 
     void update(final List<FileDownloadModel> downloadModelList);
 
-    void remove(final int id);
+    boolean remove(final int id);
 
     void updateConnected(final FileDownloadModel model, final long total, final String etag,
                          final String fileName);

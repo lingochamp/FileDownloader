@@ -59,4 +59,6 @@ public interface IFileDownloadServiceProxy {
     void stopForeground(boolean removeNotification);
 
     boolean setMaxNetworkThreadCount(int count);
+
+    boolean clearTaskData(int id);
 }

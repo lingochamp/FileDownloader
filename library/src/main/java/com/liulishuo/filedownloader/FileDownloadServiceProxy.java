@@ -135,4 +135,9 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     public boolean setMaxNetworkThreadCount(int count) {
         return handler.setMaxNetworkThreadCount(count);
     }
+
+    @Override
+    public boolean clearTaskData(int id) {
+        return handler.clearTaskData(id);
+    }
 }

@@ -101,4 +101,10 @@ public class DownloadServiceNotConnectedHelper {
         return false;
     }
 
+    public static boolean clearTaskData(int id) {
+        FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
+                "request clear the task[%d] data in the database," +
+                        " but the download service isn't connected yet.", id);
+        return false;
+    }
 }

@@ -261,4 +261,19 @@ class FileDownloadServiceUIGuard extends
 
         return false;
     }
+
+    @Override
+    public boolean clearTaskData(int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.clearTaskData(id);
+        }
+
+        try {
+            return getService().clearTaskData(id);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

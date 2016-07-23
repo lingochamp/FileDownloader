@@ -219,11 +219,12 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
     }
 
     @Override
-    public void remove(int id) {
+    public boolean remove(int id) {
         downloaderModelMap.remove(id);
 
         // db
-        db.delete(TABLE_NAME, FileDownloadModel.ID + " = ?", new String[]{String.valueOf(id)});
+        return db.delete(TABLE_NAME, FileDownloadModel.ID + " = ?", new String[]{String.valueOf(id)})
+                != 0;
     }
 
     @Override

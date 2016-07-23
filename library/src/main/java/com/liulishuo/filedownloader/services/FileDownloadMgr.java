@@ -356,5 +356,20 @@ class FileDownloadMgr implements IThreadPoolMonitor {
 
         return isDownloading;
     }
+
+    public boolean clearTaskData(int id) {
+        if (id == 0) {
+            FileDownloadLog.w(this, "The task[%d] id is invalid, can't clear it.", id);
+            return false;
+        }
+
+        if (isDownloading(id)) {
+            FileDownloadLog.w(this, "The task[%d] is downloading, can't clear it.", id);
+            return false;
+        }
+
+        mHelper.remove(id);
+        return true;
+    }
 }
 

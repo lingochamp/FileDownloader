@@ -33,4 +33,6 @@ interface IFileDownloadIPCService {
     oneway void startForeground(int id, in Notification notification);
     oneway void stopForeground(boolean removeNotification);
 
+    boolean clearTaskData(int id);
+
 }

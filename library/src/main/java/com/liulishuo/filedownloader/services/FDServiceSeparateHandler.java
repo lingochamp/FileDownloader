@@ -138,6 +138,11 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
+    public boolean clearTaskData(int id) throws RemoteException {
+        return downloadManager.clearTaskData(id);
+    }
+
+    @Override
     public void onStartCommand(Intent intent, int flags, int startId) {
     }
 

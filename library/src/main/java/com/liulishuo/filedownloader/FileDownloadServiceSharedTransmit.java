@@ -180,6 +180,14 @@ class FileDownloadServiceSharedTransmit implements
         return handler.setMaxNetworkThreadCount(count);
     }
 
+    @Override
+    public boolean clearTaskData(int id) {
+        if (!isConnected()) {
+            return DownloadServiceNotConnectedHelper.clearTaskData(id);
+        }
+        return handler.clearTaskData(id);
+    }
+
     private FDServiceSharedHandler handler;
 
     @Override

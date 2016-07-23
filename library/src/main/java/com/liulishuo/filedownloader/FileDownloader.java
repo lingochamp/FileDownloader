@@ -347,6 +347,47 @@ public class FileDownloader {
     }
 
     /**
+     * Clear the data with the provided {@code id}.
+     * Normally used to deleting the data in filedownloader database, when it is paused or in
+     * downloading status. If you want to re-download it clearly.
+     * <p/>
+     * NO NEED clear the data when it is already completed downloading, because the data would be
+     * deleted when it completed downloading.
+     * <p>
+     * If there are tasks with the {@code id} in downloading, will be paused first;
+     * If delete the data with the {@code id} in the filedownloader database successfully, will try
+     * to delete its intermediate downloading file and downloaded file.
+     *
+     * @param id             the download {@code id}.
+     * @param targetFilePath the target path.
+     * @return {@code true} if the data with the {@code id} in filedownloader database was deleted,
+     * and tasks with the {@code id} was paused; {@code false} otherwise.
+     */
+    public boolean clear(final int id, final String targetFilePath) {
+        pause(id);
+
+        if (FileDownloadServiceProxy.getImpl().clearTaskData(id)) {
+            // delete the task data in the filedownloader database successfully or no data with the
+            // id in filedownloader database.
+            final File intermediateFile = new File(FileDownloadUtils.getTempPath(targetFilePath));
+            if (intermediateFile.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                intermediateFile.delete();
+            }
+
+            final File targetFile = new File(targetFilePath);
+            if (targetFile.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                targetFile.delete();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get downloaded so far bytes by the downloadId
      */
     public long getSoFar(final int downloadId) {
