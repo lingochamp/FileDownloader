@@ -311,7 +311,6 @@ public class FileDownloadRunnable implements Runnable {
                         final int fileCaseId = FileDownloadUtils.generateId(model.getUrl(),
                                 model.getTargetFilePath());
 
-
                         if (FileDownloadHelper.inspectAndInflowDownloaded(getId(),
                                 model.getTargetFilePath(),
                                 isForceReDownload)) {
@@ -328,9 +327,8 @@ public class FileDownloadRunnable implements Runnable {
                                 break;
                             }
 
-
-
                             helper.remove(fileCaseId);
+                            deleteTargetFile();
 
                             if (FileDownloadMgr.isBreakpointAvailable(fileCaseId, fileCaseModel)) {
                                 model.setSoFar(fileCaseModel.getSoFar());
@@ -359,7 +357,7 @@ public class FileDownloadRunnable implements Runnable {
 
                     switch (response.code()) {
                         case HTTP_REQUESTED_RANGE_NOT_SATISFIABLE:
-                            deleteTempFile();
+                            deleteTaskFiles();
                             FileDownloadLog.w(FileDownloadRunnable.class, "%d response code %d, " +
                                             "range[%d] isn't make sense, so delete the dirty file[%s]" +
                                             ", and try to redownload it from byte-0.", getId(),
@@ -841,14 +839,35 @@ public class FileDownloadRunnable implements Runnable {
             this.isResumeDownloadAvailable = true;
         } else {
             this.isResumeDownloadAvailable = false;
-            deleteTempFile();
+            deleteTaskFiles();
         }
     }
 
+    private void deleteTaskFiles() {
+        deleteTempFile();
+        deleteTargetFile();
+    }
+
     private void deleteTempFile() {
-        if (model.getTempFilePath() != null) {
-            //noinspection ResultOfMethodCallIgnored
-            new File(model.getTempFilePath()).delete();
+        final String tempFilePath = model.getTempFilePath();
+
+        if (tempFilePath != null) {
+            final File tempFile = new File(tempFilePath);
+            if (tempFile.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                tempFile.delete();
+            }
+        }
+    }
+
+    private void deleteTargetFile() {
+        final String targetFilePath = model.getTargetFilePath();
+        if (targetFilePath != null) {
+            final File targetFile = new File(targetFilePath);
+            if (targetFile.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                targetFile.delete();
+            }
         }
     }
 
