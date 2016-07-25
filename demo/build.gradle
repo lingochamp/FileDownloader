@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        release {
+            keyAlias 'FileDownloaderDemoKey'
+            keyPassword 'liulishuo'
+            storeFile file('filedownloaderdemo.jks')
+            storePassword 'liulishuo'
+        }
+    }
     compileSdkVersion COMPILE_SDK_VERSION as int
     buildToolsVersion BUILD_TOOLS_VERSION as String
 
@@ -18,16 +26,18 @@ android {
             needLog = p.getProperty("needLog")
         }
         buildConfigField "boolean", "DOWNLOAD_NEED_LOG", needLog == "true" ? "true" : "false"
-
-
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            minifyEnabled false
         }
     }
-
     lintOptions {
         // This seems to be firing due to okio referencing java.nio.File
         // which is harmless for us.
