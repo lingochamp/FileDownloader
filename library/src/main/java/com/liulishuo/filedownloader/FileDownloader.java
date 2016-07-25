@@ -23,6 +23,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.util.SparseArray;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -32,11 +33,8 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
-import junit.framework.Assert;
-
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -237,41 +235,8 @@ public class FileDownloader {
             return false;
         }
 
-        final List<BaseDownloadTask> list = FileDownloadList.getImpl().copy(listener);
 
-        if (FileDownloadMonitor.isValid()) {
-            FileDownloadMonitor.getMonitor().onRequestStart(list.size(), isSerial, listener);
-        }
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "start list size[%d] listener[%s] isSerial[%B]", list.size(),
-                    listener, isSerial);
-        }
-
-        if (null == list || list.isEmpty()) {
-            FileDownloadLog.w(this, "Tasks with the listener can't start, because can't find any " +
-                    "task with the provided listener: [%s, %B]", listener, isSerial);
-            return false;
-        }
-
-        if (isSerial) {
-            // serial
-            final Handler serialHandler = createSerialHandler(list);
-            Message msg = serialHandler.obtainMessage();
-            msg.what = WHAT_SERIAL_NEXT;
-            msg.arg1 = 0;
-            serialHandler.sendMessage(msg);
-            synchronized (RUNNING_SERIAL_MAP) {
-                RUNNING_SERIAL_MAP.put(listener, serialHandler);
-            }
-        } else {
-            // parallel
-            for (final BaseDownloadTask downloadTask : list) {
-                downloadTask.start();
-            }
-        }
-
-        return true;
+        return isSerial ? startSerialTasks(listener) : startParallelTasks(listener);
     }
 
 
@@ -289,8 +254,6 @@ public class FileDownloader {
                 baseDownloadTask.pause();
             }
         }
-
-
     }
 
     private Runnable pauseAllRunnable;
@@ -678,26 +641,75 @@ public class FileDownloader {
         return FileDownloadServiceProxy.getImpl().setMaxNetworkThreadCount(count);
     }
 
-    private static Handler createSerialHandler(final List<BaseDownloadTask> serialTasks) {
-        Assert.assertTrue("create serial handler list must not empty", serialTasks != null &&
-                serialTasks.size() > 0);
+    private boolean startParallelTasks(FileDownloadListener listener) {
+        final int attachKey = listener.hashCode();
 
+        final List<BaseDownloadTask> list = FileDownloadList.getImpl().
+                assembleTasksToStart(attachKey, listener);
 
-        final HandlerThread serialThread = new HandlerThread(
-                FileDownloadUtils.formatString("filedownloader serial thread %s",
-                        serialTasks.get(0).getListener()));
-        serialThread.start();
+        if (onAssembledTasksToStart(attachKey, list, listener, false)) {
+            return false;
+        }
 
-        final SerialHandlerCallback callback = new SerialHandlerCallback();
-        final Handler serialHandler = new Handler(serialThread.getLooper(), callback);
-        callback.setHandler(serialHandler);
-        callback.setList(serialTasks);
+        for (BaseDownloadTask task : list) {
+            task.start();
+        }
 
-        return serialHandler;
+        return true;
     }
 
+    private boolean startSerialTasks(FileDownloadListener listener) {
+        final SerialHandlerCallback callback = new SerialHandlerCallback();
+        final int attachKey = callback.hashCode();
 
-    final static HashMap<FileDownloadListener, Handler> RUNNING_SERIAL_MAP = new HashMap<>();
+        final List<BaseDownloadTask> list = FileDownloadList.getImpl().
+                assembleTasksToStart(attachKey, listener);
+
+        if (onAssembledTasksToStart(attachKey, list, listener, true)) {
+            return false;
+        }
+
+        final HandlerThread serialThread = new HandlerThread(
+                FileDownloadUtils.formatString("filedownloader serial thread %s-%d",
+                        listener, attachKey));
+        serialThread.start();
+
+        final Handler serialHandler = new Handler(serialThread.getLooper(), callback);
+        callback.setHandler(serialHandler);
+        callback.setList(list);
+
+        callback.goNext(0);
+
+        synchronized (RUNNING_SERIAL_MAP) {
+            RUNNING_SERIAL_MAP.put(attachKey, serialHandler);
+        }
+        return true;
+    }
+
+    private boolean onAssembledTasksToStart(int attachKey, final List<BaseDownloadTask> list,
+                                            final FileDownloadListener listener, boolean isSerial) {
+        if (FileDownloadMonitor.isValid()) {
+            FileDownloadMonitor.getMonitor().onRequestStart(list.size(), true, listener);
+        }
+
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(FileDownloader.class, "start list attachKey[%d] size[%d] " +
+                    "listener[%s] isSerial[%B]", attachKey, list.size(), listener, isSerial);
+        }
+
+        if (list == null || list.isEmpty()) {
+            FileDownloadLog.w(FileDownloader.class, "Tasks with the listener can't start, " +
+                            "because can't find any task with the provided listener: [%s, %B]",
+                    listener, isSerial);
+
+            return true;
+        }
+
+        return false;
+
+    }
+
+    final static SparseArray<Handler> RUNNING_SERIAL_MAP = new SparseArray<>();
 
     final static int WHAT_SERIAL_NEXT = 1;
     final static int WHAT_FREEZE = 2;
@@ -727,7 +739,7 @@ public class FileDownloader {
             if (msg.what == WHAT_SERIAL_NEXT) {
                 if (msg.arg1 >= list.size()) {
                     synchronized (RUNNING_SERIAL_MAP) {
-                        RUNNING_SERIAL_MAP.remove(list.get(0).getListener());
+                        RUNNING_SERIAL_MAP.remove(list.get(0).attachKey);
                     }
                     // final serial tasks
                     if (this.handler != null && this.handler.getLooper() != null) {

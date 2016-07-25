@@ -114,6 +114,20 @@ public class FileDownloadList {
         }
     }
 
+    List<BaseDownloadTask> assembleTasksToStart(int attachKey, FileDownloadListener listener) {
+        final List<BaseDownloadTask> targetList = new ArrayList<>();
+        synchronized (list) {
+            // Prevent size changing
+            for (BaseDownloadTask task : list) {
+                if (task.getListener() == listener && !task.isAttached()) {
+                    task.attachKey = attachKey;
+                    targetList.add(task);
+                }
+            }
+            return targetList;
+        }
+    }
+
     BaseDownloadTask[] copy() {
         synchronized (list) {
             // Prevent size changing

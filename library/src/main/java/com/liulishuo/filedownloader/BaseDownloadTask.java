@@ -102,6 +102,8 @@ public abstract class BaseDownloadTask {
     // KB/s
     private int speed;
 
+    volatile int attachKey = 0;
+
     BaseDownloadTask(final String url) {
         this.url = url;
         messenger = new FileDownloadMessenger(this);
@@ -381,6 +383,7 @@ public abstract class BaseDownloadTask {
             return false;
         }
 
+        this.attachKey = 0;
         this.using = false;
         this.etag = null;
         this.resuming = false;
@@ -423,6 +426,17 @@ public abstract class BaseDownloadTask {
         }
 
         return FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this);
+    }
+
+    /**
+     * @return Whether has already attached to a listener / a serial-queue. If {@code true}, this task
+     * object must be running with the listener or has already assembled to a serial-queue and would
+     * be started automatically when it is come to its turn.
+     * @see FileDownloader#startParallelTasks(FileDownloadListener)
+     * @see FileDownloader#startSerialTasks(FileDownloadListener)
+     */
+    public boolean isAttached() {
+        return attachKey != 0;
     }
 
     private int startUnchecked() {
@@ -477,6 +491,9 @@ public abstract class BaseDownloadTask {
         }
 
         this.using = true;
+        if (attachKey == 0) {
+            attachKey = listener.hashCode();
+        }
 
         return startUnchecked();
     }

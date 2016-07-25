@@ -276,7 +276,7 @@ class FileDownloadTask extends BaseDownloadTask {
                         NEED_RESTART_LIST.clear();
 
                         for (BaseDownloadTask o : needRestartList) {
-                            if (FileDownloader.RUNNING_SERIAL_MAP.containsKey(o.getListener())) {
+                            if (FileDownloader.RUNNING_SERIAL_MAP.get(o.attachKey) != null) {
                                 o.ready();
                                 continue;
                             }
@@ -290,7 +290,9 @@ class FileDownloadTask extends BaseDownloadTask {
                             }
                         }
 
-                        for (Handler handler : FileDownloader.RUNNING_SERIAL_MAP.values()) {
+                        for (int i = 0; i < FileDownloader.RUNNING_SERIAL_MAP.size(); i++) {
+                            final int key = FileDownloader.RUNNING_SERIAL_MAP.keyAt(i);
+                            Handler handler = FileDownloader.RUNNING_SERIAL_MAP.get(key);
                             FileDownloader.unFreezeSerialHandler(handler);
                         }
                     }
@@ -313,7 +315,9 @@ class FileDownloadTask extends BaseDownloadTask {
                                 baseDownloadTask.clearMarkAdded2List();
                             }
 
-                            for (Handler handler : FileDownloader.RUNNING_SERIAL_MAP.values()) {
+                            for (int i = 0; i < FileDownloader.RUNNING_SERIAL_MAP.size(); i++) {
+                                final int key = FileDownloader.RUNNING_SERIAL_MAP.keyAt(i);
+                                Handler handler = FileDownloader.RUNNING_SERIAL_MAP.get(key);
                                 FileDownloader.freezeSerialHandler(handler);
                             }
                         }
