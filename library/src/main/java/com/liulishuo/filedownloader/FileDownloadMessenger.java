@@ -239,38 +239,40 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public void handoverMessage() {
-        final boolean next;
+        final boolean continueEnqueue;
 
         synchronized (blockCompletedLock) {
             final FileDownloadMessage message;
             message = parcelQueue.poll();
+            final int currentStatus = message.getSnapshot().getStatus();
 
             Assert.assertTrue(
                     FileDownloadUtils.formatString(
                             "can't handover the message, no master to receive this " +
                                     "message(status[%d]) size[%d]",
-                            message.getSnapshot().getStatus(), parcelQueue.size()),
+                            currentStatus, parcelQueue.size()),
                     task != null);
 
             final FileDownloadListener listener = task.getListener();
+            continueEnqueue = isContinueEnqueue(currentStatus);
+
             if (listener == null) {
                 FileDownloadLog.w(this, "The task[%d] can't receive the message(status: [%d])," +
                                 " its download listener might be removed when it is running in" +
                                 " FileDownloader",
-                        task.getId(), message.getSnapshot().getStatus());
+                        task.getId(), currentStatus);
             } else {
                 listener.callback(message);
             }
 
-            next = messageArrived(message.getSnapshot().getStatus());
         }
 
-        if (next) {
+        if (continueEnqueue) {
             FileDownloadMessageStation.getImpl().requestEnqueue(this);
         }
     }
 
-    private boolean messageArrived(int status) {
+    private boolean isContinueEnqueue(int status) {
         if (FileDownloadStatus.isOver(status)) {
             if (!parcelQueue.isEmpty()) {
                 throw new IllegalStateException(
