@@ -2,6 +2,31 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.3.4
+
+_2016-07-31_
+
+#### 新接口
+
+- 添加 `FileDownloader#clear`: 用于强制根据任务ID清理其在filedownloader中的数据。Closes #218
+
+#### 性能与提高
+
+- 提高实用性: 为 `FileDownloader#start(FileDownloader, boolean)` 添加返回值: 是否成功启动任务下载。Closes #215
+- 提高实用性: `FileDownloader#pause` 暂停任务时，不再仅仅是暂停一个任务，而是暂停掉所有ID为指定ID的运行中的任务。
+
+#### 修复
+
+- 修复(初始化-CRASH): 修复初始化FileDownloader时，从`ActivityManager`获取到运行中进程信息为空时发生CRASH。Closes #210
+- 修复(小概率-CRASH): 修复当FileDownloadService已经`onDestroy`后，还接收到`snapshot-message`时发生CRASH的情况。 Closes #213
+- 修复(消息流准确性): 在真正启动下载时删除目标文件，以此保证当有相同任务正在下载时，获取下载状态，不会获取到已经下载完成的错误的状态。Closes #220
+- 修复(启动线性下载): 收集未绑定的任务进行启动而非只是根据FileDownloadListener去收集任务，修复无法启动两个相同`FileDownloadListener`的队列。Closes #233
+- 修复(清理Messenger): 在回调 结束的消息 的回调之前进行清理任务的Messenger，而非在回调之后清理，以此确保在回调方法中可以调用`BaseDownloadTask#reuse`。Closes #229
+
+#### 其他
+
+- 所依赖的okhttp从`3.3.1`升到`3.4.1`。
+
 ## Version 0.3.3
 
 _2016-07-10_

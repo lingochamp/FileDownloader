@@ -2,6 +2,32 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.3.4
+
+_2016-07-31_
+
+#### New Interfaces
+
+- Add `FileDownloader#clear`: clear the data with the task id in the filedownloader database. Closes #218.
+
+#### Enhancement
+
+- Improve Practicability: Add return value to the method `FileDownloader#start(FileDownloadListener, boolean)` : Whether start tasks successfully. Closes #215.
+- Improve Practicability: Pause tasks with the same download-id rather than just pause one task through there are more than one task in downloading.
+
+#### Fix
+
+- Fix(init-crash): Fix the crash about the list of running-app-process-info from `ActivityManager` is null when to init FileDownloader. Closes #210.
+- Fix(minor-crash): Fix the NPE-crash when to execute receiving snapshot-message after FileDownloadService already onDestroy. Closes #213.
+- Fix(message-keep-flow): Delete the target file before start downloading, ensure can't get the `completed` status when another same task is downloading. Closes #220
+- Fix(start-serial): Assemble non-attached-tasks to start rather than assemble tasks just refer to FileDownloadListener, fix no possibility to start two queues with the same `FileDownloadListener`. Closes #223.
+- Fix(free-messenger): Free the messenger of Task before call back 'over-message' to FileDownloadListener instead of after callback, ensure Task can be reused in FileDownloadListener callback method. Closes #229.
+
+#### Others
+
+- Upgrade dependency okhttp from `3.3.1` to `3.4.1`.
+
+
 ## Version 0.3.3
 
 _2016-07-10_

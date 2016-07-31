@@ -8,7 +8,7 @@ Android multi-task file download engine.
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
-> This project dependency on [square/okhttp 3.3.1](https://github.com/square/okhttp)
+> This project dependency on [square/okhttp 3.4.1](https://github.com/square/okhttp)
 
 ## DEMO
 
@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your build.gra
 
 ```
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:0.3.3'
+    compile 'com.liulishuo.filedownloader:library:0.3.4'
 }
 ```
 

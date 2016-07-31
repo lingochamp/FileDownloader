@@ -8,12 +8,14 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
 
-> 本引擎依赖okhttp 3.3.1
+> 本引擎依赖okhttp 3.4.1
 
 ---
+
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
 #### 英文文档: [Wiki](https://github.com/lingochamp/FileDownloader/wiki)
+
 ---
 
 ### 特点
@@ -61,7 +63,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:0.3.3'
+compile 'com.liulishuo.filedownloader:library:0.3.4'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -241,6 +243,7 @@ if (parallel) {
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
 | pauseAll(void) | 暂停所有任务
 | pause(downloadId) | 暂停downloadId的任务
+| clear(downloadId, targetFilePath) | 强制清理ID为downloadId的任务在filedownloader中的数据
 | getSoFar(downloadId) | 获得下载Id为downloadId的soFarBytes
 | getTotal(downloadId) | 获得下载Id为downloadId的totalBytes
 | bindService(void) | 主动启动下载进程(可事先调用该方法(可以不调用)，保证第一次下载的时候没有启动进程的速度消耗)
