@@ -40,7 +40,13 @@
 
     <!-- notification demo -->
     <string name="notification_demo_title">Notification Demo</string>
-    <string name="notification_demo_show">Show the Notification</string>
+
+    <string name="notification_sample_title">Notification Sample Demo</string>
+    <string name="notification_sample_desc">This is notification sample demo, in this demo, we show the downloading information in the notification panel, we also need to get the downloading information to show in Activity, and we still hold the notification item in the notification panel when downloading is finished.</string>
+    <string name="notification_sample_show">Show the Notification</string>
+
+    <string name="notification_min_set_title">Notification MinSet Demo</string>
+    <string name="notification_min_set_desc">This is notification min set demo, it means that we use as little as possible code to bind notification with downloading tasks.</string>
 
     <!-- multitask test -->
     <string name="multitask_test_title">Multiple tasks test</string>

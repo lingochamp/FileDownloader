@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.liulishuo.filedownloader.demo">
 
@@ -16,36 +17,35 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".HybridTestActivity"
             android:label="@string/hybrid_test_title" />
-
         <activity
             android:name=".SingleTaskTestActivity"
             android:label="@string/single_task_test_title" />
-
         <activity
             android:name=".MultitaskTestActivity"
             android:label="@string/multitask_test_title" />
-
-        <activity android:name=".performance.PerformanceTestActivity"
-            android:label="@string/performance_test_title"/>
-
+        <activity
+            android:name=".performance.PerformanceTestActivity"
+            android:label="@string/performance_test_title" />
         <activity
             android:name=".TasksManagerDemoActivity"
             android:label="@string/tasks_manager_demo_title" />
         <activity
             android:name=".NotificationSampleActivity"
-            android:label="@string/notification_demo_title"
-            android:launchMode="singleTask" />
+            android:label="@string/notification_sample_title" />
+        <activity
+            android:name=".NotificationMinSetActivity"
+            android:label="@string/notification_min_set_title" />
+        <activity android:name=".NotificationEntranceActivity"></activity>
     </application>
 
 </manifest>
