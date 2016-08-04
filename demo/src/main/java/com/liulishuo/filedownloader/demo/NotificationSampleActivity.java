@@ -19,18 +19,14 @@ package com.liulishuo.filedownloader.demo;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
@@ -48,41 +44,22 @@ import java.lang.ref.WeakReference;
 /**
  * Created by Jacksgong on 2/2/16.
  */
-public class NotificationDemoActivity extends AppCompatActivity {
-    private FileDownloadNotificationHelper<NotificationItem> notificationHelper;
+public class NotificationSampleActivity extends AppCompatActivity {
+    private final FileDownloadNotificationHelper<NotificationItem> notificationHelper =
+            new FileDownloadNotificationHelper<>();
     private NotificationListener listener;
 
     private final String savePath = FileDownloadUtils.getDefaultSaveRootPath() + File.separator + "notification";
-    private final String url = Constant.BIG_FILE_URLS[7];
+    private final String url = Constant.LIULISHUO_APK_URL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification_demo);
-        notificationHelper = new FileDownloadNotificationHelper<>();
 
         assignViews();
 
-        showNotificationCb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (!isChecked) {
-                    notificationHelper.clear();
-                    clear();
-                }
-            }
-        });
-
         listener = new NotificationListener(new WeakReference<>(this));
-        downloadId = FileDownloader.getImpl().replaceListener(url, savePath, listener);
-        if (downloadId != 0) {
-            // Avoid the task has passed 'pending' status, so we must create notification manually.
-            listener.addNotificationItem(downloadId);
-        }
-
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(KEY_PAUSE);
-        registerReceiver(pauseReceiver, intentFilter);
     }
 
     private int downloadId = 0;
@@ -114,16 +91,16 @@ public class NotificationDemoActivity extends AppCompatActivity {
 
     private static class NotificationListener extends FileDownloadNotificationListener {
 
-        private WeakReference<NotificationDemoActivity> wActivity;
+        private WeakReference<NotificationSampleActivity> wActivity;
 
-        public NotificationListener(WeakReference<NotificationDemoActivity> wActivity) {
+        public NotificationListener(WeakReference<NotificationSampleActivity> wActivity) {
             super(wActivity.get().notificationHelper);
             this.wActivity = wActivity;
         }
 
         @Override
         protected BaseNotificationItem create(BaseDownloadTask task) {
-            return new NotificationItem(task.getId(), "demo title", "demo desc");
+            return new NotificationItem(task.getId(), "sample demo title", "sample demo desc");
         }
 
         @Override
@@ -198,17 +175,13 @@ public class NotificationDemoActivity extends AppCompatActivity {
             Intent[] intents = new Intent[2];
             intents[0] = Intent.makeMainActivity(new ComponentName(DemoApplication.CONTEXT,
                     MainActivity.class));
-            intents[1] = new Intent(DemoApplication.CONTEXT, NotificationDemoActivity.class);
+            intents[1] = new Intent(DemoApplication.CONTEXT, NotificationSampleActivity.class);
 
             this.pendingIntent = PendingIntent.getActivities(DemoApplication.CONTEXT, 0, intents,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
             builder = new NotificationCompat.
                     Builder(FileDownloadHelper.getAppContext());
-            Intent pauseIntent = new Intent(KEY_PAUSE);
-            pauseIntent.putExtra(KEY_ID, getId());
-            PendingIntent pausePendingIntent = PendingIntent.getBroadcast(DemoApplication.CONTEXT,
-                    0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             builder.setDefaults(Notification.DEFAULT_LIGHTS)
                     .setOngoing(true)
@@ -216,8 +189,7 @@ public class NotificationDemoActivity extends AppCompatActivity {
                     .setContentTitle(getTitle())
                     .setContentText(desc)
                     .setContentIntent(pendingIntent)
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .addAction(R.mipmap.ic_launcher, "pause", pausePendingIntent);
+                    .setSmallIcon(R.mipmap.ic_launcher);
 
         }
 
@@ -264,48 +236,19 @@ public class NotificationDemoActivity extends AppCompatActivity {
             getManager().notify(getId(), builder.build());
         }
 
-        @Override
-        public void cancel() {
-            super.cancel();
-        }
     }
-
-    public final static String KEY_PAUSE = "key.filedownloader.notification.pause";
-    private final static String KEY_ID = "key.filedownloader.notification.id";
-    public BroadcastReceiver pauseReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(KEY_PAUSE)) {
-                final int id = intent.getIntExtra(KEY_ID, 0);
-                FileDownloader.getImpl().pause(id);
-            }
-        }
-    };
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(pauseReceiver);
-    }
 
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            if (downloadId != 0) {
-                FileDownloader.getImpl().pause(downloadId);
-            }
-            notificationHelper.clear();
-            clear();
+        if (downloadId != 0) {
+            FileDownloader.getImpl().pause(downloadId);
         }
-        return super.dispatchKeyEvent(event);
-    }
+        notificationHelper.clear();
 
-    private void clear() {
-        /**
-         * why not use {@link FileDownloadNotificationHelper#clear()} directly?
-         */
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).
-                cancel(downloadId);
+                cancelAll();
     }
 
     private CheckBox showNotificationCb;

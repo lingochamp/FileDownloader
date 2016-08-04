@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickNotification(final View view){
-        startActivity(new Intent(this, NotificationDemoActivity.class));
+        startActivity(new Intent(this, NotificationSampleActivity.class));
     }
 
     @Override
