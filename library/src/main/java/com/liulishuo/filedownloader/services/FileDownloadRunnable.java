@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.services;
 
+import android.database.sqlite.SQLiteFullException;
 import android.os.Build;
 import android.os.Process;
 import android.os.SystemClock;
@@ -691,17 +692,45 @@ public class FileDownloadRunnable implements Runnable {
         onStatusChanged(model.getStatus());
     }
 
-    private void onError(Throwable ex) {
+    private void onError(final Throwable originError) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On error %d %s", getId(), ex);
+            FileDownloadLog.d(this, "On error %d %s", getId(), originError);
         }
 
-        ex = exFiltrate(ex);
-        helper.updateError(model, ex, model.getSoFar());
+        Throwable processError = exFiltrate(originError);
 
-        this.throwable = ex;
+        if (processError instanceof SQLiteFullException) {
+            // If the error is sqLite full exception already, no need to  update it to the database
+            // again.
+            handleSQLiteFullException((SQLiteFullException) processError);
+        } else {
+            // Normal case.
+            try {
+                helper.updateError(model, processError, model.getSoFar());
+                processError = originError;
+            } catch (SQLiteFullException fullException) {
+                processError = fullException;
+                handleSQLiteFullException((SQLiteFullException) processError);
+            }
+
+        }
+
+        this.throwable = processError;
 
         onStatusChanged(model.getStatus());
+    }
+
+    private void handleSQLiteFullException(final SQLiteFullException sqLiteFullException) {
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "the data of the task[%d] is dirty, because the SQLite " +
+                            "full exception[%s], so remove it from the database directly.",
+                    getId(), sqLiteFullException.toString());
+        }
+
+        model.setErrMsg(sqLiteFullException.toString());
+        model.setStatus(FileDownloadStatus.error);
+
+        helper.remove(getId());
     }
 
     private void onComplete(final long total) {
