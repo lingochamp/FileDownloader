@@ -313,8 +313,7 @@ public class FileDownloadRunnable implements Runnable {
                                 model.getTargetFilePath());
 
                         if (FileDownloadHelper.inspectAndInflowDownloaded(getId(),
-                                model.getTargetFilePath(),
-                                isForceReDownload)) {
+                                model.getTargetFilePath(), isForceReDownload, false)) {
                             helper.remove(getId());
                             break;
                         }
@@ -323,7 +322,7 @@ public class FileDownloadRunnable implements Runnable {
 
                         if (fileCaseModel != null) {
                             if (FileDownloadHelper.inspectAndInflowDownloading(getId(), fileCaseModel,
-                                    threadPoolMonitor)) {
+                                    threadPoolMonitor, false)) {
                                 helper.remove(getId());
                                 break;
                             }

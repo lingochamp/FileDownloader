@@ -168,6 +168,19 @@ public class SmallMessageSnapshot extends MessageSnapshot {
         }
     }
 
+    public static class CompletedFlowDirectlySnapshot extends CompletedSnapshot implements
+            IFlowDirectly {
+
+        CompletedFlowDirectlySnapshot(int id, byte status, boolean reusedDownloadedFile,
+                                      int totalBytes) {
+            super(id, status, reusedDownloadedFile, totalBytes);
+        }
+
+        CompletedFlowDirectlySnapshot(Parcel in) {
+            super(in);
+        }
+    }
+
     public static class CompletedSnapshot extends SmallMessageSnapshot {
         private final boolean reusedDownloadedFile;
         private final int totalBytes;
@@ -275,6 +288,17 @@ public class SmallMessageSnapshot extends MessageSnapshot {
         RetryMessageSnapshot(Parcel in) {
             super(in);
             this.retryingTimes = in.readInt();
+        }
+    }
+
+    public static class WarnFlowDirectlySnapshot extends WarnMessageSnapshot implements
+            IFlowDirectly {
+        WarnFlowDirectlySnapshot(int id, byte status, int sofarBytes, int totalBytes) {
+            super(id, status, sofarBytes, totalBytes);
+        }
+
+        WarnFlowDirectlySnapshot(Parcel in) {
+            super(in);
         }
     }
 

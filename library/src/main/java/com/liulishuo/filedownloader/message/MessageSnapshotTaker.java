@@ -36,24 +36,44 @@ public class MessageSnapshotTaker {
         return take(status, model, null);
     }
 
-    public static MessageSnapshot catchCanReusedOldFile(int id, File oldFile) {
+    public static MessageSnapshot catchCanReusedOldFile(int id, File oldFile, boolean flowDirectly) {
         final long totalBytes = oldFile.length();
         if (totalBytes > Integer.MAX_VALUE) {
-            return new LargeMessageSnapshot.CompletedSnapshot(id,
-                    FileDownloadStatus.completed, true, totalBytes);
+            if (flowDirectly) {
+                return new LargeMessageSnapshot.CompletedFlowDirectlySnapshot(id,
+                        FileDownloadStatus.completed, true, totalBytes);
+            } else {
+                return new LargeMessageSnapshot.CompletedSnapshot(id,
+                        FileDownloadStatus.completed, true, totalBytes);
+            }
         } else {
-            return new SmallMessageSnapshot.CompletedSnapshot(id,
-                    FileDownloadStatus.completed, true, (int) totalBytes);
+            if (flowDirectly) {
+                return new SmallMessageSnapshot.CompletedFlowDirectlySnapshot(id,
+                        FileDownloadStatus.completed, true, (int) totalBytes);
+            } else {
+                return new SmallMessageSnapshot.CompletedSnapshot(id,
+                        FileDownloadStatus.completed, true, (int) totalBytes);
+            }
         }
     }
 
-    public static MessageSnapshot catchWarn(int id, long sofar, long total) {
+    public static MessageSnapshot catchWarn(int id, long sofar, long total, boolean flowDirectly) {
         if (total > Integer.MAX_VALUE) {
-            return new LargeMessageSnapshot.WarnMessageSnapshot(id, FileDownloadStatus.warn,
-                    sofar, total);
+            if (flowDirectly) {
+                return new LargeMessageSnapshot.WarnFlowDirectlySnapshot(id, FileDownloadStatus.warn,
+                        sofar, total);
+            } else {
+                return new LargeMessageSnapshot.WarnMessageSnapshot(id, FileDownloadStatus.warn,
+                        sofar, total);
+            }
         } else {
-            return new SmallMessageSnapshot.WarnMessageSnapshot(id, FileDownloadStatus.warn,
-                    (int) sofar, (int) total);
+            if (flowDirectly) {
+                return new SmallMessageSnapshot.WarnFlowDirectlySnapshot(id, FileDownloadStatus.warn,
+                        (int) sofar, (int) total);
+            } else {
+                return new SmallMessageSnapshot.WarnMessageSnapshot(id, FileDownloadStatus.warn,
+                        (int) sofar, (int) total);
+            }
         }
     }
 
@@ -88,7 +108,7 @@ public class MessageSnapshotTaker {
     }
 
     public static MessageSnapshot take(byte status, FileDownloadModel model,
-                                        FileDownloadRunnable runnable) {
+                                       FileDownloadRunnable runnable) {
         final MessageSnapshot snapShot;
         final int id = model.getId();
         if (status == FileDownloadStatus.warn) {

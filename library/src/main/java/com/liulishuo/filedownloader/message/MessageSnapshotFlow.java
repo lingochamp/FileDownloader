@@ -16,8 +16,6 @@
 
 package com.liulishuo.filedownloader.message;
 
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
-
 /**
  * Created by Jacksgong on 4/30/16.
  * <p/>
@@ -47,19 +45,7 @@ public class MessageSnapshotFlow {
     }
 
     public void inflow(final MessageSnapshot snapshot) {
-        boolean isReceivedImmediately = false;
-        switch (snapshot.getStatus()) {
-            case FileDownloadStatus.warn:
-                isReceivedImmediately = true;
-                break;
-            case FileDownloadStatus.completed:
-                if (snapshot.isReusedDownloadedFile()) {
-                    isReceivedImmediately = true;
-                    break;
-                }
-        }
-
-        if (isReceivedImmediately) {
+        if (snapshot instanceof IFlowDirectly) {
             if (receiver != null) {
                 receiver.receive(snapshot);
             }

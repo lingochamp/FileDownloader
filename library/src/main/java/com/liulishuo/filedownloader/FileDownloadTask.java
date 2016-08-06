@@ -118,7 +118,7 @@ class FileDownloadTask extends BaseDownloadTask {
     @Override
     protected boolean _checkCanReuse() {
         return FileDownloadHelper.inspectAndInflowDownloaded(getId(), getTargetFilePath(),
-                isForceReDownload()) ||
+                isForceReDownload(), true) ||
                 super._checkCanReuse();
     }
 

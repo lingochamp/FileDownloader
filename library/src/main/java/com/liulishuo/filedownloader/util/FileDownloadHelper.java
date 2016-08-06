@@ -80,7 +80,8 @@ public class FileDownloadHelper {
         OkHttpClient customMake();
     }
 
-    public static boolean inspectAndInflowDownloaded(int id, String path, boolean forceReDownload) {
+    public static boolean inspectAndInflowDownloaded(int id, String path, boolean forceReDownload,
+                                                     boolean flowDirectly) {
         if (forceReDownload) {
             return false;
         }
@@ -89,7 +90,7 @@ public class FileDownloadHelper {
             final File file = new File(path);
             if (file.exists()) {
                 MessageSnapshotFlow.getImpl().inflow(MessageSnapshotTaker.
-                        catchCanReusedOldFile(id, file));
+                        catchCanReusedOldFile(id, file, flowDirectly));
                 return true;
             }
         }
@@ -98,10 +99,12 @@ public class FileDownloadHelper {
     }
 
     public static boolean inspectAndInflowDownloading(int id, FileDownloadModel model,
-                                                      IThreadPoolMonitor monitor) {
+                                                      IThreadPoolMonitor monitor,
+                                                      boolean flowDirectly) {
         if (monitor.isDownloading(model)) {
             MessageSnapshotFlow.getImpl().
-                    inflow(MessageSnapshotTaker.catchWarn(id, model.getSoFar(), model.getTotal()));
+                    inflow(MessageSnapshotTaker.catchWarn(id, model.getSoFar(), model.getTotal(),
+                            flowDirectly));
             return true;
         }
 

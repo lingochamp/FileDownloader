@@ -100,7 +100,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
             }
         }
 
-        if (FileDownloadHelper.inspectAndInflowDownloading(id, model, this)) {
+        if (FileDownloadHelper.inspectAndInflowDownloading(id, model, this, true)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already started download %d", id);
             }
@@ -110,7 +110,8 @@ class FileDownloadMgr implements IThreadPoolMonitor {
         final String targetFilePath = model != null ? model.getTargetFilePath() :
                 FileDownloadUtils.getTargetFilePath(path, pathAsDirectory, null);
 
-        if (FileDownloadHelper.inspectAndInflowDownloaded(id, targetFilePath, forceReDownload)) {
+        if (FileDownloadHelper.inspectAndInflowDownloaded(id, targetFilePath, forceReDownload,
+                true)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already completed downloading %d", id);
             }
