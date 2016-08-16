@@ -2,6 +2,20 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 0.3.5
+
+_2016-08-16_
+
+#### Fix
+
+- Fix(SQLiteFullException): Cover the case of SQLiteFullException during the entire downloading process, and ensure the exception can be carried back to `FileDownloadListener#error` . Closes #243
+- Fix(directory-case): Fix in the case of the provided path is a directory, and the task already completed, if you start the task again you will receive `FileDownloadListener#completed` directly, but the `targetFilePath` may be null in the `FileDownloadListener#completed` callback method. Closes #237
+
+#### Enhancement
+
+- Improve Practicability: Add thread name to all threads used in FileDownloader.
+- Improve Performance: Change the count of core thread for block-completed-thread-pool: 5->2, reduce redundant resource waste.
+
 ## Version 0.3.4
 
 _2016-07-31_

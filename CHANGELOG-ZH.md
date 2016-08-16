@@ -2,6 +2,20 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 0.3.5
+
+_2016-08-16_
+
+#### 修复
+
+- 修复(SQLiteFullException): 覆盖了在整个下载过程中可能遇到`SQLiteFullException`的错误，就捕获相关错误并回调回 `FileDownloadListener#error` 。 Closes #243
+- 修复(提供目录的情况): 修复若是提供的是文件夹，并且对应的任务已经下载完成，再次启动的时候，在直接回调`FileDownloadListener#completed`时，获取的`targetFilePath`可能为null的问题。 Closes #237
+
+#### 提供
+
+- 提高实用性: 为FileDownloader中的所有线程添加线程名。
+- 提高性能: 调整`block-completed-thread-pool`中的核心线程数: 5->2，减少资源的浪费。
+
 ## Version 0.3.4
 
 _2016-07-31_
