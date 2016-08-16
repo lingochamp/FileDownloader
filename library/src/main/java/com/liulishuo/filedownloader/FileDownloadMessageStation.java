@@ -20,11 +20,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -35,7 +35,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadMessageStation {
 
-    private final Executor blockCompletedPool = Executors.newFixedThreadPool(5);
+    private final Executor blockCompletedPool = FileDownloadExecutors.newFixedThreadPool(5,
+            "BlockCompletedPool");
 
     private final Handler handler;
     private final LinkedBlockingQueue<IFileDownloadMessenger> waitingQueue;

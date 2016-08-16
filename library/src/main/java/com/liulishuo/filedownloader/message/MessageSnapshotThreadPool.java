@@ -15,10 +15,11 @@
  */
 package com.liulishuo.filedownloader.message;
 
+import com.liulishuo.filedownloader.util.FileDownloadExecutors;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,7 +39,7 @@ public class MessageSnapshotThreadPool {
         this.receiver = receiver;
         executorList = new ArrayList<>();
         for (int i = 0; i < poolCount; i++) {
-            executorList.add(new FlowSingleExecutor());
+            executorList.add(new FlowSingleExecutor(i));
         }
     }
 
@@ -83,12 +84,13 @@ public class MessageSnapshotThreadPool {
         }
     }
 
-    public class FlowSingleExecutor extends ThreadPoolExecutor {
+    public class FlowSingleExecutor extends FileDownloadExecutors.FileDownloadExecutor {
 
         private final List<Integer> enQueueTaskIdList = new ArrayList<>();
 
-        public FlowSingleExecutor() {
-            super(1, 1, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+        public FlowSingleExecutor(int index) {
+            super(1, 1, 5, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+                    "FowSingleExecutor" + index);
         }
 
         public void enqueue(final int id) {

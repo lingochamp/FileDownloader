@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
@@ -114,9 +115,9 @@ class FileDownloadTaskLauncher {
 
         private void init() {
             workQueue = new LinkedBlockingQueue<>();
-            pool = new ThreadPoolExecutor(3, 3,
+            pool = new FileDownloadExecutors.FileDownloadExecutor(3, 3,
                     10L, TimeUnit.MILLISECONDS,
-                    workQueue);
+                    workQueue, "LauncherTaskPool");
         }
 
     }

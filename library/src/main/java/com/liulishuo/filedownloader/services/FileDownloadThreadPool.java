@@ -18,12 +18,12 @@ package com.liulishuo.filedownloader.services;
 
 import android.util.SparseArray;
 
+import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -37,6 +37,8 @@ class FileDownloadThreadPool {
 
     private ThreadPoolExecutor threadPool;
 
+    private final String THREAD_PREFIX = "DownloadingNetworkPool";
+
     FileDownloadThreadPool(int maxNetworkThreadCount) {
         if (maxNetworkThreadCount == 0) {
             maxNetworkThreadCount = FileDownloadProperties.getImpl().DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
@@ -45,7 +47,8 @@ class FileDownloadThreadPool {
                     getValidNetworkThreadCount(maxNetworkThreadCount);
         }
 
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(maxNetworkThreadCount);
+        threadPool = (ThreadPoolExecutor) FileDownloadExecutors.
+                newFixedThreadPool(maxNetworkThreadCount, THREAD_PREFIX);
     }
 
     public synchronized boolean setMaxNetworkThreadCount(int count) {
@@ -64,7 +67,8 @@ class FileDownloadThreadPool {
         }
 
         final List<Runnable> taskQueue = threadPool.shutdownNow();
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(validCount);
+        threadPool = (ThreadPoolExecutor) FileDownloadExecutors.
+                newFixedThreadPool(validCount, THREAD_PREFIX);
 
         if (taskQueue.size() > 0) {
             FileDownloadLog.w(this, "recreate the network thread pool and discard %d tasks",
