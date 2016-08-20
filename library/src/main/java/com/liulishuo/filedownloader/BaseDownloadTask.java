@@ -432,8 +432,8 @@ public abstract class BaseDownloadTask {
      * @return Whether has already attached to a listener / a serial-queue. If {@code true}, this task
      * object must be running with the listener or has already assembled to a serial-queue and would
      * be started automatically when it is come to its turn.
-     * @see FileDownloader#startParallelTasks(FileDownloadListener)
-     * @see FileDownloader#startSerialTasks(FileDownloadListener)
+     * @see IQueuesHandler#startQueueSerial(FileDownloadListener)
+     * @see IQueuesHandler#startQueueParallel(FileDownloadListener)
      */
     public boolean isAttached() {
         return attachKey != 0;

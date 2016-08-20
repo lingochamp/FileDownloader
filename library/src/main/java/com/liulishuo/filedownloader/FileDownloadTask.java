@@ -16,8 +16,6 @@
 
 package com.liulishuo.filedownloader;
 
-import android.os.Handler;
-
 import com.liulishuo.filedownloader.event.DownloadEventSampleListener;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.event.IDownloadEvent;
@@ -129,7 +127,8 @@ class FileDownloadTask extends BaseDownloadTask {
                 if (!FileDownloadServiceProxy.getImpl().isConnected()) {
                     // 没有连上 服务
                     if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(this, "no connect service !! %s", getId());
+                        FileDownloadLog.d(this, "Waiting for connecting with the downloader " +
+                                "service... %d", getId());
                     }
                     FileDownloadServiceProxy.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
                     if (!NEED_RESTART_LIST.contains(this)) {
@@ -266,6 +265,9 @@ class FileDownloadTask extends BaseDownloadTask {
                     FileDownloadLog.d(FileDownloadTask.class, "callback connect service %s",
                             ((DownloadServiceConnectChangedEvent) event).getStatus());
                 }
+
+                final IQueuesHandler queueHandler = FileDownloader.getImpl().getQueueHandler();
+
                 if (((DownloadServiceConnectChangedEvent) event).getStatus() ==
                         DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
                     List<BaseDownloadTask> needRestartList;
@@ -275,8 +277,9 @@ class FileDownloadTask extends BaseDownloadTask {
                         needRestartList = (List<BaseDownloadTask>) NEED_RESTART_LIST.clone();
                         NEED_RESTART_LIST.clear();
 
+
                         for (BaseDownloadTask o : needRestartList) {
-                            if (FileDownloader.RUNNING_SERIAL_MAP.get(o.attachKey) != null) {
+                            if (queueHandler.contain(o.attachKey)) {
                                 o.ready();
                                 continue;
                             }
@@ -290,11 +293,7 @@ class FileDownloadTask extends BaseDownloadTask {
                             }
                         }
 
-                        for (int i = 0; i < FileDownloader.RUNNING_SERIAL_MAP.size(); i++) {
-                            final int key = FileDownloader.RUNNING_SERIAL_MAP.keyAt(i);
-                            Handler handler = FileDownloader.RUNNING_SERIAL_MAP.get(key);
-                            FileDownloader.unFreezeSerialHandler(handler);
-                        }
+                        queueHandler.unFreezeAllSerialQueues();
                     }
 
                 } else if (((DownloadServiceConnectChangedEvent) event).getStatus() ==
@@ -306,7 +305,6 @@ class FileDownloadTask extends BaseDownloadTask {
                                 FileDownloadList.getImpl().size());
                     }
 
-                    // TODO Multi-engine support, need to deal with similar situation
                     if (FileDownloadList.getImpl().size() > 0) {
                         synchronized (NEED_RESTART_LIST) {
                             FileDownloadList.getImpl().divert(NEED_RESTART_LIST);
@@ -315,11 +313,7 @@ class FileDownloadTask extends BaseDownloadTask {
                                 baseDownloadTask.clearMarkAdded2List();
                             }
 
-                            for (int i = 0; i < FileDownloader.RUNNING_SERIAL_MAP.size(); i++) {
-                                final int key = FileDownloader.RUNNING_SERIAL_MAP.keyAt(i);
-                                Handler handler = FileDownloader.RUNNING_SERIAL_MAP.get(key);
-                                FileDownloader.freezeSerialHandler(handler);
-                            }
+                            queueHandler.freezeAllSerialQueues();
                         }
                     }
 

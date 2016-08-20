@@ -21,9 +21,6 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Message;
-import android.util.SparseArray;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -34,7 +31,6 @@ import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -236,7 +232,9 @@ public class FileDownloader {
         }
 
 
-        return isSerial ? startSerialTasks(listener) : startParallelTasks(listener);
+        return isSerial ?
+                getQueueHandler().startQueueSerial(listener) :
+                getQueueHandler().startQueueParallel(listener);
     }
 
 
@@ -641,203 +639,9 @@ public class FileDownloader {
         return FileDownloadServiceProxy.getImpl().setMaxNetworkThreadCount(count);
     }
 
-    private boolean startParallelTasks(FileDownloadListener listener) {
-        final int attachKey = listener.hashCode();
+    private final IQueuesHandler mQueueHandler = new QueuesHandler(pauseLock);
 
-        final List<BaseDownloadTask> list = FileDownloadList.getImpl().
-                assembleTasksToStart(attachKey, listener);
-
-        if (onAssembledTasksToStart(attachKey, list, listener, false)) {
-            return false;
-        }
-
-        for (BaseDownloadTask task : list) {
-            task.start();
-        }
-
-        return true;
-    }
-
-    private boolean startSerialTasks(FileDownloadListener listener) {
-        final SerialHandlerCallback callback = new SerialHandlerCallback();
-        final int attachKey = callback.hashCode();
-
-        final List<BaseDownloadTask> list = FileDownloadList.getImpl().
-                assembleTasksToStart(attachKey, listener);
-
-        if (onAssembledTasksToStart(attachKey, list, listener, true)) {
-            return false;
-        }
-
-        final HandlerThread serialThread = new HandlerThread(
-                FileDownloadUtils.formatString("filedownloader serial thread %s-%d",
-                        listener, attachKey));
-        serialThread.start();
-
-        final Handler serialHandler = new Handler(serialThread.getLooper(), callback);
-        callback.setHandler(serialHandler);
-        callback.setList(list);
-
-        callback.goNext(0);
-
-        synchronized (RUNNING_SERIAL_MAP) {
-            RUNNING_SERIAL_MAP.put(attachKey, serialHandler);
-        }
-        return true;
-    }
-
-    private boolean onAssembledTasksToStart(int attachKey, final List<BaseDownloadTask> list,
-                                            final FileDownloadListener listener, boolean isSerial) {
-        if (FileDownloadMonitor.isValid()) {
-            FileDownloadMonitor.getMonitor().onRequestStart(list.size(), true, listener);
-        }
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(FileDownloader.class, "start list attachKey[%d] size[%d] " +
-                    "listener[%s] isSerial[%B]", attachKey, list.size(), listener, isSerial);
-        }
-
-        if (list == null || list.isEmpty()) {
-            FileDownloadLog.w(FileDownloader.class, "Tasks with the listener can't start, " +
-                            "because can't find any task with the provided listener: [%s, %B]",
-                    listener, isSerial);
-
-            return true;
-        }
-
-        return false;
-
-    }
-
-    final static SparseArray<Handler> RUNNING_SERIAL_MAP = new SparseArray<>();
-
-    final static int WHAT_SERIAL_NEXT = 1;
-    final static int WHAT_FREEZE = 2;
-    final static int WHAT_UNFREEZE = 3;
-
-    private static class SerialHandlerCallback implements Handler.Callback {
-        private Handler handler;
-        private List<BaseDownloadTask> list;
-        private int runningIndex = 0;
-        private SerialFinishListener serialFinishListener;
-
-        SerialHandlerCallback() {
-            serialFinishListener =
-                    new SerialFinishListener(new WeakReference<>(this));
-        }
-
-        public void setHandler(final Handler handler) {
-            this.handler = handler;
-        }
-
-        public void setList(List<BaseDownloadTask> list) {
-            this.list = list;
-        }
-
-        @Override
-        public boolean handleMessage(final Message msg) {
-            if (msg.what == WHAT_SERIAL_NEXT) {
-                if (msg.arg1 >= list.size()) {
-                    synchronized (RUNNING_SERIAL_MAP) {
-                        RUNNING_SERIAL_MAP.remove(list.get(0).attachKey);
-                    }
-                    // final serial tasks
-                    if (this.handler != null && this.handler.getLooper() != null) {
-                        this.handler.getLooper().quit();
-                        this.handler = null;
-                        this.list = null;
-                        this.serialFinishListener = null;
-                    }
-
-                    if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(SerialHandlerCallback.class, "final serial %s %d",
-                                this.list == null ? null : this.list.get(0) == null ? null : this.list.get(0).getListener(),
-                                msg.arg1);
-                    }
-                    return true;
-                }
-
-                runningIndex = msg.arg1;
-                final BaseDownloadTask stackTopTask = this.list.get(runningIndex);
-                synchronized (pauseLock) {
-                    if (!FileDownloadList.getImpl().contains(stackTopTask)) {
-                        // pause?
-                        if (FileDownloadLog.NEED_LOG) {
-                            FileDownloadLog.d(SerialHandlerCallback.class, "direct go next by not contains %s %d", stackTopTask, msg.arg1);
-                        }
-                        goNext(msg.arg1 + 1);
-                        return true;
-                    }
-                }
-
-
-                stackTopTask
-                        .addFinishListener(serialFinishListener.setNextIndex(runningIndex + 1))
-                        .start();
-
-            } else if (msg.what == WHAT_FREEZE) {
-                freeze();
-            } else if (msg.what == WHAT_UNFREEZE) {
-                unfreeze();
-            }
-            return true;
-        }
-
-        public void freeze() {
-            list.get(runningIndex).removeFinishListener(serialFinishListener);
-            handler.removeCallbacksAndMessages(null);
-        }
-
-        public void unfreeze() {
-            goNext(runningIndex);
-        }
-
-        private void goNext(final int nextIndex) {
-            if (this.handler == null || this.list == null) {
-                FileDownloadLog.w(this, "need go next %d, but params is not ready %s %s",
-                        nextIndex, this.handler, this.list);
-                return;
-            }
-
-            Message nextMsg = this.handler.obtainMessage();
-            nextMsg.what = WHAT_SERIAL_NEXT;
-            nextMsg.arg1 = nextIndex;
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(SerialHandlerCallback.class, "start next %s %s",
-                        this.list == null ? null : this.list.get(0) == null ? null :
-                                this.list.get(0).getListener(), nextMsg.arg1);
-            }
-            this.handler.sendMessage(nextMsg);
-        }
-    }
-
-    private static class SerialFinishListener implements BaseDownloadTask.FinishListener {
-        private final WeakReference<SerialHandlerCallback> wSerialHandlerCallback;
-
-        private SerialFinishListener(WeakReference<SerialHandlerCallback> wSerialHandlerCallback) {
-            this.wSerialHandlerCallback = wSerialHandlerCallback;
-        }
-
-        private int nextIndex;
-
-        public BaseDownloadTask.FinishListener setNextIndex(int index) {
-            this.nextIndex = index;
-            return this;
-        }
-
-        @Override
-        public void over(final BaseDownloadTask task) {
-            if (wSerialHandlerCallback != null && wSerialHandlerCallback.get() != null) {
-                wSerialHandlerCallback.get().goNext(this.nextIndex);
-            }
-        }
-    }
-
-    static void freezeSerialHandler(Handler handler) {
-        handler.sendEmptyMessage(WHAT_FREEZE);
-    }
-
-    static void unFreezeSerialHandler(Handler handler) {
-        handler.sendEmptyMessage(WHAT_UNFREEZE);
+    IQueuesHandler getQueueHandler() {
+        return mQueueHandler;
     }
 }
