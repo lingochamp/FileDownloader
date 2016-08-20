@@ -256,31 +256,44 @@ public class FileDownloadUtils {
         return t.toString();
     }
 
+    private static Boolean IS_DOWNLOADER_PROCESS;
+
     public static boolean isDownloaderProcess(final Context context) {
-        if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
-            return true;
+        if (IS_DOWNLOADER_PROCESS != null) {
+            return IS_DOWNLOADER_PROCESS;
         }
 
-        int pid = android.os.Process.myPid();
-        final ActivityManager activityManager = (ActivityManager) context.
-                getSystemService(Context.ACTIVITY_SERVICE);
-
-        final List<ActivityManager.RunningAppProcessInfo> runningAppProcessInfoList =
-                activityManager.getRunningAppProcesses();
-
-        if (null == runningAppProcessInfoList || runningAppProcessInfoList.isEmpty()) {
-            FileDownloadLog.w(FileDownloadUtils.class, "The running app process info list from" +
-                    " ActivityManager is null or empty, maybe current App is not running.");
-            return false;
-        }
-
-        for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcessInfoList) {
-            if (runningAppProcessInfo.pid == pid) {
-                return runningAppProcessInfo.processName.endsWith(":filedownloader");
+        boolean result = false;
+        do {
+            if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
+                result = true;
+                break;
             }
-        }
 
-        return false;
+            int pid = android.os.Process.myPid();
+            final ActivityManager activityManager = (ActivityManager) context.
+                    getSystemService(Context.ACTIVITY_SERVICE);
+
+            final List<ActivityManager.RunningAppProcessInfo> runningAppProcessInfoList =
+                    activityManager.getRunningAppProcesses();
+
+            if (null == runningAppProcessInfoList || runningAppProcessInfoList.isEmpty()) {
+                FileDownloadLog.w(FileDownloadUtils.class, "The running app process info list from" +
+                        " ActivityManager is null or empty, maybe current App is not running.");
+                return false;
+            }
+
+            for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcessInfoList) {
+                if (runningAppProcessInfo.pid == pid) {
+                    result = runningAppProcessInfo.processName.endsWith(":filedownloader");
+                    break;
+                }
+            }
+
+        } while (false);
+
+        IS_DOWNLOADER_PROCESS = result;
+        return IS_DOWNLOADER_PROCESS;
     }
 
     public static String[] convertHeaderString(final String nameAndValuesString) {

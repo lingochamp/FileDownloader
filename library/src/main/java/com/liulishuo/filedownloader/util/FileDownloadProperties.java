@@ -112,6 +112,7 @@ public class FileDownloadProperties {
     private final static String TRUE_STRING = "true";
     private final static String FALSE_STRING = "false";
 
+    // init properties, normally consume <= 2ms
     private FileDownloadProperties() {
         if (FileDownloadHelper.getAppContext() == null) {
             throw new IllegalStateException("Please invoke the FileDownloader#init in " +
