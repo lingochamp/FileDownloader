@@ -29,6 +29,8 @@ import com.liulishuo.filedownloader.event.IDownloadListener;
  */
 public abstract class FileDownloadConnectListener extends IDownloadListener {
 
+    private DownloadServiceConnectChangedEvent.ConnectStatus mConnectStatus;
+
     public FileDownloadConnectListener() {
     }
 
@@ -37,8 +39,9 @@ public abstract class FileDownloadConnectListener extends IDownloadListener {
         if (event instanceof DownloadServiceConnectChangedEvent) {
             final DownloadServiceConnectChangedEvent connectChangedEvent
                     = (DownloadServiceConnectChangedEvent) event;
-            if (connectChangedEvent.getStatus()
-                    == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
+            mConnectStatus = connectChangedEvent.getStatus();
+
+            if (mConnectStatus == DownloadServiceConnectChangedEvent.ConnectStatus.connected) {
                 connected();
             } else {
                 disconnected();
@@ -57,4 +60,7 @@ public abstract class FileDownloadConnectListener extends IDownloadListener {
      */
     public abstract void disconnected();
 
+    public DownloadServiceConnectChangedEvent.ConnectStatus getConnectStatus() {
+        return mConnectStatus;
+    }
 }

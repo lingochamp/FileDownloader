@@ -47,9 +47,9 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
             return;
         }
 
-        BaseDownloadTask task = FileDownloadList.getImpl().get(downloadId);
+        BaseDownloadTask.IRunningTask task = FileDownloadList.getImpl().get(downloadId);
         if (task != null) {
-            addNotificationItem(task);
+            addNotificationItem(task.getOrigin());
         }
     }
 

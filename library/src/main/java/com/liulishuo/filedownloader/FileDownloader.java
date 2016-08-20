@@ -213,7 +213,7 @@ public class FileDownloader {
      * Create a download task
      */
     public BaseDownloadTask create(final String url) {
-        return new FileDownloadTask(url);
+        return new DownloadTask(url);
     }
 
     /**
@@ -233,8 +233,8 @@ public class FileDownloader {
 
 
         return isSerial ?
-                getQueueHandler().startQueueSerial(listener) :
-                getQueueHandler().startQueueParallel(listener);
+                getQueuesHandler().startQueueSerial(listener) :
+                getQueuesHandler().startQueueParallel(listener);
     }
 
 
@@ -246,10 +246,11 @@ public class FileDownloader {
      */
     public void pause(final FileDownloadListener listener) {
         FileDownloadTaskLauncher.getImpl().expire(listener);
-        final List<BaseDownloadTask> downloadList = FileDownloadList.getImpl().copy(listener);
+        final List<BaseDownloadTask.IRunningTask> taskList =
+                FileDownloadList.getImpl().copy(listener);
         synchronized (pauseLock) {
-            for (BaseDownloadTask baseDownloadTask : downloadList) {
-                baseDownloadTask.pause();
+            for (BaseDownloadTask.IRunningTask task : taskList) {
+                task.getOrigin().pause();
             }
         }
     }
@@ -262,10 +263,10 @@ public class FileDownloader {
      */
     public void pauseAll() {
         FileDownloadTaskLauncher.getImpl().expireAll();
-        final BaseDownloadTask[] downloadList = FileDownloadList.getImpl().copy();
+        final BaseDownloadTask.IRunningTask[] downloadList = FileDownloadList.getImpl().copy();
         synchronized (pauseLock) {
-            for (BaseDownloadTask baseDownloadTask : downloadList) {
-                baseDownloadTask.pause();
+            for (BaseDownloadTask.IRunningTask task : downloadList) {
+                task.getOrigin().pause();
             }
         }
         // double check, for case: File Download progress alive but ui progress has died and relived,
@@ -294,14 +295,14 @@ public class FileDownloader {
      * @see #pause(FileDownloadListener)
      */
     public int pause(final int id) {
-        List<BaseDownloadTask> taskList = FileDownloadList.getImpl().getDownloadingList(id);
+        List<BaseDownloadTask.IRunningTask> taskList = FileDownloadList.getImpl().getDownloadingList(id);
         if (null == taskList || taskList.isEmpty()) {
             FileDownloadLog.w(this, "request pause but not exist %d", id);
             return 0;
         }
 
-        for (BaseDownloadTask task : taskList) {
-            task.pause();
+        for (BaseDownloadTask.IRunningTask task : taskList) {
+            task.getOrigin().pause();
         }
 
         return taskList.size();
@@ -352,24 +353,24 @@ public class FileDownloader {
      * Get downloaded so far bytes by the downloadId
      */
     public long getSoFar(final int downloadId) {
-        BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
-        if (downloadTask == null) {
+        BaseDownloadTask.IRunningTask task = FileDownloadList.getImpl().get(downloadId);
+        if (task == null) {
             return FileDownloadServiceProxy.getImpl().getSofar(downloadId);
         }
 
-        return downloadTask.getLargeFileSoFarBytes();
+        return task.getOrigin().getLargeFileSoFarBytes();
     }
 
     /**
      * Get file total bytes by the downloadId
      */
     public long getTotal(final int downloadId) {
-        BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
-        if (downloadTask == null) {
+        BaseDownloadTask.IRunningTask task = FileDownloadList.getImpl().get(downloadId);
+        if (task == null) {
             return FileDownloadServiceProxy.getImpl().getTotal(downloadId);
         }
 
-        return downloadTask.getLargeFileTotalBytes();
+        return task.getOrigin().getLargeFileTotalBytes();
     }
 
     /**
@@ -404,11 +405,11 @@ public class FileDownloader {
      */
     public byte getStatus(final int downloadId, final String path) {
         byte status;
-        BaseDownloadTask downloadTask = FileDownloadList.getImpl().get(downloadId);
-        if (downloadTask == null) {
+        BaseDownloadTask.IRunningTask task = FileDownloadList.getImpl().get(downloadId);
+        if (task == null) {
             status = FileDownloadServiceProxy.getImpl().getStatus(downloadId);
         } else {
-            status = downloadTask.getStatus();
+            status = task.getOrigin().getStatus();
         }
 
         if (path != null && status == FileDownloadStatus.INVALID_STATUS) {
@@ -454,13 +455,13 @@ public class FileDownloader {
      * @see #replaceListener(String, String, FileDownloadListener)
      */
     public int replaceListener(int id, FileDownloadListener listener) {
-        final BaseDownloadTask task = FileDownloadList.getImpl().get(id);
+        final BaseDownloadTask.IRunningTask task = FileDownloadList.getImpl().get(id);
         if (task == null) {
             return 0;
         }
 
-        task.setListener(listener);
-        return task.getId();
+        task.getOrigin().setListener(listener);
+        return task.getOrigin().getId();
     }
 
     /**
@@ -639,9 +640,33 @@ public class FileDownloader {
         return FileDownloadServiceProxy.getImpl().setMaxNetworkThreadCount(count);
     }
 
-    private final IQueuesHandler mQueueHandler = new QueuesHandler(pauseLock);
+    private final static Object INIT_QUEUES_HANDLER_LOCK = new Object();
+    private IQueuesHandler mQueuesHandler;
 
-    IQueuesHandler getQueueHandler() {
-        return mQueueHandler;
+    IQueuesHandler getQueuesHandler() {
+        if (mQueuesHandler == null) {
+            synchronized (INIT_QUEUES_HANDLER_LOCK) {
+                if (mQueuesHandler == null) {
+                    mQueuesHandler = new QueuesHandler(pauseLock);
+                }
+            }
+        }
+        return mQueuesHandler;
+    }
+
+    private final static Object INIT_LOST_CONNECTED_HANDLER_LOCK = new Object();
+    private ILostServiceConnectedHandler mLostConnectedHandler;
+
+    ILostServiceConnectedHandler getLostConnectedHandler() {
+        if (mLostConnectedHandler == null) {
+            synchronized (INIT_LOST_CONNECTED_HANDLER_LOCK) {
+                if (mLostConnectedHandler == null) {
+                    mLostConnectedHandler = new LostServiceConnectedHandler();
+                    addServiceConnectListener((FileDownloadConnectListener) mLostConnectedHandler);
+                }
+            }
+        }
+
+        return mLostConnectedHandler;
     }
 }

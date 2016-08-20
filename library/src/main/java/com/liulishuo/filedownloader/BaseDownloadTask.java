@@ -16,22 +16,9 @@
 
 package com.liulishuo.filedownloader;
 
-import android.os.SystemClock;
-import android.text.TextUtils;
-import android.util.SparseArray;
-
-import com.liulishuo.filedownloader.message.MessageSnapshot;
-import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.message.MessageSnapshotThreadPool;
-import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
-
-import java.io.File;
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
 
 /**
  * Created by Jacksgong on 9/23/15.
@@ -39,97 +26,26 @@ import java.util.ArrayList;
  * A atom download task.
  *
  * @see FileDownloader
- * @see FileDownloadTask
+ * @see ITaskHunter
  */
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
-public abstract class BaseDownloadTask {
+public interface BaseDownloadTask {
 
-    private int downloadId;
-
-    private final String url;
-    private String path;
-    private String filename;
-    private boolean pathAsDirectory;
-
-    private FileDownloadHeader header;
-
-    private FileDownloadListener listener;
-
-    private SparseArray<Object> keyedTags;
-    private Object tag;
-    private Throwable ex;
-
-    private long soFarBytes;
-    private long totalBytes;
-    private byte status = FileDownloadStatus.INVALID_STATUS;
-    private int autoRetryTimes = 0;
-    // Number of times to try again
-    private int retryingTimes = 0;
-    // The min interval millisecond for updating the download speed.
-    private int minIntervalUpdateSpeed = 5;
-
-    private boolean resuming;
-    private String etag;
-
-    private boolean isLargeFile;
-
-    /**
-     * 如果是true 会直接在下载线程回调，而不会调用{@link android.os.Handler#post(Runnable)} 抛到UI线程。
-     * <p/>
-     * if true will callback directly on the download thread(do not on post the message to the ui thread
-     * by {@link android.os.Handler#post(Runnable)}
-     */
-    private boolean syncCallback = false;
-
-    public final static int DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS = 10;
-    private int callbackProgressTimes = FileDownloadModel.DEFAULT_CALLBACK_PROGRESS_TIMES;
-    private int callbackProgressMinIntervalMillis = DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS;
-
-    private boolean isForceReDownload = false;
-
-    private boolean isReusedOldFile = false;
-
-    volatile boolean using = false;
-
-    private final IFileDownloadMessenger messenger;
-
-    private long lastCalcSpeedSofarTime;
-    private long lastCalcSpeedSofar;
-
-    private long startDownloadSofar;
-    private long startDownloadTime;
-
-    // KB/s
-    private int speed;
-
-    volatile int attachKey = 0;
-
-    BaseDownloadTask(final String url) {
-        this.url = url;
-        messenger = new FileDownloadMessenger(this);
-    }
-
-    // --------------------------------------- FOLLOWING FUNCTION FOR OUTSIDE ----------------------------------------------
+    int DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS = 10;
 
     /**
      * @param minIntervalUpdateSpeedMs The min interval millisecond for updating the download speed
      *                                 in downloading process(Status equal to progress).
      *                                 Default 5 ms. If less than or equal to 0, will not calculate
      *                                 the download speed in process.
-     * @see #calcSpeed(long)
      */
-    public BaseDownloadTask setMinIntervalUpdateSpeed(int minIntervalUpdateSpeedMs) {
-        this.minIntervalUpdateSpeed = minIntervalUpdateSpeedMs;
-        return this;
-    }
+    BaseDownloadTask setMinIntervalUpdateSpeed(int minIntervalUpdateSpeedMs);
 
     /**
      * @param path {@code path} = absolute directory/{@code filename}; and {@link #isPathAsDirectory()}
      *             assign to {@code false}.
      */
-    public BaseDownloadTask setPath(final String path) {
-        return setPath(path, false);
-    }
+    BaseDownloadTask setPath(final String path);
 
     /**
      * @param path            Absolute path for saving the download file.
@@ -143,37 +59,13 @@ public abstract class BaseDownloadTask {
      * @see #isPathAsDirectory()
      * @see #getFilename()
      */
-    public BaseDownloadTask setPath(final String path, final boolean pathAsDirectory) {
-        this.path = path;
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "setPath %s", path);
-        }
-
-        this.pathAsDirectory = pathAsDirectory;
-        if (pathAsDirectory) {
-            /**
-             * will be found before the callback of {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
-             */
-            this.filename = null;
-        } else {
-            this.filename = new File(path).getName();
-        }
-
-        return this;
-    }
+    BaseDownloadTask setPath(final String path, final boolean pathAsDirectory);
 
     /**
      * @param listener For callback download status(pending,connected,progress,
      *                 blockComplete,retry,error,paused,completed,warn)
      */
-    public BaseDownloadTask setListener(final FileDownloadListener listener) {
-        this.listener = listener;
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "setListener %s", listener);
-        }
-        return this;
-    }
+    BaseDownloadTask setListener(final FileDownloadListener listener);
 
     /**
      * Set the maximal callback count of
@@ -191,10 +83,7 @@ public abstract class BaseDownloadTask {
      *                              .
      * @see #setCallbackProgressMinInterval(int)
      */
-    public BaseDownloadTask setCallbackProgressTimes(int callbackProgressCount) {
-        this.callbackProgressTimes = callbackProgressCount;
-        return this;
-    }
+    BaseDownloadTask setCallbackProgressTimes(int callbackProgressCount);
 
     /**
      * Set the minimum time interval between each callback of
@@ -207,29 +96,18 @@ public abstract class BaseDownloadTask {
      *                          Scope: [5, {@link Integer#MAX_VALUE}
      * @see #setCallbackProgressTimes(int)
      */
-    public BaseDownloadTask setCallbackProgressMinInterval(int minIntervalMillis) {
-        this.callbackProgressMinIntervalMillis = minIntervalMillis;
-        return this;
-    }
+    BaseDownloadTask setCallbackProgressMinInterval(int minIntervalMillis);
 
     /**
      * Ignore all callbacks of {@link FileDownloadListener#progress(BaseDownloadTask, int, int)}
      * during the entire process of downloading.
      */
-    public BaseDownloadTask setCallbackProgressIgnored() {
-        return setCallbackProgressTimes(-1);
-    }
+    BaseDownloadTask setCallbackProgressIgnored();
 
     /**
      * Sets the tag associated with this task, not be used by internal.
      */
-    public BaseDownloadTask setTag(final Object tag) {
-        this.tag = tag;
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "setTag %s", tag);
-        }
-        return this;
-    }
+    BaseDownloadTask setTag(final Object tag);
 
     /**
      * Set a tag associated with this task, not be used by internal.
@@ -238,13 +116,7 @@ public abstract class BaseDownloadTask {
      *            If the key already exists, the old data will be replaced.
      * @param tag An Object to tag the task with
      */
-    public BaseDownloadTask setTag(final int key, final Object tag) {
-        if (keyedTags == null) {
-            keyedTags = new SparseArray<>(2);
-        }
-        keyedTags.put(key, tag);
-        return this;
-    }
+    BaseDownloadTask setTag(final int key, final Object tag);
 
 
     /**
@@ -253,102 +125,56 @@ public abstract class BaseDownloadTask {
      * @param isForceReDownload If set to true, will not check whether the file is downloaded
      *                          by past, default false
      */
-    public BaseDownloadTask setForceReDownload(final boolean isForceReDownload) {
-        this.isForceReDownload = isForceReDownload;
-        return this;
-    }
+    BaseDownloadTask setForceReDownload(final boolean isForceReDownload);
 
     /**
      * @deprecated Replace with {@link #addFinishListener(FinishListener)}
      */
-    public BaseDownloadTask setFinishListener(final FinishListener finishListener) {
-        addFinishListener(finishListener);
-        return this;
-    }
-
-    private ArrayList<FinishListener> finishListenerList;
+    BaseDownloadTask setFinishListener(final FinishListener finishListener);
 
     /**
-     * This listener's method {@link FinishListener#over()} will be invoked in Internal-Flow-Thread
+     * This listener's method {@link FinishListener#over(BaseDownloadTask)} will be invoked in Internal-Flow-Thread
      * directly, which is controlled by {@link MessageSnapshotThreadPool}.
      *
      * @param finishListener Just consider whether the task is over.
      * @see FileDownloadStatus#isOver(int)
      */
-    public BaseDownloadTask addFinishListener(final FinishListener finishListener) {
-        if (finishListenerList == null) {
-            finishListenerList = new ArrayList<>();
-        }
+    BaseDownloadTask addFinishListener(final FinishListener finishListener);
 
-        if (!finishListenerList.contains(finishListener)) {
-            finishListenerList.add(finishListener);
-        }
-        return this;
-    }
-
-    public boolean removeFinishListener(final FinishListener finishListener) {
-        return finishListenerList != null && finishListenerList.remove(finishListener);
-    }
+    boolean removeFinishListener(final FinishListener finishListener);
 
     /**
      * Set the number of times to automatically retry when encounter any error
      *
      * @param autoRetryTimes default 0
      */
-    public BaseDownloadTask setAutoRetryTimes(int autoRetryTimes) {
-        this.autoRetryTimes = autoRetryTimes;
-        return this;
-    }
+    BaseDownloadTask setAutoRetryTimes(int autoRetryTimes);
 
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
      * @see okhttp3.Headers.Builder#add(String, String)
      */
-    public BaseDownloadTask addHeader(final String name, final String value) {
-        checkAndCreateHeader();
-        header.add(name, value);
-        return this;
-    }
+    BaseDownloadTask addHeader(final String name, final String value);
 
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
      * @see okhttp3.Headers.Builder#add(String, String)
      */
-    public BaseDownloadTask addHeader(final String line) {
-        checkAndCreateHeader();
-        header.add(line);
-        return this;
-    }
+    BaseDownloadTask addHeader(final String line);
 
     /**
      * @see okhttp3.Headers.Builder#removeAll(String)
      */
-    public BaseDownloadTask removeAllHeaders(final String name) {
-        if (header == null) {
-            synchronized (headerCreateLock) {
-                // maybe invoking checkAndCreateHear and will to be available.
-                if (header == null) {
-                    return this;
-                }
-            }
-        }
-
-
-        header.removeAll(name);
-        return this;
-    }
+    BaseDownloadTask removeAllHeaders(final String name);
 
     /**
      * @param syncCallback if true will invoke callbacks of {@link FileDownloadListener} directly
      *                     on the download thread(do not post the message to the ui thread
      *                     by {@link android.os.Handler#post(Runnable)}
      */
-    public BaseDownloadTask setSyncCallback(final boolean syncCallback) {
-        this.syncCallback = syncCallback;
-        return this;
-    }
+    BaseDownloadTask setSyncCallback(final boolean syncCallback);
 
     // -------- Following function for ending ------
 
@@ -360,47 +186,14 @@ public abstract class BaseDownloadTask {
      * @return downloadId
      * @see FileDownloader#start(FileDownloadListener, boolean)
      */
-    public int ready() {
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "ready 2 download %s", toString());
-        }
-
-        FileDownloadList.getImpl().ready(this);
-
-        return getId();
-    }
+    int ready();
 
     /**
      * Reuse this task withhold request params: path、url、header、isForceReDownloader、etc.
      *
      * @return Successful reuse or not.
      */
-    public boolean reuse() {
-        if (isRunning()) {
-            FileDownloadLog.w(this, "This task is running %d, if you want start the same task," +
-                    " please create a new one by FileDownloader.create", getId());
-            return false;
-        }
-
-        this.attachKey = 0;
-        this.using = false;
-        this.etag = null;
-        this.resuming = false;
-        this.retryingTimes = 0;
-        this.isReusedOldFile = false;
-        this.ex = null;
-        resetSpeed();
-        clearMarkAdded2List();
-
-
-        setStatus(FileDownloadStatus.INVALID_STATUS);
-        this.soFarBytes = 0;
-        this.totalBytes = 0;
-        messenger.reAppointment(this);
-
-        return true;
-    }
+    boolean reuse();
 
     /**
      * @return Whether this task object has already started and used in FileDownload Engine. If true,
@@ -409,9 +202,7 @@ public abstract class BaseDownloadTask {
      * @see #start()
      * @see #reuse()
      */
-    public boolean isUsing() {
-        return this.using;
-    }
+    boolean isUsing();
 
     /**
      * @return Whether this task object is running in FileDownload Engine. If true, it isn't allow
@@ -419,14 +210,7 @@ public abstract class BaseDownloadTask {
      * @see #isUsing()
      * @see #start()
      */
-    public boolean isRunning() {
-        //noinspection SimplifiableIfStatement
-        if (!isUsing()) {
-            return false;
-        }
-
-        return FileDownloadStatus.isIng(getStatus()) || FileDownloadList.getImpl().contains(this);
-    }
+    boolean isRunning();
 
     /**
      * @return Whether has already attached to a listener / a serial-queue. If {@code true}, this task
@@ -435,68 +219,14 @@ public abstract class BaseDownloadTask {
      * @see IQueuesHandler#startQueueSerial(FileDownloadListener)
      * @see IQueuesHandler#startQueueParallel(FileDownloadListener)
      */
-    public boolean isAttached() {
-        return attachKey != 0;
-    }
-
-    private int startUnchecked() {
-        if (FileDownloadMonitor.isValid()) {
-            FileDownloadMonitor.getMonitor().onRequestStart(this);
-        }
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "call start " +
-                            "url[%s], setPath[%s] listener[%s], tag[%s]",
-                    url, path, listener, tag);
-        }
-
-        boolean ready = true;
-
-        try {
-            _adjust();
-            _checkDir();
-        } catch (Throwable e) {
-            ready = false;
-
-            FileDownloadList.getImpl().add(this);
-            FileDownloadList.getImpl().remove(this, catchException(e));
-        }
-
-        if (ready) {
-            FileDownloadTaskLauncher.getImpl().launch(this);
-        }
-
-
-        return getId();
-    }
+    boolean isAttached();
 
     /**
      * start the task.
      *
      * @return Download id
      */
-    public int start() {
-
-        if (isUsing()) {
-            if (isRunning()) {
-                throw new IllegalStateException(
-                        FileDownloadUtils.formatString("This task is running %d, if you" +
-                                " want to start the same task, please create a new one by" +
-                                " FileDownloader.create", getId()));
-            } else {
-                throw new IllegalStateException("This task is dirty to restart, If you want to " +
-                        "reuse this task, please invoke #reuse method manually and retry to " +
-                        "restart again.");
-            }
-        }
-
-        this.using = true;
-        if (attachKey == 0) {
-            attachKey = listener.hashCode();
-        }
-
-        return startUnchecked();
-    }
+    int start();
 
     // -------------- Another Operations ---------------------
 
@@ -511,31 +241,7 @@ public abstract class BaseDownloadTask {
      * @see FileDownloader#pause(FileDownloadListener)
      * @see FileDownloader#pauseAll()
      */
-    public boolean pause() {
-        if (FileDownloadStatus.isOver(getStatus())) {
-            if (FileDownloadLog.NEED_LOG) {
-                /**
-                 * The over-status call-backed and set the over-status to this task between here
-                 * area and remove from the {@link FileDownloadList}.
-                 *
-                 * High concurrent cause.
-                 */
-                FileDownloadLog.d(this, "High concurrent cause, Already is over, can't pause " +
-                        "again, %d %d", getStatus(), getId());
-            }
-            return false;
-        }
-        setStatus(FileDownloadStatus.paused);
-
-        _pauseExecute();
-
-        calcAverageSpeed(this.soFarBytes);
-        // For make sure already added event listener for receive paused event
-        FileDownloadList.getImpl().add(this);
-        FileDownloadList.getImpl().remove(this, MessageSnapshotTaker.catchPause(this));
-
-        return true;
-    }
+    boolean pause();
 
     // ------------------- get -----------------------
 
@@ -549,51 +255,33 @@ public abstract class BaseDownloadTask {
      * @see FileDownloader#getTotal(int)
      * @see FileDownloader#getSoFar(int)
      */
-    public int getId() {
-        if (downloadId != 0) {
-            return downloadId;
-        }
-
-        if (!TextUtils.isEmpty(path) && !TextUtils.isEmpty(url)) {
-            return downloadId = FileDownloadUtils.generateId(url, path, pathAsDirectory);
-        }
-
-        return 0;
-    }
+    int getId();
 
     /**
      * @return The identify id for this task.
      * @deprecated Used {@link #getId()} instead.
      */
-    public int getDownloadId() {
-        return getId();
-    }
+    int getDownloadId();
 
     /**
      * Get download url
      *
      * @return download url
      */
-    public String getUrl() {
-        return url;
-    }
+    String getUrl();
 
     /**
      * @return The maximal callback count of
      * {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} during the entire process
      * of downloading.
      */
-    public int getCallbackProgressTimes() {
-        return callbackProgressTimes;
-    }
+    int getCallbackProgressTimes();
 
     /**
      * @return The minimum time interval between each callback of
      * {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} .
      */
-    public int getCallbackProgressMinInterval() {
-        return callbackProgressMinIntervalMillis;
-    }
+    int getCallbackProgressMinInterval();
 
     /**
      * @return If {@link #isPathAsDirectory()} is {@code true}: {@code path} is a absolute directory
@@ -603,17 +291,13 @@ public abstract class BaseDownloadTask {
      * </p>
      * If {@link #isPathAsDirectory()} is {@code false}: {@code path} = absolute directory/{@code filename}.
      */
-    public String getPath() {
-        return path;
-    }
+    String getPath();
 
     /**
      * @return Is {@link #getPath()} as a absolute directory.
      * @see #getPath()
      */
-    public boolean isPathAsDirectory() {
-        return pathAsDirectory;
-    }
+    boolean isPathAsDirectory();
 
     /**
      * @return If {@link #isPathAsDirectory()} is {@code true}, the {@code filename} will be found in
@@ -625,73 +309,48 @@ public abstract class BaseDownloadTask {
      * If {@link #isPathAsDirectory()} is {@code false}, the {@code filename} will be found immediately
      * when invoke {@link #setPath(String, boolean)} .
      */
-    public String getFilename() {
-        return filename;
-    }
+    String getFilename();
 
     /**
      * @return The target file path to store the file.
      */
-    public String getTargetFilePath() {
-        return FileDownloadUtils.getTargetFilePath(getPath(), isPathAsDirectory(), getFilename());
-    }
+    String getTargetFilePath();
 
     /**
      * @return Current FileDownloadListener
      */
-    public FileDownloadListener getListener() {
-        return listener;
-    }
+    FileDownloadListener getListener();
 
     /**
      * @return Number of bytes download so far
      * @deprecated replace with {@link #getSmallFileSoFarBytes()}.
      */
-    public int getSoFarBytes() {
-        return getSmallFileSoFarBytes();
-    }
+    int getSoFarBytes();
 
     /**
      * @return The downloaded so far bytes which size is less than or equal to 1.99G
      */
-    public int getSmallFileSoFarBytes() {
-        if (soFarBytes > Integer.MAX_VALUE) {
-            return Integer.MAX_VALUE;
-        }
-        return (int) soFarBytes;
-    }
+    int getSmallFileSoFarBytes();
 
-    public long getLargeFileSoFarBytes() {
-        return soFarBytes;
-    }
+    long getLargeFileSoFarBytes();
 
     /**
      * @return Total bytes, available
      * after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}/ already have in db
      * @deprecated replace with {@link #getSmallFileTotalBytes()}}
      */
-    public int getTotalBytes() {
-        return getSmallFileTotalBytes();
-    }
+    int getTotalBytes();
 
     /**
      * @return The total bytes which size is less than or equal to 1.99G
      */
-    public int getSmallFileTotalBytes() {
-        if (totalBytes > Integer.MAX_VALUE) {
-            return Integer.MAX_VALUE;
-        }
+    int getSmallFileTotalBytes();
 
-        return (int) totalBytes;
-    }
-
-    public long getLargeFileTotalBytes() {
-        return totalBytes;
-    }
+    long getLargeFileTotalBytes();
 
     /**
      * If in downloading process(status equal {@link FileDownloadStatus#progress}) : Calculating
-     * when the interval from the last calculation more than {@link #minIntervalUpdateSpeed} before
+     * when the interval from the last calculation more than {@link #setMinIntervalUpdateSpeed(int)} before
      * each {@link FileDownloadListener#progress(BaseDownloadTask, int, int)} call-back method.
      * <p/>
      * If finished({@link FileDownloadStatus#isOver(int)}): Would be average speed. The scope is
@@ -700,47 +359,40 @@ public abstract class BaseDownloadTask {
      * @return KB/s
      * @see #setMinIntervalUpdateSpeed(int)
      */
-    public int getSpeed() {
-        return this.speed;
-    }
+    int getSpeed();
 
     /**
      * @return Current status
      * @see FileDownloadStatus
      */
-    public byte getStatus() {
-        return status;
-    }
+    byte getStatus();
 
     /**
      * @return Force re-download,do not care about whether already downloaded or not
      */
-    public boolean isForceReDownload() {
-        return this.isForceReDownload;
-    }
+    boolean isForceReDownload();
 
     /**
-     * @return Throwable
+     * @deprecated replaced with {@link #getErrorCause()}
      */
-    public Throwable getEx() {
-        return ex;
-    }
+    Throwable getEx();
+
+    /**
+     * @return the error cause.
+     */
+    Throwable getErrorCause();
 
 
     /**
      * @return Whether reused the downloaded file by past.
      * @see #isReusedOldFile
      */
-    public boolean isReusedOldFile() {
-        return isReusedOldFile;
-    }
+    boolean isReusedOldFile();
 
     /**
      * @return The task's tag
      */
-    public Object getTag() {
-        return this.tag;
-    }
+    Object getTag();
 
     /**
      * Returns the tag associated with this task and the specified key.
@@ -751,546 +403,51 @@ public abstract class BaseDownloadTask {
      * @see #setTag(int, Object)
      * @see #getTag()
      */
-    public Object getTag(int key) {
-        return keyedTags == null ? null : keyedTags.get(key);
-    }
+    Object getTag(int key);
 
 
     /**
      * @deprecated Use {@link #isResuming()} instead.
      */
-    public boolean isContinue() {
-        return this.resuming;
-    }
+    boolean isContinue();
 
     /**
      * @return Is resume by breakpoint, available
      * after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
      */
-    public boolean isResuming() {
-        return this.resuming;
-    }
+    boolean isResuming();
 
     /**
      * @return ETag, available
      * after {@link FileDownloadListener#connected(BaseDownloadTask, String, boolean, int, int)}
      */
-    public String getEtag() {
-        return this.etag;
-    }
+    String getEtag();
 
     /**
      * @return The number of times to automatically retry
      */
-    public int getAutoRetryTimes() {
-        return this.autoRetryTimes;
-    }
+    int getAutoRetryTimes();
 
     /**
      * @return The current number of trey. available
      * after {@link FileDownloadListener#retry(BaseDownloadTask, Throwable, int, int)}
      */
-    public int getRetryingTimes() {
-        return this.retryingTimes;
-    }
+    int getRetryingTimes();
 
     /**
      * @return whether sync callback directly on the download thread, do not post to the ui thread.
      */
-    public boolean isSyncCallback() {
-        return syncCallback;
-    }
+    boolean isSyncCallback();
 
     /**
      * @return Whether the length of downloading file is more than or equal to 2G.
      * @see #getLargeFileSoFarBytes()
      * @see #getLargeFileTotalBytes()
      */
-    public boolean isLargeFile() {
-        return isLargeFile;
-    }
+    boolean isLargeFile();
 
-    // --------------------------------------- ABOVE FUNCTIONS FOR OUTSIDE ----------------------------------------------
-
-    // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL --------------------------------------------------
-
-    private void _checkDir() {
-
-        final File dir;
-        if (isPathAsDirectory()) {
-            dir = new File(path);
-        } else {
-            final String dirString = FileDownloadUtils.getParent(path);
-            if (dirString == null) {
-                throw new InvalidParameterException(
-                        FileDownloadUtils.formatString("the provided path[%s] is invalid, can't find " +
-                                "its directory", path));
-            }
-            dir = new File(dirString);
-        }
-
-        if (!dir.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            dir.mkdirs();
-        }
-    }
-
-    protected boolean _checkCanStart() {
-        return true;
-    }
-
-    protected boolean _checkCanReuse() {
-        return false;
-    }
-
-    // Assign default value if need
-    private void _adjust() {
-        if (path == null) {
-            setPath(FileDownloadUtils.getDefaultSaveFilePath(url));
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "save path is null to %s", path);
-            }
-        }
-    }
-
-    void _start() {
-
-        try {
-            // Whether service was already started.
-            if (!_checkCanStart()) {
-                this.using = false;
-                // Not ready
-                return;
-            }
-
-            FileDownloadList.getImpl().add(this);
-            if (_checkCanReuse()) {
-                // Will be removed when the complete message is received in #update
-                return;
-            }
-
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "start downloaded by ui process %s", getUrl());
-            }
-
-            _startExecute();
-
-        } catch (Throwable e) {
-            e.printStackTrace();
-
-            FileDownloadList.getImpl().remove(this, catchException(e));
-        }
-
-    }
-
-    /**
-     * Execute start
-     */
-    protected abstract void _startExecute();
-
-    // Execute pause
-    protected abstract boolean _pauseExecute();
-
-    protected abstract int _getStatusFromServer(final int downloadId);
-
-    private Runnable cacheRunnable;
-
-    private Runnable _getOverCallback() {
-        if (cacheRunnable != null) {
-            return cacheRunnable;
-        }
-
-        return cacheRunnable = new Runnable() {
-            @Override
-            public void run() {
-                clear();
-            }
-        };
-    }
-
-    private void _setRetryingTimes(final int times) {
-        this.retryingTimes = times;
-    }
-
-
-    private final Object headerCreateLock = new Object();
-
-    private void checkAndCreateHeader() {
-        if (header == null) {
-            synchronized (headerCreateLock) {
-                if (header == null) {
-                    header = new FileDownloadHeader();
-                }
-            }
-        }
-    }
-
-    // Status, will changed before enqueue/dequeue/notify
-    private void setStatus(byte status) {
-        if (status > FileDownloadStatus.MAX_INT ||
-                status < FileDownloadStatus.MIN_INT) {
-            throw new RuntimeException(
-                    FileDownloadUtils.formatString("status undefined, %d", status));
-        }
-        this.status = status;
-    }
-
-
-    private void resetSpeed() {
-        this.speed = 0;
-        this.lastCalcSpeedSofarTime = 0;
-    }
-
-    private void markStartDownload() {
-        this.startDownloadTime = SystemClock.uptimeMillis();
-        this.startDownloadSofar = this.soFarBytes;
-    }
-
-    private void calcAverageSpeed(final long overSofar) {
-        if (startDownloadTime <= 0 || startDownloadSofar <= 0) {
-            return;
-        }
-
-        long downloadSize = overSofar - startDownloadSofar;
-        this.lastCalcSpeedSofarTime = 0;
-        long interval = SystemClock.uptimeMillis() - startDownloadTime;
-        if (interval < 0) {
-            speed = (int) downloadSize;
-        } else {
-            speed = (int) (downloadSize / interval);
-        }
-    }
-
-    private void calcSpeed(long sofar) {
-        if (minIntervalUpdateSpeed <= 0) {
-            return;
-        }
-
-        boolean isUpdateData = false;
-        do {
-            if (lastCalcSpeedSofarTime == 0) {
-                isUpdateData = true;
-                break;
-            }
-
-            long interval = SystemClock.uptimeMillis() - lastCalcSpeedSofarTime;
-            if (interval >= minIntervalUpdateSpeed || (speed == 0 && interval > 0)) {
-                speed = (int) ((sofar - lastCalcSpeedSofar) / interval);
-                speed = Math.max(0, speed);
-                isUpdateData = true;
-                break;
-            }
-        } while (false);
-
-        if (isUpdateData) {
-            lastCalcSpeedSofar = sofar;
-            lastCalcSpeedSofarTime = SystemClock.uptimeMillis();
-        }
-    }
-
-    // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL --------------------------------------------------
-
-    // --------------------------------------- FOLLOWING FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
-
-    // Clear References
-    void clear() {
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "clear %s", this);
-        }
-    }
-
-    /**
-     * @return Make sure one event to one task
-     */
-    String generateEventId() {
-        return toString();
-    }
-
-    FileDownloadHeader getHeader() {
-        return this.header;
-    }
-
-    MessageSnapshot catchException(Throwable ex) {
-        setStatus(FileDownloadStatus.error);
-        this.ex = ex;
-        return MessageSnapshotTaker.catchException(this);
-    }
-
-    // Messenger
-    IFileDownloadMessenger getMessenger() {
-        return this.messenger;
-    }
-
-    // ------------------
-    // Begin task execute
-    void begin() {
-        if (FileDownloadMonitor.isValid()) {
-            FileDownloadMonitor.getMonitor().onTaskBegin(this);
-        }
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
-        }
-    }
-
-    // Being processed
-    void ing() {
-        if (FileDownloadMonitor.isValid() && getStatus() == FileDownloadStatus.started) {
-            FileDownloadMonitor.getMonitor().onTaskStarted(this);
-        }
-    }
-
-    // End task
-    void over() {
-        if (FileDownloadMonitor.isValid()) {
-            FileDownloadMonitor.getMonitor().onTaskOver(this);
-        }
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "filedownloader:lifecycle:over %s by %d ", toString(), getStatus());
-        }
-
-        if (finishListenerList != null) {
-            @SuppressWarnings("unchecked") final ArrayList<FinishListener> listenersCopy =
-                    (ArrayList<FinishListener>) finishListenerList.clone();
-            final int numListeners = listenersCopy.size();
-            for (int i = 0; i < numListeners; ++i) {
-                listenersCopy.get(i).over(this);
-            }
-        }
-    }
-
-    boolean updateMoreLikelyCompleted(final MessageSnapshot snapshot) {
-        if (!FileDownloadStatus.isMoreLikelyCompleted(this)) {
-            return false;
-        }
-
-        update(snapshot);
-        return true;
-    }
-
-    boolean updateSameFilePathTaskRunning(final MessageSnapshot snapshot) {
-        if (!isPathAsDirectory()) {
-            return false;
-        }
-
-        if (snapshot.getStatus() != FileDownloadStatus.warn ||
-                getStatus() != FileDownloadStatus.connected) {
-            return false;
-        }
-
-        update(snapshot);
-        return true;
-    }
-
-    boolean updateKeepFlow(final MessageSnapshot snapshot) {
-        final int currentStatus = getStatus();
-        final int nextStatus = snapshot.getStatus();
-
-        if (FileDownloadStatus.paused == currentStatus && FileDownloadStatus.isIng(nextStatus)) {
-            if (FileDownloadLog.NEED_LOG) {
-                /**
-                 * Occur such situation, must be the running-status waiting for turning up in flow
-                 * thread pool(or binder thread) when there is someone invoked the {@link #pause()} .
-                 *
-                 * High concurrent cause.
-                 */
-                FileDownloadLog.d(this, "High concurrent cause, callback pending, but has already" +
-                        " be paused %d", getId());
-            }
-            return true;
-        }
-
-        if (!FileDownloadStatus.isKeepFlow(currentStatus, nextStatus)) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "can't update status change by keep flow, %d, but the" +
-                        " current status is %d, %d", status, getStatus(), getId());
-            }
-
-            return false;
-        }
-
-        update(snapshot);
-        return true;
-    }
-
-    boolean updateKeepAhead(final MessageSnapshot snapshot) {
-        if (!FileDownloadStatus.isKeepAhead(getStatus(), snapshot.getStatus())) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "can't update status change by keep ahead, %d, but the" +
-                        " current status is %d, %d", status, getStatus(), getId());
-            }
-            return false;
-        }
-
-        update(snapshot);
-        return true;
-    }
-
-    private void update(final MessageSnapshot snapshot) {
-        setStatus(snapshot.getStatus());
-        this.isLargeFile = snapshot.isLargeFile();
-
-        switch (snapshot.getStatus()) {
-            case FileDownloadStatus.pending:
-                this.soFarBytes = snapshot.getLargeSofarBytes();
-                this.totalBytes = snapshot.getLargeTotalBytes();
-
-                // notify
-                getMessenger().notifyPending(snapshot);
-                break;
-            case FileDownloadStatus.started:
-                // notify
-                getMessenger().notifyStarted(snapshot);
-                break;
-            case FileDownloadStatus.connected:
-                this.totalBytes = snapshot.getLargeTotalBytes();
-                this.resuming = snapshot.isResuming();
-                this.etag = snapshot.getEtag();
-
-                final String filename = snapshot.getFileName();
-                if (filename != null) {
-                    if (this.filename != null) {
-                        FileDownloadLog.w(this, "already has filename[%s], but assign filename[%s] again",
-                                this.filename, filename);
-                    }
-                    this.filename = filename;
-                }
-
-                markStartDownload();
-
-                // notify
-                getMessenger().notifyConnected(snapshot);
-                break;
-            case FileDownloadStatus.progress:
-                this.soFarBytes = snapshot.getLargeSofarBytes();
-                calcSpeed(snapshot.getLargeSofarBytes());
-
-                // notify
-                getMessenger().notifyProgress(snapshot);
-                break;
-//            case FileDownloadStatus.blockComplete:
-            /**
-             * Handled by {@link FileDownloadList#removeByCompleted(BaseDownloadTask)}
-             */
-//                break;
-            case FileDownloadStatus.retry:
-                this.soFarBytes = snapshot.getLargeSofarBytes();
-                this.ex = snapshot.getThrowable();
-                _setRetryingTimes(snapshot.getRetryingTimes());
-
-                resetSpeed();
-                // notify
-                getMessenger().notifyRetry(snapshot);
-                break;
-            case FileDownloadStatus.error:
-                this.ex = snapshot.getThrowable();
-                this.soFarBytes = snapshot.getLargeSofarBytes();
-
-                calcAverageSpeed(this.soFarBytes);
-                // to FileDownloadList
-                FileDownloadList.getImpl().remove(this, snapshot);
-
-                break;
-            case FileDownloadStatus.paused:
-                /**
-                 * Handled by {@link #pause()}
-                 */
-                break;
-            case FileDownloadStatus.completed:
-                this.isReusedOldFile = snapshot.isReusedDownloadedFile();
-                // only carry total data back
-                this.soFarBytes = snapshot.getLargeTotalBytes();
-                this.totalBytes = snapshot.getLargeTotalBytes();
-
-                calcAverageSpeed(this.soFarBytes);
-                // to FileDownloadList
-                FileDownloadList.getImpl().remove(this, snapshot);
-
-                break;
-            case FileDownloadStatus.warn:
-                resetSpeed();
-                final int sameIdTaskCount = FileDownloadList.getImpl().count(getId());
-
-                final int sameStoreTaskCount;
-                // generate same task id.
-                if (sameIdTaskCount <= 1 && isPathAsDirectory()) {
-                    sameStoreTaskCount = FileDownloadList.getImpl().count(FileDownloadUtils.
-                            generateId(getUrl(), getTargetFilePath()));
-                } else {
-                    sameStoreTaskCount = 0;
-                }
-
-                if (sameIdTaskCount + sameStoreTaskCount <= 1) {
-                    // 1. this progress kill by sys and relive,
-                    // for add at least one listener
-                    // or 2. pre downloading task has already completed/error/paused
-                    // request status
-                    final int currentStatus = _getStatusFromServer(downloadId);
-                    FileDownloadLog.w(this, "warn, but no listener to receive, " +
-                            "switch to pending %d %d", getId(), currentStatus);
-
-                    //noinspection StatementWithEmptyBody
-                    if (FileDownloadStatus.isIng(currentStatus)) {
-                        // ing, has callbacks
-                        // keep and wait callback
-
-                        setStatus(FileDownloadStatus.pending);
-                        this.totalBytes = snapshot.getLargeTotalBytes();
-                        this.soFarBytes = snapshot.getLargeSofarBytes();
-
-                        markStartDownload();
-
-                        ((MessageSnapshot.IWarnMessageSnapshot) snapshot).turnToPending();
-                        getMessenger().notifyPending(snapshot);
-                        break;
-                    } else {
-                        // already over and no callback
-                    }
-
-                }
-
-                // to FileDownloadList
-                FileDownloadList.getImpl().remove(this, snapshot);
-                break;
-        }
-    }
-
-    // why this? thread not safe: update,ready, _start, pause, start which influence of this
-    // in the queue.
-    // whether it has been added, whether or not it is removed.
-    private volatile boolean isMarkedAdded2List = false;
-
-    void markAdded2List() {
-        isMarkedAdded2List = true;
-    }
-
-    void clearMarkAdded2List() {
-        isMarkedAdded2List = false;
-    }
-
-    boolean isMarkedAdded2List() {
-        return this.isMarkedAdded2List;
-    }
-
-    // --------------------------------------- ABOVE FUNCTIONS FOR INTERNAL COOPERATION --------------------------------------------------
-
-    // -------------------------------------------------
-
-    /**
-     * @return for OkHttpTag/ queue tag
-     * <p/>
-     * As in same queue has same chainKey
-     */
-    protected int getChainKey() {
-        // TODO 极低概率不唯一
-        return getListener().hashCode();
-    }
-
-
-    // ---------------------------------------------
     @SuppressWarnings("UnusedParameters")
-    public interface FinishListener {
+    interface FinishListener {
         /**
          * Will be invoked when the {@code task} is over({@link FileDownloadStatus#isOver(int)}).
          * This method will be invoked in Non-UI-Thread and this thread is controlled by
@@ -1304,9 +461,86 @@ public abstract class BaseDownloadTask {
         void over(final BaseDownloadTask task);
     }
 
-    @Override
-    public String toString() {
-        return FileDownloadUtils.formatString("%d@%s", getId(), super.toString());
+    /**
+     * The running task.
+     * <p>
+     * Used in internal.
+     */
+    interface IRunningTask {
+        /**
+         * @return The origin one.
+         */
+        BaseDownloadTask getOrigin();
+
+        /**
+         * @return The message handler of this task.
+         */
+        ITaskHunter.IMessageHandler getMessageHandler();
+
+        /**
+         * @return {@code true} the id of the task is equal to the {@code id}.
+         */
+        boolean is(int id);
+
+        /**
+         * @return {@code true} the listener of the task is equal to the {@code listener}.
+         */
+        boolean is(FileDownloadListener listener);
+
+        /**
+         * @return {@code true} if the task has already finished.
+         */
+        boolean isOver();
+
+        /**
+         * @return The attached key, if this task in a queue, the attached key is the hash code of
+         * the listener.
+         */
+        int getAttachKey();
+
+        /**
+         * @param key The attached key for this task.
+         *            When the task is running, it must attach a key.
+         *            if this task is running in a queue downloading tasks serial, the attach key
+         *            is equal to the hash code of the callback of queue's handler, otherwise the
+         *            attach key is equal to the hash code of the listener.
+         */
+        void setAttachKey(int key);
+
+        /**
+         * @return {@code true} the task has already added to the downloading list.
+         */
+        boolean isMarkedAdded2List();
+
+        /**
+         * Mark the task has already added to the downloading list.
+         */
+        void markAdded2List();
+
+        /**
+         * Free the task.
+         */
+        void free();
     }
 
+    /**
+     * The callback for the life cycle of the task.
+     */
+    interface LifeCycleCallback {
+        /**
+         * The task begin working.
+         */
+        void onBegin();
+
+        /**
+         * The task is running, and during the downloading processing, when the status of the task
+         * is changed will trigger to callback this method.
+         */
+        void onIng();
+
+        /**
+         * The task is end.
+         */
+        void onOver();
+    }
 }

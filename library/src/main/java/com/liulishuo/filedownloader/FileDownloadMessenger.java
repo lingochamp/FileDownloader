@@ -36,32 +36,35 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 class FileDownloadMessenger implements IFileDownloadMessenger {
 
-    private BaseDownloadTask task;
+    private BaseDownloadTask mTask;
+    private BaseDownloadTask.LifeCycleCallback mLifeCycleCallback;
 
     private Queue<FileDownloadMessage> parcelQueue;
 
-    FileDownloadMessenger(final BaseDownloadTask task) {
-        init(task);
+    FileDownloadMessenger(final BaseDownloadTask task,
+                          final BaseDownloadTask.LifeCycleCallback callback) {
+        init(task, callback);
     }
 
-    private void init(final BaseDownloadTask task) {
-        this.task = task;
+    private void init(final BaseDownloadTask task, BaseDownloadTask.LifeCycleCallback callback) {
+        this.mTask = task;
+        this.mLifeCycleCallback = callback;
         parcelQueue = new LinkedBlockingQueue<>();
     }
 
     @Override
     public boolean notifyBegin() {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify begin %s", task);
+            FileDownloadLog.d(this, "notify begin %s", mTask);
         }
 
-        if (task == null) {
+        if (mTask == null) {
             FileDownloadLog.w(this, "can't begin the task, the holder fo the messenger is nil, %d",
                     parcelQueue.size());
             return false;
         }
 
-        task.begin();
+        mLifeCycleCallback.onBegin();
 
         return true;
     }
@@ -69,10 +72,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyPending(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify pending %s", task);
+            FileDownloadLog.d(this, "notify pending %s", mTask);
         }
 
-        task.ing();
+        mLifeCycleCallback.onIng();
 
         process(snapshot);
     }
@@ -80,10 +83,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyStarted(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify started %s", task);
+            FileDownloadLog.d(this, "notify started %s", mTask);
         }
 
-        task.ing();
+        mLifeCycleCallback.onIng();
 
         process(snapshot);
     }
@@ -91,10 +94,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyConnected(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify connected %s", task);
+            FileDownloadLog.d(this, "notify connected %s", mTask);
         }
 
-        task.ing();
+        mLifeCycleCallback.onIng();
 
         process(snapshot);
     }
@@ -103,16 +106,16 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     public void notifyProgress(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify progress %s %d %d",
-                    task, task.getLargeFileSoFarBytes(), task.getLargeFileTotalBytes());
+                    mTask, mTask.getLargeFileSoFarBytes(), mTask.getLargeFileTotalBytes());
         }
-        if (task.getCallbackProgressTimes() <= 0) {
+        if (mTask.getCallbackProgressTimes() <= 0) {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "notify progress but client not request notify %s", task);
+                FileDownloadLog.d(this, "notify progress but client not request notify %s", mTask);
             }
             return;
         }
 
-        task.ing();
+        mLifeCycleCallback.onIng();
 
         process(snapshot);
 
@@ -124,10 +127,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyBlockComplete(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify block completed %s %s", task, Thread.currentThread().getName());
+            FileDownloadLog.d(this, "notify block completed %s %s", mTask, Thread.currentThread().getName());
         }
 
-        task.ing();
+        mLifeCycleCallback.onIng();
 
         process(snapshot);
     }
@@ -135,11 +138,11 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyRetry(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify retry %s %d %d %s", task,
-                    task.getAutoRetryTimes(), task.getRetryingTimes(), task.getEx());
+            FileDownloadLog.d(this, "notify retry %s %d %d %s", mTask,
+                    mTask.getAutoRetryTimes(), mTask.getRetryingTimes(), mTask.getErrorCause());
         }
 
-        task.ing();
+        mLifeCycleCallback.onIng();
 
         process(snapshot);
     }
@@ -148,10 +151,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyWarn(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify warn %s", task);
+            FileDownloadLog.d(this, "notify warn %s", mTask);
         }
 
-        task.over();
+        mLifeCycleCallback.onOver();
 
         process(snapshot);
     }
@@ -159,10 +162,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyError(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify error %s %s", task, task.getEx());
+            FileDownloadLog.d(this, "notify error %s %s", mTask, mTask.getErrorCause());
         }
 
-        task.over();
+        mLifeCycleCallback.onOver();
 
         process(snapshot);
     }
@@ -170,10 +173,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyPaused(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify paused %s", task);
+            FileDownloadLog.d(this, "notify paused %s", mTask);
         }
 
-        task.over();
+        mLifeCycleCallback.onOver();
 
         process(snapshot);
     }
@@ -181,10 +184,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyCompleted(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify completed %s", task);
+            FileDownloadLog.d(this, "notify completed %s", mTask);
         }
 
-        task.over();
+        mLifeCycleCallback.onOver();
 
         process(snapshot);
     }
@@ -213,11 +216,11 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         final byte status = snapshot.getStatus();
         Assert.assertTrue(
                 FileDownloadUtils.formatString("request process message %d, but has already over %d",
-                        status, parcelQueue.size()), task != null);
+                        status, parcelQueue.size()), mTask != null);
 
 
         final boolean send;
-        final FileDownloadMessage message = new FileDownloadMessage(task, snapshot);
+        final FileDownloadMessage message = new FileDownloadMessage(mTask, snapshot);
 
         final boolean needWaitingForComplete = !parcelQueue.isEmpty();
 
@@ -251,16 +254,16 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
                             "can't handover the message, no master to receive this " +
                                     "message(status[%d]) size[%d]",
                             currentStatus, parcelQueue.size()),
-                    task != null);
+                    mTask != null);
 
-            final FileDownloadListener listener = task.getListener();
+            final FileDownloadListener listener = mTask.getListener();
             continueEnqueue = isContinueEnqueue(currentStatus);
 
             if (listener == null) {
                 FileDownloadLog.w(this, "The task[%d] can't receive the message(status: [%d])," +
                                 " its download listener might be removed when it is running in" +
                                 " FileDownloader",
-                        task.getId(), currentStatus);
+                        mTask.getId(), currentStatus);
             } else {
                 listener.callback(message);
             }
@@ -281,8 +284,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
                                         " parcel queue[%d]",
                                 this, parcelQueue.size()));
             }
-            task.clear();
-            task = null;
+            mTask = null;
             return false;
         }
 
@@ -305,23 +307,23 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public boolean handoverDirectly() {
-        return task.isSyncCallback();
+        return mTask.isSyncCallback();
     }
 
     @Override
     public boolean hasReceiver() {
-        return task.getListener() != null;
+        return mTask.getListener() != null;
     }
 
     @Override
-    public void reAppointment(BaseDownloadTask task) {
-        if (this.task != null) {
+    public void reAppointment(BaseDownloadTask task, BaseDownloadTask.LifeCycleCallback callback) {
+        if (this.mTask != null) {
             throw new IllegalStateException(
                     FileDownloadUtils.formatString("the messenger is working, can't " +
                             "re-appointment for %s", task));
         }
 
-        init(task);
+        init(task, callback);
     }
 
     @Override
@@ -331,6 +333,6 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public String toString() {
-        return FileDownloadUtils.formatString("%d:%s", task.getId(), super.toString());
+        return FileDownloadUtils.formatString("%d:%s", mTask.getId(), super.toString());
     }
 }

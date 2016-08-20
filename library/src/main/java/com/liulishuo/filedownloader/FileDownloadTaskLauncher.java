@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
@@ -35,44 +36,50 @@ class FileDownloadTaskLauncher {
 
     private static class HolderClass {
         private final static FileDownloadTaskLauncher INSTANCE = new FileDownloadTaskLauncher();
+
+        static {
+            // We add the message receiver to the message snapshot flow central, when there is a
+            // task request to launch.
+            MessageSnapshotFlow.getImpl().setReceiver(new MessageSnapshotGate());
+        }
     }
 
     public static FileDownloadTaskLauncher getImpl() {
         return HolderClass.INSTANCE;
     }
 
-    private final LaunchTaskPool launchTaskPool = new LaunchTaskPool();
+    private final LaunchTaskPool mLaunchTaskPool = new LaunchTaskPool();
 
-    synchronized void launch(final BaseDownloadTask task) {
-        launchTaskPool.asyncExecute(task);
+    synchronized void launch(final ITaskHunter.IStarter taskStarter) {
+        mLaunchTaskPool.asyncExecute(taskStarter);
     }
 
     synchronized void expireAll() {
-        launchTaskPool.expireAll();
+        mLaunchTaskPool.expireAll();
     }
 
     synchronized void expire(final FileDownloadListener lis) {
-        launchTaskPool.expire(lis);
+        mLaunchTaskPool.expire(lis);
     }
 
 
     private static class LaunchTaskPool {
 
-        private ThreadPoolExecutor pool;
+        private ThreadPoolExecutor mPool;
 
         /**
          * the queue to use for holding tasks before they are
          * executed.  This queue will hold only the {@code Runnable}
          * tasks submitted by the {@code execute} method.
          */
-        private BlockingQueue<Runnable> workQueue;
+        private BlockingQueue<Runnable> mWorkQueue;
 
         public LaunchTaskPool() {
             init();
         }
 
-        public void asyncExecute(final BaseDownloadTask task) {
-            pool.execute(new LaunchTaskRunnable(task));
+        public void asyncExecute(final ITaskHunter.IStarter taskStarter) {
+            mPool.execute(new LaunchTaskRunnable(taskStarter));
         }
 
         public void expire(final FileDownloadListener listener) {
@@ -83,7 +90,7 @@ class FileDownloadTaskLauncher {
             }
 
             List<Runnable> needPauseList = new ArrayList<>();
-            for (Runnable runnable : workQueue) {
+            for (Runnable runnable : mWorkQueue) {
                 final LaunchTaskRunnable launchTaskRunnable = (LaunchTaskRunnable) runnable;
                 if (launchTaskRunnable.equal(listener)) {
                     launchTaskRunnable.expire();
@@ -101,50 +108,51 @@ class FileDownloadTaskLauncher {
             }
 
             for (Runnable runnable : needPauseList) {
-                pool.remove(runnable);
+                mPool.remove(runnable);
             }
         }
 
         public void expireAll() {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "expire %d tasks", workQueue.size());
+                FileDownloadLog.d(this, "expire %d tasks", mWorkQueue.size());
             }
-            pool.shutdownNow();
+            mPool.shutdownNow();
             init();
         }
 
         private void init() {
-            workQueue = new LinkedBlockingQueue<>();
-            pool = new FileDownloadExecutors.FileDownloadExecutor(3, 3,
+            mWorkQueue = new LinkedBlockingQueue<>();
+            mPool = new FileDownloadExecutors.FileDownloadExecutor(3, 3,
                     10L, TimeUnit.MILLISECONDS,
-                    workQueue, "LauncherTaskPool");
+                    mWorkQueue, "LauncherTaskPool");
         }
 
     }
 
     private static class LaunchTaskRunnable implements Runnable {
-        private final BaseDownloadTask task;
-        private boolean expired;
+        private final ITaskHunter.IStarter mTaskStarter;
+        private boolean mExpired;
 
-        LaunchTaskRunnable(final BaseDownloadTask task) {
-            this.task = task;
-            this.expired = false;
+        LaunchTaskRunnable(final ITaskHunter.IStarter taskStarter) {
+            this.mTaskStarter = taskStarter;
+            this.mExpired = false;
         }
 
         @Override
         public void run() {
-            if (expired) {
+            if (mExpired) {
                 return;
             }
-            task._start();
+
+            mTaskStarter.start();
         }
 
         public boolean equal(final FileDownloadListener listener) {
-            return task != null && task.getListener() == listener;
+            return mTaskStarter != null && mTaskStarter.equalListener(listener);
         }
 
         public void expire() {
-            this.expired = true;
+            this.mExpired = true;
         }
     }
 

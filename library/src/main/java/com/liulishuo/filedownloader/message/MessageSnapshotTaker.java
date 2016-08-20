@@ -80,10 +80,10 @@ public class MessageSnapshotTaker {
     public static MessageSnapshot catchException(BaseDownloadTask task) {
         if (task.isLargeFile()) {
             return new LargeMessageSnapshot.ErrorMessageSnapshot(task.getId(),
-                    FileDownloadStatus.error, task.getLargeFileSoFarBytes(), task.getEx());
+                    FileDownloadStatus.error, task.getLargeFileSoFarBytes(), task.getErrorCause());
         } else {
             return new SmallMessageSnapshot.ErrorMessageSnapshot(task.getId(),
-                    FileDownloadStatus.error, task.getSmallFileSoFarBytes(), task.getEx());
+                    FileDownloadStatus.error, task.getSmallFileSoFarBytes(), task.getErrorCause());
         }
     }
 

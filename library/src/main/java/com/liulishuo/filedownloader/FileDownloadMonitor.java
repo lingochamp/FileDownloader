@@ -21,8 +21,8 @@ package com.liulishuo.filedownloader;
  * <p/>
  * The FileDownloader global monitor, monitor the begin、over for all tasks.
  *
- * @see BaseDownloadTask#begin()
- * @see BaseDownloadTask#over()
+ * @see BaseDownloadTask.LifeCycleCallback#onBegin()
+ * @see BaseDownloadTask.LifeCycleCallback#onOver() ()
  * @see BaseDownloadTask#start()
  * @see FileDownloader#start(FileDownloadListener, boolean)
  */
