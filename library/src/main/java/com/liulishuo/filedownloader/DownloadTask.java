@@ -312,6 +312,11 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         return mHunter.pause();
     }
 
+    @Override
+    public boolean cancel() {
+        return pause();
+    }
+
     // ------------------- Get -----------------------
 
     @Override

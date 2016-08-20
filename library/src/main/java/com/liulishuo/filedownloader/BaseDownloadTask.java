@@ -231,7 +231,7 @@ public interface BaseDownloadTask {
     // -------------- Another Operations ---------------------
 
     /**
-     * Why pause? not stop? because invoke this method(pause) will clear all data about this task
+     * Why pause? not stop/cancel? because invoke this method(pause) will clear all data about this task
      * in memory, and stop the total processing about this task. but when you start the paused task,
      * it would be continue downloading from the breakpoint as default.
      *
@@ -243,6 +243,14 @@ public interface BaseDownloadTask {
      */
     boolean pause();
 
+    /**
+     * The {@link #pause()} also clear all data relate with this task in the memory, so please use
+     * {@link #pause()} instead.
+     *
+     * @return {@code true} if cancel this task successfully.
+     * @deprecated replace with {@link #pause()}
+     */
+    boolean cancel();
     // ------------------- get -----------------------
 
     /**
