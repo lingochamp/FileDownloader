@@ -25,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by Jacksgong on 16/08/2016.
- * <p>
  * Executors are used in entire FileDownloader internal for managing different threads.
  */
 public class FileDownloadExecutors {

@@ -26,9 +26,9 @@ import okhttp3.Headers;
 import okhttp3.Request;
 
 /**
- * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
- * <p/>
- * Created by Jacksgong on 1/17/16.
+ * We have already handled Etag internal for guaranteeing tasks resuming from the breakpoint, in
+ * other words, if the task has downloaded and got Etag, we will add the 'If-Match' and the 'Range'
+ * K-V to its request header automatically.
  */
 public class FileDownloadHeader implements Parcelable {
 

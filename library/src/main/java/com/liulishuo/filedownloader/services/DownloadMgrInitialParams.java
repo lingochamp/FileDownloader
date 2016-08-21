@@ -21,10 +21,8 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import okhttp3.OkHttpClient;
 
 /**
- * Created by Jacksgong on 6/9/16.
- * <p/>
- * Params in this class is used in the download manager, and would be used for initialize the
- * download manager in the process which the download service settled on.
+ * Params in this class is used in the downloading manager, and would be used for initialize the
+ * download manager in the process the downloader service settled on.
  */
 public class DownloadMgrInitialParams {
 

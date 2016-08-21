@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 1/22/16.
- * <p/>
  * The helper for start and config the task queue simply and quickly.
  *
  * @see FileDownloader#start(FileDownloadListener, boolean)
@@ -45,10 +43,9 @@ public class FileDownloadQueueSet {
     private BaseDownloadTask[] tasks;
 
     /**
-     * @param target for all tasks callback status change
+     * @param target The download listener will be set to all tasks in this queue set.
      */
     public FileDownloadQueueSet(FileDownloadListener target) {
-        // TODO, support target is null
         if (target == null) {
             throw new IllegalArgumentException("create FileDownloadQueueSet must with valid target!");
         }
@@ -56,7 +53,7 @@ public class FileDownloadQueueSet {
     }
 
     /**
-     * Form a queue with same {@link #target} and will {@link #start()} in parallel
+     * Form a queue with same {@link #target} and will {@link #start()} in parallel.
      */
     public FileDownloadQueueSet downloadTogether(BaseDownloadTask... tasks) {
         this.isSerial = false;
@@ -67,7 +64,7 @@ public class FileDownloadQueueSet {
     }
 
     /**
-     * Form a queue with same {@link #target} and will {@link #start()} in parallel
+     * Form a queue with same {@link #target} and will {@link #start()} in parallel.
      */
     public FileDownloadQueueSet downloadTogether(List<BaseDownloadTask> tasks) {
         this.isSerial = false;
@@ -79,7 +76,7 @@ public class FileDownloadQueueSet {
     }
 
     /**
-     * Form a queue with same {@link #target} and will {@link #start()} linearly
+     * Form a queue with same {@link #target} and will {@link #start()} linearly.
      */
     public FileDownloadQueueSet downloadSequentially(BaseDownloadTask... tasks) {
         this.isSerial = true;
@@ -89,7 +86,7 @@ public class FileDownloadQueueSet {
     }
 
     /**
-     * Form a queue with same {@link #target} and will {@link #start()} linearly
+     * Form a queue with same {@link #target} and will {@link #start()} linearly.
      */
     public FileDownloadQueueSet downloadSequentially(List<BaseDownloadTask> tasks) {
         this.isSerial = true;
@@ -100,7 +97,7 @@ public class FileDownloadQueueSet {
     }
 
     /**
-     * Execute tasks
+     * Start tasks in a queue.
      *
      * @see #downloadSequentially(BaseDownloadTask...)
      * @see #downloadSequentially(List)

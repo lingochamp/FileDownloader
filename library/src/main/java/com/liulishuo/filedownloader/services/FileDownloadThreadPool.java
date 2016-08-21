@@ -27,9 +27,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * Created by Jacksgong on 9/25/15.
- * <p/>
- * The thread pool for driving the download runnable.
+ * The thread pool for driving the downloading runnable, which real access the network.
  */
 class FileDownloadThreadPool {
 

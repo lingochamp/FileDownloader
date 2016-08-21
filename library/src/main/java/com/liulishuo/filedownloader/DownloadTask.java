@@ -29,8 +29,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Created by Jacksgong on 20/08/2016.
- * <p>
  * The download task.
  */
 

@@ -21,7 +21,8 @@ import android.util.SparseArray;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
- * Created by Jacksgong on 9/28/15.
+ * The helper for notifications with downloading tasks. You also can think this is the notifications
+ * mananger.
  *
  * @see BaseNotificationItem
  * @see FileDownloadNotificationListener
@@ -32,9 +33,9 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
     private final SparseArray<T> notificationArray = new SparseArray<>();
 
     /**
-     * get {@link BaseNotificationItem} by the download id
+     * Get {@link BaseNotificationItem} by the download id.
      *
-     * @param id download id
+     * @param id The download id.
      */
     public T get(final int id) {
         return notificationArray.get(id);
@@ -45,10 +46,10 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
     }
 
     /**
-     * remove the {@link BaseNotificationItem} by the download id
+     * Remove the {@link BaseNotificationItem} by the download id.
      *
-     * @param id download id
-     * @return removed {@link BaseNotificationItem}
+     * @param id The download id.
+     * @return The removed {@link BaseNotificationItem}.
      */
     public T remove(final int id) {
         final T n = get(id);
@@ -61,7 +62,7 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
     }
 
     /**
-     * input a {@link BaseNotificationItem}
+     * Input a {@link BaseNotificationItem}.
      */
     public void add(T notification) {
         notificationArray.remove(notification.getId());
@@ -69,11 +70,11 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
     }
 
     /**
-     * show the notification with the exact progress
+     * Show the notification with the exact progress.
      *
-     * @param id    download id
-     * @param sofar Number of bytes download so far
-     * @param total Total bytes
+     * @param id    The download id.
+     * @param sofar The downloaded bytes so far.
+     * @param total The total bytes of this task.
      */
     public void showProgress(final int id, final int sofar, final int total) {
         final T notification = get(id);
@@ -87,11 +88,9 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
     }
 
     /**
-     * show the notification with indeterminate progress
-     * <p/>
-     * recommend invoke by pending/retry
+     * Show the notification with indeterminate progress.
      *
-     * @param id     download id
+     * @param id     The download id.
      * @param status {@link FileDownloadStatus}
      */
     public void showIndeterminate(final int id, int status) {
@@ -106,11 +105,9 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
     }
 
     /**
-     * cancel the notification by notification id
-     * <p/>
-     * recommend invoke by warn/error/completed/(paused)
+     * Cancel the notification by notification id.
      *
-     * @param id download id
+     * @param id The download id.
      */
     public void cancel(final int id) {
         final BaseNotificationItem notification = remove(id);
@@ -123,7 +120,7 @@ public class FileDownloadNotificationHelper<T extends BaseNotificationItem> {
     }
 
     /**
-     * clear and cancel all notifications which inside this helper {@link #notificationArray}
+     * Clear and cancel all notifications which inside this helper {@link #notificationArray}.
      */
     public void clear() {
         @SuppressWarnings("unchecked") SparseArray<BaseNotificationItem> cloneArray =

@@ -19,8 +19,6 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 
 /**
- * Created by Jacksgong on 7/5/16.
- * <p>
  * The FileDownload thread monitor interface.
  */
 

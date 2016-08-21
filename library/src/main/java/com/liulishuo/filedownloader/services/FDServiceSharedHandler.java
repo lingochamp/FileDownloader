@@ -27,8 +27,6 @@ import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import java.lang.ref.WeakReference;
 
 /**
- * Created by Jacksgong on 4/17/16.
- * <p/>
  * For handling the case of the FileDownloadService runs in shared the main process.
  */
 public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub

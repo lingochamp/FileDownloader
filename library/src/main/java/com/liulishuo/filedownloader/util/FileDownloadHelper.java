@@ -31,9 +31,8 @@ import java.io.File;
 import okhttp3.OkHttpClient;
 
 /**
- * Created by Jacksgong on 12/17/15.
- * <p/>
- * The simple helper for cache the {@code APP_CONTEXT} and {@code OK_HTTP_CLIENT}.
+ * The helper for cache the {@code APP_CONTEXT} and {@code OK_HTTP_CLIENT} for the main process and
+ * the filedownloader process.
  *
  * @see com.liulishuo.filedownloader.FileDownloader#init(Context, OkHttpClientCustomMaker)
  */

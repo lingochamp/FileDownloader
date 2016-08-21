@@ -23,8 +23,6 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 4/21/16.
- * <p/>
  * The Minimal unit for a task.
  * <p/>
  * Used for telling the FileDownloader Engine that a task was downloaded by the other ways.

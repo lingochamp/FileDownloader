@@ -21,8 +21,6 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Created by Jacksgong on 4/19/16.
- * <p/>
  * You can customize the FileDownloader Engine by add filedownloader.properties file in your assets
  * folder. Example: /demo/src/main/assets/filedownloader.properties
  * <p/>

@@ -28,8 +28,6 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by Jacksgong on 12/21/15.
- * <p/>
  * The messenger for sending messages to  {@link FileDownloadListener}.
  *
  * @see IFileDownloadMessenger

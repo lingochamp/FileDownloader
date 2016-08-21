@@ -28,9 +28,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Jacksgong on 4/26/16.
- * <p/>
- * The global launcher for launching a task.
+ * The global launcher for launching tasks.
  */
 class FileDownloadTaskLauncher {
 

@@ -24,14 +24,13 @@ import com.liulishuo.filedownloader.notification.FileDownloadNotificationListene
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
- * Created by Jacksgong on 9/7/15.
- * <p/>
- * Normal flow: {@link #pending} -> {@link #started} -> {@link #connected} -> {@link #progress}  ->
+ * Normally flow: {@link #pending} -> {@link #started} -> {@link #connected} -> {@link #progress}  ->
  * {@link #blockComplete} -> {@link #completed}
  * <p/>
  * Maybe over with: {@link #paused}/{@link #completed}/{@link #error}/{@link #warn}
  * <p/>
- * If the task has already downloaded and exist: {@link #blockComplete} ->{@link #completed}
+ * If the task has already downloaded and exist, you will only receive follow callbacks:
+ * {@link #blockComplete} ->{@link #completed}
  *
  * @see FileDownloadLargeFileListener
  * @see FileDownloadNotificationListener

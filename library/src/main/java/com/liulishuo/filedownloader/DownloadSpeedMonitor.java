@@ -19,8 +19,6 @@ package com.liulishuo.filedownloader;
 import android.os.SystemClock;
 
 /**
- * Created by Jacksgong on 20/08/2016.
- * <p>
  * The downloading speed monitor.
  */
 

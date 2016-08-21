@@ -20,10 +20,8 @@ import android.app.Notification;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
- * Created by Jacksgong on 6/9/16.
- * <p/>
- * Wrap behaviors that request do something in the download service when the download service isn't
- * connected yet.
+ * The helper for handling the case of requesting do something in the downloader service but the
+ * downloader service isn't connected yet.
  */
 public class DownloadServiceNotConnectedHelper {
 

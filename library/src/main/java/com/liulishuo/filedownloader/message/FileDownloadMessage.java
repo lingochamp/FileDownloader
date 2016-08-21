@@ -19,9 +19,7 @@ package com.liulishuo.filedownloader.message;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 
 /**
- * Created by Jacksgong on 4/27/16.
- * <p/>
- * A Message for {@link com.liulishuo.filedownloader.FileDownloadListener}.
+ * The Message for {@link com.liulishuo.filedownloader.FileDownloadListener}.
  */
 public class FileDownloadMessage {
     private final BaseDownloadTask task;

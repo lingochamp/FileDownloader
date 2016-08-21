@@ -32,8 +32,6 @@ import com.liulishuo.filedownloader.util.DownloadServiceNotConnectedHelper;
 
 
 /**
- * Created by Jacksgong on 9/23/15.
- * <p/>
  * The UI-Guard for FileDownloader-Process.
  * <p/>
  * The only Class can access the FileDownload-Process, and the only Class can receive the event from

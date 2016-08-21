@@ -17,9 +17,7 @@
 package com.liulishuo.filedownloader;
 
 /**
- * Created by Jacksgong on 12/21/15.
- * <p/>
- * Simply {@link FileDownloadListener}.
+ * Simplify the {@link FileDownloadListener}.
  */
 public class FileDownloadSampleListener extends FileDownloadListener {
 

@@ -18,12 +18,10 @@ package com.liulishuo.filedownloader.exception;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 
 /**
- * Created by Jacksgong on 4/4/16.
- * <p/>
- * Throw this exception, when can't know the size of the download file, and its Transfer-Encoding
+ * Throwing this exception, when we can't know the size of the download file, and its Transfer-Encoding
  * is not Chunked either.
  * <p/>
- * And With this exception, will ignore all retry-chances.
+ * When you occur this type exception, the chance of retry will be ignored.
  *
  * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#loop(FileDownloadModel)
  */

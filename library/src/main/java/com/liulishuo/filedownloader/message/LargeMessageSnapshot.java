@@ -21,8 +21,6 @@ import android.os.Parcel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
- * Created by Jacksgong on 5/1/16.
- * <p/>
  * A message snapshot for large file(the length is more than or equal to 2G).
  */
 public class LargeMessageSnapshot extends MessageSnapshot {

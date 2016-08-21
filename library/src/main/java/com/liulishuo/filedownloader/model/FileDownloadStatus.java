@@ -19,7 +19,7 @@ package com.liulishuo.filedownloader.model;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 
 /**
- * Created by Jacksgong on 11/26/15.
+ * The downloading status.
  *
  * @see com.liulishuo.filedownloader.IFileDownloadMessenger
  * @see <a href="https://raw.githubusercontent.com/lingochamp/FileDownloader/master/art/filedownloadlistener_callback_flow.png">Callback-Flow</a>

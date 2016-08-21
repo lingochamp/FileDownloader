@@ -17,9 +17,8 @@
 package com.liulishuo.filedownloader.message;
 
 /**
- * Created by Jacksgong on 4/30/16.
- * <p/>
  * The internal message snapshot station.
+ * <p>
  * Making message snapshots keep flowing in order.
  */
 public class MessageSnapshotFlow {

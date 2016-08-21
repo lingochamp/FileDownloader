@@ -22,9 +22,7 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 9/24/15.
- *
- * The DB helper for handling all {@link FileDownloadModel} updating to DB.
+ * The helper for handling all operations with the filedownloader database.
  */
 interface IFileDownloadDBHelper {
 

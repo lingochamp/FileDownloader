@@ -24,8 +24,6 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 20/08/2016.
- * <p>
  * The message snapshot gate beyond the downloader service.
  */
 

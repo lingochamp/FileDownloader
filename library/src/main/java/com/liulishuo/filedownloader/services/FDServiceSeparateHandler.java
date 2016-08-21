@@ -31,8 +31,6 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import java.lang.ref.WeakReference;
 
 /**
- * Created by Jacksgong on 4/17/16.
- * <p/>
  * For handling the case of the FileDownloadService runs in separate `:filedownloader` process.
  */
 public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub

@@ -17,9 +17,7 @@
 package com.liulishuo.filedownloader.message;
 
 /**
- * Created by Jacksgong on 8/6/16.
- * <p>
- * If the snapshot implement this interface will be flowed directly, it means that it would be
+ * If the snapshot implement this interface, it will be flowed directly, it means that it would be
  * callback to the message station synchronize, not through the keep-flow-thread-pool.
  */
 public interface IFlowDirectly {

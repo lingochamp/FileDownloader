@@ -23,8 +23,6 @@ import com.liulishuo.filedownloader.services.FileDownloadRunnable;
 import java.io.FileDescriptor;
 
 /**
- * Created by Jacksgong on 12/21/15.
- *
  * @see com.liulishuo.filedownloader.model.FileDownloadStatus
  */
 interface IFileDownloadMessenger {
@@ -103,7 +101,7 @@ interface IFileDownloadMessenger {
     void notifyWarn(MessageSnapshot snapshot);
 
     /**
-     * The task over.
+     * The task is over.
      * <p/>
      * Occur a exception, but don't has any chance to retry.
      *
@@ -115,7 +113,7 @@ interface IFileDownloadMessenger {
     void notifyError(MessageSnapshot snapshot);
 
     /**
-     * The task over.
+     * The task is over.
      * <p/>
      * Pause manually by {@link BaseDownloadTask#pause()}.
      *
@@ -124,7 +122,7 @@ interface IFileDownloadMessenger {
     void notifyPaused(MessageSnapshot snapshot);
 
     /**
-     * The task over.
+     * The task is over.
      * <p/>
      * Achieve complete ceremony.
      *
@@ -133,19 +131,19 @@ interface IFileDownloadMessenger {
     void notifyCompleted(MessageSnapshot snapshot);
 
     /**
-     * handover a message to {@link FileDownloadListener}.
+     * Handover a message to {@link FileDownloadListener}.
      */
     void handoverMessage();
 
     /**
-     * @return Whether handover a message to {@link FileDownloadListener} directly, do not need post
-     * to UI thread.
+     * @return {@code true} if handover a message to {@link FileDownloadListener} directly(do not
+     * need to post the callback to the main thread).
      * @see BaseDownloadTask#isSyncCallback()
      */
     boolean handoverDirectly();
 
     /**
-     * @return Whether has receiver(bound task has listener) to receiver messages.
+     * @return {@code true} if has receiver(or listener) to receiver messages.
      * @see BaseDownloadTask#getListener()
      */
     boolean hasReceiver();
@@ -160,7 +158,7 @@ interface IFileDownloadMessenger {
      * The 'block completed'(status) message will be handover in the non-UI thread and block the
      * 'completed'(status) message.
      *
-     * @return Whether the status of the current message is
+     * @return {@code true} if the status of the current message is
      * {@link com.liulishuo.filedownloader.model.FileDownloadStatus#blockComplete}.
      */
     boolean isBlockingCompleted();

@@ -21,8 +21,6 @@ import android.os.Parcel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
- * Created by Jacksgong on 5/1/16.
- * <p/>
  * A message snapshot for a small file(the length is less than 2G).
  */
 public class SmallMessageSnapshot extends MessageSnapshot {

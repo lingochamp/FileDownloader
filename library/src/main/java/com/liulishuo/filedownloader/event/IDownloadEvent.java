@@ -19,8 +19,6 @@ package com.liulishuo.filedownloader.event;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
- * Created by Jacksgong on 15/6/23.
- * <p/>
  * An atom event.
  */
 @SuppressWarnings({"WeakerAccess", "CanBeFinal"})

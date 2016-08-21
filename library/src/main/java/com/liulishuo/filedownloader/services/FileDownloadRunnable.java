@@ -53,9 +53,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Created by Jacksgong on 9/24/15.
- * <p/>
- * An atom download runnable for one task.
+ * The real downloading runnable, what works in the {@link FileDownloadThreadPool}.
  *
  * @see #loop(FileDownloadModel)
  * @see #fetch(Response, boolean, long, long)

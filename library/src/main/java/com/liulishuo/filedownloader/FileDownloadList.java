@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 12/21/15.
- * <p/>
  * Storing all tasks in processing in the Main-Process.
  */
 @SuppressWarnings("UnusedReturnValue")

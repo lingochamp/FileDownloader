@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 20/08/2016.
- * <p>
  * The handler for handing the case of the connect with the downloader service is lost when tasks is
  * running.
  */

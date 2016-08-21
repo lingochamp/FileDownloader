@@ -19,10 +19,8 @@ package com.liulishuo.filedownloader.util;
 import android.util.Log;
 
 /**
- * Created by Jacksgong on 12/17/15.
- * <p/>
- * For handling the log print.
- * <p/>
+ * The log printer help to control all logs in FileDownloader.
+ * <p>
  * If you want to print all priority FileDownloader logs, please set true to {@link #NEED_LOG},
  * otherwise, we just print the log which priority higher than or equal to {@link Log#WARN}.
  */

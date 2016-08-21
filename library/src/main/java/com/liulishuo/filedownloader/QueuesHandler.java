@@ -28,8 +28,6 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 20/08/2016.
- * <p>
  * The default queue handler.
  */
 

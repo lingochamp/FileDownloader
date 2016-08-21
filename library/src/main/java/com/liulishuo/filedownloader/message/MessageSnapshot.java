@@ -23,9 +23,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 /**
- * Created by Jacksgong on 5/1/16.
- * <p/>
- * A snapshot for wrapping a changed downloading statuses.
+ * The message snapshot.
  */
 public class MessageSnapshot implements IMessageSnapshot, Parcelable {
     private final int id;

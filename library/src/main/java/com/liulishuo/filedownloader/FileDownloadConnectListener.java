@@ -21,9 +21,7 @@ import com.liulishuo.filedownloader.event.IDownloadEvent;
 import com.liulishuo.filedownloader.event.IDownloadListener;
 
 /**
- * Created by Jacksgong on 1/10/16.
- * <p/>
- * For listening whether the service establishes connection or disconnected.
+ * The listener for listening whether the service establishes connection or disconnected.
  *
  * @see com.liulishuo.filedownloader.services.BaseFileServiceUIGuard#releaseConnect(boolean)
  */

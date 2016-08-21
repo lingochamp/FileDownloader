@@ -21,8 +21,6 @@ import android.content.Context;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 
 /**
- * Created by Jacksgong on 4/17/16.
- * <p/>
  * The interface to access the FileDownloadService.
  */
 public interface IFileDownloadServiceProxy {

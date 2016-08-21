@@ -28,8 +28,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Jacksgong on 15/6/23.
- * <p/>
  * Implementing actions for event pool.
  */
 public class DownloadEventPoolImpl implements IDownloadEventPool {

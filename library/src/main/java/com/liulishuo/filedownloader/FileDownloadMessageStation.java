@@ -29,9 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Jacksgong on 4/26/16.
- * <p/>
- * The message station to transfer the task event to {@link FileDownloadListener}
+ * The message station to transfer task events to {@link FileDownloadListener}.
  */
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadMessageStation {

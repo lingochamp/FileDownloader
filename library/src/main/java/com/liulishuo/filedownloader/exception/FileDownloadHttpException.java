@@ -24,8 +24,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Created by Jacksgong on 4/4/16.
- * <p/>
  * Throw this exception, when the HTTP status code is not {@link java.net.HttpURLConnection#HTTP_OK},
  * and not {@link java.net.HttpURLConnection#HTTP_PARTIAL} either.
  */

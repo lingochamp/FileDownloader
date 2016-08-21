@@ -21,9 +21,9 @@ import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
- * Created by Jacksgong on 1/4/16.
- *
- * For file size greater than 1.99G
+ * The listener for listening the downloading status changing.
+ * <p>
+ * This listener will be used when the file size of the task is greater than 1.99G.
  */
 @SuppressWarnings({"WeakerAccess", "UnusedParameters"})
 public abstract class FileDownloadLargeFileListener extends FileDownloadListener {

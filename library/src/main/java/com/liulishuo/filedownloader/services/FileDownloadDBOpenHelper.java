@@ -24,12 +24,13 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 
 
 /**
- * Created by Jacksgong on 9/25/15.
+ * The filedownloader database, what is used for storing the {@link FileDownloadModel}.
  * <p/>
- * The DB For storing the {@link FileDownloadModel}.
- * <p/>
- * Use to judge whether can resume from breakpoint; or whether the downloaded file matches the
- * target task.
+ * The filedownloader database is used for judging whether the task can resume from the breakpoint.
+ * <p>
+ * The data of task can store in this database must be in downloading processing or doesn't finished,
+ * if the task has already finished, its data is no use of resuming from the breakpoint, so we will
+ * remove it from the database when the downloader service is launching automatically.
  *
  * @see FileDownloadDBHelper
  * @see FileDownloadMgr#isBreakpointAvailable(int, FileDownloadModel)

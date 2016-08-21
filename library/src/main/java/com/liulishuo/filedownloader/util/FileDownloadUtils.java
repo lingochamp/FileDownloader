@@ -40,9 +40,7 @@ import okhttp3.Headers;
 
 
 /**
- * Created by Jacksgong on 9/25/15.
- * <p/>
- * Wrapping some static utils for FileDownloader.
+ * The utils for FileDownloader.
  */
 @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
 public class FileDownloadUtils {
@@ -51,7 +49,9 @@ public class FileDownloadUtils {
     private static long MIN_PROGRESS_TIME = 2000;
 
     /**
-     * @param minProgressStep The min buffered so far bytes.
+     * @param minProgressStep The minimum bytes interval in per step to sync to the file and the
+     *                        database.
+     *                        <p>
      *                        Used for adjudging whether is time to sync the downloaded so far bytes
      *                        to database and make sure sync the downloaded buffer to local file.
      *                        <p/>
@@ -76,7 +76,9 @@ public class FileDownloadUtils {
     }
 
     /**
-     * @param minProgressTime The min buffered millisecond.
+     * @param minProgressTime The minimum millisecond interval in per time to sync to the file and
+     *                        the database.
+     *                        <p>
      *                        Used for adjudging whether is time to sync the downloaded so far bytes
      *                        to database and make sure sync the downloaded buffer to local file.
      *                        <p/>
@@ -109,7 +111,7 @@ public class FileDownloadUtils {
     }
 
     /**
-     * Checks whether the filename looks legitimate
+     * Checks whether the filename looks legitimate.
      */
     @SuppressWarnings({"SameReturnValue", "UnusedParameters"})
     public static boolean isFilenameValid(String filename) {
@@ -161,10 +163,10 @@ public class FileDownloadUtils {
     }
 
     /**
-     * The path is used as Root Path in the case of task without setting path in the entire Download Engine
-     * {@link com.liulishuo.filedownloader.BaseDownloadTask#setPath(String)}
+     * The path is used as the default directory in the case of the task without set path.
      *
      * @param path default root path for save download file.
+     * @see com.liulishuo.filedownloader.BaseDownloadTask#setPath(String, boolean)
      */
     public static void setDefaultSaveRootPath(final String path) {
         DEFAULT_SAVE_ROOT_PATH = path;

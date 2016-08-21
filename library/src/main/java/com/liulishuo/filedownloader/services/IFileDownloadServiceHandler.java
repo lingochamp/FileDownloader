@@ -21,9 +21,7 @@ import android.os.IBinder;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownloadServiceSharedConnection;
 
 /**
- * Created by Jacksgong on 4/17/16.
- * <p/>
- * The handler for {@link FileDownloadService}, which handle real actions.
+ * The handler for {@link FileDownloadService}.
  *
  * @see FileDownloadMgr
  */

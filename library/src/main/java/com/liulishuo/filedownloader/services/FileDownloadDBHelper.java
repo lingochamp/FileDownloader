@@ -33,10 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 9/24/15.
- * <p/>
- * For storing and updating the {@link FileDownloadModel} to DB.
- * And will maintain the DB automatically, when FileDownloader-Process is launching.
+ * For storing and updating the {@link FileDownloadModel} to the filedownloader database, and also
+ * maintain the database when FileDownloader-Process is launching automatically.
  */
 class FileDownloadDBHelper implements IFileDownloadDBHelper {
 

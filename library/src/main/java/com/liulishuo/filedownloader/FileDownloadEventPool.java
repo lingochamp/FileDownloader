@@ -19,9 +19,7 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
 
 /**
- * Event Pool for process which not :filedownloader process
- * <p/>
- * Created by Jacksgong on 12/26/15.
+ * The event pool.
  */
 public class FileDownloadEventPool extends DownloadEventPoolImpl {
 

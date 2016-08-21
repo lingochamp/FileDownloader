@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Jacksgong on 4/17/16.
- * <p/>
  * This transmit layer is used for the FileDownloader-Process is shared the main process.
  * <p/>
  * If you want use this transmit and want the FileDownloadService share the main process, not in the

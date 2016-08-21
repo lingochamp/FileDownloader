@@ -26,13 +26,11 @@ import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import java.lang.ref.WeakReference;
 
 /**
- * Created by Jacksgong on 9/23/15.
- * <p/>
  * The service is running for FileDownloader.
  * <p/>
- * You can add a command `process.non-separate=true` to `/filedownloader.properties` to make the
- * FileDownloadService runs in the main process, and by default the FileDownloadService runs in the
- * separate `:filedownloader` process.
+ * You can add a command `process.non-separate=true` to the `filedownloader.properties` asset file
+ * to make the FileDownloadService runs in the main process, and by default the FileDownloadService
+ * runs in the separate process(`:filedownloader`).
  */
 @SuppressLint("Registered")
 public class FileDownloadService extends Service {

@@ -23,10 +23,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Jacksgong on 4/8/16.
- * <p/>
- * For guaranteeing only one-thread-pool for one-task, in other words, it's statuses only can be
- * progressed in  FIFO as far as a task concern.
+ * For guaranteeing only one-thread-pool for one-task, the task will be identified by its ID, make
+ * sure the same task will be invoked in FIFO.
  */
 public class MessageSnapshotThreadPool {
 
@@ -35,7 +33,7 @@ public class MessageSnapshotThreadPool {
     private final MessageSnapshotFlow.MessageReceiver receiver;
 
     MessageSnapshotThreadPool(@SuppressWarnings("SameParameterValue") final int poolCount,
-                                     MessageSnapshotFlow.MessageReceiver receiver) {
+                              MessageSnapshotFlow.MessageReceiver receiver) {
         this.receiver = receiver;
         executorList = new ArrayList<>();
         for (int i = 0; i < poolCount; i++) {

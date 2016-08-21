@@ -31,11 +31,9 @@ import java.util.List;
 import okhttp3.OkHttpClient;
 
 /**
- * Created by Jacksgong on 9/24/15.
+ * The downloading manager in FileDownloadService, which is used to control all download-inflow.
  * <p/>
- * The Download Manager in FileDownloadService, which is used to control all download-inflow.
- * <p/>
- * Handling real {@link #start(String, String, boolean, int, int, int, boolean, FileDownloadHeader)};
+ * Handling real {@link #start(String, String, boolean, int, int, int, boolean, FileDownloadHeader)}.
  *
  * @see FileDownloadThreadPool
  * @see FileDownloadRunnable

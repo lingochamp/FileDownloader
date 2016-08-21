@@ -17,8 +17,6 @@
 package com.liulishuo.filedownloader;
 
 /**
- * Created by Jacksgong on 20/08/2016.
- * <p>
  * The interface for the downloading speed.
  */
 

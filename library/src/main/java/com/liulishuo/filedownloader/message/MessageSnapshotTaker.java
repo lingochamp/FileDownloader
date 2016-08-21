@@ -26,9 +26,7 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import java.io.File;
 
 /**
- * Created by Jacksgong on 5/1/16.
- * <p/>
- * The factory for take message snapshots.
+ * The factory for taking message snapshots.
  */
 public class MessageSnapshotTaker {
 

@@ -23,14 +23,14 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import java.io.IOException;
 
 /**
- * Created by Jacksgong on 4/6/16.
+ * Throw this exception, when the downloading file is too large to store, in other words,
+ * the free space is less than the length of the downloading file.
  * <p/>
- * Throw this exception, when the file will be downloaded is too large to store, in other words,
- * the free space is less than the download file size.
- * <p/>
- * The non-Chunked resource will be handled before fetch datum:
+ * When the resource is non-Chunked(normally), we will check the space and handle this problem before
+ * fetch data from the input stream:
  * {@link com.liulishuo.filedownloader.services.FileDownloadRunnable#getRandomAccessFile(boolean, long)}
- * The Chunked resource will be handled when the free space is not enough to store the following chunk:
+ * When the resource is chunked, we will handle this problem when the free space is not enough to
+ * store the following chunk:
  * {@link com.liulishuo.filedownloader.services.FileDownloadRunnable#exFiltrate(Throwable)}
  */
 @SuppressWarnings("SameParameterValue")

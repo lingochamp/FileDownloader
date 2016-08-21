@@ -23,8 +23,6 @@ import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 
 /**
- * Created by Jacksgong on 4/17/16.
- * <p/>
  * The proxy used for executing the action from FileDownloader to FileDownloadService.
  *
  * @see FileDownloadServiceSharedTransmit In case of FileDownloadService runs in the main process.

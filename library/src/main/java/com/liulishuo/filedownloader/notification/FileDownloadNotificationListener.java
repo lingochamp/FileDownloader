@@ -23,7 +23,7 @@ import com.liulishuo.filedownloader.FileDownloadListener;
 import junit.framework.Assert;
 
 /**
- * Created by Jacksgong on 2/2/16.
+ * The listener of the notification with the task.
  *
  * @see FileDownloadNotificationHelper
  * @see BaseNotificationItem
@@ -66,9 +66,9 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
     }
 
     /**
-     * remove notification item from NotificationHelper
+     * The notification item with the {@code task} is told to destroy.
      *
-     * @param task the current task
+     * @param task The task used to identify the will be destroyed notification item.
      */
     public void destroyNotification(BaseDownloadTask task) {
         if (disableNotification(task)) {
@@ -103,34 +103,36 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
     }
 
     /**
-     * @param task the current task
-     * @return create a Notification Item on the basis of the current task
+     * @param task The task used to bind with the will be created notification item.
+     * @return The notification item is related with the {@code task}.
      */
     protected abstract BaseNotificationItem create(BaseDownloadTask task);
 
     /**
-     * @param task the current task
-     * @param n    the current notification item
-     * @return whether intercept canceling the Notification Item which no more be updated
-     * Notification Item, if true, the notification will not be canceled, but will not exist
-     * in NotificationHelper
+     * @param task             The task.
+     * @param notificationItem The notification item.
+     * @return {@code true} if you want to survive the notification item, and we will don't  cancel
+     * the relate notification from the notification panel when the relate task is finished,
+     * {@code false} otherwise.
+     * <p>
+     * <strong>Default:</strong> {@code false}
      * @see #destroyNotification(BaseDownloadTask)
      */
     protected boolean interceptCancel(BaseDownloadTask task,
-                                      BaseNotificationItem n) {
+                                      BaseNotificationItem notificationItem) {
         return false;
     }
 
     /**
-     * @param task the current task
-     * @return whether disable handle notification internal mechanism or not, if true, the method of
-     * the notification lifecycle will do nothing internal
+     * @param task The task.
+     * @return {@code true} if you want to disable the internal notification lifecycle, and in this
+     * case all method about the notification will be invalid, {@code false} otherwise.
+     * <p>
+     * <strong>Default:</strong> {@code false}
      */
     protected boolean disableNotification(final BaseDownloadTask task) {
         return false;
     }
-
-    // ---------------------------------------
 
     @Override
     protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
