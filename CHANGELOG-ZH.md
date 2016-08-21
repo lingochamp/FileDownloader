@@ -2,19 +2,34 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.0.0
+
+_2016-08-21_
+
+#### 新接口
+
+- 添加 `BaseDownloadTask#cancel`: 这个方法是为了说明为什么`pause`的操作也可以达到`cancel`的作用。
+
+#### 性能与提高
+
+- 提高性能: 持有`isDownloaderProcess`的结果，防止多次判断。
+- 提高实用性: 重构代码的可见层。Closes #283
+- 提高实用性: 完善Java Doc。Closes #284
+- 提高实用性: 提供Java Doc 站点: http://fd.dreamtobe.cn 。Closes #284
+
 ## Version 0.3.5
 
 _2016-08-16_
+
+#### 性能与提高
+
+- 提高实用性: 为FileDownloader中的所有线程添加线程名。
+- 提高性能: 调整`block-completed-thread-pool`中的核心线程数: 5->2，减少资源的浪费。
 
 #### 修复
 
 - 修复(SQLiteFullException): 覆盖了在整个下载过程中可能遇到`SQLiteFullException`的错误，就捕获相关错误并回调回 `FileDownloadListener#error` 。 Closes #243
 - 修复(提供目录的情况): 修复若是提供的是文件夹，并且对应的任务已经下载完成，再次启动的时候，在直接回调`FileDownloadListener#completed`时，获取的`targetFilePath`可能为null的问题。 Closes #237
-
-#### 提供
-
-- 提高实用性: 为FileDownloader中的所有线程添加线程名。
-- 提高性能: 调整`block-completed-thread-pool`中的核心线程数: 5->2，减少资源的浪费。
 
 ## Version 0.3.4
 

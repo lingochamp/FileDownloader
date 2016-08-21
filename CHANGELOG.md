@@ -2,19 +2,34 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.0.0
+
+_2016-08-21_
+
+#### New Interfaces
+
+- Add `BaseDownloadTask#cancel`: This method is used for explaining why the pause operation is the same as the cancel operation.
+
+#### Enhancement
+
+- Improve Performance: Hold the result of `isDownloaderProcess`.
+- Improve Practicability: Refactor the visible layer of the code. Closes #283
+- Improve Practicability: Perfect the java doc. Closes #284
+- Improve Practicability: Add the java doc website: http://fd.dreamtobe.cn. Closes #285
+
 ## Version 0.3.5
 
 _2016-08-16_
-
-#### Fix
-
-- Fix(SQLiteFullException): Cover the case of SQLiteFullException during the entire downloading process, and ensure the exception can be carried back to `FileDownloadListener#error` . Closes #243
-- Fix(directory-case): Fix in the case of the provided path is a directory, and the task already completed, if you start the task again you will receive `FileDownloadListener#completed` directly, but the `targetFilePath` may be null in the `FileDownloadListener#completed` callback method. Closes #237
 
 #### Enhancement
 
 - Improve Practicability: Add thread name to all threads used in FileDownloader.
 - Improve Performance: Change the count of core thread for block-completed-thread-pool: 5->2, reduce redundant resource waste.
+
+#### Fix
+
+- Fix(SQLiteFullException): Cover the case of SQLiteFullException during the entire downloading process, and ensure the exception can be carried back to `FileDownloadListener#error` . Closes #243
+- Fix(directory-case): Fix in the case of the provided path is a directory, and the task already completed, if you start the task again you will receive `FileDownloadListener#completed` directly, but the `targetFilePath` may be null in the `FileDownloadListener#completed` callback method. Closes #237
 
 ## Version 0.3.4
 
