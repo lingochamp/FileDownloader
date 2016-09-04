@@ -22,9 +22,9 @@ Android multi-task file download engine.
 
 ## Installation
 
-FileDownloader is installed by adding the following dependency to your build.gradle file:
+FileDownloader is installed by adding the following dependency to your `build.gradle` file:
 
-```
+```groovy
 dependencies {
     compile 'com.liulishuo.filedownloader:library:1.0.0'
 }
