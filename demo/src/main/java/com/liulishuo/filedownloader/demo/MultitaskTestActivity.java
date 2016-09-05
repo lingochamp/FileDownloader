@@ -219,7 +219,8 @@ public class MultitaskTestActivity extends AppCompatActivity {
 //                    .setAutoRetryTimes(1)
 //                    .setTag(i + 1)
 //                    .setCallbackProgressTimes(0)
-//                    .ready();
+//                    .asInQueueTask()
+//                    .enqueue();
 //        }
 //        FileDownloader.getImpl().start(downloadListener, serialRbtn.isChecked());
 

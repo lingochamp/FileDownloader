@@ -95,9 +95,10 @@ public class HybridTestActivity extends AppCompatActivity {
     private int finalCounts = 0;
 
     // =================================================== demo area ========================================================
+
     /**
      * Start single download task
-     *
+     * <p>
      * 启动单任务下载
      *
      * @param view
@@ -113,7 +114,7 @@ public class HybridTestActivity extends AppCompatActivity {
 
     /**
      * Start multiple download tasks parallel
-     *
+     * <p>
      * 启动并行多任务下载
      *
      * @param view
@@ -130,7 +131,8 @@ public class HybridTestActivity extends AppCompatActivity {
                     .setListener(parallelTarget)
                     .setCallbackProgressTimes(1)
                     .setTag(++i)
-                    .ready();
+                    .asInQueueTask()
+                    .enqueue();
         }
 
         FileDownloader.getImpl().start(parallelTarget, false);
@@ -138,7 +140,7 @@ public class HybridTestActivity extends AppCompatActivity {
 
     /**
      * Start multiple download tasks serial
-     *
+     * <p>
      * 启动串行多任务下载
      *
      * @param view
@@ -155,7 +157,8 @@ public class HybridTestActivity extends AppCompatActivity {
                     .setListener(serialTarget)
                     .setCallbackProgressTimes(1)
                     .setTag(++i)
-                    .ready();
+                    .asInQueueTask()
+                    .enqueue();
         }
 
         FileDownloader.getImpl().start(serialTarget, true);
