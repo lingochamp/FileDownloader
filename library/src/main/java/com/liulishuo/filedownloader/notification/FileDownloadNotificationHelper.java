@@ -22,7 +22,7 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
  * The helper for notifications with downloading tasks. You also can think this is the notifications
- * mananger.
+ * manager.
  *
  * @see BaseNotificationItem
  * @see FileDownloadNotificationListener

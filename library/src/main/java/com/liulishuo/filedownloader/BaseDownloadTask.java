@@ -261,6 +261,7 @@ public interface BaseDownloadTask {
      * @see IQueuesHandler#startQueueSerial(FileDownloadListener)
      * @see IQueuesHandler#startQueueParallel(FileDownloadListener)
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isAttached();
 
     /**
