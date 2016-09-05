@@ -529,7 +529,7 @@ public interface BaseDownloadTask {
          * Enqueue the task to the global queue, what is the only way for the task to ready to be
          * assembled by a queue.
          * <p>
-         * <strong>Note:</strong> Only if the task will belong to a queue, you need invoke this
+         * <strong>Note:</strong> Only if this task belongs to a queue, you need to invoke this
          * method.
          *
          * @return the download task identify.

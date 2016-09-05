@@ -2,6 +2,20 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.0.1
+
+_2016-09-05_
+
+#### New Interfaces
+
+> If you used `BaseDownloadTask#ready()` which is a deprecated method now, just migrate it to `BaseDownloadTask#asInQueueTask():InQueueTask` and `InQueueTask#enqueue()`.
+
+- Add `BaseDownloadTask#asInQueueTask():InQueueTask` and Deprecated `BaseDownloadTask#ready()`: Declare the task is a queue task, what will be assembled by a queue which makes up of the same `listener` task and there is a method `InQueueTask#enqueue()` to enqueue this task to the global queue to ready for being assembled by the queue. The operation of method `InQueueTask#enqueue()` is the same to the Deprecated method `BaseDownloadTask#ready()`, we wrap the `ready()` method in this way just want you to know clearly: Only if the task belongs to a queue, you need to invoke this method otherwise if this task is an isolated task but you invoke this method, it's wrong and you will receive an exception(More detail reason please move to the exception thrown in `DownloadTask#start`).
+
+#### Fix
+
+- Fix: Maybe occur an IllegalStateException when there are several isolated tasks and queues with the same `listener` object, and they are started in the different thread simultaneously. Closes #282 .
+
 ## Version 1.0.0
 
 _2016-08-21_

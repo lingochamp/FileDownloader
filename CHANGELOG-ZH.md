@@ -2,6 +2,20 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.0.1
+
+_2016-09-05_
+
+#### 新接口
+
+> 如果你之前有使用现在已经被申明弃用的方法`BaseDownloadTask#ready()`, 只需要简单的将它迁移为:`BaseDownloadTask#asInQueueTask():InQueueTask`并且调用`InQueueTask#enqueue()`。
+
+- 添加`BaseDownloadTask#asInQueueTask():InQueueTask`并申明弃用`BaseDownloadTask#ready()`: 申明当前任务是队列任务，并且可以通过`InQueueTask#enqueue()`将当前任务放入全局队列以便于启动队列任务的时候，能被队列收编执行。`InQueueTask#enqueue()`中的操作与`BaseDownloadTask#ready()`相同, 我们通过这个方式封装`ready()`是为了让你更加清晰的了解: 只有当前任务是队列任务，才需要调用该方法；如果当前任务不是队列任务，而却调用了这个方法，你将会收到一个异常(具体异常的原因可以移步到`DownloadTask#start`报的异常信息进行了解).
+
+#### 修复
+
+- 修复: 当有使用相同`listener`对象的多个孤立任务与队列任务在不同的线程中同时被启动时(后)，有可能会遇到IllegalStateException异常的问题. Closes #282 .
+
 ## Version 1.0.0
 
 _2016-08-21_
