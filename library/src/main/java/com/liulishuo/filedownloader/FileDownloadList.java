@@ -118,7 +118,7 @@ public class FileDownloadList {
             // Prevent size changing
             for (BaseDownloadTask.IRunningTask task : mList) {
                 if (task.getOrigin().getListener() == listener && !task.getOrigin().isAttached()) {
-                    task.setAttachKey(attachKey);
+                    task.setAttachKeyByQueue(attachKey);
                     targetList.add(task);
                 }
             }
@@ -205,13 +205,24 @@ public class FileDownloadList {
     }
 
     void add(final BaseDownloadTask.IRunningTask task) {
+        if (!task.getOrigin().isAttached()) {
+            // if this task didn't attach to any key, this task must be an isolated task, so we
+            // generate a key and attache it to this task, make sure this task not be assembled by
+            // a queue.
+            task.setAttachKeyDefault();
+        }
 
         if (task.getMessageHandler().getMessenger().notifyBegin()) {
-            ready(task);
+            addUnchecked(task);
         }
     }
 
-    void ready(final BaseDownloadTask.IRunningTask task) {
+    /**
+     * This method generally used for enqueuing the task which will be assembled by a queue.
+     *
+     * @see BaseDownloadTask.InQueueTask#enqueue()
+     */
+    void addUnchecked(final BaseDownloadTask.IRunningTask task) {
         if (task.isMarkedAdded2List()) {
             return;
         }

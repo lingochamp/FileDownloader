@@ -583,20 +583,28 @@ public interface BaseDownloadTask {
         boolean isOver();
 
         /**
+         * When the task is running, it must attach a key. if this task is running in a queue
+         * downloading tasks serial, the attach key is equal to the hash code of the callback of
+         * queue's handler, otherwise the attach key is equal to the hash code of the listener.
+         *
          * @return The attached key, if this task in a queue, the attached key is the hash code of
          * the listener.
          */
         int getAttachKey();
 
         /**
+         * Set this task attach to the {@code key} by the queue. In this case, this task must be a
+         * task which belong to a queue, and will be started automatically by the queue.
+         *
          * @param key The attached key for this task.
-         *            When the task is running, it must attach a key.
-         *            if this task is running in a queue downloading tasks serial, the
-         *            attach key is equal to the hash code of the callback of queue's
-         *            handler, otherwise the attach key is equal to the hash code of the
-         *            listener.
          */
-        void setAttachKey(int key);
+        void setAttachKeyByQueue(int key);
+
+        /**
+         * Set this task to the default key. In this case, this task must be a task which is a
+         * isolated task.
+         */
+        void setAttachKeyDefault();
 
         /**
          * @return {@code true} the task has already added to the downloading list.

@@ -315,7 +315,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         }
 
         if (!isAttached()) {
-            setAttachKey(mListener.hashCode());
+            setAttachKeyDefault();
         }
 
         mHunter.intoLaunchPool();
@@ -532,7 +532,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     }
 
 
-    // why this? thread not safe: update,ready, _start, pause, start which influence of this
+    // why this? thread not safe: update,InQueueTask#enqueue, start, pause, start which influence of this
     // in the queue.
     // whether it has been added, whether or not it is removed.
     private volatile boolean mIsMarkedAdded2List = false;
@@ -608,8 +608,19 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     }
 
     @Override
-    public void setAttachKey(int key) {
+    public void setAttachKeyByQueue(int key) {
         this.mAttachKey = key;
+    }
+
+    @Override
+    public void setAttachKeyDefault() {
+        final int attachKey;
+        if (getListener() != null) {
+            attachKey = getListener().hashCode();
+        } else {
+            attachKey = hashCode();
+        }
+        this.mAttachKey = attachKey;
     }
 
     @Override
@@ -633,7 +644,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
                 FileDownloadLog.d(this, "add the task[%d] to the queue", id);
             }
 
-            FileDownloadList.getImpl().ready(mTask);
+            FileDownloadList.getImpl().addUnchecked(mTask);
             return id;
         }
     }
