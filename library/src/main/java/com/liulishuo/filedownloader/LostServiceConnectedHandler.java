@@ -50,7 +50,7 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
 
             for (BaseDownloadTask.IRunningTask task : copyWaitingList) {
                 if (queueHandler.contain(task.getAttachKey())) {
-                    task.getOrigin().ready();
+                    task.getOrigin().asInQueueTask().enqueue();
                     continue;
                 }
                 //noinspection StatementWithEmptyBody

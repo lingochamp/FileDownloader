@@ -142,7 +142,7 @@ public class FileDownloadQueueSet {
                 task.setPath(this.directory, true);
             }
 
-            task.ready();
+            task.asInQueueTask().enqueue();
         }
 
         FileDownloader.getImpl().start(target, isSerial);

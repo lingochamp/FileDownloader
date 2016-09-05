@@ -53,7 +53,7 @@ class QueuesHandler implements IQueuesHandler {
         }
 
         for (BaseDownloadTask.IRunningTask task : list) {
-            task.getOrigin().start();
+            task.startTaskByQueue();
         }
 
         return true;
@@ -201,8 +201,8 @@ class QueuesHandler implements IQueuesHandler {
 
 
                 stackTopTask.getOrigin()
-                        .addFinishListener(mSerialFinishListener.setNextIndex(mRunningIndex + 1))
-                        .start();
+                        .addFinishListener(mSerialFinishListener.setNextIndex(mRunningIndex + 1));
+                stackTopTask.startTaskByQueue();
 
             } else if (msg.what == WHAT_FREEZE) {
                 freeze();

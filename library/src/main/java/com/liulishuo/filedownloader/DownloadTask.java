@@ -69,6 +69,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     private boolean mIsForceReDownload = false;
 
     volatile int mAttachKey = 0;
+    private boolean mIsInQueueTask = false;
 
     DownloadTask(final String url) {
         this.mUrl = url;
@@ -228,14 +229,12 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
     @Override
     public int ready() {
+        return asInQueueTask().enqueue();
+    }
 
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "ready 2 download %s", toString());
-        }
-
-        FileDownloadList.getImpl().ready(this);
-
-        return getId();
+    @Override
+    public InQueueTask asInQueueTask() {
+        return new InQueueTaskImpl(this);
     }
 
     @Override
@@ -247,6 +246,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         }
 
         this.mAttachKey = 0;
+        mIsInQueueTask = false;
         clearMarkAdded2List();
         mHunter.reset();
 
@@ -280,7 +280,27 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
     @Override
     public int start() {
+        if (mIsInQueueTask) {
+            throw new IllegalStateException("If you start the task manually, it means this task " +
+                    "doesn't belong to a queue, so you must not invoke BaseDownloadTask#ready() or" +
+                    " InQueueTask#enqueue() before you start() this method. For detail: If this" +
+                    " task doesn't belong to a queue, what is just an isolated task, you just need" +
+                    " to invoke BaseDownloadTask#start() to start this task, that's all. In other" +
+                    " words, If this task doesn't belong to a queue, you must not invoke" +
+                    " BaseDownloadTask#ready() method or InQueueTask#enqueue() method before" +
+                    " invoke BaseDownloadTask#start(), If you do that and if there is the same" +
+                    " listener object to start a queue in another thread, this task may be " +
+                    "assembled by the queue, in that case, when you invoke BaseDownloadTask#start()" +
+                    " manually to start this task or this task is started by the queue, there is" +
+                    " an exception buried in there, because this task object is started two times" +
+                    " without declare BaseDownloadTask#reuse() : 1. you invoke " +
+                    "BaseDownloadTask#start() manually; 2. the queue start this task automatically.");
+        }
 
+        return startTaskUnchecked();
+    }
+
+    private int startTaskUnchecked() {
         if (isUsing()) {
             if (isRunning()) {
                 throw new IllegalStateException(
@@ -294,8 +314,8 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
             }
         }
 
-        if (mAttachKey == 0) {
-            mAttachKey = mListener.hashCode();
+        if (!isAttached()) {
+            setAttachKey(mListener.hashCode());
         }
 
         mHunter.intoLaunchPool();
@@ -515,11 +535,11 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     // why this? thread not safe: update,ready, _start, pause, start which influence of this
     // in the queue.
     // whether it has been added, whether or not it is removed.
-    private volatile boolean isMarkedAdded2List = false;
+    private volatile boolean mIsMarkedAdded2List = false;
 
     @Override
     public void markAdded2List() {
-        isMarkedAdded2List = true;
+        mIsMarkedAdded2List = true;
     }
 
     @Override
@@ -528,13 +548,18 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         clearMarkAdded2List();
     }
 
+    @Override
+    public void startTaskByQueue() {
+        startTaskUnchecked();
+    }
+
     void clearMarkAdded2List() {
-        isMarkedAdded2List = false;
+        mIsMarkedAdded2List = false;
     }
 
     @Override
     public boolean isMarkedAdded2List() {
-        return this.isMarkedAdded2List;
+        return this.mIsMarkedAdded2List;
     }
 
     @Override
@@ -592,4 +617,24 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         return FileDownloadUtils.formatString("%d@%s", getId(), super.toString());
     }
 
+    private final static class InQueueTaskImpl implements InQueueTask {
+        private final DownloadTask mTask;
+
+        private InQueueTaskImpl(DownloadTask task) {
+            this.mTask = task;
+            this.mTask.mIsInQueueTask = true;
+        }
+
+        @Override
+        public int enqueue() {
+            final int id = mTask.getId();
+
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "add the task[%d] to the queue", id);
+            }
+
+            FileDownloadList.getImpl().ready(mTask);
+            return id;
+        }
+    }
 }

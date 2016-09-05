@@ -199,11 +199,32 @@ public interface BaseDownloadTask {
 
     /**
      * Ready this task(For the task in a queue).
+     * <p>
+     * <strong>Note:</strong> If this task doesn't belong to a queue, what is just an isolated task,
+     * you just need to invoke {@link #start()} to start this task, that's all. In other words, If
+     * this task doesn't belong to a queue, you must not invoke this method or
+     * {@link InQueueTask#enqueue()} method before invoke {@link #start()}, If you do that and if
+     * there is the same listener object to start a queue in another thread, this task may be
+     * assembled by the queue, in that case, when you invoke {@link #start()} manually to start this
+     * task or this task is started by the queue, there is an exception buried in there, because
+     * this task object is started two times without declare {@link #reuse()} : 1. you invoke
+     * {@link #start()} manually; 2. the queue start this task automatically.
      *
      * @return downloadId the download identify.
      * @see FileDownloader#start(FileDownloadListener, boolean)
+     * @deprecated please use {@link #asInQueueTask()} first and when you need to enqueue this task
+     * to the global queue to make this task is ready to be assembled by the queue which makes up of
+     * the same listener task, just invoke {@link InQueueTask#enqueue()}.
      */
     int ready();
+
+    /**
+     * Declare the task will be assembled by a queue which makes up of the same listener task.
+     *
+     * @return the task which is in a queue and exposes method {@link InQueueTask#enqueue()} to
+     * enqueue this task to the global queue to ready for being assembled by the queue.
+     */
+    InQueueTask asInQueueTask();
 
     /**
      * Reuse this task withhold request params: path、url、header、isForceReDownloader、etc.
@@ -499,6 +520,22 @@ public interface BaseDownloadTask {
      */
     boolean isLargeFile();
 
+    /**
+     * Declare the task will be assembled by a queue which makes up of the same listener task.
+     */
+    interface InQueueTask {
+        /**
+         * Enqueue the task to the global queue, what is the only way for the task to ready to be
+         * assembled by a queue.
+         * <p>
+         * <strong>Note:</strong> Only if the task will belong to a queue, you need invoke this
+         * method.
+         *
+         * @return the download task identify.
+         */
+        int enqueue();
+    }
+
     @SuppressWarnings("UnusedParameters")
     interface FinishListener {
         /**
@@ -554,9 +591,10 @@ public interface BaseDownloadTask {
         /**
          * @param key The attached key for this task.
          *            When the task is running, it must attach a key.
-         *            if this task is running in a queue downloading tasks serial, the attach key
-         *            is equal to the hash code of the callback of queue's handler, otherwise the
-         *            attach key is equal to the hash code of the listener.
+         *            if this task is running in a queue downloading tasks serial, the
+         *            attach key is equal to the hash code of the callback of queue's
+         *            handler, otherwise the attach key is equal to the hash code of the
+         *            listener.
          */
         void setAttachKey(int key);
 
@@ -574,6 +612,11 @@ public interface BaseDownloadTask {
          * Free the task.
          */
         void free();
+
+        /**
+         * Start the task by the queue handler.
+         */
+        void startTaskByQueue();
     }
 
     /**
