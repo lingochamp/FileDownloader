@@ -221,6 +221,10 @@ public interface BaseDownloadTask {
     /**
      * Declare the task will be assembled by a queue which makes up of the same listener task.
      *
+     * <strong>Note:</strong> If you use {@link FileDownloadQueueSet} to start this task in a queue,
+     * you don't need to invoke this method manually, it has been handled by
+     * {@link FileDownloadQueueSet}.
+     *
      * @return the task which is in a queue and exposes method {@link InQueueTask#enqueue()} to
      * enqueue this task to the global queue to ready for being assembled by the queue.
      */
