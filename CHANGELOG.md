@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.0.2
+
+_2016-09-06_
+
+#### Fix
+
+- Fix: When the service didn't connected and now it is connected and FileDownloader try to restart the 'queue-task's which in the waiting-service-connect list but occur an `IllegalStateException`. Closes #307 .
+
 ## Version 1.0.1
 
 _2016-09-05_
