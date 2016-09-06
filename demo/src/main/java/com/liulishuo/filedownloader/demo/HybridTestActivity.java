@@ -14,11 +14,14 @@ import android.widget.TextView;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloadQueueSet;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.message.FileDownloadMessage;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Jacksgong on 12/19/15.
@@ -124,18 +127,18 @@ public class HybridTestActivity extends AppCompatActivity {
 
         // 以相同的listener作为target，将不同的下载任务绑定起来
         final FileDownloadListener parallelTarget = createListener();
+        final List<BaseDownloadTask> taskList = new ArrayList<>();
         int i = 0;
         for (String url : Constant.URLS) {
-            totalCounts++;
-            FileDownloader.getImpl().create(url)
-                    .setListener(parallelTarget)
-                    .setCallbackProgressTimes(1)
-                    .setTag(++i)
-                    .asInQueueTask()
-                    .enqueue();
+            taskList.add(FileDownloader.getImpl().create(url)
+                    .setTag(++i));
         }
+        totalCounts += taskList.size();
 
-        FileDownloader.getImpl().start(parallelTarget, false);
+        new FileDownloadQueueSet(parallelTarget)
+                .setCallbackProgressTimes(1)
+                .downloadTogether(taskList)
+                .start();
     }
 
     /**
@@ -149,19 +152,19 @@ public class HybridTestActivity extends AppCompatActivity {
         updateDisplay(getString(R.string.hybrid_test_start_multiple_tasks_serial, Constant.URLS.length));
 
         // 以相同的listener作为target，将不同的下载任务绑定起来
+        final List<BaseDownloadTask> taskList = new ArrayList<>();
         final FileDownloadListener serialTarget = createListener();
         int i = 0;
         for (String url : Constant.URLS) {
-            totalCounts++;
-            FileDownloader.getImpl().create(url)
-                    .setListener(serialTarget)
-                    .setCallbackProgressTimes(1)
-                    .setTag(++i)
-                    .asInQueueTask()
-                    .enqueue();
+            taskList.add(FileDownloader.getImpl().create(url)
+                    .setTag(++i));
         }
+        totalCounts += taskList.size();
 
-        FileDownloader.getImpl().start(serialTarget, true);
+        new FileDownloadQueueSet(serialTarget)
+                .setCallbackProgressTimes(1)
+                .downloadSequentially(taskList)
+                .start();
     }
 
     private FileDownloadListener createListener() {
