@@ -55,7 +55,7 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
                 }
                 //noinspection StatementWithEmptyBody
                 if (!task.getOrigin().isUsing()) {
-                    task.getOrigin().start();
+                    task.startTaskByRescue();
                 } else {
                     /** already handled
                      * by {@link FileDownloadEventPool#launchTask(DownloadTaskEvent)}

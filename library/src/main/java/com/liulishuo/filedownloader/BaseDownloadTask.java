@@ -626,6 +626,14 @@ public interface BaseDownloadTask {
          * Start the task by the queue handler.
          */
         void startTaskByQueue();
+
+        /**
+         * Start the task just because this task can't started by pass, and now, we try to rescue
+         * this task and start it.
+         * <p>
+         * Currently, this rescue is occurred when the filedownloader service connected.
+         */
+        void startTaskByRescue();
     }
 
     /**
