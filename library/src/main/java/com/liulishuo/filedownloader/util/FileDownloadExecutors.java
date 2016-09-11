@@ -16,67 +16,39 @@
 
 package com.liulishuo.filedownloader.util;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import cn.dreamtobe.threadpool.ExceedWait;
+import cn.dreamtobe.threadpool.IExecutor;
+import cn.dreamtobe.threadpool.RealExecutors;
+import cn.dreamtobe.threadpool.ThreadExecutor;
+import cn.dreamtobe.threadpool.ThreadPools;
 
 /**
  * Executors are used in entire FileDownloader internal for managing different threads.
+ * <p>
+ * All thread pools in FileDownloader will comply with:
+ * <p>
+ * The default thread count is 0, and the maximum pool size is {@code nThreads}; When there are less
+ * than {@code nThreads} threads running, a new thread is created to handle the request, but when it
+ * turn to idle and the interval time of waiting for new task more than {@code DEFAULT_IDLE_SECOND}
+ * second, the thread will be terminate to reduce the cost of resources.
+ * <p>
+ * All thread pools will be handled by {@link ThreadPools#newExceedWaitPool(int, int, long, TimeUnit, String)}.
  */
 public class FileDownloadExecutors {
-    private final static String FILEDOWNLOADER_PREFIX = "FileDownloader";
+    private final static int DEFAULT_IDLE_SECOND = 5;
 
-    public static Executor newFixedThreadPool(int nThreads, String prefix) {
-        return new FileDownloadExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
-                prefix);
+    public static IExecutor newDefaultThreadPool(int nThreads, String prefix) {
+        return ThreadPools.newExceedWaitPool(0, nThreads, DEFAULT_IDLE_SECOND, TimeUnit.SECONDS,
+                FileDownloadUtils.getThreadPoolName(prefix));
     }
 
-    public static class FileDownloadExecutor extends ThreadPoolExecutor {
-
-        public FileDownloadExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,
-                                    TimeUnit unit, BlockingQueue<Runnable> workQueue,
-                                    final String prefixName) {
-            //noinspection NullableProblems
-            super(corePoolSize, /** core **/
-                    maximumPoolSize, keepAliveTime, unit, /** max, idle-time **/
-                    workQueue,
-
-                    new ThreadFactory() {
-
-                        private final AtomicInteger noNameThreadNumber = new AtomicInteger(1);
-
-                        @Override
-                        public Thread newThread(Runnable r) {
-                            return new Thread(r, FILEDOWNLOADER_PREFIX + "-" +
-                                    prefixName + "-" + noNameThreadNumber.getAndIncrement());
-                        }
-                    }
-            );
-
-        }
-
-        private final static String STATUS_SPLIT = "::";
-
-        @Override
-        protected void beforeExecute(Thread thread, Runnable r) {
-            super.beforeExecute(thread, r);
-            String[] nameArray = thread.getName().split(STATUS_SPLIT);
-            thread.setName(nameArray[0] + STATUS_SPLIT + "running");
-        }
-
-        @Override
-        protected void afterExecute(Runnable r, Throwable t) {
-            super.afterExecute(r, t);
-            final Thread thread = Thread.currentThread();
-            String[] nameArray = thread.getName().split(STATUS_SPLIT);
-            thread.setName(nameArray[0] + STATUS_SPLIT + "idle");
-        }
+    public static IExecutor newDefaultThreadPool(int nThreads, ExceedWait.Queue queue, String prefix) {
+        return new ThreadExecutor(new RealExecutors.ExceedWaitExecutor(0, nThreads,
+                DEFAULT_IDLE_SECOND, TimeUnit.SECONDS,
+                FileDownloadUtils.getThreadPoolName(prefix),
+                queue, new ExceedWait.RejectedHandler()));
     }
-
 
 }

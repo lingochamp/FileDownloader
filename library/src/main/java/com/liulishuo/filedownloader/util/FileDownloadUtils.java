@@ -449,4 +449,10 @@ public class FileDownloadUtils {
         }
         return path.substring(0, index);
     }
+
+    private final static String FILEDOWNLOADER_PREFIX = "FileDownloader";
+
+    public static String getThreadPoolName(String name) {
+        return FILEDOWNLOADER_PREFIX + "-" + name;
+    }
 }

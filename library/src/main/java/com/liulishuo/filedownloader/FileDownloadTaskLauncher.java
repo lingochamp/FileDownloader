@@ -22,10 +22,10 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+
+import cn.dreamtobe.threadpool.ExceedWait;
+import cn.dreamtobe.threadpool.IExecutor;
+import cn.dreamtobe.threadpool.ThreadExecutor;
 
 /**
  * The global launcher for launching tasks.
@@ -56,6 +56,10 @@ class FileDownloadTaskLauncher {
         mLaunchTaskPool.expireAll();
     }
 
+    synchronized void expire(final ITaskHunter.IStarter taskStarter) {
+        mLaunchTaskPool.expire(taskStarter);
+    }
+
     synchronized void expire(final FileDownloadListener lis) {
         mLaunchTaskPool.expire(lis);
     }
@@ -63,21 +67,29 @@ class FileDownloadTaskLauncher {
 
     private static class LaunchTaskPool {
 
-        private ThreadPoolExecutor mPool;
+        private IExecutor mPool;
 
         /**
          * the queue to use for holding tasks before they are
          * executed.  This queue will hold only the {@code Runnable}
          * tasks submitted by the {@code execute} method.
          */
-        private BlockingQueue<Runnable> mWorkQueue;
+        private ExceedWait.Queue mWorkQueue;
 
         public LaunchTaskPool() {
             init();
         }
 
         public void asyncExecute(final ITaskHunter.IStarter taskStarter) {
-            mPool.execute(new LaunchTaskRunnable(taskStarter));
+            mPool.execute("Launch", new LaunchTaskRunnable(taskStarter));
+        }
+
+        public void expire(ITaskHunter.IStarter starter) {
+            /**
+             * @see LaunchTaskRunnable#equals(Object)
+             */
+            //noinspection SuspiciousMethodCalls
+            mWorkQueue.remove(starter);
         }
 
         public void expire(final FileDownloadListener listener) {
@@ -90,7 +102,7 @@ class FileDownloadTaskLauncher {
             List<Runnable> needPauseList = new ArrayList<>();
             for (Runnable runnable : mWorkQueue) {
                 final LaunchTaskRunnable launchTaskRunnable = (LaunchTaskRunnable) runnable;
-                if (launchTaskRunnable.equal(listener)) {
+                if (launchTaskRunnable.isSameListener(listener)) {
                     launchTaskRunnable.expire();
                     needPauseList.add(runnable);
                 }
@@ -112,17 +124,17 @@ class FileDownloadTaskLauncher {
 
         public void expireAll() {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "expire %d tasks", mWorkQueue.size());
+                FileDownloadLog.d(this, "expire %d tasks",
+                        mWorkQueue.size() + mWorkQueue.exceedSize());
             }
-            mPool.shutdownNow();
+
+            new ThreadExecutor.Exposed(mPool).shutdownNow();
             init();
         }
 
         private void init() {
-            mWorkQueue = new LinkedBlockingQueue<>();
-            mPool = new FileDownloadExecutors.FileDownloadExecutor(3, 3,
-                    10L, TimeUnit.MILLISECONDS,
-                    mWorkQueue, "LauncherTaskPool");
+            mWorkQueue = new ExceedWait.Queue();
+            mPool = FileDownloadExecutors.newDefaultThreadPool(3, mWorkQueue, "LauncherTask");
         }
 
     }
@@ -145,13 +157,17 @@ class FileDownloadTaskLauncher {
             mTaskStarter.start();
         }
 
-        public boolean equal(final FileDownloadListener listener) {
+        public boolean isSameListener(final FileDownloadListener listener) {
             return mTaskStarter != null && mTaskStarter.equalListener(listener);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj) || obj == mTaskStarter;
         }
 
         public void expire() {
             this.mExpired = true;
         }
     }
-
 }

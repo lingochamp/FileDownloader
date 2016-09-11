@@ -387,6 +387,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
             }
             return false;
         }
+        FileDownloadTaskLauncher.getImpl().expire(this);
+
         setStatus(FileDownloadStatus.paused);
 
         if (!FileDownloader.getImpl().isServiceConnected()) {

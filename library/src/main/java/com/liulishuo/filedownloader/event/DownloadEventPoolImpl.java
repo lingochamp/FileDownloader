@@ -23,18 +23,15 @@ import junit.framework.Assert;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+
+import cn.dreamtobe.threadpool.IExecutor;
 
 /**
  * Implementing actions for event pool.
  */
 public class DownloadEventPoolImpl implements IDownloadEventPool {
 
-    private final ExecutorService threadPool = new FileDownloadExecutors.FileDownloadExecutor(3, 30,
-            10, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<Runnable>(), "EventPool");
+    private final IExecutor threadPool = FileDownloadExecutors.newDefaultThreadPool(10, "EventPool");
 
     private final HashMap<String, LinkedList<IDownloadListener>> listenersMap = new HashMap<>();
 
@@ -119,7 +116,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         }
         Assert.assertNotNull("EventPoolImpl.asyncPublish event", event);
 
-        threadPool.execute(new Runnable() {
+        threadPool.execute("PublishEvent", new Runnable() {
             @Override
             public void run() {
                 DownloadEventPoolImpl.this.publish(event);

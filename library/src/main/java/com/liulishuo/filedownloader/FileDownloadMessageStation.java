@@ -24,9 +24,9 @@ import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
-import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+
+import cn.dreamtobe.threadpool.IExecutor;
 
 /**
  * The message station to transfer task events to {@link FileDownloadListener}.
@@ -34,9 +34,8 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadMessageStation {
 
-    private final Executor blockCompletedPool = new FileDownloadExecutors.
-            FileDownloadExecutor(2, 5, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-            "BlockCompletedPool");
+    private final IExecutor blockCompletedPool = FileDownloadExecutors.
+            newDefaultThreadPool(5, "BlockCompleted");
 
     private final Handler handler;
     private final LinkedBlockingQueue<IFileDownloadMessenger> waitingQueue;
@@ -75,7 +74,7 @@ public class FileDownloadMessageStation {
         }
 
         if (messenger.isBlockingCompleted()) {
-            blockCompletedPool.execute(new Runnable() {
+            blockCompletedPool.execute("Handover", new Runnable() {
                 @Override
                 public void run() {
                     messenger.handoverMessage();
