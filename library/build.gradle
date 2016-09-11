@@ -30,6 +30,7 @@ android {
 
 dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
+    compile 'cn.dreamtobe.threaddebugger:threadpool:1.3.3'
 }
 
 apply from: 'https://raw.githubusercontent.com/Jacksgong/JCenter/master/license.gradle'
