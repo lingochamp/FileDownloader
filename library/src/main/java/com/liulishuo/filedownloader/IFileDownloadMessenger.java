@@ -152,7 +152,7 @@ interface IFileDownloadMessenger {
      * @param task Re-appointment for this task, when this messenger has already accomplished the
      *             old one.
      */
-    void reAppointment(BaseDownloadTask task, BaseDownloadTask.LifeCycleCallback callback);
+    void reAppointment(BaseDownloadTask.IRunningTask task, BaseDownloadTask.LifeCycleCallback callback);
 
     /**
      * The 'block completed'(status) message will be handover in the non-UI thread and block the

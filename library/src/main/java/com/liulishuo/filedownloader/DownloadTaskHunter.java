@@ -334,7 +334,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         final DownloadSpeedMonitor monitor = new DownloadSpeedMonitor();
         mSpeedMonitor = monitor;
         mSpeedLookup = monitor;
-        mMessenger = new FileDownloadMessenger(task.getRunningTask().getOrigin(), this);
+        mMessenger = new FileDownloadMessenger(task.getRunningTask(), this);
     }
 
     @Override
@@ -433,7 +433,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         mSpeedMonitor.reset();
         free();
 
-        mMessenger.reAppointment(mTask.getRunningTask().getOrigin(), this);
+        mMessenger.reAppointment(mTask.getRunningTask(), this);
     }
 
     @Override

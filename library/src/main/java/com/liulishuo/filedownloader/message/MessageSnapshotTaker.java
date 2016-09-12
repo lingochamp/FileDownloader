@@ -102,7 +102,7 @@ public class MessageSnapshotTaker {
                             "already be completed. %d %d", snapshot.getId(), snapshot.getStatus()));
         }
 
-        return new MessageSnapshot(snapshot.getId(), FileDownloadStatus.blockComplete);
+        return new BlockCompleteMessage.BlockCompleteMessageImpl(snapshot);
     }
 
     public static MessageSnapshot take(byte status, FileDownloadModel model,

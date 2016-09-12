@@ -177,22 +177,7 @@ public class FileDownloadList {
                     messenger.notifyPaused(snapshot);
                     break;
                 case FileDownloadStatus.completed:
-                    Throwable ex = null;
-                    try {
-                        messenger.
-                                notifyBlockComplete(MessageSnapshotTaker.
-                                        takeBlockCompleted(snapshot));
-                    } catch (Throwable e) {
-                        ex = e;
-                    }
-
-                    if (ex != null) {
-                        messenger.
-                                notifyError(willRemoveDownload.getMessageHandler().
-                                        prepareErrorMessage(ex));
-                    } else {
-                        messenger.notifyCompleted(snapshot);
-                    }
+                    messenger.notifyBlockComplete(MessageSnapshotTaker.takeBlockCompleted(snapshot));
                     break;
             }
 
