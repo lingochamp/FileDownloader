@@ -339,7 +339,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
     @Override
     public void intoLaunchPool() {
-
         final BaseDownloadTask.IRunningTask runningTask = mTask.getRunningTask();
         final BaseDownloadTask origin = runningTask.getOrigin();
 
@@ -550,7 +549,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         try {
 
             if (lostConnectedHandler.dispatchTaskStart(runningTask)) {
-                this.mIsUsing = false;
                 return;
             }
 
@@ -588,8 +586,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                     FileDownloadList.getImpl().remove(runningTask, snapshot);
 
                 } else {
-                    // the process was killed when request stating. will be restarted by
-                    // LostServiceConnectedHandler.
+                    // the FileDownload Service host process was killed when request stating and it
+                    // will be restarted by LostServiceConnectedHandler.
                 }
             } else {
                 lostConnectedHandler.taskWorkFine(runningTask);

@@ -47,20 +47,13 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
             copyWaitingList = (List<BaseDownloadTask.IRunningTask>) mWaitingList.clone();
             mWaitingList.clear();
 
-
             for (BaseDownloadTask.IRunningTask task : copyWaitingList) {
                 if (queueHandler.contain(task.getAttachKey())) {
                     task.getOrigin().asInQueueTask().enqueue();
                     continue;
                 }
-                //noinspection StatementWithEmptyBody
-                if (!task.getOrigin().isUsing()) {
-                    task.startTaskByRescue();
-                } else {
-                    /** already handled
-                     * by {@link FileDownloadEventPool#launchTask(DownloadTaskEvent)}
-                     * **/
-                }
+
+                task.startTaskByRescue();
             }
 
             queueHandler.unFreezeAllSerialQueues();
@@ -82,7 +75,7 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
 
             if (FileDownloadList.getImpl().size() > 0) {
                 synchronized (mWaitingList) {
-                    FileDownloadList.getImpl().divert(mWaitingList);
+                    FileDownloadList.getImpl().divertAndIgnoreDuplicate(mWaitingList);
                     for (BaseDownloadTask.IRunningTask task : mWaitingList) {
                         task.free();
                     }
@@ -127,6 +120,7 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
                     FileDownloadServiceProxy.getImpl().
                             bindStartByContext(FileDownloadHelper.getAppContext());
                     if (!mWaitingList.contains(task)) {
+                        task.free();
                         mWaitingList.add(task);
                     }
                     return true;

@@ -43,7 +43,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         implements IFileDownloadServiceProxy, ServiceConnection {
 
     private final CALLBACK callback;
-    private INTERFACE service;
+    private volatile INTERFACE service;
     private final Class<?> serviceClass;
 
     private final HashMap<String, Object> uiCacheMap = new HashMap<>();

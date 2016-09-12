@@ -247,7 +247,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
         this.mAttachKey = 0;
         mIsInQueueTask = false;
-        clearMarkAdded2List();
+        mIsMarkedAdded2List = false;
         mHunter.reset();
 
         return true;
@@ -310,7 +310,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
             } else {
                 throw new IllegalStateException("This task is dirty to restart, If you want to " +
                         "reuse this task, please invoke #reuse method manually and retry to " +
-                        "restart again.");
+                        "restart again." + mHunter.toString());
             }
         }
 
@@ -545,7 +545,9 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public void free() {
         mHunter.free();
-        clearMarkAdded2List();
+        if (!FileDownloadList.getImpl().contains(this)) {
+            mIsMarkedAdded2List = false;
+        }
     }
 
     @Override
@@ -561,9 +563,6 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         startTaskUnchecked();
     }
 
-    void clearMarkAdded2List() {
-        mIsMarkedAdded2List = false;
-    }
 
     @Override
     public boolean isMarkedAdded2List() {
