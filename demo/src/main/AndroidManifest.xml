@@ -3,6 +3,8 @@
     package="com.liulishuo.filedownloader.demo">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- When you invoke BaseDownloadTask#setWifiRequired(true), you need declare ACCESS_NETWORK_STATE permission -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
