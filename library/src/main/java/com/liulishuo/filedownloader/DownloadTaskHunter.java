@@ -568,7 +568,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                             origin.getCallbackProgressTimes(), origin.getCallbackProgressMinInterval(),
                             origin.getAutoRetryTimes(),
                             origin.isForceReDownload(),
-                            mTask.getHeader());
+                            mTask.getHeader(),
+                            origin.isWifiRequired());
 
             if (!succeed) {
                 //noinspection StatementWithEmptyBody

@@ -102,11 +102,16 @@ public class FileDownloadRunnable implements Runnable {
 
     private final IThreadPoolMonitor threadPoolMonitor;
 
+    private final boolean mIsWifiRequired;
+
     public FileDownloadRunnable(final OkHttpClient client, final IThreadPoolMonitor threadPoolMonitor,
                                 final FileDownloadModel model,
                                 final IFileDownloadDBHelper helper, final int autoRetryTimes,
                                 final FileDownloadHeader header, final int minIntervalMillis,
-                                final int callbackProgressTimes, final boolean isForceReDownload) {
+                                final int callbackProgressTimes, final boolean isForceReDownload,
+                                boolean isWifiRequired) {
+        mIsWifiRequired = isWifiRequired;
+
         isPending = true;
         isRunning = false;
 
@@ -193,6 +198,17 @@ public class FileDownloadRunnable implements Runnable {
                 return;
             }
 
+            if (mIsWifiRequired &&
+                    !FileDownloadUtils.checkPermission(Manifest.permission.ACCESS_NETWORK_STATE)) {
+                onError(new FileDownloadGiveUpRetryException(
+                        FileDownloadUtils.formatString("Task[%d] can't start the download runnable," +
+                                        " because this task require wifi, but user application " +
+                                        "nor current process has %s, so we can't check whether " +
+                                        "the network type connection.", mId,
+                                Manifest.permission.ACCESS_NETWORK_STATE)));
+                return;
+            }
+
             onStarted();
 
             // Step 3, start download
@@ -201,7 +217,6 @@ public class FileDownloadRunnable implements Runnable {
         } finally {
             isRunning = false;
         }
-
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -215,8 +230,8 @@ public class FileDownloadRunnable implements Runnable {
             long soFar = 0;
             try {
 
-                // Step 1, check is paused
-                if (isCancelled()) {
+                // Step 1, check state
+                if (checkState()) {
                     if (FileDownloadLog.NEED_LOG) {
                         FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
                     }
@@ -431,8 +446,8 @@ public class FileDownloadRunnable implements Runnable {
                     onProgress(soFar, total, fd);
                 }
 
-                // Step 6, check pause
-                if (isCancelled()) {
+                // Step 6, check state
+                if (checkState()) {
                     // callback on paused
                     onPause();
                     return true;
@@ -799,8 +814,16 @@ public class FileDownloadRunnable implements Runnable {
         }
     }
 
-    private boolean isCancelled() {
-        return isCanceled;
+    private boolean checkState() {
+        if (isCanceled) {
+            return true;
+        }
+
+        if (mIsWifiRequired && !FileDownloadUtils.isNetworkOnWifiType()) {
+            throw new FileDownloadNetworkPolicyException();
+        }
+
+        return false;
     }
 
     // ----------------------------------

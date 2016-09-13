@@ -33,7 +33,8 @@ import okhttp3.OkHttpClient;
 /**
  * The downloading manager in FileDownloadService, which is used to control all download-inflow.
  * <p/>
- * Handling real {@link #start(String, String, boolean, int, int, int, boolean, FileDownloadHeader)}.
+ * Handling real {@link #start(String, String, boolean, int, int, int, boolean, FileDownloadHeader,
+ * boolean)}.
  *
  * @see FileDownloadThreadPool
  * @see FileDownloadRunnable
@@ -82,7 +83,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
                                    final int callbackProgressTimes,
                                    final int callbackProgressMinIntervalMillis,
                                    final int autoRetryTimes, final boolean forceReDownload,
-                                   final FileDownloadHeader header) {
+                                   final FileDownloadHeader header, final boolean isWifiRequired) {
         final int id = FileDownloadUtils.generateId(url, path, pathAsDirectory);
         FileDownloadModel model = mHelper.find(id);
 
@@ -155,7 +156,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
 
         // - execute
         mThreadPool.execute(new FileDownloadRunnable(client, this, model, mHelper, autoRetryTimes, header,
-                callbackProgressMinIntervalMillis, callbackProgressTimes, forceReDownload));
+                callbackProgressMinIntervalMillis, callbackProgressTimes, forceReDownload, isWifiRequired));
 
     }
 

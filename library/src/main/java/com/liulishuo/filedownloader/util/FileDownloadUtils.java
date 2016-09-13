@@ -18,6 +18,9 @@ package com.liulishuo.filedownloader.util;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
@@ -454,5 +457,18 @@ public class FileDownloadUtils {
 
     public static String getThreadPoolName(String name) {
         return FILEDOWNLOADER_PREFIX + "-" + name;
+    }
+
+    public static boolean isNetworkOnWifiType() {
+        final ConnectivityManager manager = (ConnectivityManager) FileDownloadHelper.getAppContext().
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo info = manager.getActiveNetworkInfo();
+
+        return info != null && info.getType() == ConnectivityManager.TYPE_WIFI;
+    }
+
+    public static boolean checkPermission(String permission) {
+        final int perm = FileDownloadHelper.getAppContext().checkCallingOrSelfPermission(permission);
+        return perm == PackageManager.PERMISSION_GRANTED;
     }
 }

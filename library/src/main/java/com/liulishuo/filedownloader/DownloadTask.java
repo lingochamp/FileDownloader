@@ -62,6 +62,8 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
      */
     private boolean mSyncCallback = false;
 
+    private boolean mIsWifiRequired = false;
+
     public final static int DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS = 10;
     private int mCallbackProgressTimes = FileDownloadModel.DEFAULT_CALLBACK_PROGRESS_TIMES;
     private int mCallbackProgressMinIntervalMillis = DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS;
@@ -224,6 +226,12 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public BaseDownloadTask setSyncCallback(final boolean syncCallback) {
         this.mSyncCallback = syncCallback;
+        return this;
+    }
+
+    @Override
+    public BaseDownloadTask setWifiRequired(boolean isWifiRequired) {
+        this.mIsWifiRequired = isWifiRequired;
         return this;
     }
 
@@ -512,6 +520,11 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public boolean isLargeFile() {
         return mHunter.isLargeFile();
+    }
+
+    @Override
+    public boolean isWifiRequired() {
+        return mIsWifiRequired;
     }
 
     private final Object headerCreateLock = new Object();
