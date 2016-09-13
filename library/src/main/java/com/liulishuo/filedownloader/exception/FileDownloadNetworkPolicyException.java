@@ -22,6 +22,6 @@ package com.liulishuo.filedownloader.exception;
 
 public class FileDownloadNetworkPolicyException extends FileDownloadGiveUpRetryException {
     public FileDownloadNetworkPolicyException() {
-        super("Only allow to download this task on the wifi network type");
+        super("Only allows downloading this task on the wifi network type");
     }
 }

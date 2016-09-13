@@ -2,6 +2,23 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.1.0
+
+_2016-09-13_
+
+#### New Interfaces
+
+- Add `BaseDownloadTask#setWifiRequired`: Set whether the task only allows downloading on the wifi network type. Default `false`. Closes #281 .
+
+#### Enhancement
+
+- Improve Performance: Alternate all thread pools to exceed-wait-pool(more detail: docs in `FileDownloadExecutors`) and all threads in pools will be terminate after idle 5 second. Refs #303 .
+- Improve Practicability: Handle any `Throwable`s thrown on `FileDownloadListener#blockComplete` method and callback to `FileDownloadListener#error` method instead of `FileDownloadListener#completed`. Closes #305 .
+
+#### Fix
+
+- Fix(lost-connect): Prevent the waiting-connect-list contains duplicate tasks in minor cases.
+
 ## Version 1.0.2
 
 _2016-09-06_

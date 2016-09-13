@@ -2,6 +2,23 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.1.0
+
+_2016-09-13_
+
+#### 新接口
+
+- 新增 `BaseDownloadTask#setWifiRequired`: 设置任务是否只允许在Wifi网络环境下进行下载。 默认值 `false`。 Closes #281 .
+
+#### 性能与提高
+
+- 提高性能: 替换所有的线程池为exceed-wait-pool(更多详情参见: `FileDownloadExecutors`) 并且所有线程池中的线程将会在闲置五秒后自动结束。 Refs #303 .
+- 提高实用性: 当有异常从`FileDownloadListener#blockComplete`抛出时，将会被`catch`并且回调到`FileDownloadListener#error`中而非回调`FileDownloadListener#completed`。 Closes #305 .
+
+#### 修复
+
+- 修复(lost-connect): 避免等待服务连接的列表中在一些小概率情况下存在重复任务的问题。
+
 ## Version 1.0.2
 
 _2016-09-06_

@@ -199,7 +199,7 @@ public interface BaseDownloadTask {
     BaseDownloadTask setSyncCallback(final boolean syncCallback);
 
     /**
-     * Set whether this task only allow to download on the wifi network type. Default {@code false}.
+     * Set whether this task only allows downloading on the wifi network type. Default {@code false}.
      * <p>
      * <strong>Note:</strong> If {@code isWifiRequired} is {@code true}, FileDownloader will check
      * the network type every time after fetch less than or equal to 4096 bytes data from the
@@ -543,7 +543,7 @@ public interface BaseDownloadTask {
     boolean isLargeFile();
 
     /**
-     * @return {@code true} if this task has been set only allow to download in the wifi network type.
+     * @return {@code true} if this task has been set only allows downloading on the wifi network type.
      */
     boolean isWifiRequired();
 

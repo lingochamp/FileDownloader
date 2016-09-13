@@ -63,7 +63,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```
-compile 'com.liulishuo.filedownloader:library:1.0.2'
+compile 'com.liulishuo.filedownloader:library:1.1.0'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -286,6 +286,7 @@ if (parallel) {
 | addHeader(line:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
 | setMinIntervalUpdateSpeed(minIntervalUpdateSpeedMs:int) | 设置下载中刷新下载速度的最小间隔
 | removeAllHeaders(name:String) | 删除由自定义添加上去请求参数为`{name}`的所有键对
+| setWifiRequired(isWifiRequired:boolean) | 设置任务是否只允许在Wifi网络环境下进行下载。 默认值 `false`
 | asInQueueTask(void):InQueueTask | 申明该任务将会是队列任务中的一个任务，并且转化为`InQueueTask`，之后可以调用`InQueueTask#enqueue`将该任务入队以便于接下来启动队列任务时，可以将该任务收编到队列中
 | start(void) | 启动孤立的下载任务
 | pause(void) | 暂停下载任务(也可以理解为停止下载，但是在start的时候默认会断点续传)
@@ -312,6 +313,7 @@ if (parallel) {
 | isSyncCallback(void):boolean | 是否是设置了所有FileDownloadListener中的回调都直接在下载线程直接回调而不抛到ui线程
 | getSpeed():int | 获取任务的下载速度, 下载过程中为实时速度，下载结束状态为平均速度
 | isUsing():boolean | 判断当前的Task对象是否在引擎中启动过
+| isWifiRequired():boolean | 获取当前任务是否被设置过只允许在Wifi网络环境下下载
 
 #### 监听器(`FileDownloadListener`)说明
 
