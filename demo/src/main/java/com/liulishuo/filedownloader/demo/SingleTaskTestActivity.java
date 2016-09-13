@@ -63,6 +63,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new File(llsApkFilePath).delete();
+                new File(FileDownloadUtils.getTempPath(llsApkFilePath)).delete();
             }
         });
 
@@ -84,7 +85,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         deleteBtn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new File(normalTaskFilePath).delete();
+                new File(llsApkDir).delete();
             }
         });
     }
@@ -110,6 +111,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new File(normalTaskFilePath).delete();
+                new File(FileDownloadUtils.getTempPath(normalTaskFilePath)).delete();
             }
         });
     }
@@ -135,6 +137,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new File(chunkedFilePath).delete();
+                new File(FileDownloadUtils.getTempPath(chunkedFilePath)).delete();
             }
         });
     }
@@ -305,7 +308,6 @@ public class SingleTaskTestActivity extends AppCompatActivity {
         }
 
         public void updateCompleted(final BaseDownloadTask task) {
-
 
             toast(String.format("completed %d %s", position, task.getTargetFilePath()));
 
