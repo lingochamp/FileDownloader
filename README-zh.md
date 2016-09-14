@@ -62,7 +62,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 在项目中引用:
 
-```
+```groovy
 compile 'com.liulishuo.filedownloader:library:1.1.0'
 ```
 
@@ -72,7 +72,7 @@ compile 'com.liulishuo.filedownloader:library:1.1.0'
 
 > 如果希望定制化用于下载的`OkHttpClient`，建议参考[DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java)
 
-```
+```java
 public XXApplication extends Application{
 
     ...
@@ -90,7 +90,7 @@ public XXApplication extends Application{
 
 #### 启动单任务下载
 
-```
+```java
 FileDownloader.getImpl().create(url)
         .setPath(path)
         .setListener(new FileDownloadListener() {
@@ -134,7 +134,7 @@ FileDownloader.getImpl().create(url)
 
 #### 启动多任务下载
 
-```
+```java
 final FileDownloadListener queueTarget = new FileDownloadListener() {
     @Override
     protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
