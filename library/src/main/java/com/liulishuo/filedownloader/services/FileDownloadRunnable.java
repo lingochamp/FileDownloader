@@ -877,7 +877,7 @@ public class FileDownloadRunnable implements Runnable {
                 // throw a out of space exception.
                 throw new FileDownloadOutOfSpaceException(freeSpaceBytes,
                         requiredSpaceBytes, breakpointBytes);
-            } else {
+            } else if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION){
                 // pre allocate.
                 outFd.setLength(totalBytes);
             }
