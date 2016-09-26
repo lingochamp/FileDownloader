@@ -17,8 +17,9 @@
 package com.liulishuo.filedownloader;
 
 import com.liulishuo.filedownloader.message.MessageSnapshot;
-import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.FileDownloadRunnable;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 import java.io.FileDescriptor;
 
@@ -95,8 +96,7 @@ interface IFileDownloadMessenger {
      * There has already had some same Tasks(Same-URL & Same-SavePath) in Pending-Queue or is
      * running.
      *
-     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#start(String, String, boolean, int, int, int, boolean, FileDownloadHeader)
-     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#isDownloading(String, String)
+     * @see FileDownloadHelper#inspectAndInflowDownloading(int, FileDownloadModel, IThreadPoolMonitor, boolean)
      */
     void notifyWarn(MessageSnapshot snapshot);
 
