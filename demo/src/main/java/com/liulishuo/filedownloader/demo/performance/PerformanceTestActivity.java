@@ -219,7 +219,7 @@ public class PerformanceTestActivity extends AppCompatActivity {
 
         try {
             sink = Okio.sink(new File(writePerformanceTestPath));
-//            sink = Okio.buffer(sink);
+            sink = Okio.buffer(sink);
 
             do {
                 long byteCount = source.read(buffer, BUFFER_SIZE);
