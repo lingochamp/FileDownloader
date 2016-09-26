@@ -34,6 +34,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
+import okio.Buffer;
+import okio.Okio;
+import okio.Sink;
+import okio.Source;
+
 /**
  * Created by Jacksgong on 1/4/16.
  */
@@ -101,6 +106,7 @@ public class PerformanceTestActivity extends AppCompatActivity {
             + File.separator + "performance";
 
     private static final int TENTH_MILLI_TO_NANO = 100000;
+
     public void onClickWriteTest(final View view) {
         FileOutputStream fos = null;
         InputStream inputStream = initPerformanceTest();
@@ -204,6 +210,57 @@ public class PerformanceTestActivity extends AppCompatActivity {
         }
 
         infoAppend("RandomAccessFile", start);
+
+        Sink sink = null;
+        inputStream = initPerformanceTest();
+        Source source = Okio.source(inputStream);
+        Buffer buffer = new Buffer();
+        start = System.currentTimeMillis();
+
+        try {
+            sink = Okio.sink(new File(writePerformanceTestPath));
+//            sink = Okio.buffer(sink);
+
+            do {
+                long byteCount = source.read(buffer, BUFFER_SIZE);
+                if (byteCount == -1) {
+                    break;
+                }
+
+                sink.write(buffer, byteCount);
+
+                if (sleepMilliSec > 0 || sleepNanoSec > 0) {
+                    try {
+                        Thread.sleep(sleepMilliSec, sleepNanoSec);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } while (true);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (sink != null) {
+                try {
+                    sink.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        infoAppend("okio", start);
     }
 
     private InputStream initPerformanceTest() {
