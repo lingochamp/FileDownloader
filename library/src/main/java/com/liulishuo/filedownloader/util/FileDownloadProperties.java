@@ -223,6 +223,12 @@ public class FileDownloadProperties {
 
         // file.non-pre-allocation
         if (fileNonPreAllocation != null) {
+            if (!fileNonPreAllocation.equals(TRUE_STRING) &&
+                    !fileNonPreAllocation.equals(FALSE_STRING)) {
+                throw new IllegalStateException(
+                        FileDownloadUtils.formatString("the value of '%s' must be '%s' or '%s'",
+                                KEY_FILE_NON_PRE_ALLOCATION, TRUE_STRING, FALSE_STRING));
+            }
             FILE_NON_PRE_ALLOCATION = fileNonPreAllocation.equals(TRUE_STRING);
         } else {
             FILE_NON_PRE_ALLOCATION = false;
