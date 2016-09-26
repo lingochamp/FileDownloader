@@ -428,6 +428,9 @@ public class FileDownloadRunnable implements Runnable {
 
             callbackMinIntervalBytes = calculateCallbackMinIntervalBytes(total, maxProgressCount);
 
+//            long startWriteNanoTime = 0;
+//            long currentNanoTime;
+//            long latestWriteNanoTime = 0;
             // enter fetching loop(Step 2->6)
             do {
 
@@ -437,8 +440,21 @@ public class FileDownloadRunnable implements Runnable {
                     break;
                 }
 
+//                if (FileDownloadLog.NEED_LOG) {
+//                    startWriteNanoTime = System.nanoTime();
+//                }
                 // Step 3, writ to file
                 accessFile.write(buff, 0, byteCount);
+//                if (FileDownloadLog.NEED_LOG) {
+//                    currentNanoTime = System.nanoTime();
+//                    long writeConsume = currentNanoTime - startWriteNanoTime;
+//                    if (latestWriteNanoTime != 0) {
+//                        FileDownloadLog.v(this, "each fetch loop consume | write consume: | %fms | %fms",
+//                                (currentNanoTime - latestWriteNanoTime - writeConsume) / 1000000f,
+//                                writeConsume / 1000000f);
+//                    }
+//                    latestWriteNanoTime = currentNanoTime;
+//                }
 
                 // Step 4, adapter sofar
                 soFar += byteCount;
@@ -877,7 +893,7 @@ public class FileDownloadRunnable implements Runnable {
                 // throw a out of space exception.
                 throw new FileDownloadOutOfSpaceException(freeSpaceBytes,
                         requiredSpaceBytes, breakpointBytes);
-            } else if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION){
+            } else if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION) {
                 // pre allocate.
                 outFd.setLength(totalBytes);
             }
