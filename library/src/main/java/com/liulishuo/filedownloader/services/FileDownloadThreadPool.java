@@ -24,9 +24,7 @@ import com.liulishuo.filedownloader.util.FileDownloadProperties;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import cn.dreamtobe.threadpool.IExecutor;
-import cn.dreamtobe.threadpool.ThreadExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * The thread pool for driving the downloading runnable, which real access the network.
@@ -35,7 +33,7 @@ class FileDownloadThreadPool {
 
     private SparseArray<FileDownloadRunnable> runnablePool = new SparseArray<>();
 
-    private IExecutor mThreadPool;
+    private ThreadPoolExecutor mThreadPool;
 
     private final String THREAD_PREFIX = "Network";
     private int mMaxThreadCount;
@@ -67,7 +65,7 @@ class FileDownloadThreadPool {
                     mMaxThreadCount, validCount);
         }
 
-        final List<Runnable> taskQueue = new ThreadExecutor.Exposed(mThreadPool).shutdownNow();
+        final List<Runnable> taskQueue = mThreadPool.shutdownNow();
         mThreadPool = FileDownloadExecutors.newDefaultThreadPool(validCount, THREAD_PREFIX);
 
         if (taskQueue.size() > 0) {
@@ -84,7 +82,7 @@ class FileDownloadThreadPool {
         synchronized (this) {
             runnablePool.put(runnable.getId(), runnable);
         }
-        mThreadPool.execute("Download-" + runnable.getId(), runnable);
+        mThreadPool.execute(runnable);
 
         final int CHECK_THRESHOLD_VALUE = 600;
         if (mIgnoreCheckTimes >= CHECK_THRESHOLD_VALUE) {

@@ -16,13 +16,11 @@
 
 package com.liulishuo.filedownloader.util;
 
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import cn.dreamtobe.threadpool.ExceedWait;
-import cn.dreamtobe.threadpool.IExecutor;
-import cn.dreamtobe.threadpool.RealExecutors;
-import cn.dreamtobe.threadpool.ThreadExecutor;
-import cn.dreamtobe.threadpool.ThreadPools;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Executors are used in entire FileDownloader internal for managing different threads.
@@ -33,22 +31,44 @@ import cn.dreamtobe.threadpool.ThreadPools;
  * than {@code nThreads} threads running, a new thread is created to handle the request, but when it
  * turn to idle and the interval time of waiting for new task more than {@code DEFAULT_IDLE_SECOND}
  * second, the thread will be terminate to reduce the cost of resources.
- * <p>
- * All thread pools will be handled by {@link ThreadPools#newExceedWaitPool(int, int, long, TimeUnit, String)}.
  */
 public class FileDownloadExecutors {
     private final static int DEFAULT_IDLE_SECOND = 5;
 
-    public static IExecutor newDefaultThreadPool(int nThreads, String prefix) {
-        return ThreadPools.newExceedWaitPool(0, nThreads, DEFAULT_IDLE_SECOND, TimeUnit.SECONDS,
-                FileDownloadUtils.getThreadPoolName(prefix));
+    public static ThreadPoolExecutor newDefaultThreadPool(int nThreads, String prefix) {
+        return newDefaultThreadPool(nThreads, new LinkedBlockingQueue<Runnable>(), prefix);
     }
 
-    public static IExecutor newDefaultThreadPool(int nThreads, ExceedWait.Queue queue, String prefix) {
-        return new ThreadExecutor(new RealExecutors.ExceedWaitExecutor(0, nThreads,
-                DEFAULT_IDLE_SECOND, TimeUnit.SECONDS,
-                FileDownloadUtils.getThreadPoolName(prefix),
-                queue, new ExceedWait.RejectedHandler()));
+    public static ThreadPoolExecutor newDefaultThreadPool(int nThreads,
+                                                          LinkedBlockingQueue<Runnable> queue,
+                                                          String prefix) {
+        final ThreadPoolExecutor executor = new ThreadPoolExecutor(nThreads, nThreads,
+                DEFAULT_IDLE_SECOND, TimeUnit.SECONDS, queue, new FileDownloadThreadFactory(prefix));
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
+    }
+
+    static class FileDownloadThreadFactory implements ThreadFactory {
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final String namePrefix;
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+        FileDownloadThreadFactory(String prefix) {
+            group = Thread.currentThread().getThreadGroup();
+            namePrefix = FileDownloadUtils.getThreadPoolName(prefix);
+        }
+
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+
+            if (t.isDaemon())
+                t.setDaemon(false);
+            if (t.getPriority() != Thread.NORM_PRIORITY)
+                t.setPriority(Thread.NORM_PRIORITY);
+            return t;
+        }
     }
 
 }
