@@ -25,24 +25,17 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 /**
  * The message snapshot.
  */
-public class MessageSnapshot implements IMessageSnapshot, Parcelable {
+public abstract class MessageSnapshot implements IMessageSnapshot, Parcelable {
     private final int id;
-    protected byte status;
     protected boolean isLargeFile;
 
-    MessageSnapshot(int id, byte status) {
+    MessageSnapshot(int id) {
         this.id = id;
-        this.status = status;
     }
 
     @Override
     public int getId() {
         return id;
-    }
-
-    @Override
-    public byte getStatus() {
-        return status;
     }
 
     @Override
@@ -102,7 +95,7 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
 
 
     public interface IWarnMessageSnapshot {
-        void turnToPending();
+        MessageSnapshot turnToPending();
     }
 
 
@@ -114,7 +107,7 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeByte((byte) (isLargeFile ? 1 : 0));
-        dest.writeByte(this.status);
+        dest.writeByte(getStatus());
         // normal
         dest.writeInt(this.id);
     }
@@ -138,7 +131,7 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
                     }
                     break;
                 case FileDownloadStatus.started:
-                    snapshot = new MessageSnapshot(source);
+                    snapshot = new StartedMessageSnapshot(source);
                     break;
                 case FileDownloadStatus.connected:
                     if (largeFile) {
@@ -183,11 +176,16 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
                     }
                     break;
                 default:
-                    snapshot = new MessageSnapshot(source);
+                    snapshot = null;
             }
 
-            snapshot.isLargeFile = largeFile;
-            snapshot.status = status;
+            if (snapshot != null) {
+                snapshot.isLargeFile = largeFile;
+            } else {
+                throw new IllegalStateException("Can't restore the snapshot because unknow " +
+                        "status: " + status);
+            }
+
             return snapshot;
         }
 
@@ -201,6 +199,23 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
         NoFieldException(String methodName, MessageSnapshot snapshot) {
             super(FileDownloadUtils.formatString("There isn't a field for '%s' in this message %d %d %s",
                     methodName, snapshot.getId(), snapshot.getStatus(), snapshot.getClass().getName()));
+        }
+    }
+
+    // Started Snapshot
+    public static class StartedMessageSnapshot extends MessageSnapshot {
+
+        StartedMessageSnapshot(int id) {
+            super(id);
+        }
+
+        StartedMessageSnapshot(Parcel in) {
+            super(in);
+        }
+
+        @Override
+        public byte getStatus() {
+            return FileDownloadStatus.started;
         }
     }
 }

@@ -239,8 +239,9 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
                         mSpeedMonitor.start();
 
-                        ((MessageSnapshot.IWarnMessageSnapshot) snapshot).turnToPending();
-                        getMessenger().notifyPending(snapshot);
+                        getMessenger().
+                                notifyPending(((MessageSnapshot.IWarnMessageSnapshot) snapshot).
+                                        turnToPending());
                         break;
                     } else {
                         // already over and no callback
