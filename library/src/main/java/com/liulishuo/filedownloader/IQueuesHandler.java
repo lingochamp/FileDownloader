@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader;
 
+import java.util.List;
+
 /**
  * The interface for handle affairs of queues.
  */
@@ -40,7 +42,9 @@ public interface IQueuesHandler {
 
     void freezeAllSerialQueues();
 
-    void unFreezeAllSerialQueues();
+    void unFreezeSerialQueues(List<Integer> attachKeyList);
+
+    int serialQueueSize();
 
     boolean contain(int attachKey);
 }

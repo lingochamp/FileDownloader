@@ -36,7 +36,7 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
     @Override
     public void connected() {
         final IQueuesHandler queueHandler = FileDownloader.getImpl().getQueuesHandler();
-        List<BaseDownloadTask.IRunningTask> copyWaitingList;
+        final List<BaseDownloadTask.IRunningTask> copyWaitingList;
 
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "The downloader service is connected.");
@@ -47,16 +47,25 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
             copyWaitingList = (List<BaseDownloadTask.IRunningTask>) mWaitingList.clone();
             mWaitingList.clear();
 
+            final List<Integer> wakeupSerialQueueKeyList =
+                    new ArrayList<>(queueHandler.serialQueueSize());
+
             for (BaseDownloadTask.IRunningTask task : copyWaitingList) {
-                if (queueHandler.contain(task.getAttachKey())) {
+                final int attachKey = task.getAttachKey();
+                if (queueHandler.contain(attachKey)) {
                     task.getOrigin().asInQueueTask().enqueue();
+
+                    if (!wakeupSerialQueueKeyList.contains(attachKey)) {
+                        wakeupSerialQueueKeyList.add(attachKey);
+                    }
+
                     continue;
                 }
 
                 task.startTaskByRescue();
             }
 
-            queueHandler.unFreezeAllSerialQueues();
+            queueHandler.unFreezeSerialQueues(wakeupSerialQueueKeyList);
         }
     }
 
