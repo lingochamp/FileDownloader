@@ -2,6 +2,25 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.1.5
+
+_2016-09-29_
+
+#### New Interfaces
+
+- Support the configuration `file.non-pre-allocation` in `filedownloader.properties`: Whether doesn't need to pre-allocates the 'content-length' space when to start downloading, default is `false`. Closes #313 .
+
+#### Fix
+
+- Fix(fatal-crash): fix occur the `StackOverflowError` when thread pool getActiveCount is not right because of it just an approximate number. Closes #321 .
+- Fix(minor-crash): fix in some minor cases occur `IllegalStateException` which message is 'No reused downloaded file in this message'. Closes #316 .
+- Fix(minor-crash): fix when there are several serial-queues started in case of the FileDownloader service doesn't connect yet and in minor cases that the same task in the queue will be started twice which lead to crash. Refs #282 .
+
+#### Others
+
+- Dependency: Cancel the dependence of thread-pool library. Refs #321 .
+- MinSDKVersion: Upgrade `minSdkVersion` : 8->9. Refs #321 .
+
 ## Version 1.1.0
 
 _2016-09-13_
