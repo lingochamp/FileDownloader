@@ -91,7 +91,7 @@ public class FileDownloadRunnable implements Runnable {
     private volatile boolean isRunning = false;
     private volatile boolean isPending = false;
 
-    private final IFileDownloadDBHelper helper;
+    private final FileDownloadDatabase helper;
     private final OkHttpClient client;
     private final int autoRetryTimes;
 
@@ -110,7 +110,7 @@ public class FileDownloadRunnable implements Runnable {
 
     public FileDownloadRunnable(final OkHttpClient client, final IThreadPoolMonitor threadPoolMonitor,
                                 final FileDownloadModel model,
-                                final IFileDownloadDBHelper helper, final int autoRetryTimes,
+                                final FileDownloadDatabase helper, final int autoRetryTimes,
                                 final FileDownloadHeader header, final int minIntervalMillis,
                                 final int callbackProgressTimes, final boolean isForceReDownload,
                                 boolean isWifiRequired) {

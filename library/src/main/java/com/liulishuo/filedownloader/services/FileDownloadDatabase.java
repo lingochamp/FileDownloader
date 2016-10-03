@@ -22,9 +22,18 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 import java.util.List;
 
 /**
- * The helper for handling all operations with the filedownloader database.
+ * The filedownloader database, what is used for storing the {@link FileDownloadModel}.
+ * <p/>
+ * The data stored in the database is only used for task resumes from the breakpoint.
+ * <p>
+ * The task of the data stored in the database must be a task that has not finished downloading yet,
+ * and if the task has finished downloading, its data will be {@link #remove(int)} from the database,
+ * since that data is no longer available for resumption of its task pass.
+ *
+ * @see DefaultDatabaseImpl
+ * @see FileDownloadMgr#isBreakpointAvailable(int, FileDownloadModel)
  */
-interface IFileDownloadDBHelper {
+public interface FileDownloadDatabase {
 
     /**
      * @param id download id

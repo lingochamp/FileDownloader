@@ -36,7 +36,7 @@ import java.util.List;
  * For storing and updating the {@link FileDownloadModel} to the filedownloader database, and also
  * maintain the database when FileDownloader-Process is launching automatically.
  */
-class FileDownloadDBHelper implements IFileDownloadDBHelper {
+class DefaultDatabaseImpl implements FileDownloadDatabase {
 
     private final SQLiteDatabase db;
 
@@ -44,8 +44,8 @@ class FileDownloadDBHelper implements IFileDownloadDBHelper {
 
     private final SparseArray<FileDownloadModel> downloaderModelMap = new SparseArray<>();
 
-    public FileDownloadDBHelper() {
-        FileDownloadDBOpenHelper openHelper = new FileDownloadDBOpenHelper(FileDownloadHelper.getAppContext());
+    public DefaultDatabaseImpl() {
+        DefaultDatabaseOpenHelper openHelper = new DefaultDatabaseOpenHelper(FileDownloadHelper.getAppContext());
 
         db = openHelper.getWritableDatabase();
 

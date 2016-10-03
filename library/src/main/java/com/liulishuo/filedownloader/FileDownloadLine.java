@@ -144,6 +144,7 @@ public class FileDownloadLine {
     private void wait(final ConnectSubscriber subscriber) {
         final ConnectListener connectListener = new ConnectListener(subscriber);
 
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (connectListener) {
             FileDownloader.getImpl().bindService(connectListener);
 

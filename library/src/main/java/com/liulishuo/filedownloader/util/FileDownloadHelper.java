@@ -25,6 +25,7 @@ import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
+import com.liulishuo.filedownloader.services.FileDownloadDatabase;
 
 import java.io.File;
 
@@ -50,20 +51,19 @@ public class FileDownloadHelper {
         return APP_CONTEXT;
     }
 
-    public static void initializeDownloadMgrParams(final OkHttpClientCustomMaker maker,
-                                                   final int maxNetworkThreadCount) {
+    public static void initializeDownloadMgrParams(DownloadMgrInitialParams.InitCustomMaker customMaker) {
         if (!FileDownloadUtils.isDownloaderProcess(FileDownloadHelper.getAppContext())) {
             throw new IllegalStateException(
                     FileDownloadUtils.formatString("the DownloadMgrInitialParams is only " +
                             "can be touched in the process which the download service settles on"));
         }
 
-        DOWNLOAD_MANAGER_INITIAL_PARAMS = new DownloadMgrInitialParams(maker,
-                maxNetworkThreadCount);
+        DOWNLOAD_MANAGER_INITIAL_PARAMS = new DownloadMgrInitialParams(customMaker);
     }
 
     public static DownloadMgrInitialParams getDownloadMgrInitialParams() {
-        return DOWNLOAD_MANAGER_INITIAL_PARAMS;
+        return DOWNLOAD_MANAGER_INITIAL_PARAMS == null ?
+                new DownloadMgrInitialParams(null) : DOWNLOAD_MANAGER_INITIAL_PARAMS;
     }
 
     public interface OkHttpClientCustomMaker {
@@ -77,6 +77,24 @@ public class FileDownloadHelper {
          * @see OkHttpClient
          */
         OkHttpClient customMake();
+    }
+
+    public interface DatabaseCustomMaker {
+        /**
+         * The database is used for storing the {@link FileDownloadModel}.
+         * <p/>
+         * The data stored in the database is only used for task resumes from the breakpoint.
+         * <p>
+         * The task of the data stored in the database must be a task that has not finished downloading yet,
+         * and if the task has finished downloading, its data will be
+         * {@link FileDownloadDatabase#remove(int)} from the database, since that data is no longer
+         * available for resumption of its task pass.
+         *
+         * @return Nullable, Customize {@link FileDownloadDatabase} which will be used for storing
+         * downloading model.
+         * @see com.liulishuo.filedownloader.services.DefaultDatabaseImpl
+         */
+        FileDownloadDatabase customMake();
     }
 
     public static boolean inspectAndInflowDownloaded(int id, String path, boolean forceReDownload,

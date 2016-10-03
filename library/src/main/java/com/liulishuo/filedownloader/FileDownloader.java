@@ -27,6 +27,7 @@ import android.os.IBinder;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
+import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -53,7 +54,7 @@ public class FileDownloader {
      * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
      */
     public static void init(final Context context) {
-        init(context, null);
+        init(context, null, 0);
     }
 
 
@@ -80,16 +81,6 @@ public class FileDownloader {
      * <p>
      * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
      * loading classes.
-     * <p>
-     * This method cache {@code context} in Main-Process and FileDownloader-Process, and if the
-     * {@code okHttpClientCustomMaker} is provided, FileDownloader will initialize the okHttpClient
-     * in the FileDownloadService settled downed process.
-     * <p/>
-     * <strong>Tips:</strong> As default, you need invoke this method in {@link Application#onCreate()}
-     * to make sure the {@code context} can be hold in both Main-Process and FileDownloader-Process.
-     * But if you set the downloader service running in the main process, you can invoke this method
-     * when you need use FileDownloader. Ref {@link FileDownloadProperties} to set the downloader
-     * service running in the main process.
      *
      * @param context                 The context.
      * @param okHttpClientCustomMaker The okHttpClient customize maker, the okHttpClient will be used
@@ -107,14 +98,39 @@ public class FileDownloader {
     public static void init(final Context context,
                             /** Nullable **/final FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker,
                             /** [1,12] **/final int maxNetworkThreadCount) {
+        init(context, new DownloadMgrInitialParams.InitCustomMaker().
+                okHttpClient(okHttpClientCustomMaker).maxNetworkThreadCount(maxNetworkThreadCount));
+    }
+
+    /**
+     * * Initialize the FileDownloader.
+     * <p>
+     * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
+     * loading classes.
+     * <p>
+     * This method cache {@code context} in Main-Process and FileDownloader-Process, and if the
+     * {@code okHttpClientCustomMaker} is provided, FileDownloader will initialize the okHttpClient
+     * in the FileDownloadService settled downed process.
+     * <p/>
+     * <strong>Tips:</strong> As default, you need invoke this method in {@link Application#onCreate()}
+     * to make sure the {@code context} can be hold in both Main-Process and FileDownloader-Process.
+     * But if you set the downloader service running in the main process, you can invoke this method
+     * when you need use FileDownloader. Ref {@link FileDownloadProperties} to set the downloader
+     * service running in the main process.
+     *
+     * @param context The context.
+     * @param maker   Used to customize the download service.
+     */
+    public static void init(final Context context,
+                            final DownloadMgrInitialParams.InitCustomMaker maker) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(FileDownloader.class, "init Downloader");
         }
+
         FileDownloadHelper.holdContext(context);
 
         if (FileDownloadUtils.isDownloaderProcess(context)) {
-            FileDownloadHelper.initializeDownloadMgrParams(okHttpClientCustomMaker,
-                    maxNetworkThreadCount);
+            FileDownloadHelper.initializeDownloadMgrParams(maker);
 
             try {
                 FileDownloadUtils.setMinProgressStep(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_STEP);
@@ -123,7 +139,6 @@ public class FileDownloader {
                 e.printStackTrace();
             }
         }
-
     }
 
     /**
@@ -768,4 +783,6 @@ public class FileDownloader {
 
         return mLostConnectedHandler;
     }
+
+
 }
