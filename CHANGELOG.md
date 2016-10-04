@@ -2,6 +2,22 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.2.0
+
+_2016-10-04_
+
+#### New Interfaces
+
+- Add `FileDownloader#insureServiceBind()`: Easy to block the current thread, and start FileDownloader service, after the service started then executes the request which needs the service alive. Refs #324.
+- Add `FileDownloader#insureServiceBindAsync()`: Easy to start FileDownloader service, and after the service started then executes the request which needs the service alive. Refs #324.
+- Add `FileDownloader#bindService(runnable:Runnable)`: Easy to start FileDownloader service, and after the service started then executes the `runnable`. Refs #324.
+- Add `FileDownloader#init(Context,InitCustomMaker)`: Easy to initialize the FileDownloader engine with various kinds of customized components.
+
+#### Enhancement
+
+- Improve Practicability(`InitCustomMaker#database`): Support customize the database component with the implementation of `FileDownloadDatabase`, and implements the default database component: `DefaultDatabaseImpl`.
+- Improve Practicability(`InitCustomMaker#outputStreamCreator`): Support customize the output stream with the implementation of `FileDownloadOutputStream`, and implements the default output stream component `FileDownloadRandomAccessFile`, and some alternative components: `FileDownloadBufferedOutputStream`、`FileDownloadOkio`.
+
 ## Version 1.1.5
 
 _2016-09-29_

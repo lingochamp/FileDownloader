@@ -2,6 +2,22 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.2.0
+
+_2016-10-04_
+
+#### 新接口
+
+- 新增 `FileDownloader#insureServiceBind()`: 便于阻塞当前线程，并且启动下载服务，服务启动之后再执行需要服务的请求。 Refs #324.
+- 新增 `FileDownloader#insureServiceBindAsync()`: 便于启动下载服务，并且在服务启动之后，执行需要下载服务的请求。 Refs #324.
+- 新增 `FileDownloader#bindService(runnable:Runnable)`: 便于启动下载服务，并且在服务启动之后，执行 `runnable`。 Refs #324.
+- 新增 `FileDownloader#init(Context,InitCustomMaker)`: 便于初始化下载引擎的时候可以传入更多的定制化组件。 Refs #157.
+
+#### Enhancement
+
+- 提高实用性(`InitCustomMaker#database`): 支持定制化数据库组件(`FileDownloadDatabase`)，并且实现默认的数据库组件： `DefaultDatabaseImpl`。 Closes #157.
+- 提高实用性(`InitCustomMaker#outputStreamCreator`): 支持定制化输出流组件(`FileDownloadOutputStream`)，并且实现默认的输出流组件： `FileDownloadRandomAccessFile`，与一些可替代的组件： `FileDownloadBufferedOutputStream`、`FileDownloadOkio`。Closes #301.
+
 ## Version 1.1.5
 
 _2016-09-29_
