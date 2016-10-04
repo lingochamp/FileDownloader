@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.services;
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -171,6 +172,10 @@ public class DownloadMgrInitialParams {
             return this;
         }
 
+        /**
+         * @param creator The output stream creator is used for creating {@link FileDownloadOutputStream}
+         *                which is used to write the input stream to the file for downloading.
+         */
         public InitCustomMaker outputStreamCreator(FileDownloadHelper.OutputStreamCreator creator) {
             this.mOutputStreamCreator = creator;
             return this;
