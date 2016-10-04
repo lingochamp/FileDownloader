@@ -399,7 +399,6 @@ public class FileDownloadRunnable implements Runnable {
                     onRetry(ex, retryingTimes);
                 } else {
 
-
                     // error
                     onError(ex);
                     break;
@@ -950,7 +949,9 @@ public class FileDownloadRunnable implements Runnable {
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
          * in {@link #getOutputStream(boolean, long)}.
          */
-        if (model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE && ex instanceof IOException &&
+        if ((model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE ||
+                FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION)
+                && ex instanceof IOException &&
                 new File(tempPath).exists()) {
             // chunked
             final long freeSpaceBytes = FileDownloadUtils.
