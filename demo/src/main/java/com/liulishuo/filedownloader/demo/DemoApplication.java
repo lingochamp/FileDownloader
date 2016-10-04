@@ -5,6 +5,8 @@ import android.content.Context;
 import android.util.Log;
 
 import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
+import com.liulishuo.filedownloader.stream.FileDownloadOkio;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -39,6 +41,7 @@ public class DemoApplication extends Application {
          * @see FileDownloader#init(Context)
          */
         FileDownloader.init(getApplicationContext(),
+                new DownloadMgrInitialParams.InitCustomMaker().okHttpClient(
                 new FileDownloadHelper.OkHttpClientCustomMaker() { // is not has to provide.
                     @Override
                     public OkHttpClient customMake() {
@@ -51,7 +54,7 @@ public class DemoApplication extends Application {
                         // etc.
                         return builder.build();
                     }
-                });
+                }).outputStreamCreator(new FileDownloadOkio.Creator()));
 
         // below codes just for monitoring thread pools in the FileDownloader:
         IThreadDebugger debugger = ThreadDebugger.install(
