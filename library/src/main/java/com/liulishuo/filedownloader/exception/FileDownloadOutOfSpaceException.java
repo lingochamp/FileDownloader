@@ -28,7 +28,7 @@ import java.io.IOException;
  * <p/>
  * When the resource is non-Chunked(normally), we will check the space and handle this problem before
  * fetch data from the input stream:
- * {@link com.liulishuo.filedownloader.services.FileDownloadRunnable#getRandomAccessFile(boolean, long)}
+ * {@link com.liulishuo.filedownloader.services.FileDownloadRunnable#getOutputStream(boolean, long)}}
  * When the resource is chunked, we will handle this problem when the free space is not enough to
  * store the following chunk:
  * {@link com.liulishuo.filedownloader.services.FileDownloadRunnable#exFiltrate(Throwable)}

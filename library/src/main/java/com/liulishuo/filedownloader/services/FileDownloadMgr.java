@@ -41,18 +41,18 @@ import okhttp3.OkHttpClient;
  */
 class FileDownloadMgr implements IThreadPoolMonitor {
     private final FileDownloadDatabase mDatabase;
-
-    private OkHttpClient client = null;
-
+    private final OkHttpClient mClient;
     private final FileDownloadThreadPool mThreadPool;
+    private final FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
 
     public FileDownloadMgr() {
 
         final DownloadMgrInitialParams params = FileDownloadHelper.getDownloadMgrInitialParams();
 
         this.mDatabase = params.createDatabase();
-        this.client = params.createOkHttpClient();
-        mThreadPool = new FileDownloadThreadPool(params.getMaxNetworkThreadCount());
+        this.mClient = params.createOkHttpClient();
+        this.mThreadPool = new FileDownloadThreadPool(params.getMaxNetworkThreadCount());
+        this.mOutputStreamCreator = params.createOutputStreamCreator();
     }
 
     // synchronize for safe: check downloading, check resume, update data, execute runnable
@@ -132,8 +132,9 @@ class FileDownloadMgr implements IThreadPoolMonitor {
         }
 
         // - execute
-        mThreadPool.execute(new FileDownloadRunnable(client, this, model, mDatabase, autoRetryTimes, header,
-                callbackProgressMinIntervalMillis, callbackProgressTimes, forceReDownload, isWifiRequired));
+        mThreadPool.execute(new FileDownloadRunnable(mClient, this, mOutputStreamCreator, model,
+                mDatabase, autoRetryTimes, header, callbackProgressMinIntervalMillis,
+                callbackProgressTimes, forceReDownload, isWifiRequired));
 
     }
 
@@ -145,10 +146,15 @@ class FileDownloadMgr implements IThreadPoolMonitor {
         return isDownloading(mDatabase.find(id));
     }
 
+    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model) {
+        return isBreakpointAvailable(id, model, null);
+    }
+
     /**
      * @return can resume by break point
      */
-    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model) {
+    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model,
+                                                final Boolean outputStreamSupportSeek) {
         if (model == null) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d model == null", id);
@@ -163,11 +169,12 @@ class FileDownloadMgr implements IThreadPoolMonitor {
             return false;
         }
 
-        return isBreakpointAvailable(id, model, model.getTempFilePath());
+        return isBreakpointAvailable(id, model, model.getTempFilePath(), outputStreamSupportSeek);
     }
 
     public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model,
-                                                final String path) {
+                                                final String path,
+                                                final Boolean outputStreamSupportSeek) {
         boolean result = false;
 
         do {
@@ -214,6 +221,17 @@ class FileDownloadMgr implements IThreadPoolMonitor {
                 break;
             }
 
+            if (outputStreamSupportSeek != null && !outputStreamSupportSeek &&
+                    model.getTotal() == fileLength) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d, because of the " +
+                                    "output stream doesn't support seek, but the task has already " +
+                                    "pre-allocated, so we only can download it from the very beginning.",
+                            id);
+                }
+                break;
+            }
+
             result = true;
         } while (false);
 
@@ -237,7 +255,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
          * 目前在okHttp里还是每个单独任务
          */
         // 之所以注释掉，不想这里回调error，okHttp中会根据okHttp所在被cancel的情况抛error
-//        client.cancel(id);
+//        mClient.cancel(id);
         return true;
     }
 

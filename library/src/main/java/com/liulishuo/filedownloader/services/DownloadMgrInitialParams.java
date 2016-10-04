@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.services;
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
+import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -33,6 +34,9 @@ public class DownloadMgrInitialParams {
 
     public DownloadMgrInitialParams(InitCustomMaker maker) {
         this.mMaker = maker;
+        if (maker != null) {
+            maker.securityCheck();
+        }
     }
 
     OkHttpClient createOkHttpClient() {
@@ -85,6 +89,25 @@ public class DownloadMgrInitialParams {
         }
     }
 
+
+    FileDownloadHelper.OutputStreamCreator createOutputStreamCreator() {
+        if (mMaker == null) {
+            return createDefaultOutputStreamCreator();
+        }
+
+        final FileDownloadHelper.OutputStreamCreator outputStreamCreator = mMaker.mOutputStreamCreator;
+        if (outputStreamCreator != null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "initial FileDownloader manager with the customize " +
+                        "output stream: %s", outputStreamCreator);
+            }
+            return outputStreamCreator;
+        } else {
+            return createDefaultOutputStreamCreator();
+        }
+
+    }
+
     private OkHttpClient createDefaultOkHttpClient() {
         return new OkHttpClient();
     }
@@ -97,10 +120,15 @@ public class DownloadMgrInitialParams {
         return new DefaultDatabaseImpl();
     }
 
+    private FileDownloadHelper.OutputStreamCreator createDefaultOutputStreamCreator() {
+        return new FileDownloadRandomAccessFile.Creator();
+    }
+
     public static class InitCustomMaker {
         FileDownloadHelper.DatabaseCustomMaker mDatabaseCustomMaker;
         FileDownloadHelper.OkHttpClientCustomMaker mOkHttpClientCustomMaker;
         Integer mMaxNetworkThreadCount;
+        FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
 
         /**
          * @param maker The database is used for storing the {@link FileDownloadModel}.
@@ -141,6 +169,25 @@ public class DownloadMgrInitialParams {
                 this.mMaxNetworkThreadCount = maxNetworkThreadCount;
             }
             return this;
+        }
+
+        public InitCustomMaker outputStreamCreator(FileDownloadHelper.OutputStreamCreator creator) {
+            this.mOutputStreamCreator = creator;
+            return this;
+        }
+
+        private void securityCheck() {
+            if (mOutputStreamCreator != null && !mOutputStreamCreator.supportSeek()) {
+                if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION) {
+                    throw new IllegalArgumentException("Since the provided FileDownloadOutputStream " +
+                            "does not support the seek function, if FileDownloader pre-allocates " +
+                            "file size at the beginning of the download, it will can not be resumed" +
+                            " from the breakpoint. If you need to ensure that the resumption is" +
+                            " available, please add and set the value of 'file.non-pre-allocation' " +
+                            "field to 'true' in the 'filedownloader.properties' file which is in your" +
+                            " application assets folder manually for resolving this problem.");
+                }
+            }
         }
     }
 }
