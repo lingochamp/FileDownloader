@@ -19,9 +19,8 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.FileDownloadRunnable;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
-
-import java.io.FileDescriptor;
 
 /**
  * @see com.liulishuo.filedownloader.model.FileDownloadStatus
@@ -69,7 +68,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Fetching datum, and write to local disk.
      *
-     * @see FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see FileDownloadRunnable#onProgress(long, long, FileDownloadOutputStream)
      */
     void notifyProgress(MessageSnapshot snapshot);
 

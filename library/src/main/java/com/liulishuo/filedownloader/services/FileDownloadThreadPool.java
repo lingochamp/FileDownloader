@@ -38,14 +38,7 @@ class FileDownloadThreadPool {
     private final String THREAD_PREFIX = "Network";
     private int mMaxThreadCount;
 
-    FileDownloadThreadPool(int maxNetworkThreadCount) {
-        if (maxNetworkThreadCount == 0) {
-            maxNetworkThreadCount = FileDownloadProperties.getImpl().DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
-        } else {
-            maxNetworkThreadCount = FileDownloadProperties.
-                    getValidNetworkThreadCount(maxNetworkThreadCount);
-        }
-
+    FileDownloadThreadPool(final int maxNetworkThreadCount) {
         mThreadPool = FileDownloadExecutors.newDefaultThreadPool(maxNetworkThreadCount, THREAD_PREFIX);
         mMaxThreadCount = maxNetworkThreadCount;
     }
