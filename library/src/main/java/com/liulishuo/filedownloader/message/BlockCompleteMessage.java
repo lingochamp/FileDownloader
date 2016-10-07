@@ -23,6 +23,9 @@ import junit.framework.Assert;
 
 /**
  * The interface of block complete message.
+ *
+ * @see SmallMessageSnapshot
+ * @see LargeMessageSnapshot
  */
 
 public interface BlockCompleteMessage {
@@ -33,7 +36,7 @@ public interface BlockCompleteMessage {
         private final MessageSnapshot mCompletedSnapshot;
 
         public BlockCompleteMessageImpl(MessageSnapshot snapshot) {
-            super(snapshot.getId(), FileDownloadStatus.blockComplete);
+            super(snapshot.getId());
             Assert.assertTrue(
                     FileDownloadUtils.formatString(
                             "can't create the block complete message for id[%d], status[%d]",
@@ -45,6 +48,11 @@ public interface BlockCompleteMessage {
         @Override
         public MessageSnapshot transmitToCompleted() {
             return this.mCompletedSnapshot;
+        }
+
+        @Override
+        public byte getStatus() {
+            return FileDownloadStatus.blockComplete;
         }
     }
 

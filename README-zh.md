@@ -14,7 +14,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
-#### 英文文档: [Wiki](https://github.com/lingochamp/FileDownloader/wiki)
+#### 英文文档: [Wiki](https://github.com/lingochamp/FileDownloader/wiki)、[优化建议](https://github.com/lingochamp/FileDownloader/wiki/Optimize-Tutorial)
 
 ---
 
@@ -63,7 +63,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.1.0'
+compile 'com.liulishuo.filedownloader:library:1.2.0'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -237,8 +237,7 @@ if (parallel) {
 | 方法名 | 备注
 | --- | ---
 | init(Context) |  缓存Context，不会启动下载进程
-| init(Context, OkHttpClientCustomMaker) | 缓存Context，不会启动下载进程；在下载进程启动的时候，初始化OkHttpClient
-| init(Context, OkHttpClientCustomMaker, int) | 缓存Context，不会启动下载进程；在下载进程启动的时候，初始化OkHttpClient，并且根据提供的最大同时下载数创建网络线程线程池
+| init(Context, InitCustomMaker) | 缓存Context，不会启动下载进程；在下载进程启动的时候，会传入定制化组件
 | create(url:String) | 创建一个下载任务
 | start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
@@ -265,6 +264,14 @@ if (parallel) {
 | setTaskCompleted(taskAtomList:List<FileDownloadTaskAtom>) | 用于告诉FileDownloader引擎，指定的一系列的任务都已经通过其他方式(非FileDownloader)下载完成
 | setMaxNetworkThreadCount(int) | 设置最大并行下载的数目(网络下载线程数), [1,12]
 
+#### 定制化组件接口说明(`InitCustomMaker`)
+
+| 方法名 | 需实现接口 | 已有组件 | 默认组件 | 说明
+| --- | --- | --- | --- | ---
+| database | FileDownloadDatabase | DefaultDatabaseImpl | DefaultDatabaseImpl | 传入定制化数据库组件，用于存储用于断点续传的数据
+| okHttpClient | okHttpClient | okHttpClient | okHttpClient | 传入定制化的okHttpClient，用于下载时使用
+| outputStreamCreator | FileDownloadOutputStream | FileDownloadRandomAccessFile、FileDownloadBufferedOutputStream、FileDownloadOkio | FileDownloadRandomAccessFile | 传入输出流组件，用于下载时写文件使用
+| maxNetworkThreadCount | - | - | 3 | 传入创建下载引擎时，指定可用的下载线程个数
 
 #### Task接口说明
 
@@ -408,6 +415,7 @@ blockComplete -> completed
 | download.min-progress-step | 最小缓冲大小，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 65536
 | download.min-progress-time | 最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 2000
 | download.max-network-thread-count | 用于同时下载的最大网络线程数, 区间[1, 12] | 3
+| file.non-pre-allocation | 是否不需要在开始下载的时候，预申请整个文件的大小(`content-length`) | false
 
 
 III. 异常处理

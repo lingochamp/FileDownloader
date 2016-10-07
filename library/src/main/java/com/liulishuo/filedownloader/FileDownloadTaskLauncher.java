@@ -22,10 +22,8 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import cn.dreamtobe.threadpool.ExceedWait;
-import cn.dreamtobe.threadpool.IExecutor;
-import cn.dreamtobe.threadpool.ThreadExecutor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * The global launcher for launching tasks.
@@ -67,21 +65,21 @@ class FileDownloadTaskLauncher {
 
     private static class LaunchTaskPool {
 
-        private IExecutor mPool;
+        private ThreadPoolExecutor mPool;
 
         /**
          * the queue to use for holding tasks before they are
          * executed.  This queue will hold only the {@code Runnable}
          * tasks submitted by the {@code execute} method.
          */
-        private ExceedWait.Queue mWorkQueue;
+        private LinkedBlockingQueue<Runnable> mWorkQueue;
 
         public LaunchTaskPool() {
             init();
         }
 
         public void asyncExecute(final ITaskHunter.IStarter taskStarter) {
-            mPool.execute("Launch", new LaunchTaskRunnable(taskStarter));
+            mPool.execute(new LaunchTaskRunnable(taskStarter));
         }
 
         public void expire(ITaskHunter.IStarter starter) {
@@ -125,15 +123,15 @@ class FileDownloadTaskLauncher {
         public void expireAll() {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "expire %d tasks",
-                        mWorkQueue.size() + mWorkQueue.exceedSize());
+                        mWorkQueue.size());
             }
 
-            new ThreadExecutor.Exposed(mPool).shutdownNow();
+            mPool.shutdownNow();
             init();
         }
 
         private void init() {
-            mWorkQueue = new ExceedWait.Queue();
+            mWorkQueue = new LinkedBlockingQueue<>();
             mPool = FileDownloadExecutors.newDefaultThreadPool(3, mWorkQueue, "LauncherTask");
         }
 

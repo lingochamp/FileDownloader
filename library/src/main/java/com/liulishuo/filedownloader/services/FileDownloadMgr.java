@@ -40,42 +40,19 @@ import okhttp3.OkHttpClient;
  * @see FileDownloadRunnable
  */
 class FileDownloadMgr implements IThreadPoolMonitor {
-    private final IFileDownloadDBHelper mHelper;
-
-    private OkHttpClient client = null;
-
+    private final FileDownloadDatabase mDatabase;
+    private final OkHttpClient mClient;
     private final FileDownloadThreadPool mThreadPool;
+    private final FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
 
     public FileDownloadMgr() {
 
         final DownloadMgrInitialParams params = FileDownloadHelper.getDownloadMgrInitialParams();
-        mHelper = new FileDownloadDBHelper();
 
-        final OkHttpClient client;
-        final int maxNetworkThreadCount;
-        if (params != null) {
-            client = params.makeCustomOkHttpClient();
-            maxNetworkThreadCount = params.getMaxNetworkThreadCount();
-        } else {
-            client = null;
-            maxNetworkThreadCount = 0;
-        }
-
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "init the download manager with initialParams: " +
-                            "okhttpClient[is customize: %B], maxNetworkThreadCount[%d]",
-                    client != null, maxNetworkThreadCount);
-        }
-
-        // init client
-        if (this.client != client) {
-            this.client = client;
-        } else {
-            // in this case, the client must be null, see #41
-            this.client = new OkHttpClient();
-        }
-
-        mThreadPool = new FileDownloadThreadPool(maxNetworkThreadCount);
+        this.mDatabase = params.createDatabase();
+        this.mClient = params.createOkHttpClient();
+        this.mThreadPool = new FileDownloadThreadPool(params.getMaxNetworkThreadCount());
+        this.mOutputStreamCreator = params.createOutputStreamCreator();
     }
 
     // synchronize for safe: check downloading, check resume, update data, execute runnable
@@ -85,13 +62,13 @@ class FileDownloadMgr implements IThreadPoolMonitor {
                                    final int autoRetryTimes, final boolean forceReDownload,
                                    final FileDownloadHeader header, final boolean isWifiRequired) {
         final int id = FileDownloadUtils.generateId(url, path, pathAsDirectory);
-        FileDownloadModel model = mHelper.find(id);
+        FileDownloadModel model = mDatabase.find(id);
 
         if (!pathAsDirectory && model == null) {
             // try dir data.
             final int dirCaseId = FileDownloadUtils.generateId(url, FileDownloadUtils.getParent(path),
                     true);
-            model = mHelper.find(dirCaseId);
+            model = mDatabase.find(dirCaseId);
             if (model != null && path.equals(model.getTargetFilePath())) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(this, "task[%d] find model by dirCaseId[%d]", id, dirCaseId);
@@ -127,7 +104,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
                 ) {
             if (model.getId() != id) {
                 // in try dir case.
-                mHelper.remove(model.getId());
+                mDatabase.remove(model.getId());
                 model.setId(id);
                 model.setPath(path, pathAsDirectory);
 
@@ -151,12 +128,13 @@ class FileDownloadMgr implements IThreadPoolMonitor {
 
         // - update model to db
         if (needUpdate2DB) {
-            mHelper.update(model);
+            mDatabase.update(model);
         }
 
         // - execute
-        mThreadPool.execute(new FileDownloadRunnable(client, this, model, mHelper, autoRetryTimes, header,
-                callbackProgressMinIntervalMillis, callbackProgressTimes, forceReDownload, isWifiRequired));
+        mThreadPool.execute(new FileDownloadRunnable(mClient, this, mOutputStreamCreator, model,
+                mDatabase, autoRetryTimes, header, callbackProgressMinIntervalMillis,
+                callbackProgressTimes, forceReDownload, isWifiRequired));
 
     }
 
@@ -165,13 +143,18 @@ class FileDownloadMgr implements IThreadPoolMonitor {
     }
 
     public boolean isDownloading(int id) {
-        return isDownloading(mHelper.find(id));
+        return isDownloading(mDatabase.find(id));
+    }
+
+    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model) {
+        return isBreakpointAvailable(id, model, null);
     }
 
     /**
      * @return can resume by break point
      */
-    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model) {
+    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model,
+                                                final Boolean outputStreamSupportSeek) {
         if (model == null) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d model == null", id);
@@ -186,11 +169,12 @@ class FileDownloadMgr implements IThreadPoolMonitor {
             return false;
         }
 
-        return isBreakpointAvailable(id, model, model.getTempFilePath());
+        return isBreakpointAvailable(id, model, model.getTempFilePath(), outputStreamSupportSeek);
     }
 
     public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model,
-                                                final String path) {
+                                                final String path,
+                                                final Boolean outputStreamSupportSeek) {
         boolean result = false;
 
         do {
@@ -237,6 +221,17 @@ class FileDownloadMgr implements IThreadPoolMonitor {
                 break;
             }
 
+            if (outputStreamSupportSeek != null && !outputStreamSupportSeek &&
+                    model.getTotal() == fileLength) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadMgr.class, "can't continue %d, because of the " +
+                                    "output stream doesn't support seek, but the task has already " +
+                                    "pre-allocated, so we only can download it from the very beginning.",
+                            id);
+                }
+                break;
+            }
+
             result = true;
         } while (false);
 
@@ -245,7 +240,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
     }
 
     public boolean pause(final int id) {
-        final FileDownloadModel model = mHelper.find(id);
+        final FileDownloadModel model = mDatabase.find(id);
         if (model == null) {
             return false;
         }
@@ -260,7 +255,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
          * 目前在okHttp里还是每个单独任务
          */
         // 之所以注释掉，不想这里回调error，okHttp中会根据okHttp所在被cancel的情况抛error
-//        client.cancel(id);
+//        mClient.cancel(id);
         return true;
     }
 
@@ -280,7 +275,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
     }
 
     public long getSoFar(final int id) {
-        final FileDownloadModel model = mHelper.find(id);
+        final FileDownloadModel model = mDatabase.find(id);
         if (model == null) {
             return 0;
         }
@@ -289,7 +284,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
     }
 
     public long getTotal(final int id) {
-        final FileDownloadModel model = mHelper.find(id);
+        final FileDownloadModel model = mDatabase.find(id);
         if (model == null) {
             return 0;
         }
@@ -298,7 +293,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
     }
 
     public byte getStatus(final int id) {
-        final FileDownloadModel model = mHelper.find(id);
+        final FileDownloadModel model = mDatabase.find(id);
         if (model == null) {
             return FileDownloadStatus.INVALID_STATUS;
         }
@@ -368,8 +363,19 @@ class FileDownloadMgr implements IThreadPoolMonitor {
             return false;
         }
 
-        mHelper.remove(id);
+        mDatabase.remove(id);
         return true;
     }
+
+    public static class Creator {
+        OkHttpClient createOkHttpClient() {
+            return new OkHttpClient();
+        }
+
+        FileDownloadDatabase createDatabase() {
+            return new DefaultDatabaseImpl();
+        }
+    }
+
 }
 

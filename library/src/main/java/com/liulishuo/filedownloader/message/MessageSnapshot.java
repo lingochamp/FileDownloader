@@ -25,14 +25,12 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 /**
  * The message snapshot.
  */
-public class MessageSnapshot implements IMessageSnapshot, Parcelable {
+public abstract class MessageSnapshot implements IMessageSnapshot, Parcelable {
     private final int id;
-    protected byte status;
     protected boolean isLargeFile;
 
-    MessageSnapshot(int id, byte status) {
+    MessageSnapshot(int id) {
         this.id = id;
-        this.status = status;
     }
 
     @Override
@@ -41,75 +39,53 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
     }
 
     @Override
-    public byte getStatus() {
-        return status;
-    }
-
-    @Override
     public Throwable getThrowable() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'exception' in this message %d %d", id, status));
+        throw new NoFieldException("getThrowable", this);
     }
 
     @Override
     public int getRetryingTimes() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'retrying times' in this message %d %d", id,
-                        status));
+        throw new NoFieldException("getRetryingTimes", this);
     }
 
     @Override
     public boolean isResuming() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'is resuming' in this message %d %d", id, status));
+        throw new NoFieldException("isResuming", this);
     }
 
     @Override
     public String getEtag() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'etag' in this message %d %d", id, status));
+        throw new NoFieldException("getEtag", this);
     }
 
     @Override
     public long getLargeSofarBytes() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'large sofar bytes' in this message %d %d",
-                        id, status));
+        throw new NoFieldException("getLargeSofarBytes", this);
     }
 
     @Override
     public long getLargeTotalBytes() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'large total bytes' in this message %d %d",
-                        id, status));
+        throw new NoFieldException("getLargeTotalBytes", this);
     }
 
     @Override
     public int getSmallSofarBytes() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'small sofar bytes' in this message %d %d",
-                        id, status));
+        throw new NoFieldException("getSmallSofarBytes", this);
     }
 
     @Override
     public int getSmallTotalBytes() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No 'small total bytes' in this message %d %d",
-                        id, status));
+        throw new NoFieldException("getSmallTotalBytes", this);
     }
 
     @Override
     public boolean isReusedDownloadedFile() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No reused downloaded file' in this message %d %d",
-                        id, status));
+        throw new NoFieldException("isReusedDownloadedFile", this);
     }
 
     @Override
     public String getFileName() {
-        throw new IllegalStateException(
-                FileDownloadUtils.formatString("No filename in this message %d %d",
-                        id, status));
+        throw new NoFieldException("getFileName", this);
     }
 
     @Override
@@ -119,7 +95,7 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
 
 
     public interface IWarnMessageSnapshot {
-        void turnToPending();
+        MessageSnapshot turnToPending();
     }
 
 
@@ -131,7 +107,7 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeByte((byte) (isLargeFile ? 1 : 0));
-        dest.writeByte(this.status);
+        dest.writeByte(getStatus());
         // normal
         dest.writeInt(this.id);
     }
@@ -155,7 +131,7 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
                     }
                     break;
                 case FileDownloadStatus.started:
-                    snapshot = new MessageSnapshot(source);
+                    snapshot = new StartedMessageSnapshot(source);
                     break;
                 case FileDownloadStatus.connected:
                     if (largeFile) {
@@ -200,11 +176,16 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
                     }
                     break;
                 default:
-                    snapshot = new MessageSnapshot(source);
+                    snapshot = null;
             }
 
-            snapshot.isLargeFile = largeFile;
-            snapshot.status = status;
+            if (snapshot != null) {
+                snapshot.isLargeFile = largeFile;
+            } else {
+                throw new IllegalStateException("Can't restore the snapshot because unknow " +
+                        "status: " + status);
+            }
+
             return snapshot;
         }
 
@@ -213,4 +194,28 @@ public class MessageSnapshot implements IMessageSnapshot, Parcelable {
             return new MessageSnapshot[size];
         }
     };
+
+    public static class NoFieldException extends IllegalStateException {
+        NoFieldException(String methodName, MessageSnapshot snapshot) {
+            super(FileDownloadUtils.formatString("There isn't a field for '%s' in this message %d %d %s",
+                    methodName, snapshot.getId(), snapshot.getStatus(), snapshot.getClass().getName()));
+        }
+    }
+
+    // Started Snapshot
+    public static class StartedMessageSnapshot extends MessageSnapshot {
+
+        StartedMessageSnapshot(int id) {
+            super(id);
+        }
+
+        StartedMessageSnapshot(Parcel in) {
+            super(in);
+        }
+
+        @Override
+        public byte getStatus() {
+            return FileDownloadStatus.started;
+        }
+    }
 }

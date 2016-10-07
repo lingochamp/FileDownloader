@@ -27,12 +27,14 @@ import android.widget.TextView;
 import com.liulishuo.filedownloader.demo.R;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 import okio.Buffer;
 import okio.Okio;
@@ -164,6 +166,54 @@ public class PerformanceTestActivity extends AppCompatActivity {
         }
 
         infoAppend("FileOutputStream", start);
+
+        BufferedOutputStream bos = null;
+        inputStream = initPerformanceTest();
+        start = System.currentTimeMillis();
+
+        // ---------------------- BufferedOutputStream
+        try {
+            bos = new BufferedOutputStream(new FileOutputStream(writePerformanceTestPath, true));
+            do {
+                int byteCount = inputStream.read(buff);
+                if (byteCount == -1) {
+                    break;
+                }
+                bos.write(buff, 0, byteCount);
+
+                if (sleepMilliSec > 0 || sleepNanoSec > 0) {
+                    try {
+                        Thread.sleep(sleepMilliSec, sleepNanoSec);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } while (true);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (bos != null) {
+                try {
+                    bos.flush();
+                    bos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        infoAppend("BufferOutputStream", start);
+
 
         RandomAccessFile raf = null;
         inputStream = initPerformanceTest();

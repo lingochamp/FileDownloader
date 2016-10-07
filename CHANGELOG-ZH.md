@@ -2,6 +2,41 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.2.0
+
+_2016-10-04_
+
+#### 新接口
+
+- 新增 `FileDownloader#insureServiceBind()`: 便于阻塞当前线程，并且启动下载服务，服务启动之后再执行需要服务的请求。 Refs #324.
+- 新增 `FileDownloader#insureServiceBindAsync()`: 便于启动下载服务，并且在服务启动之后，执行需要下载服务的请求。 Refs #324.
+- 新增 `FileDownloader#bindService(runnable:Runnable)`: 便于启动下载服务，并且在服务启动之后，执行 `runnable`。 Refs #324.
+- 新增 `FileDownloader#init(Context,InitCustomMaker)`: 便于初始化下载引擎的时候可以传入更多的定制化组件。 Refs #157.
+
+#### Enhancement
+
+- 提高实用性(`InitCustomMaker#database`): 支持定制化数据库组件(`FileDownloadDatabase`)，并且实现默认的数据库组件： `DefaultDatabaseImpl`。 Closes #157.
+- 提高实用性(`InitCustomMaker#outputStreamCreator`): 支持定制化输出流组件(`FileDownloadOutputStream`)，并且实现默认的输出流组件： `FileDownloadRandomAccessFile`，与一些可替代的组件： `FileDownloadBufferedOutputStream`、`FileDownloadOkio`。Closes #301.
+
+## Version 1.1.5
+
+_2016-09-29_
+
+#### 新接口
+
+- 支持在`filedownloader.properties`中配置`file.non-pre-allocation`: 是否不需要在开始下载的时候，预申请整个文件的大小(`content-length`), 默认值是`false`。Closes #313 .
+
+#### 修复
+
+- 修复(fatal-crash): 修复由于`ThreadPoolExecutor#getActiveCount()`是一个大概的值，导致在其反回的不是正确值时，thread-pool库中存在`StackOverflowError`Crash的问题。Closes #321 .
+- 修复(minor-crash): 修复在一些小概率情况下出现Crash Message是'No reused downloaded file in this message'的IllegalStateException的问题。 Closes #316 .
+- 修复(minor-crash): 修复当在下载服务还没有连接上时，同时有几个串行队列任务需要执行，在一些小概率的情况下，一些相同的任务会被启动两次导致crash的问题。 Refs #282 .
+
+#### 其他
+
+- 依赖: 取消对thread-pool库的依赖。 Refs #321 .
+- MinSDKVersion: 升级`minSdkVersion` : 8->9。 Refs #321 .
+
 ## Version 1.1.0
 
 _2016-09-13_

@@ -34,17 +34,15 @@ import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.io.SyncFailedException;
 import java.net.HttpURLConnection;
 
 import okhttp3.CacheControl;
@@ -91,7 +89,7 @@ public class FileDownloadRunnable implements Runnable {
     private volatile boolean isRunning = false;
     private volatile boolean isPending = false;
 
-    private final IFileDownloadDBHelper helper;
+    private final FileDownloadDatabase helper;
     private final OkHttpClient client;
     private final int autoRetryTimes;
 
@@ -108,9 +106,12 @@ public class FileDownloadRunnable implements Runnable {
 
     private final int mId;
 
+    private final FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
+
     public FileDownloadRunnable(final OkHttpClient client, final IThreadPoolMonitor threadPoolMonitor,
+                                final FileDownloadHelper.OutputStreamCreator outputStreamCreator,
                                 final FileDownloadModel model,
-                                final IFileDownloadDBHelper helper, final int autoRetryTimes,
+                                final FileDownloadDatabase helper, final int autoRetryTimes,
                                 final FileDownloadHeader header, final int minIntervalMillis,
                                 final int callbackProgressTimes, final boolean isForceReDownload,
                                 boolean isWifiRequired) {
@@ -122,6 +123,7 @@ public class FileDownloadRunnable implements Runnable {
 
         this.client = client;
         this.threadPoolMonitor = threadPoolMonitor;
+        this.mOutputStreamCreator = outputStreamCreator;
         this.helper = helper;
         this.header = header;
 
@@ -397,7 +399,6 @@ public class FileDownloadRunnable implements Runnable {
                     onRetry(ex, retryingTimes);
                 } else {
 
-
                     // error
                     onError(ex);
                     break;
@@ -419,8 +420,8 @@ public class FileDownloadRunnable implements Runnable {
                           long soFar, long total) throws Throwable {
         // fetching datum
         InputStream inputStream = null;
-        final RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue, total);
-        final FileDescriptor fd = accessFile.getFD();
+        final FileDownloadOutputStream outputStream = getOutputStream(isSucceedContinue, total);
+
         try {
             // Step 1, get input stream
             inputStream = response.body().byteStream();
@@ -444,7 +445,7 @@ public class FileDownloadRunnable implements Runnable {
 //                    startWriteNanoTime = System.nanoTime();
 //                }
                 // Step 3, writ to file
-                accessFile.write(buff, 0, byteCount);
+                outputStream.write(buff, 0, byteCount);
 //                if (FileDownloadLog.NEED_LOG) {
 //                    currentNanoTime = System.nanoTime();
 //                    long writeConsume = currentNanoTime - startWriteNanoTime;
@@ -459,15 +460,8 @@ public class FileDownloadRunnable implements Runnable {
                 // Step 4, adapter sofar
                 soFar += byteCount;
 
-                // Step 5, check whether file is changed by others
-                if (accessFile.length() < soFar) {
-                    throw new RuntimeException(
-                            FileDownloadUtils.formatString("the file was changed by others when" +
-                                    " downloading. %d %d", accessFile.length(), soFar));
-                } else {
-                    // callback on progressing
-                    onProgress(soFar, total, fd);
-                }
+                // Step 5, callback on progressing
+                onProgress(soFar, total, outputStream);
 
                 // Step 6, check state
                 if (checkState()) {
@@ -507,15 +501,15 @@ public class FileDownloadRunnable implements Runnable {
             }
 
             try {
-                if (fd != null) {
+                if (outputStream != null) {
                     //noinspection ThrowFromFinallyBlock
-                    fd.sync();
+                    outputStream.sync();
                 }
             } finally {
                 //noinspection ConstantConditions
-                if (accessFile != null) {
+                if (outputStream != null) {
                     //noinspection ThrowFromFinallyBlock
-                    accessFile.close();
+                    outputStream.close();
                 }
             }
         }
@@ -663,7 +657,8 @@ public class FileDownloadRunnable implements Runnable {
     private long lastUpdateTime = 0;
 
 
-    private void onProgress(final long soFar, final long total, final FileDescriptor fd) {
+    private void onProgress(final long soFar, final long total,
+                            final FileDownloadOutputStream outputStream) {
         if (soFar == total) {
             return;
         }
@@ -675,8 +670,8 @@ public class FileDownloadRunnable implements Runnable {
         if (bytesDelta > FileDownloadUtils.getMinProgressStep() &&
                 timeDelta > FileDownloadUtils.getMinProgressTime()) {
             try {
-                fd.sync();
-            } catch (SyncFailedException e) {
+                outputStream.sync();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
             helper.updateProgress(model, soFar);
@@ -850,8 +845,8 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     // ----------------------------------
-    private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes)
-            throws IOException {
+    private FileDownloadOutputStream getOutputStream(final boolean append, final long totalBytes)
+            throws IOException, IllegalAccessException {
         final String tempPath = model.getTempFilePath();
         if (TextUtils.isEmpty(tempPath)) {
             throw new RuntimeException("found invalid internal destination path, empty");
@@ -879,36 +874,41 @@ public class FileDownloadRunnable implements Runnable {
             }
         }
 
-        RandomAccessFile outFd = new RandomAccessFile(file, "rw");
+        FileDownloadOutputStream outputStream = mOutputStreamCreator.create(file);
 
         // check the available space bytes whether enough or not.
         if (totalBytes > 0) {
-            final long breakpointBytes = outFd.length();
+            final long breakpointBytes = file.length();
             final long requiredSpaceBytes = totalBytes - breakpointBytes;
 
             final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(tempPath);
 
             if (freeSpaceBytes < requiredSpaceBytes) {
-                outFd.close();
+                outputStream.close();
                 // throw a out of space exception.
                 throw new FileDownloadOutOfSpaceException(freeSpaceBytes,
                         requiredSpaceBytes, breakpointBytes);
             } else if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION) {
                 // pre allocate.
-                outFd.setLength(totalBytes);
+                outputStream.setLength(totalBytes);
             }
         }
 
-        if (append) {
-            outFd.seek(model.getSoFar());
+        if (append && mOutputStreamCreator.supportSeek()) {
+            outputStream.seek(model.getSoFar());
         }
 
-        return outFd;
+        return outputStream;
     }
 
     private void checkIsResumeAvailable() {
-        if (FileDownloadMgr.isBreakpointAvailable(mId, this.model)) {
+        final boolean outputStreamSupportSeek = mOutputStreamCreator.supportSeek();
+        if (FileDownloadMgr.isBreakpointAvailable(mId, this.model,
+                outputStreamSupportSeek)) {
             this.isResumeDownloadAvailable = true;
+            if (!outputStreamSupportSeek) {
+                this.model.setSoFar(new File(model.getTempFilePath()).length());
+            }
         } else {
             this.isResumeDownloadAvailable = false;
             deleteTaskFiles();
@@ -947,9 +947,11 @@ public class FileDownloadRunnable implements Runnable {
         final String tempPath = model.getTempFilePath();
         /**
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
-         * in {@link #getRandomAccessFile(boolean, long)}.
+         * in {@link #getOutputStream(boolean, long)}.
          */
-        if (model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE && ex instanceof IOException &&
+        if ((model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE ||
+                FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION)
+                && ex instanceof IOException &&
                 new File(tempPath).exists()) {
             // chunked
             final long freeSpaceBytes = FileDownloadUtils.

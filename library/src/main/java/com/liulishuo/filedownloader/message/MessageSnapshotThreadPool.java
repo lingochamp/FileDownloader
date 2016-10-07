@@ -19,8 +19,7 @@ import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import cn.dreamtobe.threadpool.IExecutor;
+import java.util.concurrent.Executor;
 
 /**
  * For guaranteeing only one-thread-pool for one-task, the task will be identified by its ID, make
@@ -84,7 +83,7 @@ public class MessageSnapshotThreadPool {
 
     public class FlowSingleExecutor {
         private final List<Integer> enQueueTaskIdList = new ArrayList<>();
-        private final IExecutor mExecutor;
+        private final Executor mExecutor;
 
         public FlowSingleExecutor(int index) {
             mExecutor = FileDownloadExecutors.newDefaultThreadPool(1, "Flow-" + index);
@@ -95,7 +94,7 @@ public class MessageSnapshotThreadPool {
         }
 
         public void execute(final MessageSnapshot snapshot) {
-            mExecutor.execute("FlowMessage", new Runnable() {
+            mExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
                     receiver.receive(snapshot);

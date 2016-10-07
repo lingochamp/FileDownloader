@@ -27,9 +27,9 @@ import android.os.StatFs;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.services.FileDownloadService;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -63,7 +63,7 @@ public class FileDownloadUtils {
      *                        <p/>
      *                        Default 65536, which follow the value in
      *                        com.android.providers.downloads.Constants.
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDownloadOutputStream)
      * @see #setMinProgressTime(long)
      */
     public static void setMinProgressStep(int minProgressStep) throws IllegalAccessException {
@@ -90,7 +90,7 @@ public class FileDownloadUtils {
      *                        <p/>
      *                        Default 2000, which follow the value in
      *                        com.android.providers.downloads.Constants.
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDownloadOutputStream)
      * @see #setMinProgressStep(int)
      */
     public static void setMinProgressTime(long minProgressTime) throws IllegalAccessException {
