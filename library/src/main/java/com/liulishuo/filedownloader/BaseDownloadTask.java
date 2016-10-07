@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.message.MessageSnapshotThreadPool;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -198,6 +199,22 @@ public interface BaseDownloadTask {
     BaseDownloadTask setSyncCallback(final boolean syncCallback);
 
     /**
+     * Set whether this task only allows downloading on the wifi network type. Default {@code false}.
+     * <p>
+     * <strong>Note:</strong> If {@code isWifiRequired} is {@code true}, FileDownloader will check
+     * the network type every time after fetch less than or equal to 4096 bytes data from the
+     * network, what will result in slowing the download speed slightly.
+     * <p>
+     * <strong>Permission:</strong> If {@code isWifiRequired} is {@code true}, You need declare the
+     * permission {@link android.Manifest.permission#ACCESS_NETWORK_STATE} in your manifest, let
+     * FileDownloader has permission to check the network type in downloading, if you start this
+     * task without this permission you will receive a {@link FileDownloadGiveUpRetryException}.
+     *
+     * @param isWifiRequired {@code true} This task only allow to download on the wifi network type.
+     */
+    BaseDownloadTask setWifiRequired(final boolean isWifiRequired);
+
+    /**
      * Ready this task(For the task in a queue).
      * <p>
      * <strong>Note:</strong> If this task doesn't belong to a queue, what is just an isolated task,
@@ -220,7 +237,7 @@ public interface BaseDownloadTask {
 
     /**
      * Declare the task will be assembled by a queue which makes up of the same listener task.
-     *
+     * <p>
      * <strong>Note:</strong> If you use {@link FileDownloadQueueSet} to start this task in a queue,
      * you don't need to invoke this method manually, it has been handled by
      * {@link FileDownloadQueueSet}.
@@ -524,6 +541,11 @@ public interface BaseDownloadTask {
      * @see #getLargeFileTotalBytes()
      */
     boolean isLargeFile();
+
+    /**
+     * @return {@code true} if this task has been set only allows downloading on the wifi network type.
+     */
+    boolean isWifiRequired();
 
     /**
      * Declare the task will be assembled by a queue which makes up of the same listener task.

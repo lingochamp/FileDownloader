@@ -18,15 +18,18 @@ package com.liulishuo.filedownloader.util;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.services.FileDownloadService;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -60,7 +63,7 @@ public class FileDownloadUtils {
      *                        <p/>
      *                        Default 65536, which follow the value in
      *                        com.android.providers.downloads.Constants.
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDownloadOutputStream)
      * @see #setMinProgressTime(long)
      */
     public static void setMinProgressStep(int minProgressStep) throws IllegalAccessException {
@@ -87,7 +90,7 @@ public class FileDownloadUtils {
      *                        <p/>
      *                        Default 2000, which follow the value in
      *                        com.android.providers.downloads.Constants.
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#onProgress(long, long, FileDownloadOutputStream)
      * @see #setMinProgressStep(int)
      */
     public static void setMinProgressTime(long minProgressTime) throws IllegalAccessException {
@@ -448,5 +451,24 @@ public class FileDownloadUtils {
             return path.substring(0, index + 1);
         }
         return path.substring(0, index);
+    }
+
+    private final static String FILEDOWNLOADER_PREFIX = "FileDownloader";
+
+    public static String getThreadPoolName(String name) {
+        return FILEDOWNLOADER_PREFIX + "-" + name;
+    }
+
+    public static boolean isNetworkOnWifiType() {
+        final ConnectivityManager manager = (ConnectivityManager) FileDownloadHelper.getAppContext().
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo info = manager.getActiveNetworkInfo();
+
+        return info != null && info.getType() == ConnectivityManager.TYPE_WIFI;
+    }
+
+    public static boolean checkPermission(String permission) {
+        final int perm = FileDownloadHelper.getAppContext().checkCallingOrSelfPermission(permission);
+        return perm == PackageManager.PERMISSION_GRANTED;
     }
 }

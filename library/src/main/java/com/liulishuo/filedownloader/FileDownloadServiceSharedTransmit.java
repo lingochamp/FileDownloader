@@ -45,13 +45,14 @@ class FileDownloadServiceSharedTransmit implements
     @Override
     public boolean start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
                          int callbackProgressMinIntervalMillis,
-                         int autoRetryTimes, boolean forceReDownload, FileDownloadHeader header) {
+                         int autoRetryTimes, boolean forceReDownload, FileDownloadHeader header,
+                         boolean isWifiRequired) {
         if (!isConnected()) {
             return DownloadServiceNotConnectedHelper.start(url, path, pathAsDirectory);
         }
 
         handler.start(url, path, pathAsDirectory, callbackProgressTimes, callbackProgressMinIntervalMillis,
-                autoRetryTimes, forceReDownload, header);
+                autoRetryTimes, forceReDownload, header, isWifiRequired);
         return true;
     }
 

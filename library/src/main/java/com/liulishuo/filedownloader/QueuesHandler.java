@@ -99,13 +99,16 @@ class QueuesHandler implements IQueuesHandler {
     }
 
     @Override
-    public void unFreezeAllSerialQueues() {
-        for (int i = 0; i < mRunningSerialMap.size(); i++) {
-            final int key = mRunningSerialMap.keyAt(i);
-            Handler handler = mRunningSerialMap.get(key);
+    public void unFreezeSerialQueues(List<Integer> attachKeyList) {
+        for (Integer attachKey : attachKeyList) {
+            final Handler handler = mRunningSerialMap.get(attachKey);
             unFreezeSerialHandler(handler);
         }
+    }
 
+    @Override
+    public int serialQueueSize() {
+        return mRunningSerialMap.size();
     }
 
     @Override

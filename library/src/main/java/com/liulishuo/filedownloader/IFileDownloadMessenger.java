@@ -17,10 +17,10 @@
 package com.liulishuo.filedownloader;
 
 import com.liulishuo.filedownloader.message.MessageSnapshot;
-import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.FileDownloadRunnable;
-
-import java.io.FileDescriptor;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 /**
  * @see com.liulishuo.filedownloader.model.FileDownloadStatus
@@ -68,7 +68,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Fetching datum, and write to local disk.
      *
-     * @see FileDownloadRunnable#onProgress(long, long, FileDescriptor)
+     * @see FileDownloadRunnable#onProgress(long, long, FileDownloadOutputStream)
      */
     void notifyProgress(MessageSnapshot snapshot);
 
@@ -95,8 +95,7 @@ interface IFileDownloadMessenger {
      * There has already had some same Tasks(Same-URL & Same-SavePath) in Pending-Queue or is
      * running.
      *
-     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#start(String, String, boolean, int, int, int, boolean, FileDownloadHeader)
-     * @see com.liulishuo.filedownloader.services.FileDownloadMgr#isDownloading(String, String)
+     * @see FileDownloadHelper#inspectAndInflowDownloading(int, FileDownloadModel, IThreadPoolMonitor, boolean)
      */
     void notifyWarn(MessageSnapshot snapshot);
 
@@ -152,7 +151,7 @@ interface IFileDownloadMessenger {
      * @param task Re-appointment for this task, when this messenger has already accomplished the
      *             old one.
      */
-    void reAppointment(BaseDownloadTask task, BaseDownloadTask.LifeCycleCallback callback);
+    void reAppointment(BaseDownloadTask.IRunningTask task, BaseDownloadTask.LifeCycleCallback callback);
 
     /**
      * The 'block completed'(status) message will be handover in the non-UI thread and block the

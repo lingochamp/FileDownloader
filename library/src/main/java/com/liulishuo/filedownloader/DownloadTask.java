@@ -62,6 +62,8 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
      */
     private boolean mSyncCallback = false;
 
+    private boolean mIsWifiRequired = false;
+
     public final static int DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS = 10;
     private int mCallbackProgressTimes = FileDownloadModel.DEFAULT_CALLBACK_PROGRESS_TIMES;
     private int mCallbackProgressMinIntervalMillis = DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS;
@@ -228,6 +230,12 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     }
 
     @Override
+    public BaseDownloadTask setWifiRequired(boolean isWifiRequired) {
+        this.mIsWifiRequired = isWifiRequired;
+        return this;
+    }
+
+    @Override
     public int ready() {
         return asInQueueTask().enqueue();
     }
@@ -247,7 +255,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
         this.mAttachKey = 0;
         mIsInQueueTask = false;
-        clearMarkAdded2List();
+        mIsMarkedAdded2List = false;
         mHunter.reset();
 
         return true;
@@ -310,7 +318,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
             } else {
                 throw new IllegalStateException("This task is dirty to restart, If you want to " +
                         "reuse this task, please invoke #reuse method manually and retry to " +
-                        "restart again.");
+                        "restart again." + mHunter.toString());
             }
         }
 
@@ -514,6 +522,11 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         return mHunter.isLargeFile();
     }
 
+    @Override
+    public boolean isWifiRequired() {
+        return mIsWifiRequired;
+    }
+
     private final Object headerCreateLock = new Object();
 
     private void checkAndCreateHeader() {
@@ -545,7 +558,9 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public void free() {
         mHunter.free();
-        clearMarkAdded2List();
+        if (!FileDownloadList.getImpl().contains(this)) {
+            mIsMarkedAdded2List = false;
+        }
     }
 
     @Override
@@ -561,9 +576,6 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         startTaskUnchecked();
     }
 
-    void clearMarkAdded2List() {
-        mIsMarkedAdded2List = false;
-    }
 
     @Override
     public boolean isMarkedAdded2List() {

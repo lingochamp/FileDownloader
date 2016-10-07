@@ -35,6 +35,7 @@ public class FileDownloadQueueSet {
     private Integer autoRetryTimes;
     private Boolean syncCallback;
     private Boolean isForceReDownload;
+    private Boolean isWifiRequired;
     private Integer callbackProgressTimes;
     private Integer callbackProgressMinIntervalMillis;
     private Object tag;
@@ -142,6 +143,10 @@ public class FileDownloadQueueSet {
                 task.setPath(this.directory, true);
             }
 
+            if (this.isWifiRequired != null) {
+                task.setWifiRequired(true);
+            }
+
             task.asInQueueTask().enqueue();
         }
 
@@ -232,6 +237,14 @@ public class FileDownloadQueueSet {
         }
 
         this.taskFinishListenerList.add(finishListener);
+        return this;
+    }
+
+    /**
+     * @see BaseDownloadTask#setWifiRequired(boolean)
+     */
+    public FileDownloadQueueSet setWifiRequired(boolean isWifiRequired) {
+        this.isWifiRequired = isWifiRequired;
         return this;
     }
 

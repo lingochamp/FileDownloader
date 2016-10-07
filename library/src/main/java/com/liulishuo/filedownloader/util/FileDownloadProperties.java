@@ -84,6 +84,15 @@ import java.util.Properties;
  * FileDownloader is support to configure for this.
  * Max 12, min 1. If the value more than {@code max} will be replaced with {@code max}; If the value
  * less than {@code min} will be replaced with {@code min}.
+ * <p/>
+ * Key {@code file.non-pre-allocation}
+ * Value: {@code true} or {@code false}
+ * Default: {@code false}.
+ * Such as: file.non-pre-allocation=false
+ * Description:
+ * FileDownloader is designed to create the file and pre-allocates the 'content-length' space for it
+ * when start downloading.Because FileDownloader want to prevent the space is not enough to store
+ * coming data in downloading state as default.
  */
 public class FileDownloadProperties {
 
@@ -92,12 +101,14 @@ public class FileDownloadProperties {
     private final static String KEY_DOWNLOAD_MIN_PROGRESS_STEP = "download.min-progress-step";
     private final static String KEY_DOWNLOAD_MIN_PROGRESS_TIME = "download.min-progress-time";
     private final static String KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT = "download.max-network-thread-count";
+    private final static String KEY_FILE_NON_PRE_ALLOCATION = "file.non-pre-allocation";
 
     public final int DOWNLOAD_MIN_PROGRESS_STEP;
     public final long DOWNLOAD_MIN_PROGRESS_TIME;
     public final boolean HTTP_LENIENT;
     public final boolean PROCESS_NON_SEPARATE;
     public final int DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
+    public final boolean FILE_NON_PRE_ALLOCATION;
 
     public static class HolderClass {
         private final static FileDownloadProperties INSTANCE = new FileDownloadProperties();
@@ -123,6 +134,7 @@ public class FileDownloadProperties {
         String downloadMinProgressStep = null;
         String downloadMinProgressTime = null;
         String downloadMaxNetworkThreadCount = null;
+        String fileNonPreAllocation = null;
 
         Properties p = new Properties();
         InputStream inputStream = null;
@@ -137,6 +149,7 @@ public class FileDownloadProperties {
                 downloadMinProgressStep = p.getProperty(KEY_DOWNLOAD_MIN_PROGRESS_STEP);
                 downloadMinProgressTime = p.getProperty(KEY_DOWNLOAD_MIN_PROGRESS_TIME);
                 downloadMaxNetworkThreadCount = p.getProperty(KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT);
+                fileNonPreAllocation = p.getProperty(KEY_FILE_NON_PRE_ALLOCATION);
             }
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
@@ -206,6 +219,19 @@ public class FileDownloadProperties {
                     Integer.valueOf(downloadMaxNetworkThreadCount));
         } else {
             DOWNLOAD_MAX_NETWORK_THREAD_COUNT = 3;
+        }
+
+        // file.non-pre-allocation
+        if (fileNonPreAllocation != null) {
+            if (!fileNonPreAllocation.equals(TRUE_STRING) &&
+                    !fileNonPreAllocation.equals(FALSE_STRING)) {
+                throw new IllegalStateException(
+                        FileDownloadUtils.formatString("the value of '%s' must be '%s' or '%s'",
+                                KEY_FILE_NON_PRE_ALLOCATION, TRUE_STRING, FALSE_STRING));
+            }
+            FILE_NON_PRE_ALLOCATION = fileNonPreAllocation.equals(TRUE_STRING);
+        } else {
+            FILE_NON_PRE_ALLOCATION = false;
         }
 
         if (FileDownloadLog.NEED_LOG) {

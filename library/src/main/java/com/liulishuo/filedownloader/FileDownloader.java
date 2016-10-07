@@ -19,11 +19,15 @@ package com.liulishuo.filedownloader;
 import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
+import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -50,7 +54,7 @@ public class FileDownloader {
      * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
      */
     public static void init(final Context context) {
-        init(context, null);
+        init(context, null, 0);
     }
 
 
@@ -77,16 +81,6 @@ public class FileDownloader {
      * <p>
      * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
      * loading classes.
-     * <p>
-     * This method cache {@code context} in Main-Process and FileDownloader-Process, and if the
-     * {@code okHttpClientCustomMaker} is provided, FileDownloader will initialize the okHttpClient
-     * in the FileDownloadService settled downed process.
-     * <p/>
-     * <strong>Tips:</strong> As default, you need invoke this method in {@link Application#onCreate()}
-     * to make sure the {@code context} can be hold in both Main-Process and FileDownloader-Process.
-     * But if you set the downloader service running in the main process, you can invoke this method
-     * when you need use FileDownloader. Ref {@link FileDownloadProperties} to set the downloader
-     * service running in the main process.
      *
      * @param context                 The context.
      * @param okHttpClientCustomMaker The okHttpClient customize maker, the okHttpClient will be used
@@ -104,14 +98,39 @@ public class FileDownloader {
     public static void init(final Context context,
                             /** Nullable **/final FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker,
                             /** [1,12] **/final int maxNetworkThreadCount) {
+        init(context, new DownloadMgrInitialParams.InitCustomMaker().
+                okHttpClient(okHttpClientCustomMaker).maxNetworkThreadCount(maxNetworkThreadCount));
+    }
+
+    /**
+     * * Initialize the FileDownloader.
+     * <p>
+     * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
+     * loading classes.
+     * <p>
+     * This method cache {@code context} in Main-Process and FileDownloader-Process, and if the
+     * {@code okHttpClientCustomMaker} is provided, FileDownloader will initialize the okHttpClient
+     * in the FileDownloadService settled downed process.
+     * <p/>
+     * <strong>Tips:</strong> As default, you need invoke this method in {@link Application#onCreate()}
+     * to make sure the {@code context} can be hold in both Main-Process and FileDownloader-Process.
+     * But if you set the downloader service running in the main process, you can invoke this method
+     * when you need use FileDownloader. Ref {@link FileDownloadProperties} to set the downloader
+     * service running in the main process.
+     *
+     * @param context The context.
+     * @param maker   Used to customize the download service.
+     */
+    public static void init(final Context context,
+                            final DownloadMgrInitialParams.InitCustomMaker maker) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(FileDownloader.class, "init Downloader");
         }
+
         FileDownloadHelper.holdContext(context);
 
         if (FileDownloadUtils.isDownloaderProcess(context)) {
-            FileDownloadHelper.initializeDownloadMgrParams(okHttpClientCustomMaker,
-                    maxNetworkThreadCount);
+            FileDownloadHelper.initializeDownloadMgrParams(maker);
 
             try {
                 FileDownloadUtils.setMinProgressStep(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_STEP);
@@ -120,7 +139,6 @@ public class FileDownloader {
                 e.printStackTrace();
             }
         }
-
     }
 
     /**
@@ -479,17 +497,40 @@ public class FileDownloader {
     }
 
     /**
-     * Start the downloader service and bind the downloader service.
+     * Start and bind the FileDownloader service.
      * <p>
-     * <strong>Tips:</strong> The downloader service will start and bind automatically when any task
-     * is started.
+     * <strong>Tips:</strong> The FileDownloader service will start and bind automatically when any task
+     * is request to start.
      *
+     * @see #bindService(Runnable)
      * @see #isServiceConnected()
      * @see #addServiceConnectListener(FileDownloadConnectListener)
      */
     public void bindService() {
         if (!isServiceConnected()) {
             FileDownloadServiceProxy.getImpl().bindStartByContext(FileDownloadHelper.getAppContext());
+        }
+    }
+
+    /**
+     * Start and bind the FileDownloader service and run {@code runnable} as soon as the binding is
+     * successful.
+     * <p>
+     * <strong>Tips:</strong> The FileDownloader service will start and bind automatically when any task
+     * is request to start.
+     *
+     * @param runnable the command will be executed as soon as the FileDownloader Service is
+     *                 successfully bound.
+     * @see #isServiceConnected()
+     * @see #bindService()
+     * @see #addServiceConnectListener(FileDownloadConnectListener)
+     */
+    public void bindService(final Runnable runnable) {
+        if (isServiceConnected()) {
+            runnable.run();
+        } else {
+            FileDownloadServiceProxy.getImpl().
+                    bindStartByContext(FileDownloadHelper.getAppContext(), runnable);
         }
     }
 
@@ -674,6 +715,45 @@ public class FileDownloader {
         return FileDownloadServiceProxy.getImpl().setMaxNetworkThreadCount(count);
     }
 
+    /**
+     * If the FileDownloader service is not started and connected, FileDownloader will try to start
+     * it and try to bind with it. The current thread will also be blocked until the FileDownloader
+     * service is started and a connection is established, and then the request you
+     * invoke in {@link FileDownloadLine} will be executed.
+     * <p>
+     * If the FileDownloader service has been started and connected, the request you invoke in
+     * {@link FileDownloadLine} will be executed immediately.
+     * <p>
+     * <strong>Note:</strong> FileDownloader can not block the main thread, because the system is
+     * also call-backs the {@link ServiceConnection#onServiceConnected(ComponentName, IBinder)}
+     * method in the main thread.
+     * <p>
+     * <strong>Tips:</strong> The FileDownloader service will start and bind automatically when any
+     * task is request to start.
+     *
+     * @see FileDownloadLine
+     * @see #bindService(Runnable)
+     */
+    public FileDownloadLine insureServiceBind() {
+        return new FileDownloadLine();
+    }
+
+    /**
+     * If the FileDownloader service is not started and connected will return {@code false} immediately,
+     * and meanwhile FileDownloader will try to start FileDownloader service and try to bind with it,
+     * and after it is bound successfully the request you invoke in {@link FileDownloadLineAsync}
+     * will be executed automatically.
+     * <p>
+     * If the FileDownloader service has been started and connected, the request you invoke in
+     * {@link FileDownloadLineAsync} will be executed immediately.
+     *
+     * @see FileDownloadLineAsync
+     * @see #bindService(Runnable)
+     */
+    public FileDownloadLineAsync insureServiceBindAsync() {
+        return new FileDownloadLineAsync();
+    }
+
     private final static Object INIT_QUEUES_HANDLER_LOCK = new Object();
     private IQueuesHandler mQueuesHandler;
 
@@ -703,4 +783,6 @@ public class FileDownloader {
 
         return mLostConnectedHandler;
     }
+
+
 }

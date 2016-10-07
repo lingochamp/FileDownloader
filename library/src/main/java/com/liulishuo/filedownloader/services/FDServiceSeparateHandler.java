@@ -81,9 +81,10 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     @Override
     public void start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
                       int callbackProgressMinIntervalMillis, int autoRetryTimes, boolean forceReDownload,
-                      FileDownloadHeader header) throws RemoteException {
+                      FileDownloadHeader header, boolean isWifiRequired) throws RemoteException {
         downloadManager.start(url, path, pathAsDirectory, callbackProgressTimes,
-                callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header);
+                callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header,
+                isWifiRequired);
     }
 
     @Override

@@ -90,14 +90,16 @@ class FileDownloadServiceUIGuard extends
     public boolean start(final String url, final String path, final boolean pathAsDirectory,
                          final int callbackProgressTimes,
                          final int callbackProgressMinIntervalMillis,
-                         final int autoRetryTimes, boolean forceReDownload, final FileDownloadHeader header) {
+                         final int autoRetryTimes, final boolean forceReDownload,
+                         final FileDownloadHeader header, final boolean isWifiRequired) {
         if (!isConnected()) {
             return DownloadServiceNotConnectedHelper.start(url, path, pathAsDirectory);
         }
 
         try {
             getService().start(url, path, pathAsDirectory, callbackProgressTimes,
-                    callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header);
+                    callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header,
+                    isWifiRequired);
         } catch (RemoteException e) {
             e.printStackTrace();
 

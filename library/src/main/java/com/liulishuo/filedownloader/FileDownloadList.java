@@ -95,7 +95,7 @@ public class FileDownloadList {
     }
 
     boolean contains(final BaseDownloadTask.IRunningTask download) {
-        return mList.contains(download);
+        return !mList.isEmpty() && mList.contains(download);
     }
 
     List<BaseDownloadTask.IRunningTask> copy(final FileDownloadListener listener) {
@@ -137,10 +137,14 @@ public class FileDownloadList {
     /**
      * Divert all data in list 2 destination list
      */
-    void divert(@SuppressWarnings("SameParameterValue") final List<BaseDownloadTask.IRunningTask>
-                        destination) {
+    void divertAndIgnoreDuplicate(@SuppressWarnings("SameParameterValue") final List<BaseDownloadTask.IRunningTask>
+                                          destination) {
         synchronized (mList) {
-            destination.addAll(mList);
+            for (BaseDownloadTask.IRunningTask iRunningTask : mList) {
+                if (!destination.contains(iRunningTask)) {
+                    destination.add(iRunningTask);
+                }
+            }
             mList.clear();
         }
     }
@@ -177,22 +181,7 @@ public class FileDownloadList {
                     messenger.notifyPaused(snapshot);
                     break;
                 case FileDownloadStatus.completed:
-                    Throwable ex = null;
-                    try {
-                        messenger.
-                                notifyBlockComplete(MessageSnapshotTaker.
-                                        takeBlockCompleted(snapshot));
-                    } catch (Throwable e) {
-                        ex = e;
-                    }
-
-                    if (ex != null) {
-                        messenger.
-                                notifyError(willRemoveDownload.getMessageHandler().
-                                        prepareErrorMessage(ex));
-                    } else {
-                        messenger.notifyCompleted(snapshot);
-                    }
+                    messenger.notifyBlockComplete(MessageSnapshotTaker.takeBlockCompleted(snapshot));
                     break;
             }
 

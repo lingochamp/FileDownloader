@@ -239,8 +239,9 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
                         mSpeedMonitor.start();
 
-                        ((MessageSnapshot.IWarnMessageSnapshot) snapshot).turnToPending();
-                        getMessenger().notifyPending(snapshot);
+                        getMessenger().
+                                notifyPending(((MessageSnapshot.IWarnMessageSnapshot) snapshot).
+                                        turnToPending());
                         break;
                     } else {
                         // already over and no callback
@@ -334,12 +335,11 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         final DownloadSpeedMonitor monitor = new DownloadSpeedMonitor();
         mSpeedMonitor = monitor;
         mSpeedLookup = monitor;
-        mMessenger = new FileDownloadMessenger(task.getRunningTask().getOrigin(), this);
+        mMessenger = new FileDownloadMessenger(task.getRunningTask(), this);
     }
 
     @Override
     public void intoLaunchPool() {
-
         final BaseDownloadTask.IRunningTask runningTask = mTask.getRunningTask();
         final BaseDownloadTask origin = runningTask.getOrigin();
 
@@ -387,6 +387,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
             }
             return false;
         }
+        FileDownloadTaskLauncher.getImpl().expire(this);
+
         setStatus(FileDownloadStatus.paused);
 
         if (!FileDownloader.getImpl().isServiceConnected()) {
@@ -431,7 +433,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         mSpeedMonitor.reset();
         free();
 
-        mMessenger.reAppointment(mTask.getRunningTask().getOrigin(), this);
+        mMessenger.reAppointment(mTask.getRunningTask(), this);
     }
 
     @Override
@@ -548,7 +550,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         try {
 
             if (lostConnectedHandler.dispatchTaskStart(runningTask)) {
-                this.mIsUsing = false;
                 return;
             }
 
@@ -568,7 +569,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                             origin.getCallbackProgressTimes(), origin.getCallbackProgressMinInterval(),
                             origin.getAutoRetryTimes(),
                             origin.isForceReDownload(),
-                            mTask.getHeader());
+                            mTask.getHeader(),
+                            origin.isWifiRequired());
 
             if (!succeed) {
                 //noinspection StatementWithEmptyBody
@@ -586,8 +588,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                     FileDownloadList.getImpl().remove(runningTask, snapshot);
 
                 } else {
-                    // the process was killed when request stating. will be restarted by
-                    // LostServiceConnectedHandler.
+                    // the FileDownload Service host process was killed when request stating and it
+                    // will be restarted by LostServiceConnectedHandler.
                 }
             } else {
                 lostConnectedHandler.taskWorkFine(runningTask);

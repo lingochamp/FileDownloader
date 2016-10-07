@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.services;
 
+import android.Manifest;
 import android.database.sqlite.SQLiteFullException;
 import android.os.Build;
 import android.os.Process;
@@ -26,23 +27,22 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
+import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException;
 import com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.io.SyncFailedException;
 import java.net.HttpURLConnection;
 
 import okhttp3.CacheControl;
@@ -89,7 +89,7 @@ public class FileDownloadRunnable implements Runnable {
     private volatile boolean isRunning = false;
     private volatile boolean isPending = false;
 
-    private final IFileDownloadDBHelper helper;
+    private final FileDownloadDatabase helper;
     private final OkHttpClient client;
     private final int autoRetryTimes;
 
@@ -102,16 +102,28 @@ public class FileDownloadRunnable implements Runnable {
 
     private final IThreadPoolMonitor threadPoolMonitor;
 
+    private final boolean mIsWifiRequired;
+
+    private final int mId;
+
+    private final FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
+
     public FileDownloadRunnable(final OkHttpClient client, final IThreadPoolMonitor threadPoolMonitor,
+                                final FileDownloadHelper.OutputStreamCreator outputStreamCreator,
                                 final FileDownloadModel model,
-                                final IFileDownloadDBHelper helper, final int autoRetryTimes,
+                                final FileDownloadDatabase helper, final int autoRetryTimes,
                                 final FileDownloadHeader header, final int minIntervalMillis,
-                                final int callbackProgressTimes, final boolean isForceReDownload) {
+                                final int callbackProgressTimes, final boolean isForceReDownload,
+                                boolean isWifiRequired) {
+        mId = model.getId();
+        mIsWifiRequired = isWifiRequired;
+
         isPending = true;
         isRunning = false;
 
         this.client = client;
         this.threadPoolMonitor = threadPoolMonitor;
+        this.mOutputStreamCreator = outputStreamCreator;
         this.helper = helper;
         this.header = header;
 
@@ -130,7 +142,7 @@ public class FileDownloadRunnable implements Runnable {
     }
 
     public int getId() {
-        return model.getId();
+        return mId;
     }
 
     public boolean isExist() {
@@ -159,12 +171,12 @@ public class FileDownloadRunnable implements Runnable {
         try {
             // Step 1, check model
             if (model == null) {
-                FileDownloadLog.e(this, "start runnable but model == null?? %s", getId());
+                FileDownloadLog.e(this, "start runnable but model == null?? %s", mId);
 
-                this.model = helper.find(getId());
+                this.model = helper.find(mId);
 
                 if (this.model == null) {
-                    FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", getId());
+                    FileDownloadLog.e(this, "start runnable but downloadMode == null?? %s", mId);
                     return;
                 }
             }
@@ -181,15 +193,26 @@ public class FileDownloadRunnable implements Runnable {
                          * High concurrent cause.
                          */
                         FileDownloadLog.d(this, "High concurrent cause, start runnable but " +
-                                "already paused %d", getId());
+                                "already paused %d", mId);
                     }
                 } else {
                     onError(new RuntimeException(
                             FileDownloadUtils.formatString("Task[%d] can't start the download" +
                                             " runnable, because its status is %d not %d",
-                                    getId(), model.getStatus(), FileDownloadStatus.pending)));
+                                    mId, model.getStatus(), FileDownloadStatus.pending)));
                 }
 
+                return;
+            }
+
+            if (mIsWifiRequired &&
+                    !FileDownloadUtils.checkPermission(Manifest.permission.ACCESS_NETWORK_STATE)) {
+                onError(new FileDownloadGiveUpRetryException(
+                        FileDownloadUtils.formatString("Task[%d] can't start the download runnable," +
+                                        " because this task require wifi, but user application " +
+                                        "nor current process has %s, so we can't check whether " +
+                                        "the network type connection.", mId,
+                                Manifest.permission.ACCESS_NETWORK_STATE)));
                 return;
             }
 
@@ -201,7 +224,6 @@ public class FileDownloadRunnable implements Runnable {
         } finally {
             isRunning = false;
         }
-
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -213,19 +235,20 @@ public class FileDownloadRunnable implements Runnable {
             // loop for retry
             Response response = null;
             long soFar = 0;
+            final int id = mId;
             try {
 
-                // Step 1, check is paused
-                if (isCancelled()) {
+                // Step 1, check state
+                if (checkState()) {
                     if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(this, "already canceled %d %d", model.getId(), model.getStatus());
+                        FileDownloadLog.d(this, "already canceled %d %d", id, model.getStatus());
                     }
                     onPause();
                     break;
                 }
 
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", getId(), model.getUrl());
+                    FileDownloadLog.d(FileDownloadRunnable.class, "start download %s %s", id, model.getUrl());
                 }
 
                 // Step 2, handle resume from breakpoint
@@ -233,7 +256,7 @@ public class FileDownloadRunnable implements Runnable {
 
                 Request.Builder requestBuilder = new Request.Builder().url(model.getUrl());
                 addHeader(requestBuilder);
-                requestBuilder.tag(this.getId());
+                requestBuilder.tag(id);
                 // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
                 requestBuilder.cacheControl(CacheControl.FORCE_NETWORK);
 
@@ -241,7 +264,7 @@ public class FileDownloadRunnable implements Runnable {
                 // Step 3, init request
                 final Request request = requestBuilder.get().build();
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "%s request header %s", getId(), request.headers());
+                    FileDownloadLog.d(this, "%s request header %s", id, request.headers());
                 }
 
                 Call call = client.newCall(request);
@@ -287,7 +310,7 @@ public class FileDownloadRunnable implements Runnable {
                                 if (FileDownloadLog.NEED_LOG) {
                                     FileDownloadLog.d(this, "%d response header is not legal but " +
                                             "HTTP lenient is true, so handle as the case of " +
-                                            "transfer encoding chunk", getId());
+                                            "transfer encoding chunk", id);
                                 }
                             } else {
                                 throw new FileDownloadGiveUpRetryException("can't know the size of the " +
@@ -310,18 +333,18 @@ public class FileDownloadRunnable implements Runnable {
                         final int fileCaseId = FileDownloadUtils.generateId(model.getUrl(),
                                 model.getTargetFilePath());
 
-                        if (FileDownloadHelper.inspectAndInflowDownloaded(getId(),
+                        if (FileDownloadHelper.inspectAndInflowDownloaded(id,
                                 model.getTargetFilePath(), isForceReDownload, false)) {
-                            helper.remove(getId());
+                            helper.remove(id);
                             break;
                         }
 
                         final FileDownloadModel fileCaseModel = helper.find(fileCaseId);
 
                         if (fileCaseModel != null) {
-                            if (FileDownloadHelper.inspectAndInflowDownloading(getId(), fileCaseModel,
+                            if (FileDownloadHelper.inspectAndInflowDownloading(id, fileCaseModel,
                                     threadPoolMonitor, false)) {
-                                helper.remove(getId());
+                                helper.remove(id);
                                 break;
                             }
 
@@ -358,7 +381,7 @@ public class FileDownloadRunnable implements Runnable {
                             deleteTaskFiles();
                             FileDownloadLog.w(FileDownloadRunnable.class, "%d response code %d, " +
                                             "range[%d] isn't make sense, so delete the dirty file[%s]" +
-                                            ", and try to redownload it from byte-0.", getId(),
+                                            ", and try to redownload it from byte-0.", id,
                                     response.code(), model.getSoFar(), model.getTempFilePath());
                             onRetry(httpException, retryingTimes++);
                             break;
@@ -375,7 +398,6 @@ public class FileDownloadRunnable implements Runnable {
                     // retry
                     onRetry(ex, retryingTimes);
                 } else {
-
 
                     // error
                     onError(ex);
@@ -398,8 +420,8 @@ public class FileDownloadRunnable implements Runnable {
                           long soFar, long total) throws Throwable {
         // fetching datum
         InputStream inputStream = null;
-        final RandomAccessFile accessFile = getRandomAccessFile(isSucceedContinue, total);
-        final FileDescriptor fd = accessFile.getFD();
+        final FileDownloadOutputStream outputStream = getOutputStream(isSucceedContinue, total);
+
         try {
             // Step 1, get input stream
             inputStream = response.body().byteStream();
@@ -407,32 +429,42 @@ public class FileDownloadRunnable implements Runnable {
 
             callbackMinIntervalBytes = calculateCallbackMinIntervalBytes(total, maxProgressCount);
 
+//            long startWriteNanoTime = 0;
+//            long currentNanoTime;
+//            long latestWriteNanoTime = 0;
             // enter fetching loop(Step 2->6)
             do {
+
                 // Step 2, read from input stream.
                 int byteCount = inputStream.read(buff);
                 if (byteCount == -1) {
                     break;
                 }
 
+//                if (FileDownloadLog.NEED_LOG) {
+//                    startWriteNanoTime = System.nanoTime();
+//                }
                 // Step 3, writ to file
-                accessFile.write(buff, 0, byteCount);
+                outputStream.write(buff, 0, byteCount);
+//                if (FileDownloadLog.NEED_LOG) {
+//                    currentNanoTime = System.nanoTime();
+//                    long writeConsume = currentNanoTime - startWriteNanoTime;
+//                    if (latestWriteNanoTime != 0) {
+//                        FileDownloadLog.v(this, "each fetch loop consume | write consume: | %fms | %fms",
+//                                (currentNanoTime - latestWriteNanoTime - writeConsume) / 1000000f,
+//                                writeConsume / 1000000f);
+//                    }
+//                    latestWriteNanoTime = currentNanoTime;
+//                }
 
                 // Step 4, adapter sofar
                 soFar += byteCount;
 
-                // Step 5, check whether file is changed by others
-                if (accessFile.length() < soFar) {
-                    throw new RuntimeException(
-                            FileDownloadUtils.formatString("the file was changed by others when" +
-                                    " downloading. %d %d", accessFile.length(), soFar));
-                } else {
-                    // callback on progressing
-                    onProgress(soFar, total, fd);
-                }
+                // Step 5, callback on progressing
+                onProgress(soFar, total, outputStream);
 
-                // Step 6, check pause
-                if (isCancelled()) {
+                // Step 6, check state
+                if (checkState()) {
                     // callback on paused
                     onPause();
                     return true;
@@ -452,7 +484,7 @@ public class FileDownloadRunnable implements Runnable {
                 renameTempFile();
 
                 // Step 10, remove data from DB.
-                helper.remove(getId());
+                helper.remove(mId);
 
                 // callback completed
                 onComplete(total);
@@ -469,15 +501,15 @@ public class FileDownloadRunnable implements Runnable {
             }
 
             try {
-                if (fd != null) {
+                if (outputStream != null) {
                     //noinspection ThrowFromFinallyBlock
-                    fd.sync();
+                    outputStream.sync();
                 }
             } finally {
                 //noinspection ConstantConditions
-                if (accessFile != null) {
+                if (outputStream != null) {
                     //noinspection ThrowFromFinallyBlock
-                    accessFile.close();
+                    outputStream.close();
                 }
             }
         }
@@ -560,7 +592,7 @@ public class FileDownloadRunnable implements Runnable {
 
             if (additionHeaders != null) {
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.v(this, "%d add outside header: %s", getId(), additionHeaders);
+                    FileDownloadLog.v(this, "%d add outside header: %s", mId, additionHeaders);
                 }
                 builder.headers(additionHeaders);
             }
@@ -582,7 +614,7 @@ public class FileDownloadRunnable implements Runnable {
         final String newEtag = response.header("Etag");
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "etag find by header %d %s", getId(), newEtag);
+            FileDownloadLog.d(this, "etag find by header %d %s", mId, newEtag);
         }
 
         return newEtag;
@@ -625,7 +657,8 @@ public class FileDownloadRunnable implements Runnable {
     private long lastUpdateTime = 0;
 
 
-    private void onProgress(final long soFar, final long total, final FileDescriptor fd) {
+    private void onProgress(final long soFar, final long total,
+                            final FileDownloadOutputStream outputStream) {
         if (soFar == total) {
             return;
         }
@@ -637,8 +670,8 @@ public class FileDownloadRunnable implements Runnable {
         if (bytesDelta > FileDownloadUtils.getMinProgressStep() &&
                 timeDelta > FileDownloadUtils.getMinProgressTime()) {
             try {
-                fd.sync();
-            } catch (SyncFailedException e) {
+                outputStream.sync();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
             helper.updateProgress(model, soFar);
@@ -667,7 +700,7 @@ public class FileDownloadRunnable implements Runnable {
         lastCallbackBytes = soFar;
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On progress %d %d %d", getId(), soFar, total);
+            FileDownloadLog.d(this, "On progress %d %d %d", mId, soFar, total);
         }
 
         onStatusChanged(model.getStatus());
@@ -676,7 +709,7 @@ public class FileDownloadRunnable implements Runnable {
 
     private void onRetry(Throwable ex, final int retryTimes) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On retry %d %s %d %d", getId(), ex,
+            FileDownloadLog.d(this, "On retry %d %s %d %d", mId, ex,
                     retryTimes, autoRetryTimes);
         }
 
@@ -691,7 +724,7 @@ public class FileDownloadRunnable implements Runnable {
 
     private void onError(final Throwable originError) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On error %d %s", getId(), originError);
+            FileDownloadLog.d(this, "On error %d %s", mId, originError);
         }
 
         Throwable processError = exFiltrate(originError);
@@ -721,18 +754,18 @@ public class FileDownloadRunnable implements Runnable {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "the data of the task[%d] is dirty, because the SQLite " +
                             "full exception[%s], so remove it from the database directly.",
-                    getId(), sqLiteFullException.toString());
+                    mId, sqLiteFullException.toString());
         }
 
         model.setErrMsg(sqLiteFullException.toString());
         model.setStatus(FileDownloadStatus.error);
 
-        helper.remove(getId());
+        helper.remove(mId);
     }
 
     private void onComplete(final long total) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On completed %d %d %B", getId(), total, isCancelled());
+            FileDownloadLog.d(this, "On completed %d %d %B", mId, total, isCanceled);
         }
         helper.updateComplete(model, total);
 
@@ -742,7 +775,7 @@ public class FileDownloadRunnable implements Runnable {
     private void onPause() {
         this.isRunning = false;
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On paused %d %d %d", getId(),
+            FileDownloadLog.d(this, "On paused %d %d %d", mId,
                     model.getSoFar(), model.getTotal());
         }
 
@@ -758,7 +791,7 @@ public class FileDownloadRunnable implements Runnable {
 
     public void onPending() {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "On resume %d", getId());
+            FileDownloadLog.d(this, "On resume %d", mId);
         }
 
         this.isPending = true;
@@ -789,7 +822,7 @@ public class FileDownloadRunnable implements Runnable {
                      * High concurrent cause.
                      */
                     FileDownloadLog.d(this, "High concurrent cause, Already paused and we don't " +
-                            "need to call-back to Task in here, %d", getId());
+                            "need to call-back to Task in here, %d", mId);
                 }
                 return;
             }
@@ -799,13 +832,21 @@ public class FileDownloadRunnable implements Runnable {
         }
     }
 
-    private boolean isCancelled() {
-        return isCanceled;
+    private boolean checkState() {
+        if (isCanceled) {
+            return true;
+        }
+
+        if (mIsWifiRequired && !FileDownloadUtils.isNetworkOnWifiType()) {
+            throw new FileDownloadNetworkPolicyException();
+        }
+
+        return false;
     }
 
     // ----------------------------------
-    private RandomAccessFile getRandomAccessFile(final boolean append, final long totalBytes)
-            throws IOException {
+    private FileDownloadOutputStream getOutputStream(final boolean append, final long totalBytes)
+            throws IOException, IllegalAccessException {
         final String tempPath = model.getTempFilePath();
         if (TextUtils.isEmpty(tempPath)) {
             throw new RuntimeException("found invalid internal destination path, empty");
@@ -833,36 +874,41 @@ public class FileDownloadRunnable implements Runnable {
             }
         }
 
-        RandomAccessFile outFd = new RandomAccessFile(file, "rw");
+        FileDownloadOutputStream outputStream = mOutputStreamCreator.create(file);
 
         // check the available space bytes whether enough or not.
         if (totalBytes > 0) {
-            final long breakpointBytes = outFd.length();
+            final long breakpointBytes = file.length();
             final long requiredSpaceBytes = totalBytes - breakpointBytes;
 
             final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(tempPath);
 
             if (freeSpaceBytes < requiredSpaceBytes) {
-                outFd.close();
+                outputStream.close();
                 // throw a out of space exception.
                 throw new FileDownloadOutOfSpaceException(freeSpaceBytes,
                         requiredSpaceBytes, breakpointBytes);
-            } else {
+            } else if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION) {
                 // pre allocate.
-                outFd.setLength(totalBytes);
+                outputStream.setLength(totalBytes);
             }
         }
 
-        if (append) {
-            outFd.seek(model.getSoFar());
+        if (append && mOutputStreamCreator.supportSeek()) {
+            outputStream.seek(model.getSoFar());
         }
 
-        return outFd;
+        return outputStream;
     }
 
     private void checkIsResumeAvailable() {
-        if (FileDownloadMgr.isBreakpointAvailable(getId(), this.model)) {
+        final boolean outputStreamSupportSeek = mOutputStreamCreator.supportSeek();
+        if (FileDownloadMgr.isBreakpointAvailable(mId, this.model,
+                outputStreamSupportSeek)) {
             this.isResumeDownloadAvailable = true;
+            if (!outputStreamSupportSeek) {
+                this.model.setSoFar(new File(model.getTempFilePath()).length());
+            }
         } else {
             this.isResumeDownloadAvailable = false;
             deleteTaskFiles();
@@ -901,9 +947,11 @@ public class FileDownloadRunnable implements Runnable {
         final String tempPath = model.getTempFilePath();
         /**
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
-         * in {@link #getRandomAccessFile(boolean, long)}.
+         * in {@link #getOutputStream(boolean, long)}.
          */
-        if (model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE && ex instanceof IOException &&
+        if ((model.getTotal() == TOTAL_VALUE_IN_CHUNKED_RESOURCE ||
+                FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION)
+                && ex instanceof IOException &&
                 new File(tempPath).exists()) {
             // chunked
             final long freeSpaceBytes = FileDownloadUtils.

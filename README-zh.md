@@ -14,7 +14,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 #### 版本迭代日志: [Change Log](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
-#### 英文文档: [Wiki](https://github.com/lingochamp/FileDownloader/wiki)
+#### 英文文档: [Wiki](https://github.com/lingochamp/FileDownloader/wiki)、[优化建议](https://github.com/lingochamp/FileDownloader/wiki/Optimize-Tutorial)
 
 ---
 
@@ -62,8 +62,8 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 在项目中引用:
 
-```
-compile 'com.liulishuo.filedownloader:library:1.0.2'
+```groovy
+compile 'com.liulishuo.filedownloader:library:1.2.0'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -72,7 +72,7 @@ compile 'com.liulishuo.filedownloader:library:1.0.2'
 
 > 如果希望定制化用于下载的`OkHttpClient`，建议参考[DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java)
 
-```
+```java
 public XXApplication extends Application{
 
     ...
@@ -90,7 +90,7 @@ public XXApplication extends Application{
 
 #### 启动单任务下载
 
-```
+```java
 FileDownloader.getImpl().create(url)
         .setPath(path)
         .setListener(new FileDownloadListener() {
@@ -134,7 +134,7 @@ FileDownloader.getImpl().create(url)
 
 #### 启动多任务下载
 
-```
+```java
 final FileDownloadListener queueTarget = new FileDownloadListener() {
     @Override
     protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
@@ -237,8 +237,7 @@ if (parallel) {
 | 方法名 | 备注
 | --- | ---
 | init(Context) |  缓存Context，不会启动下载进程
-| init(Context, OkHttpClientCustomMaker) | 缓存Context，不会启动下载进程；在下载进程启动的时候，初始化OkHttpClient
-| init(Context, OkHttpClientCustomMaker, int) | 缓存Context，不会启动下载进程；在下载进程启动的时候，初始化OkHttpClient，并且根据提供的最大同时下载数创建网络线程线程池
+| init(Context, InitCustomMaker) | 缓存Context，不会启动下载进程；在下载进程启动的时候，会传入定制化组件
 | create(url:String) | 创建一个下载任务
 | start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
@@ -265,6 +264,14 @@ if (parallel) {
 | setTaskCompleted(taskAtomList:List<FileDownloadTaskAtom>) | 用于告诉FileDownloader引擎，指定的一系列的任务都已经通过其他方式(非FileDownloader)下载完成
 | setMaxNetworkThreadCount(int) | 设置最大并行下载的数目(网络下载线程数), [1,12]
 
+#### 定制化组件接口说明(`InitCustomMaker`)
+
+| 方法名 | 需实现接口 | 已有组件 | 默认组件 | 说明
+| --- | --- | --- | --- | ---
+| database | FileDownloadDatabase | DefaultDatabaseImpl | DefaultDatabaseImpl | 传入定制化数据库组件，用于存储用于断点续传的数据
+| okHttpClient | okHttpClient | okHttpClient | okHttpClient | 传入定制化的okHttpClient，用于下载时使用
+| outputStreamCreator | FileDownloadOutputStream | FileDownloadRandomAccessFile、FileDownloadBufferedOutputStream、FileDownloadOkio | FileDownloadRandomAccessFile | 传入输出流组件，用于下载时写文件使用
+| maxNetworkThreadCount | - | - | 3 | 传入创建下载引擎时，指定可用的下载线程个数
 
 #### Task接口说明
 
@@ -286,6 +293,7 @@ if (parallel) {
 | addHeader(line:String) | 添加自定义的请求头参数，需要注意的是内部为了断点续传，在判断断点续传有效时会自动添加上(`If-Match`与`Range`参数)，请勿重复添加导致400或其他错误
 | setMinIntervalUpdateSpeed(minIntervalUpdateSpeedMs:int) | 设置下载中刷新下载速度的最小间隔
 | removeAllHeaders(name:String) | 删除由自定义添加上去请求参数为`{name}`的所有键对
+| setWifiRequired(isWifiRequired:boolean) | 设置任务是否只允许在Wifi网络环境下进行下载。 默认值 `false`
 | asInQueueTask(void):InQueueTask | 申明该任务将会是队列任务中的一个任务，并且转化为`InQueueTask`，之后可以调用`InQueueTask#enqueue`将该任务入队以便于接下来启动队列任务时，可以将该任务收编到队列中
 | start(void) | 启动孤立的下载任务
 | pause(void) | 暂停下载任务(也可以理解为停止下载，但是在start的时候默认会断点续传)
@@ -312,6 +320,7 @@ if (parallel) {
 | isSyncCallback(void):boolean | 是否是设置了所有FileDownloadListener中的回调都直接在下载线程直接回调而不抛到ui线程
 | getSpeed():int | 获取任务的下载速度, 下载过程中为实时速度，下载结束状态为平均速度
 | isUsing():boolean | 判断当前的Task对象是否在引擎中启动过
+| isWifiRequired():boolean | 获取当前任务是否被设置过只允许在Wifi网络环境下下载
 
 #### 监听器(`FileDownloadListener`)说明
 
@@ -406,6 +415,7 @@ blockComplete -> completed
 | download.min-progress-step | 最小缓冲大小，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 65536
 | download.min-progress-time | 最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 2000
 | download.max-network-thread-count | 用于同时下载的最大网络线程数, 区间[1, 12] | 3
+| file.non-pre-allocation | 是否不需要在开始下载的时候，预申请整个文件的大小(`content-length`) | false
 
 
 III. 异常处理

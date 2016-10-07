@@ -59,6 +59,7 @@
         android:id="@+id/io_performance_sb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:progress="5"
         android:max="50" />
 
     <Button
