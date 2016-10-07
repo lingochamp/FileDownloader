@@ -243,16 +243,14 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
                             " FileDownloader",
                     originTask.getId(), currentStatus);
         } else {
-            if (currentStatus == FileDownloadStatus.blockComplete) {
-                try {
-                    listener.callback(message);
-                    notifyCompleted(((BlockCompleteMessage) message.getSnapshot()).
-                            transmitToCompleted());
-                } catch (Throwable throwable) {
-                    notifyError(messageHandler.prepareErrorMessage(throwable));
-                }
-            } else {
-                listener.callback(message);
+            listener.callback(message);
+        }
+        if (currentStatus == FileDownloadStatus.blockComplete) {
+            try {
+                notifyCompleted(((BlockCompleteMessage) message.getSnapshot()).
+                        transmitToCompleted());
+            } catch (Throwable throwable) {
+                notifyError(messageHandler.prepareErrorMessage(throwable));
             }
         }
     }
@@ -264,7 +262,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public boolean hasReceiver() {
-        return mTask.getOrigin().getListener() != null;
+        return mTask.getOrigin().getListener() != null || FileDownloadMonitor.getMonitor() != null;
     }
 
     @Override
