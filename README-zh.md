@@ -400,7 +400,7 @@ blockComplete -> completed
 
 #### `FileDownloadNotificationHelper`
 
-> 如何快速集成Notification呢? 建议参考[NotificationDemoActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationDemoActivity.java)
+> 如何快速集成Notification呢? 建议参考[NotificationMinSetActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationMinSetActivity.java)、[NotificationSampleActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationSampleActivity.java)。
 
 #### `filedownloader.properties`
 
