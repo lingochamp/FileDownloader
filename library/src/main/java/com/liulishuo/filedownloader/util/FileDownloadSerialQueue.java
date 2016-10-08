@@ -23,6 +23,7 @@ import android.os.Message;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -45,6 +46,7 @@ public class FileDownloadSerialQueue {
 
     public FileDownloadSerialQueue() {
         mHandlerThread = new HandlerThread("SerialDownloadManager");
+        mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper(), new SerialLoop());
         sendNext();
     }
@@ -98,7 +100,11 @@ public class FileDownloadSerialQueue {
             switch (msg.what) {
                 case WHAT_NEXT:
                     try {
-                        mWorkingTaskId = mTasks.take().start();
+                        mWorkingTaskId = mTasks.take().
+                                addFinishListener(
+                                        new SerialFinishCallback(
+                                                new WeakReference<>(FileDownloadSerialQueue.this))).
+                                start();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -108,11 +114,28 @@ public class FileDownloadSerialQueue {
         }
     }
 
-    private class SerialFinishCallback implements BaseDownloadTask.FinishListener {
+    private static class SerialFinishCallback implements BaseDownloadTask.FinishListener {
+        private final WeakReference<FileDownloadSerialQueue> mQueueWeakReference;
+
+        SerialFinishCallback(WeakReference<FileDownloadSerialQueue> queueWeakReference) {
+            this.mQueueWeakReference = queueWeakReference;
+        }
+
         @Override
         public void over(BaseDownloadTask task) {
-            mWorkingTaskId = ID_INVALID;
-            sendNext();
+            task.removeFinishListener(this);
+
+            if (mQueueWeakReference == null) {
+                return;
+            }
+
+            final FileDownloadSerialQueue queue = mQueueWeakReference.get();
+            if (queue == null) {
+                return;
+            }
+
+            queue.mWorkingTaskId = ID_INVALID;
+            queue.sendNext();
         }
     }
 
