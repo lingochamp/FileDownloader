@@ -83,6 +83,7 @@ public class FileDownloadSerialQueue {
 
         final List<BaseDownloadTask> unDealTaskList = new ArrayList<>();
         mTasks.drainTo(unDealTaskList);
+        mHandler.removeMessages(WHAT_NEXT);
         mHandlerThread.interrupt();
         mHandlerThread.quit();
 
