@@ -237,23 +237,18 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
             mTask = null;
         }
 
-        if (listener == null) {
-            FileDownloadLog.w(this, "The task[%d] can't receive the message(status: [%d])," +
-                            " its download listener might be removed when it is running in" +
-                            " FileDownloader",
-                    originTask.getId(), currentStatus);
-        } else {
-            if (currentStatus == FileDownloadStatus.blockComplete) {
-                try {
+        if (currentStatus == FileDownloadStatus.blockComplete) {
+            try {
+                if (listener != null) {
                     listener.callback(message);
-                    notifyCompleted(((BlockCompleteMessage) message.getSnapshot()).
-                            transmitToCompleted());
-                } catch (Throwable throwable) {
-                    notifyError(messageHandler.prepareErrorMessage(throwable));
                 }
-            } else {
-                listener.callback(message);
+                notifyCompleted(((BlockCompleteMessage) message.getSnapshot()).
+                        transmitToCompleted());
+            } catch (Throwable throwable) {
+                notifyError(messageHandler.prepareErrorMessage(throwable));
             }
+        } else if (listener != null) {
+            listener.callback(message);
         }
     }
 
