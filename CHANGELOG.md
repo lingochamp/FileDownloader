@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.2.1
+
+_2016-10-09_
+
+#### Fix
+
+- Fix(fatal-crash): fix when the task doesn't have `FileDownloadListener`, we can't receive the callback of `FileDownloadMonitor.IMonitor#onTaskOver` for it. Closes #348.
+
 ## Version 1.2.0
 
 _2016-10-04_
