@@ -259,7 +259,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public boolean hasReceiver() {
-        return mTask.getOrigin().getListener() != null;
+        return mTask.getOrigin().getListener() != null&& FileDownloadMonitor.getMonitor() != null;
     }
 
     @Override
