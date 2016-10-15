@@ -142,12 +142,6 @@ interface IFileDownloadMessenger {
     boolean handoverDirectly();
 
     /**
-     * @return {@code true} if has receiver(or listener) to receiver messages.
-     * @see BaseDownloadTask#getListener()
-     */
-    boolean hasReceiver();
-
-    /**
      * @param task Re-appointment for this task, when this messenger has already accomplished the
      *             old one.
      */
