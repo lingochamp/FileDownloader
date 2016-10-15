@@ -63,7 +63,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.2.0'
+compile 'com.liulishuo.filedownloader:library:1.2.2'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -400,7 +400,7 @@ blockComplete -> completed
 
 #### `FileDownloadNotificationHelper`
 
-> 如何快速集成Notification呢? 建议参考[NotificationDemoActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationDemoActivity.java)
+> 如何快速集成Notification呢? 建议参考[NotificationMinSetActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationMinSetActivity.java)、[NotificationSampleActivity](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/NotificationSampleActivity.java)。
 
 #### `filedownloader.properties`
 

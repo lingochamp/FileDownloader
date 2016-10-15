@@ -2,6 +2,22 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.2.2
+
+_2016-10-15_
+
+#### 修复
+
+- 修复(fatal-crash): 修复当任务没有`FileDownloadListener`时，也不能收到该任务`FileDownloadMonitor.IMonitor#onTaskOver`的回调的问题。 Closes #348.
+
+## Version 1.2.1
+
+_2016-10-09_
+
+#### 修复
+
+- <s>修复(fatal-crash): 修复当任务没有`FileDownloadListener`时，也不能收到该任务`FileDownloadMonitor.IMonitor#onTaskOver`的回调的问题。 Closes #348.</s> 十分的抱歉这个问题在1.2.1版本中依然存在，最终在1.2.2中验证修复。
+
 ## Version 1.2.0
 
 _2016-10-04_

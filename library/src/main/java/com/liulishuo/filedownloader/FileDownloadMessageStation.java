@@ -21,7 +21,6 @@ import android.os.Looper;
 import android.os.Message;
 
 import com.liulishuo.filedownloader.util.FileDownloadExecutors;
-import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.util.ArrayList;
 import java.util.concurrent.Executor;
@@ -58,14 +57,6 @@ public class FileDownloadMessageStation {
 
     void requestEnqueue(final IFileDownloadMessenger messenger,
                         @SuppressWarnings("SameParameterValue") boolean immediately) {
-        /** @see #notify(FileDownloadEvent) **/
-        if (!messenger.hasReceiver()) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "can't handover the message[%s], " +
-                        "no listener be found in task to receive.", messenger);
-            }
-            return;
-        }
 
         if (messenger.handoverDirectly()) {
             messenger.handoverMessage();
