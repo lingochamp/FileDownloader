@@ -194,10 +194,18 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     }
 
     private void process(MessageSnapshot snapshot) {
-        offer(snapshot);
+        if (mTask.getOrigin().getListener() == null) {
+            if (FileDownloadMonitor.isValid() &&
+                    snapshot.getStatus() == FileDownloadStatus.blockComplete) {
+                // there is a FileDownloadMonitor, so we have to ensure the 'BaseDownloadTask#over'
+                // can be invoked.
+                mLifeCycleCallback.onOver();
+            }
+        } else {
+            offer(snapshot);
 
-        FileDownloadMessageStation.getImpl().requestEnqueue(this);
-
+            FileDownloadMessageStation.getImpl().requestEnqueue(this);
+        }
     }
 
     private void offer(MessageSnapshot snapshot) {
@@ -255,11 +263,6 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public boolean handoverDirectly() {
         return mTask.getOrigin().isSyncCallback();
-    }
-
-    @Override
-    public boolean hasReceiver() {
-        return mTask.getOrigin().getListener() != null;
     }
 
     @Override
