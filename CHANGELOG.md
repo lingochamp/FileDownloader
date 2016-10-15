@@ -2,13 +2,21 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.2.2
+
+_2016-10-15_
+
+#### Fix
+
+- Fix(fatal-crash): fix when the task doesn't have `FileDownloadListener`, we can't receive the callback of `FileDownloadMonitor.IMonitor#onTaskOver` for it. Closes #348.
+
 ## Version 1.2.1
 
 _2016-10-09_
 
 #### Fix
 
-- Fix(fatal-crash): fix when the task doesn't have `FileDownloadListener`, we can't receive the callback of `FileDownloadMonitor.IMonitor#onTaskOver` for it. Closes #348.
+- <s>Fix(fatal-crash): fix when the task doesn't have `FileDownloadListener`, we can't receive the callback of `FileDownloadMonitor.IMonitor#onTaskOver` for it. Closes #348. </s> Sorry for my mistake, this bug is still exist in 1.2.1 and finally fixed in 1.2.2.
 
 ## Version 1.2.0
 

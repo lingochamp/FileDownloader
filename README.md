@@ -26,11 +26,13 @@ FileDownloader is installed by adding the following dependency to your `build.gr
 
 ```groovy
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:1.2.1'
+    compile 'com.liulishuo.filedownloader:library:1.2.2'
 }
 ```
 
 ## Welcome PR
+
+> If you can improve the unit test for this project would be great.
 
 - Comments as much as possible.
 - Commit message format follow: [AngularJS's commit message convention](https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#-git-commit-guidelines) .
