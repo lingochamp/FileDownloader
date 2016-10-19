@@ -17,9 +17,7 @@
 package com.liulishuo.filedownloader;
 
 
-import com.liulishuo.filedownloader.message.FileDownloadMessage;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.notification.FileDownloadNotificationListener;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
@@ -44,64 +42,18 @@ public abstract class FileDownloadListener {
 
     /**
      * @param priority not handle priority any more
-     * @see #FileDownloadListener()
      * @deprecated not handle priority any more
      */
     public FileDownloadListener(int priority) {
         FileDownloadLog.w(this, "not handle priority any more");
     }
 
-    public boolean callback(FileDownloadMessage message) {
-        final MessageSnapshot snapShot = message.getSnapshot();
-
-        switch (snapShot.getStatus()) {
-            case FileDownloadStatus.pending:
-                pending(message.getTask(),
-                        snapShot.getSmallSofarBytes(),
-                        snapShot.getSmallTotalBytes());
-                break;
-            case FileDownloadStatus.started:
-                started(message.getTask());
-                break;
-            case FileDownloadStatus.connected:
-                connected(message.getTask(),
-                        snapShot.getEtag(),
-                        snapShot.isResuming(),
-                        message.getTask().getSmallFileSoFarBytes(),
-                        snapShot.getSmallTotalBytes());
-                break;
-            case FileDownloadStatus.progress:
-                progress(message.getTask(),
-                        snapShot.getSmallSofarBytes(),
-                        message.getTask().getSmallFileTotalBytes());
-                break;
-            case FileDownloadStatus.retry:
-                retry(message.getTask(),
-                        snapShot.getThrowable(),
-                        snapShot.getRetryingTimes(),
-                        snapShot.getSmallSofarBytes());
-                break;
-            case FileDownloadStatus.blockComplete:
-                blockComplete(message.getTask());
-                break;
-            case FileDownloadStatus.completed:
-                completed(message.getTask());
-                break;
-            case FileDownloadStatus.error:
-                error(message.getTask(),
-                        snapShot.getThrowable());
-                break;
-            case FileDownloadStatus.paused:
-                paused(message.getTask(),
-                        snapShot.getSmallSofarBytes(),
-                        snapShot.getSmallTotalBytes());
-                break;
-            case FileDownloadStatus.warn:
-                // already same url & path in pending/running list
-                warn(message.getTask());
-                break;
-        }
-
+    /**
+     * Whether this listener has already invalidated to receive callbacks.
+     *
+     * @return {@code true} If you don't want to receive any callbacks for this listener.
+     */
+    protected boolean isInvalid() {
         return false;
     }
 
@@ -159,9 +111,12 @@ public abstract class FileDownloadListener {
      * thread.
      *
      * @param task the current task
+     * @throws Throwable if any {@code throwable} is thrown in this method, you will receive the
+     *                   callback method of {@link #error(BaseDownloadTask, Throwable)} with the
+     *                   {@code throwable} parameter instead of the {@link #completed(BaseDownloadTask)}.
      * @see IFileDownloadMessenger#notifyBlockComplete(MessageSnapshot)
      */
-    protected void blockComplete(final BaseDownloadTask task) {
+    protected void blockComplete(final BaseDownloadTask task) throws Throwable {
     }
 
     /**
