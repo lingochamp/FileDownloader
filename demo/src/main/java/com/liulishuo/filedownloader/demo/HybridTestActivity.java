@@ -16,7 +16,6 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloadQueueSet;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.message.FileDownloadMessage;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -171,11 +170,8 @@ public class HybridTestActivity extends AppCompatActivity {
         return new FileDownloadListener() {
 
             @Override
-            public boolean callback(FileDownloadMessage message) {
-                if (isFinishing()) {
-                    return false;
-                }
-                return super.callback(message);
+            protected boolean isInvalid() {
+                return isFinishing();
             }
 
             @Override

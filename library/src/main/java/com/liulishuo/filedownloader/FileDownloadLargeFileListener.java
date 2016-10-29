@@ -16,10 +16,6 @@
 
 package com.liulishuo.filedownloader;
 
-import com.liulishuo.filedownloader.message.FileDownloadMessage;
-import com.liulishuo.filedownloader.message.MessageSnapshot;
-import com.liulishuo.filedownloader.model.FileDownloadStatus;
-
 /**
  * The listener for listening the downloading status changing.
  * <p>
@@ -40,60 +36,6 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
         super(priority);
     }
 
-
-    @Override
-    public boolean callback(FileDownloadMessage message) {
-        final MessageSnapshot snapShot = message.getSnapshot();
-
-        switch (snapShot.getStatus()) {
-            case FileDownloadStatus.pending:
-                pending(message.getTask(),
-                        snapShot.getLargeSofarBytes(),
-                        snapShot.getLargeTotalBytes());
-                break;
-            case FileDownloadStatus.connected:
-                connected(message.getTask(),
-                        snapShot.getEtag(),
-                        snapShot.isResuming(),
-                        message.getTask().getLargeFileSoFarBytes(),
-                        snapShot.getLargeTotalBytes());
-                break;
-            case FileDownloadStatus.progress:
-                progress(message.getTask(),
-                        snapShot.getLargeSofarBytes(),
-                        message.getTask().getLargeFileTotalBytes());
-                break;
-            case FileDownloadStatus.retry:
-                retry(message.getTask(),
-                        snapShot.getThrowable(),
-                        snapShot.getRetryingTimes(),
-                        snapShot.getLargeSofarBytes());
-                break;
-            case FileDownloadStatus.blockComplete:
-                blockComplete(message.getTask());
-                break;
-            case FileDownloadStatus.completed:
-                completed(message.getTask());
-                break;
-            case FileDownloadStatus.error:
-                error(message.getTask(),
-                        snapShot.getThrowable());
-                break;
-            case FileDownloadStatus.paused:
-                paused(message.getTask(),
-                        snapShot.getLargeSofarBytes(),
-                        snapShot.getLargeTotalBytes());
-                break;
-            case FileDownloadStatus.warn:
-                // already same url & path in pending/running list
-                warn(message.getTask());
-                break;
-        }
-
-        return false;
-    }
-
-
     /**
      * Entry queue, and pending
      *
@@ -103,6 +45,16 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      */
     protected abstract void pending(final BaseDownloadTask task, final long soFarBytes,
                                     final long totalBytes);
+
+    /**
+     * @param task       The task
+     * @param soFarBytes Already downloaded bytes stored in the db
+     * @param totalBytes Total bytes stored in the db
+     * @deprecated replaced with {@link #pending(BaseDownloadTask, long, long)}
+     */
+    @Override
+    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    }
 
     /**
      * Connected
@@ -119,6 +71,18 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
     }
 
     /**
+     * @param task       The task
+     * @param etag       ETag
+     * @param isContinue Is resume from breakpoint
+     * @param soFarBytes Number of bytes download so far
+     * @param totalBytes Total size of the download in bytes
+     * @deprecated replaced with {@link #connected(BaseDownloadTask, String, boolean, long, long)}
+     */
+    @Override
+    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+    }
+
+    /**
      * @param task       Current task
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
@@ -127,11 +91,14 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
                                      final long totalBytes);
 
     /**
-     * Block completed in new thread
-     *
-     * @param task Current task
+     * @param task       The task
+     * @param soFarBytes Number of bytes download so far
+     * @param totalBytes Total size of the download in bytes
+     * @deprecated replaced with {@link #progress(BaseDownloadTask, long, long)}
      */
-    protected abstract void blockComplete(final BaseDownloadTask task);
+    @Override
+    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    }
 
     /**
      * Start Retry
@@ -146,14 +113,17 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
                          final int retryingTimes, final long soFarBytes) {
     }
 
-    // final width below methods
-
     /**
-     * Succeed download
-     *
-     * @param task Current task
+     * @param task          The task
+     * @param ex            Why retry
+     * @param retryingTimes How many times will retry
+     * @param soFarBytes    Number of bytes download so far
+     * @deprecated replaced with {@link #retry(BaseDownloadTask, Throwable, int, long)}
      */
-    protected abstract void completed(final BaseDownloadTask task);
+    @SuppressWarnings("EmptyMethod")
+    @Override
+    protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
+    }
 
     /**
      * Download paused
@@ -166,18 +136,12 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
                                    final long totalBytes);
 
     /**
-     * Download error
-     *
-     * @param task Current task
-     * @param e    Any throwable on download pipeline
+     * @param task       The task
+     * @param soFarBytes Number of bytes download so far
+     * @param totalBytes Total size of the download in bytes
+     * @deprecated replaced with {@link #paused(BaseDownloadTask, long, long)}
      */
-    protected abstract void error(final BaseDownloadTask task, final Throwable e);
-
-    /**
-     * There is already an identical task being downloaded
-     *
-     * @param task Current task
-     */
-    protected abstract void warn(final BaseDownloadTask task);
-
+    @Override
+    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    }
 }

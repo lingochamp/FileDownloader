@@ -345,8 +345,8 @@ public class FileDownloader {
      * Normally used to deleting the data in filedownloader database, when it is paused or in
      * downloading status. If you want to re-download it clearly.
      * <p/>
-     * NO NEED clear the data when it is already completed downloading, because the data would be
-     * deleted when it completed downloading.
+     * <strong>Note:</strong> YOU NO NEED to clear the data when it is already completed downloading,
+     * because the data would be deleted when it completed downloading automatically by FileDownloader.
      * <p>
      * If there are tasks with the {@code id} in downloading, will be paused first;
      * If delete the data with the {@code id} in the filedownloader database successfully, will try
@@ -379,6 +379,21 @@ public class FileDownloader {
         }
 
         return false;
+    }
+
+    /**
+     * Clear all data in the filedownloader database.
+     * <p>
+     * <strong>Note:</strong> Normally, YOU NO NEED to clearAllTaskData manually, because the
+     * FileDownloader will maintain those data to ensure only if the data available for resuming
+     * can be kept automatically.
+     *
+     * @see #clear(int, String)
+     */
+    public void clearAllTaskData() {
+        pauseAll();
+
+        FileDownloadServiceProxy.getImpl().clearAllTaskData();
     }
 
     /**

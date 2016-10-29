@@ -116,6 +116,11 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     }
 
     @Override
+    public void clearAllTaskData() {
+        downloadManager.clearAllTaskData();
+    }
+
+    @Override
     public void onStartCommand(Intent intent, int flags, int startId) {
         //noinspection ConstantConditions
         FileDownloadServiceProxy.getConnectionListener().onConnected(this);

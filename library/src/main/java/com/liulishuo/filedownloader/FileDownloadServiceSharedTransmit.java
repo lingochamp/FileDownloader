@@ -187,6 +187,16 @@ class FileDownloadServiceSharedTransmit implements
         return handler.clearTaskData(id);
     }
 
+    @Override
+    public void clearAllTaskData() {
+        if (!isConnected()) {
+            DownloadServiceNotConnectedHelper.clearAllTaskData();
+            return;
+        }
+
+        handler.clearAllTaskData();
+    }
+
     private FDServiceSharedHandler handler;
 
     @Override
