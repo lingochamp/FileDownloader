@@ -17,11 +17,15 @@ package com.liulishuo.filedownloader.util;
 
 import android.app.Notification;
 
+import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 /**
  * The helper for handling the case of requesting do something in the downloader service but the
  * downloader service isn't connected yet.
+ *
+ * @see FileDownloader#insureServiceBind()
+ * @see FileDownloader#insureServiceBindAsync()
  */
 public class DownloadServiceNotConnectedHelper {
 
@@ -103,6 +107,13 @@ public class DownloadServiceNotConnectedHelper {
         FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
                 "request clear the task[%d] data in the database," +
                         " but the download service isn't connected yet.", id);
+        return false;
+    }
+
+    public static boolean clearAllTaskData() {
+        FileDownloadLog.w(DownloadServiceNotConnectedHelper.class,
+                "request clear all tasks data in the database," +
+                        " but the download service isn't connected yet.");
         return false;
     }
 }

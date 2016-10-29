@@ -140,4 +140,9 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     public boolean clearTaskData(int id) {
         return handler.clearTaskData(id);
     }
+
+    @Override
+    public void clearAllTaskData() {
+        handler.clearAllTaskData();
+    }
 }

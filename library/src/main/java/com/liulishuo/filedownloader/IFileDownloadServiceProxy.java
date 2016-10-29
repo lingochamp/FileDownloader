@@ -59,4 +59,6 @@ public interface IFileDownloadServiceProxy {
     boolean setMaxNetworkThreadCount(int count);
 
     boolean clearTaskData(int id);
+
+    void clearAllTaskData();
 }

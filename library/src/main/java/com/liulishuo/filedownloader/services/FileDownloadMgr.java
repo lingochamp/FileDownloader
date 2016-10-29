@@ -367,6 +367,10 @@ class FileDownloadMgr implements IThreadPoolMonitor {
         return true;
     }
 
+    public void clearAllTaskData() {
+        mDatabase.clear();
+    }
+
     public static class Creator {
         OkHttpClient createOkHttpClient() {
             return new OkHttpClient();

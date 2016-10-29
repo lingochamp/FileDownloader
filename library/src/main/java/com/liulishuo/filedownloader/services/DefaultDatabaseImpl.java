@@ -226,6 +226,13 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     }
 
     @Override
+    public void clear() {
+        downloaderModelMap.clear();
+
+        db.delete(TABLE_NAME, null, null);
+    }
+
+    @Override
     public void updateConnected(FileDownloadModel model, long total, String etag, String filename) {
         model.setStatus(FileDownloadStatus.connected);
 

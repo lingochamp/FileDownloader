@@ -49,6 +49,8 @@ public interface FileDownloadDatabase {
 
     boolean remove(final int id);
 
+    void clear();
+
     void updateConnected(final FileDownloadModel model, final long total, final String etag,
                          final String fileName);
 

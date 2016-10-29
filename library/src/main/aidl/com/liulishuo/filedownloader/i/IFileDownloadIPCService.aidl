@@ -35,4 +35,5 @@ interface IFileDownloadIPCService {
 
     boolean clearTaskData(int id);
 
+    void clearAllTaskData();
 }
