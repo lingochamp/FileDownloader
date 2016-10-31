@@ -35,7 +35,7 @@ import java.util.ArrayList;
 public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, ITaskHunter.IMessageHandler,
         BaseDownloadTask.LifeCycleCallback {
 
-    private final IFileDownloadMessenger mMessenger;
+    private IFileDownloadMessenger mMessenger;
 
     @Override
     public boolean updateKeepAhead(MessageSnapshot snapshot) {
@@ -419,7 +419,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
     @Override
     public void reset() {
-        mStatus = FileDownloadStatus.INVALID_STATUS;
         mThrowable = null;
 
         mEtag = null;
@@ -434,7 +433,14 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         mSpeedMonitor.reset();
         free();
 
-        mMessenger.reAppointment(mTask.getRunningTask(), this);
+        if (FileDownloadStatus.isOver(mStatus)) {
+            mMessenger.discard();
+            mMessenger = new FileDownloadMessenger(mTask.getRunningTask(), this);
+        } else {
+            mMessenger.reAppointment(mTask.getRunningTask(), this);
+        }
+
+        mStatus = FileDownloadStatus.INVALID_STATUS;
     }
 
     @Override
