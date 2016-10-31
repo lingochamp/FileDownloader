@@ -2,6 +2,25 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.3.0
+
+_2016-10-31_
+
+#### 新接口
+
+- 新增 `FileDownloadSerialQueue`: 便于动态管理串行执行的队列。 Closes #345.
+- 移除 `FileDownloadListener`类中的`callback`方法, 并且新增`FileDownloadListener#isInvalid`方法，用于告知FileDownloader该监听器是否已经无效，不再接收任何消息。
+- 新增 `FileDownloader#clearAllTaskData`: 清空`filedownloader`数据库中的所有数据。 Closes #361.
+
+#### 性能与提高
+
+- 提高实用性(`FileDownloadListener#blackCompleted`): 确保`blockCompleted`回调可以接收任何的`Exception`。 Closes #369.
+- 提高实用性(service-not-connected): 在service-not-connected-helper中输出提示与原因, 这样当你调用有些需要确保下载服务已经连接上的方式，但下载服务没有连接上时，不但在`Logcat`中可以收到原因，还能收到提示。
+
+#### 修复
+
+- 修复(reuse): 修复调用`BaseDownloadTask#pause`之后短时间内调用`BaseDownloadTask#reuse`方法，可能会抛出异常的问题。 Closes #329.
+
 ## Version 1.2.2
 
 _2016-10-15_

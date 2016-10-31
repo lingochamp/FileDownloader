@@ -63,7 +63,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.2.2'
+compile 'com.liulishuo.filedownloader:library:1.3.0'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -228,6 +228,8 @@ if (parallel) {
 //            FileDownloader.getImpl().create(url).setSyncCallback(true)
 //    );
 }
+
+// 串行任务动态管理也可以使用FileDownloadSerialQueue。
 ```
 
 #### 全局接口说明(`FileDownloader`)
@@ -263,6 +265,7 @@ if (parallel) {
 | setTaskCompleted(url:String, path:String, totalBytes:long) | 用于告诉FileDownloader引擎，以指定Url与Path的任务已经通过其他方式(非FileDownloader)下载完成
 | setTaskCompleted(taskAtomList:List<FileDownloadTaskAtom>) | 用于告诉FileDownloader引擎，指定的一系列的任务都已经通过其他方式(非FileDownloader)下载完成
 | setMaxNetworkThreadCount(int) | 设置最大并行下载的数目(网络下载线程数), [1,12]
+| clearAllTaskData() | 清空`filedownloader`数据库中的所有数据
 
 #### 定制化组件接口说明(`InitCustomMaker`)
 

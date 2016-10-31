@@ -2,6 +2,25 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.3.0
+
+_2016-10-31_
+
+#### New Interfaces
+
+- Add `FileDownloadSerialQueue`: Easy to dynamically manage tasks and tasks in the queue will automatically start download one by one. Closes #345.
+- Remove the `callback` method in the `FileDownloadListener` class, besides adding the `FileDownloadListener#isInvalid` method to tell the FileDownloader whether the listener has already invalidated, which means it can't receive any messages.
+- Add `FileDownloader#clearAllTaskData`: Clear all data in the `filedownloader` database. Closes #361
+
+#### Enhancement
+
+- Improve Practicability(`FileDownloadListener#blackCompleted`): Ensure the `blockCompleted` callback method can accept any `Exception`. Closes #369.
+- Improve Practicability(service-not-connected): Print the tips with the cause in service-not-connected-helper, in this way, when you invoke some methods need the FileDownload service has already connected but not yet, FileDownloader will not only print causes in the `Logcat` but also print the tips.
+
+#### Fix
+
+- Fix(reuse): fix `BaseDownloadTask#reuse` is called shortly after the call to `BaseDownloadTask#pause` may raise an exception. Closes #329.
+
 ## Version 1.2.2
 
 _2016-10-15_

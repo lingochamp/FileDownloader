@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your `build.gr
 
 ```groovy
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:1.2.2'
+    compile 'com.liulishuo.filedownloader:library:1.3.0'
 }
 ```
 
