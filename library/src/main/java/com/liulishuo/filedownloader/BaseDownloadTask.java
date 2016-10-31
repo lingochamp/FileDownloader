@@ -249,6 +249,10 @@ public interface BaseDownloadTask {
 
     /**
      * Reuse this task withhold request params: path、url、header、isForceReDownloader、etc.
+     * <p>
+     * <strong>Note:</strong>If the task has been over({@link FileDownloadStatus#isOver(int)}), but
+     * the over-message has not been handover to the listener, since the callback is asynchronous,
+     * once your invoke this 'reuse' method, that message would be discard, for free the messenger.
      *
      * @return {@code true} if reuse this task successfully. {@code false} otherwise.
      */

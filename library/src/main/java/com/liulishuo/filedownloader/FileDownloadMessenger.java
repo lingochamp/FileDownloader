@@ -39,6 +39,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     private Queue<MessageSnapshot> parcelQueue;
 
+    private boolean mIsDiscard = false;
+
     FileDownloadMessenger(final BaseDownloadTask.IRunningTask task,
                           final BaseDownloadTask.LifeCycleCallback callback) {
         init(task, callback);
@@ -193,13 +195,15 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     }
 
     private void process(MessageSnapshot snapshot) {
-        if (mTask.getOrigin().getListener() == null) {
+        if (mIsDiscard || mTask.getOrigin().getListener() == null) {
             if (FileDownloadMonitor.isValid() &&
                     snapshot.getStatus() == FileDownloadStatus.blockComplete) {
                 // there is a FileDownloadMonitor, so we have to ensure the 'BaseDownloadTask#over'
                 // can be invoked.
                 mLifeCycleCallback.onOver();
             }
+
+            inspectAndHandleOverStatus(snapshot.getStatus());
         } else {
             offer(snapshot);
 
@@ -216,8 +220,26 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         parcelQueue.offer(snapshot);
     }
 
+    private void inspectAndHandleOverStatus(int status) {
+        // If this task is in the over state, try to retire this messenger.
+        if (FileDownloadStatus.isOver(status)) {
+            if (!parcelQueue.isEmpty()) {
+                throw new IllegalStateException(
+                        FileDownloadUtils.formatString("the messenger[%s] has already " +
+                                        "accomplished all his job, but there still are some messages in" +
+                                        " parcel queue[%d]",
+                                this, parcelQueue.size()));
+            }
+            mTask = null;
+        }
+    }
+
     @Override
     public void handoverMessage() {
+        if (mIsDiscard) {
+            return;
+        }
+
         final MessageSnapshot message = parcelQueue.poll();
         final int currentStatus = message.getStatus();
         final BaseDownloadTask.IRunningTask task = mTask;
@@ -233,17 +255,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         final FileDownloadListener listener = originTask.getListener();
         final ITaskHunter.IMessageHandler messageHandler = task.getMessageHandler();
 
-        // If this task is in the over state, try to retire this messenger.
-        if (FileDownloadStatus.isOver(currentStatus)) {
-            if (!parcelQueue.isEmpty()) {
-                throw new IllegalStateException(
-                        FileDownloadUtils.formatString("the messenger[%s] has already " +
-                                        "accomplished all his job, but there still are some messages in" +
-                                        " parcel queue[%d]",
-                                this, parcelQueue.size()));
-            }
-            mTask = null;
-        }
+        inspectAndHandleOverStatus(currentStatus);
 
         if (listener == null || listener.isInvalid()) {
             return;
@@ -367,6 +379,11 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public boolean isBlockingCompleted() {
         return parcelQueue.peek().getStatus() == FileDownloadStatus.blockComplete;
+    }
+
+    @Override
+    public void discard() {
+        mIsDiscard = true;
     }
 
     @Override

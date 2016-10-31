@@ -155,4 +155,12 @@ interface IFileDownloadMessenger {
      * {@link com.liulishuo.filedownloader.model.FileDownloadStatus#blockComplete}.
      */
     boolean isBlockingCompleted();
+
+    /**
+     * Discard this messenger.
+     * <p>
+     * If this messenger is discarded, all messages sent by this messenger or feature messages
+     * handled by this messenger will be discard, no longer callback to the target Listener.
+     */
+    void discard();
 }
