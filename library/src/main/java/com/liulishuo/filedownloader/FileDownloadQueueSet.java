@@ -98,6 +98,17 @@ public class FileDownloadQueueSet {
     }
 
     /**
+     * Before starting downloading tasks in this queue-set, we will try to
+     * {@link BaseDownloadTask#reuse} tasks first.
+     */
+    public void reuseAndStart() {
+        for (BaseDownloadTask task : tasks) {
+            task.reuse();
+        }
+        start();
+    }
+
+    /**
      * Start tasks in a queue.
      *
      * @see #downloadSequentially(BaseDownloadTask...)

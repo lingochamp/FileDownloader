@@ -248,8 +248,8 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public boolean reuse() {
         if (isRunning()) {
-            FileDownloadLog.w(this, "This task is running %d, if you want start the same task," +
-                    " please create a new one by FileDownloader.create", getId());
+            FileDownloadLog.w(this, "This task[%d] is running, if you want start the same task," +
+                    " please create a new one by FileDownloader#create", getId());
             return false;
         }
 

@@ -129,7 +129,10 @@ class QueuesHandler implements IQueuesHandler {
 
         if (list == null || list.isEmpty()) {
             FileDownloadLog.w(FileDownloader.class, "Tasks with the listener can't start, " +
-                            "because can't find any task with the provided listener: [%s, %B]",
+                            "because can't find any task with the provided listener, maybe tasks " +
+                            "instance has been started in the past, so they are all are inUsing, if " +
+                            "in this case, you can use [BaseDownloadTask#reuse] to reuse theme " +
+                            "first then start again: [%s, %B]",
                     listener, isSerial);
 
             return true;
