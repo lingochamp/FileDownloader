@@ -2,6 +2,22 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.3.9
+
+_2016-12-18_
+
+### Important:
+
+- Since this version you can customize you own [FileDownloadConnection][FileDownloadConnection-java-link] component, we use [this one][FileDownloadUrlConnection-java-link] as default.
+- Since this version, FileDownloader don't dependency the okhttp as default.
+
+> If you still need configure `timeout`、`proxy` for the connection component, but you don't want to implement your own one, configurations, I implement it for the default connection component too, just move to : [DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java#L35), check the code if you want.
+
+#### New Interfaces
+
+- Add `FileDownloadQueueSet#reuseAndStart`: Add reuseAndStart function to the queue-set to reuse task instances before start them. Ref #383
+- Add `FileDownloadConnection`: Support customize the connection component for FileDownloader and remove the dependency of the okhttp as default. Closes #158
+
 ## Version 1.3.0
 
 _2016-10-31_
@@ -519,3 +535,6 @@ _2015-12-23_
 _2015-12-22_
 
 - initial release
+
+[FileDownloadConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadConnection.java
+[FileDownloadUrlConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadUrlConnection.java

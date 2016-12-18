@@ -8,8 +8,6 @@ Android multi-task file download engine.
 
 > [中文文档](https://github.com/lingochamp/FileDownloader/blob/master/README-zh.md)
 
-> This project dependency on [square/okhttp 3.4.1](https://github.com/square/okhttp)
-
 ## DEMO
 
 ![][serial_tasks_demo_gif]
@@ -26,9 +24,23 @@ FileDownloader is installed by adding the following dependency to your `build.gr
 
 ```groovy
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:1.3.0'
+    compile 'com.liulishuo.filedownloader:library:1.3.9'
 }
 ```
+
+## Open customize component
+
+From now on, FileDownloader support following components to be customized by yourself:
+
+| Name | Interface | Default Impl
+| --- | --- | ---
+| Connection | [FileDownloadConnection][FileDownloadConnection-java-link] | [FileDownloadUrlConnection][FileDownloadUrlConnection-java-link]
+| OutputStream | [FileDownloadOutputStream][FileDownloadOutputStream-java-link] | [FileDownloadRandomAccessFile][FileDownloadRandomAccessFile-java-link]
+| Database | [FileDownloadDatabase][FileDownloadDatabase-java-link] | [DefaultDatabaseImpl][DefaultDatabaseImpl-java-link]
+
+### How to valid it?
+
+Just create your own `DownloadMgrInitialParams.InitCustomMaker` and put those customized component to it, finally init the FileDownloader with it: [FileDownloader#init](https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/FileDownloader.java#L62)
 
 ## Welcome PR
 
@@ -75,3 +87,9 @@ limitations under the License.
 [file_download_listener_callback_flow_png]: https://github.com/lingochamp/FileDownloader/raw/master/art/filedownloadlistener_callback_flow.png
 [build_status_svg]: https://travis-ci.org/lingochamp/FileDownloader.svg?branch=master
 [build_status_link]: https://travis-ci.org/lingochamp/FileDownloader
+[FileDownloadConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadConnection.java
+[FileDownloadUrlConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadUrlConnection.java
+[FileDownloadDatabase-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/services/FileDownloadDatabase.java
+[DefaultDatabaseImpl-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/services/DefaultDatabaseImpl.java
+[FileDownloadOutputStream-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/stream/FileDownloadOutputStream.java
+[FileDownloadRandomAccessFile-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/stream/FileDownloadRandomAccessFile.java

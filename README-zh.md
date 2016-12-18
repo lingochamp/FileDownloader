@@ -1,5 +1,5 @@
 # FileDownloader
-Android 文件下载引擎，稳定、高效、简单易用
+Android 文件下载引擎，稳定、高效、灵活、简单易用
 
 [![Gitter][gitter_svg]][gitter_url]
 [![Download][bintray_svg]][bintray_url]
@@ -7,8 +7,6 @@ Android 文件下载引擎，稳定、高效、简单易用
 [![Build Status][build_status_svg]][build_status_link]
 
 > [README DOC](https://github.com/lingochamp/FileDownloader/blob/master/README.md)
-
-> 本引擎依赖okhttp 3.4.1
 
 ---
 
@@ -22,6 +20,7 @@ Android 文件下载引擎，稳定、高效、简单易用
 
 - 简单易用
 - 高并发
+- 灵活
 - 可选择性支持: 独立/非独立进程
 - 自动断点续传
 
@@ -31,11 +30,6 @@ Android 文件下载引擎，稳定、高效、简单易用
 - 暂停: paused, 恢复: 直接调用start，默认就是断点续传
 - 引擎默认会打开避免掉帧的处理(使得在有些情况下回调(FileDownloadListener)不至于太频繁导致ui线程被ddos), 如果你希望关闭这个功能（关闭以后，所有回调会与0.1.9之前的版本一样，所有的回调会立马抛一个消息ui线程(Handler)）
 - 如果没有特殊需要，直接通过配置`filedownloader.properties`将`process.non-separate`置为`true`，可以有效减少每次回调IPC带来的I/O。
-
-#### 使用okHttp并使用其中的一些默认属性
-
-- retryOnConnectionFailure: Unreachable IP addresses/Stale pooled connections/Unreachable proxy servers
-- connection/read/write time out 10s
 
 ---
 
@@ -63,14 +57,12 @@ Android 文件下载引擎，稳定、高效、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.3.0'
+compile 'com.liulishuo.filedownloader:library:1.3.9'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
 
 #### 全局初始化在`Application.onCreate`中
-
-> 如果希望定制化用于下载的`OkHttpClient`，建议参考[DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java)
 
 ```java
 public XXApplication extends Application{
@@ -272,7 +264,7 @@ if (parallel) {
 | 方法名 | 需实现接口 | 已有组件 | 默认组件 | 说明
 | --- | --- | --- | --- | ---
 | database | FileDownloadDatabase | DefaultDatabaseImpl | DefaultDatabaseImpl | 传入定制化数据库组件，用于存储用于断点续传的数据
-| okHttpClient | okHttpClient | okHttpClient | okHttpClient | 传入定制化的okHttpClient，用于下载时使用
+| connection | FileDownloadConnection | FileDownloadUrlConnection | FileDownloadUrlConnection | 传入定制化的网络连接组件，用于下载时建立网络连接
 | outputStreamCreator | FileDownloadOutputStream | FileDownloadRandomAccessFile、FileDownloadBufferedOutputStream、FileDownloadOkio | FileDownloadRandomAccessFile | 传入输出流组件，用于下载时写文件使用
 | maxNetworkThreadCount | - | - | 3 | 传入创建下载引擎时，指定可用的下载线程个数
 

@@ -2,6 +2,22 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.3.9
+
+_2016-12-18_
+
+### 核心:
+
+- 这个版本开始，你可以定制自己的网络连接组件: [FileDownloadConnection][FileDownloadConnection-java-link]，默认情况下我们使用[这个][FileDownloadUrlConnection-java-link]。
+- 这个版本开始，我们不再默认依赖okhttp，你可以根据自己的需求进行定制。
+
+> 如果你依然需要配置`timeout`、`proxy`，请不用担心，我已经对默认的网络连接组件实现了这几个接口: [DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java#L35)，如果有需要可以看看。
+
+#### 新接口
+
+- 新增 `FileDownloadQueueSet#reuseAndStart`: 添加 '复用并启动'接口，主要用于在启动队列任务之前，先对任务队列中的所有任务进行尽可能的复用。 Ref #383
+- 新增 `FileDownloadConnection`: 支持定制化网络连接组件，不再默认依赖okhttp。 Closes #158
+
 ## Version 1.3.0
 
 _2016-10-31_
@@ -514,3 +530,6 @@ _2015-12-23_
 _2015-12-22_
 
 - initial release
+
+[FileDownloadConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadConnection.java
+[FileDownloadUrlConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadUrlConnection.java
