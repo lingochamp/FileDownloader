@@ -11,7 +11,7 @@ _2016-12-18_
 - Since this version you can customize you own [FileDownloadConnection][FileDownloadConnection-java-link] component, we use [this one][FileDownloadUrlConnection-java-link] as default.
 - Since this version, FileDownloader don't dependency the okhttp as default.
 
-> If you still need configure `timeout`、`proxy` for the connection component, but you don't want to implement your own one, configurations, I implement it for the default connection component too, just move to : [DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java#L35), check the code if you want.
+> If you still need configure `timeout`、`proxy` for the connection component, but you don't want to implement your own one, don't worry, I implement it for the default connection component too, just move to : [DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java#L35), check the code if you want.
 
 #### New Interfaces
 
