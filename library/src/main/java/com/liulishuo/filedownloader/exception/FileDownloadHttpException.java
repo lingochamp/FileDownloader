@@ -15,82 +15,48 @@
  */
 package com.liulishuo.filedownloader.exception;
 
+import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
-import java.io.Serializable;
-
-import okhttp3.Headers;
-import okhttp3.Request;
-import okhttp3.Response;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Throw this exception, when the HTTP status code is not {@link java.net.HttpURLConnection#HTTP_OK},
  * and not {@link java.net.HttpURLConnection#HTTP_PARTIAL} either.
  */
 public class FileDownloadHttpException extends RuntimeException {
-    private final int code;
-    private final HeaderWrap requestHeaderWrap;
-    private final HeaderWrap responseHeaderWrap;
+    private final int mCode;
+    private final Map<String, List<String>> mRequestHeaderMap;
+    private final Map<String, List<String>> mResponseHeaderMap;
 
-    public FileDownloadHttpException(final Request request, final Response response) {
+    public FileDownloadHttpException(final int code, final FileDownloadConnection connection) {
         super(FileDownloadUtils.formatString("response code error: %d, \n request headers: %s \n " +
-                "response headers: %s", response.code(), request.headers(), response.headers()));
+                "response headers: %s", code, connection));
 
-        this.code = response.code();
-        this.requestHeaderWrap = new HeaderWrap(request.headers());
-        this.responseHeaderWrap = new HeaderWrap(response.headers());
+        this.mCode = code;
+        this.mRequestHeaderMap = connection.getRequestHeaderFields();
+        this.mResponseHeaderMap = connection.getResponseHeaderFields();
     }
 
     /**
      * @return the header of the current response.
      */
-    public Headers getRequestHeader() {
-        return this.requestHeaderWrap.getHeader();
+    public Map<String, List<String>> getRequestHeader() {
+        return this.mRequestHeaderMap;
     }
 
     /**
      * @return the header of the current request.
      */
-    public Headers getResponseHeader() {
-        return this.responseHeaderWrap.getHeader();
+    public Map<String, List<String>> getResponseHeader() {
+        return this.mResponseHeaderMap;
     }
 
     /**
      * @return the HTTP status code.
      */
     public int getCode() {
-        return this.code;
-    }
-
-    static class HeaderWrap implements Serializable {
-        private final String nameAndValuesString;
-        private String[] namesAndValues;
-
-        public HeaderWrap(final Headers headers) {
-            nameAndValuesString = headers.toString();
-        }
-
-        public Headers getHeader() {
-            do {
-                if (namesAndValues != null) {
-                    break;
-                }
-
-                if (nameAndValuesString == null) {
-                    break;
-                }
-
-                synchronized (this) {
-                    if (namesAndValues != null) {
-                        break;
-                    }
-
-                    namesAndValues = FileDownloadUtils.convertHeaderString(nameAndValuesString);
-                }
-            } while (false);
-
-            assert namesAndValues != null : "the header is empty!";
-            return Headers.of(namesAndValues);
-        }
+        return this.mCode;
     }
 }

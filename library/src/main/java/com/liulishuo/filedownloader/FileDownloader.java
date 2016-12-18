@@ -51,56 +51,13 @@ public class FileDownloader {
      * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
      * loading classes.
      *
-     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
+     * @see #init(Context, DownloadMgrInitialParams.InitCustomMaker)
      */
     public static void init(final Context context) {
-        init(context, null, 0);
+        init(context, null);
     }
 
 
-    /**
-     * Initialize the FileDownloader.
-     * <p>
-     * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
-     * loading classes.
-     *
-     * @param context                 The application context.
-     * @param okHttpClientCustomMaker The okHttpClient customize maker, the okHttpClient will be used
-     *                                in the downloader service to downloading file. You can provide
-     *                                {@code null} for this value.
-     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
-     */
-    public static void init(final Context context,
-                            /** Nullable **/FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker) {
-        init(context, okHttpClientCustomMaker, 0);
-
-    }
-
-    /**
-     * Initialize the FileDownloader.
-     * <p>
-     * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
-     * loading classes.
-     *
-     * @param context                 The context.
-     * @param okHttpClientCustomMaker The okHttpClient customize maker, the okHttpClient will be used
-     *                                in the downloader service to downloading file. You can provide
-     *                                {@code null} for this value.
-     * @param maxNetworkThreadCount   The maximum count of the network thread, what is the number of
-     *                                simultaneous downloads in FileDownloader.
-     *                                If this value is 0, the value will be ignored and use
-     *                                {@link FileDownloadProperties#DOWNLOAD_MAX_NETWORK_THREAD_COUNT}
-     *                                which is defined in filedownloader.properties instead.
-     * @see #init(Application)
-     * @see com.liulishuo.filedownloader.util.FileDownloadHelper.OkHttpClientCustomMaker
-     * @see #setMaxNetworkThreadCount(int)
-     */
-    public static void init(final Context context,
-                            /** Nullable **/final FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker,
-                            /** [1,12] **/final int maxNetworkThreadCount) {
-        init(context, new DownloadMgrInitialParams.InitCustomMaker().
-                okHttpClient(okHttpClientCustomMaker).maxNetworkThreadCount(maxNetworkThreadCount));
-    }
 
     /**
      * * Initialize the FileDownloader.
@@ -119,10 +76,10 @@ public class FileDownloader {
      * service running in the main process.
      *
      * @param context The context.
-     * @param maker   Used to customize the download service.
+     * @param maker   Used to customize the download service, this value can be {@code null}.
      */
     public static void init(final Context context,
-                            final DownloadMgrInitialParams.InitCustomMaker maker) {
+                            /**Nullable **/final DownloadMgrInitialParams.InitCustomMaker maker) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(FileDownloader.class, "init Downloader");
         }
@@ -141,20 +98,12 @@ public class FileDownloader {
         }
     }
 
+
     /**
      * @deprecated Consider use {@link #init(Context)} instead.
      */
     public static void init(final Application application) {
         init(application.getApplicationContext());
-    }
-
-    /**
-     * @deprecated Consider use {@link #init(Context, FileDownloadHelper.OkHttpClientCustomMaker)}
-     * instead.
-     */
-    public static void init(final Application application,
-                            FileDownloadHelper.OkHttpClientCustomMaker okHttpClientCustomMaker) {
-        init(application.getApplicationContext(), okHttpClientCustomMaker);
     }
 
     private final static class HolderClass {
@@ -716,7 +665,6 @@ public class FileDownloader {
      * @return whether is successful to set the max network thread count.
      * If there are any actively executing tasks in FileDownloader, you will receive a warn
      * priority log int the logcat and this operation would be failed.
-     * @see #init(Context, FileDownloadHelper.OkHttpClientCustomMaker, int)
      */
     public boolean setMaxNetworkThreadCount(final int count) {
         if (!FileDownloadList.getImpl().isEmpty()) {

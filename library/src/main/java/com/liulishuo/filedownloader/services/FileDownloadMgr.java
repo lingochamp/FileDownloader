@@ -28,8 +28,6 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 import java.io.File;
 import java.util.List;
 
-import okhttp3.OkHttpClient;
-
 /**
  * The downloading manager in FileDownloadService, which is used to control all download-inflow.
  * <p/>
@@ -41,18 +39,18 @@ import okhttp3.OkHttpClient;
  */
 class FileDownloadMgr implements IThreadPoolMonitor {
     private final FileDownloadDatabase mDatabase;
-    private final OkHttpClient mClient;
     private final FileDownloadThreadPool mThreadPool;
     private final FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
+    private final FileDownloadHelper.ConnectionCreator mConnectionCreator;
 
     public FileDownloadMgr() {
 
         final DownloadMgrInitialParams params = FileDownloadHelper.getDownloadMgrInitialParams();
 
         this.mDatabase = params.createDatabase();
-        this.mClient = params.createOkHttpClient();
         this.mThreadPool = new FileDownloadThreadPool(params.getMaxNetworkThreadCount());
         this.mOutputStreamCreator = params.createOutputStreamCreator();
+        this.mConnectionCreator = params.createConnectionCreator();
     }
 
     // synchronize for safe: check downloading, check resume, update data, execute runnable
@@ -132,8 +130,8 @@ class FileDownloadMgr implements IThreadPoolMonitor {
         }
 
         // - execute
-        mThreadPool.execute(new FileDownloadRunnable(mClient, this, mOutputStreamCreator, model,
-                mDatabase, autoRetryTimes, header, callbackProgressMinIntervalMillis,
+        mThreadPool.execute(new FileDownloadRunnable(this, mOutputStreamCreator,mConnectionCreator,
+                model, mDatabase, autoRetryTimes, header, callbackProgressMinIntervalMillis,
                 callbackProgressTimes, forceReDownload, isWifiRequired));
 
     }
@@ -370,16 +368,5 @@ class FileDownloadMgr implements IThreadPoolMonitor {
     public void clearAllTaskData() {
         mDatabase.clear();
     }
-
-    public static class Creator {
-        OkHttpClient createOkHttpClient() {
-            return new OkHttpClient();
-        }
-
-        FileDownloadDatabase createDatabase() {
-            return new DefaultDatabaseImpl();
-        }
-    }
-
 }
 

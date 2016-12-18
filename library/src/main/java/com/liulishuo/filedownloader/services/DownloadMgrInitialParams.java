@@ -16,14 +16,13 @@
 
 package com.liulishuo.filedownloader.services;
 
+import com.liulishuo.filedownloader.connection.FileDownloadUrlConnection;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
-
-import okhttp3.OkHttpClient;
 
 /**
  * Params in this class is used in the downloading manager, and would be used for initialize the
@@ -40,37 +39,24 @@ public class DownloadMgrInitialParams {
         }
     }
 
-    OkHttpClient createOkHttpClient() {
-        if (mMaker == null || mMaker.mOkHttpClientCustomMaker == null) {
-            return createDefaultOkHttpClient();
-        }
-
-        final OkHttpClient customOkHttpClient = mMaker.mOkHttpClientCustomMaker.customMake();
-
-        if (customOkHttpClient != null) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "initial FileDownloader manager with the customize " +
-                        "okHttpClient: %s", customOkHttpClient);
-            }
-            return customOkHttpClient;
-        } else {
-            return createDefaultOkHttpClient();
-        }
-    }
-
     int getMaxNetworkThreadCount() {
-        if (mMaker == null || mMaker.mMaxNetworkThreadCount == null) {
+        if (mMaker == null) {
             return getDefaultMaxNetworkThreadCount();
         }
 
-        final int customizeMaxNetworkThreadCount = mMaker.mMaxNetworkThreadCount;
+        final Integer customizeMaxNetworkThreadCount = mMaker.mMaxNetworkThreadCount;
 
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "initial FileDownloader manager with the customize " +
-                    "maxNetworkThreadCount: %d", customizeMaxNetworkThreadCount);
+        if (customizeMaxNetworkThreadCount != null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "initial FileDownloader manager with the customize " +
+                        "maxNetworkThreadCount: %d", customizeMaxNetworkThreadCount);
+            }
+
+            return FileDownloadProperties.getValidNetworkThreadCount(customizeMaxNetworkThreadCount);
+        } else {
+            return getDefaultMaxNetworkThreadCount();
         }
 
-        return FileDownloadProperties.getValidNetworkThreadCount(customizeMaxNetworkThreadCount);
     }
 
     FileDownloadDatabase createDatabase() {
@@ -106,12 +92,26 @@ public class DownloadMgrInitialParams {
         } else {
             return createDefaultOutputStreamCreator();
         }
-
     }
 
-    private OkHttpClient createDefaultOkHttpClient() {
-        return new OkHttpClient();
+    FileDownloadHelper.ConnectionCreator createConnectionCreator() {
+        if (mMaker == null) {
+            return createDefaultConnectionCreator();
+        }
+
+        final FileDownloadHelper.ConnectionCreator connectionCreator = mMaker.mConnectionCreator;
+
+        if (connectionCreator != null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "initial FileDownloader manager with the customize " +
+                        "connection creator: %s", connectionCreator);
+            }
+            return connectionCreator;
+        } else {
+            return createDefaultConnectionCreator();
+        }
     }
+
 
     private int getDefaultMaxNetworkThreadCount() {
         return FileDownloadProperties.getImpl().DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
@@ -125,13 +125,22 @@ public class DownloadMgrInitialParams {
         return new FileDownloadRandomAccessFile.Creator();
     }
 
+    private FileDownloadHelper.ConnectionCreator createDefaultConnectionCreator() {
+        return new FileDownloadUrlConnection.Creator();
+    }
+
     public static class InitCustomMaker {
         FileDownloadHelper.DatabaseCustomMaker mDatabaseCustomMaker;
-        FileDownloadHelper.OkHttpClientCustomMaker mOkHttpClientCustomMaker;
         Integer mMaxNetworkThreadCount;
         FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
+        FileDownloadHelper.ConnectionCreator mConnectionCreator;
 
         /**
+         * customize the database component.
+         * <p>
+         * If you don't customize the data component, we use the result of
+         * {@link #createDefaultDatabase()} as the default one.
+         *
          * @param maker The database is used for storing the {@link FileDownloadModel}.
          *              <p>
          *              The data stored in the database is only used for task resumes from the
@@ -148,15 +157,11 @@ public class DownloadMgrInitialParams {
         }
 
         /**
-         * @param maker The okHttpClient customize maker, the okHttpClient will be used
-         *              in the downloader service to downloading file.
-         */
-        public InitCustomMaker okHttpClient(FileDownloadHelper.OkHttpClientCustomMaker maker) {
-            this.mOkHttpClientCustomMaker = maker;
-            return this;
-        }
-
-        /**
+         * Customize the max network thread count.
+         * <p>
+         * If you don't customize the network thread count, we use the result of
+         * {@link #getDefaultMaxNetworkThreadCount()} as the default one.
+         *
          * @param maxNetworkThreadCount The maximum count of the network thread, what is the number of
          *                              simultaneous downloads in FileDownloader.
          *                              <p>
@@ -173,11 +178,30 @@ public class DownloadMgrInitialParams {
         }
 
         /**
+         * Customize the output stream component.
+         * <p>
+         * If you don't customize the output stream component, we use the result of
+         * {@link #createDefaultOutputStreamCreator()} as the default one.
+         *
          * @param creator The output stream creator is used for creating {@link FileDownloadOutputStream}
          *                which is used to write the input stream to the file for downloading.
          */
         public InitCustomMaker outputStreamCreator(FileDownloadHelper.OutputStreamCreator creator) {
             this.mOutputStreamCreator = creator;
+            return this;
+        }
+
+        /**
+         * Customize the connection component.
+         * <p>
+         * If you don't customize the connection component, we use the result of
+         * {@link #createDefaultConnectionCreator()} as the default one.
+         *
+         * @param creator the connection creator will used for create the connection when start
+         *                downloading any task in the FileDownloader.
+         */
+        public InitCustomMaker connectionCreator(FileDownloadHelper.ConnectionCreator creator) {
+            this.mConnectionCreator = creator;
             return this;
         }
 

@@ -17,30 +17,26 @@
 package com.liulishuo.filedownloader.util;
 
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.Context;
 
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
+import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadBufferedOutputStream;
-import com.liulishuo.filedownloader.stream.FileDownloadOkio;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-
-import okhttp3.OkHttpClient;
+import java.io.IOException;
 
 /**
  * The helper for cache the {@code APP_CONTEXT} and {@code OK_HTTP_CLIENT} for the main process and
  * the filedownloader process.
- *
- * @see com.liulishuo.filedownloader.FileDownloader#init(Context, OkHttpClientCustomMaker)
  */
 public class FileDownloadHelper {
 
@@ -69,19 +65,6 @@ public class FileDownloadHelper {
     public static DownloadMgrInitialParams getDownloadMgrInitialParams() {
         return DOWNLOAD_MANAGER_INITIAL_PARAMS == null ?
                 new DownloadMgrInitialParams(null) : DOWNLOAD_MANAGER_INITIAL_PARAMS;
-    }
-
-    public interface OkHttpClientCustomMaker {
-
-        /**
-         * Only be invoked by the {@link Application#onCreate()} on the ':filedownloader' progress.
-         * You can customize Timeout, Proxy, etc...
-         *
-         * @return Nullable, Customize {@link OkHttpClient}, will be used for downloading files.
-         * @see com.liulishuo.filedownloader.FileDownloader#init(Application, OkHttpClientCustomMaker)
-         * @see OkHttpClient
-         */
-        OkHttpClient customMake();
     }
 
     public interface DatabaseCustomMaker {
@@ -118,7 +101,6 @@ public class FileDownloadHelper {
          *                               be created, or cannot be opened for any other reason
          * @see FileDownloadRandomAccessFile.Creator
          * @see FileDownloadBufferedOutputStream.Creator
-         * @see FileDownloadOkio.Creator
          */
         FileDownloadOutputStream create(File file) throws FileNotFoundException;
 
@@ -130,6 +112,18 @@ public class FileDownloadHelper {
          * order to let the internal mechanism can predict this situation, and handle it smoothly.
          */
         boolean supportSeek();
+    }
+
+    public interface ConnectionCreator {
+        /**
+         * The connection creator is used for creating {@link FileDownloadConnection} component which
+         * is used to use some protocol to connect to the remote server.
+         *
+         * @param url the uniform resource locator, which direct the aim resource we need to connect.
+         * @return The connection creator.
+         * @throws IOException if an I/O exception occurs.
+         */
+        FileDownloadConnection create(String url) throws IOException;
     }
 
     public static boolean inspectAndInflowDownloaded(int id, String path, boolean forceReDownload,
