@@ -83,18 +83,18 @@ public class MessageSnapshotGate implements MessageSnapshotFlow.MessageReceiver 
 
                 if (!transmitMessage(taskList, snapshot)) {
 
-                    String log = "The flow callback did not consumed, id:" + snapshot.getId() + " status:"
+                    String log = "The event isn't consumed, id:" + snapshot.getId() + " status:"
                             + snapshot.getStatus() + " task-count:" + taskList.size();
                     for (BaseDownloadTask.IRunningTask task : taskList) {
                         log += " | " + task.getOrigin().getStatus();
                     }
-                    FileDownloadLog.w(this, log);
+                    FileDownloadLog.i(this, log);
                 }
 
 
             } else {
-                FileDownloadLog.w(this, "callback event transfer %d," +
-                        " but is contains false", snapshot.getStatus());
+                FileDownloadLog.i(this, "Receive the event %d, but there isn't any running task in " +
+                        "the upper layer", snapshot.getStatus());
             }
 
         }
