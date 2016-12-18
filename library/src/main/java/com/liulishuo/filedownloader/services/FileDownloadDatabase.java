@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader.services;
 
 
 import com.liulishuo.filedownloader.model.FileDownloadModel;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 import java.util.List;
 
@@ -36,33 +37,102 @@ import java.util.List;
 public interface FileDownloadDatabase {
 
     /**
-     * @param id download id
+     * Find the model which identify is {@code id}.
+     *
+     * @param id the download id.
      */
     FileDownloadModel find(final int id);
 
-
+    /**
+     * Insert the model to the database.
+     *
+     * @param downloadModel the download model.
+     */
     void insert(final FileDownloadModel downloadModel);
 
+    /**
+     * Update the data compare to the {@code downloadModel}
+     *
+     * @param downloadModel the download model.
+     */
     void update(final FileDownloadModel downloadModel);
 
+    /**
+     * Update the batch of datum compare to the {@code downloadModelList}
+     *
+     * @param downloadModelList the list of model.
+     */
     void update(final List<FileDownloadModel> downloadModelList);
 
+    /**
+     * Remove the model which identify is {@code id}.
+     *
+     * @param id the download id.
+     * @return {@code true} if succeed to remove model from the database.
+     */
     boolean remove(final int id);
 
+    /**
+     * Clear all models in this database.
+     */
     void clear();
 
+    /**
+     * Update the data because of the download status alternative to {@link FileDownloadStatus#connected}.
+     *
+     * @param model    the data in the model will be updated.
+     * @param total    the new total bytes.
+     * @param etag     the new etag.
+     * @param fileName the new file name.
+     */
     void updateConnected(final FileDownloadModel model, final long total, final String etag,
                          final String fileName);
 
+    /**
+     * Update the data because of the download status alternative to {@link FileDownloadStatus#progress}.
+     *
+     * @param model the data in the model will be updated.
+     * @param soFar the new so far bytes.
+     */
     void updateProgress(final FileDownloadModel model, final long soFar);
 
+    /**
+     * Update the data because of the download status alternative to {@link FileDownloadStatus#error}.
+     *
+     * @param model     the data in the model will be updated.
+     * @param throwable the new exception.
+     * @param sofar     the new so far bytes.
+     */
     void updateError(final FileDownloadModel model, final Throwable throwable, final long sofar);
 
+    /**
+     * Update the data because of the download status alternative to {@link FileDownloadStatus#retry}.
+     *
+     * @param model     the data in the model will be updated.
+     * @param throwable the new exception.
+     */
     void updateRetry(final FileDownloadModel model, final Throwable throwable);
 
+    /**
+     * Update the data because of the download status alternative to {@link FileDownloadStatus#completed}.
+     *
+     * @param model the data in the model will be updated.
+     * @param total the new total bytes.
+     */
     void updateComplete(final FileDownloadModel model, final long total);
 
+    /**
+     * Update the data because of the download status alternative to {@link FileDownloadStatus#paused}.
+     *
+     * @param model the data in the model will be updated.
+     * @param sofar the new so far bytes.
+     */
     void updatePause(final FileDownloadModel model, final long sofar);
 
+    /**
+     * Update the data because of the download status alternative to {@link FileDownloadStatus#pending}.
+     *
+     * @param model the data in the model will be updated.
+     */
     void updatePending(final FileDownloadModel model);
 }
