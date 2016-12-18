@@ -39,9 +39,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import okhttp3.Headers;
-
-
 /**
  * The utils for FileDownloader.
  */
@@ -470,5 +467,14 @@ public class FileDownloadUtils {
     public static boolean checkPermission(String permission) {
         final int perm = FileDownloadHelper.getAppContext().checkCallingOrSelfPermission(permission);
         return perm == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static long convertContentLengthString(String s) {
+        if (s == null) return -1;
+        try {
+            return Long.parseLong(s);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }

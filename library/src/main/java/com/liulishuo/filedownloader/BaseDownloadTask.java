@@ -172,22 +172,16 @@ public interface BaseDownloadTask {
      * <strong>Note:</strong> We have already handled Etag internal for guaranteeing tasks resuming
      * from the breakpoint, in other words, if the task has downloaded and got Etag, we will add the
      * 'If-Match' and the 'Range' K-V to its request header automatically.
-     *
-     * @see okhttp3.Headers.Builder#add(String, String)
      */
     BaseDownloadTask addHeader(final String name, final String value);
 
     /**
      * Add a field with the specified value to the request header.
-     *
-     * @see okhttp3.Headers.Builder#add(String, String)
      */
     BaseDownloadTask addHeader(final String line);
 
     /**
      * Remove all fields in the request header.
-     *
-     * @see okhttp3.Headers.Builder#removeAll(String)
      */
     BaseDownloadTask removeAllHeaders(final String name);
 

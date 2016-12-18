@@ -19,11 +19,11 @@ package com.liulishuo.filedownloader.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.liulishuo.filedownloader.util.FileDownloadProperties;
-import com.liulishuo.filedownloader.util.FileDownloadUtils;
+import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 
-import okhttp3.Headers;
-import okhttp3.Request;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * We have already handled Etag internal for guaranteeing tasks resuming from the breakpoint, in
@@ -32,47 +32,55 @@ import okhttp3.Request;
  */
 public class FileDownloadHeader implements Parcelable {
 
-    private Headers.Builder headerBuilder;
-
-    private String nameAndValuesString;
-    private String[] namesAndValues;
+    private HashMap<String, List<String>> mHeaderMap;
 
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(Request.Builder)
-     * @see okhttp3.Headers.Builder#add(String, String)
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(FileDownloadConnection)
      */
     public void add(String name, String value) {
-        if (headerBuilder == null) {
-            headerBuilder = new Headers.Builder();
+        if (name == null) throw new NullPointerException("name == null");
+        if (name.isEmpty()) throw new IllegalArgumentException("name is empty");
+        if (value == null) throw new NullPointerException("value == null");
+
+        if (mHeaderMap == null) {
+            mHeaderMap = new HashMap<>();
         }
 
-        headerBuilder.add(name, value);
+        List<String> values = mHeaderMap.get(name);
+        if (values == null) {
+            values = new ArrayList<>();
+            mHeaderMap.put(name, values);
+        }
+
+        if (!values.contains(value)) {
+            values.add(value);
+        }
     }
 
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(Request.Builder)
-     * @see okhttp3.Headers.Builder#add(String, String)
+     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(FileDownloadConnection)
      */
     public void add(String line) {
-        if (headerBuilder == null) {
-            headerBuilder = new Headers.Builder();
-        }
-        headerBuilder.add(line);
+        String[] parsed = line.split(":");
+        final String name = parsed[0].trim();
+        final String value = parsed[1].trim();
+
+        add(name, value);
     }
 
     /**
-     * @see okhttp3.Headers.Builder#removeAll(String)
+     * Remove all files with the name.
      */
     public void removeAll(String name) {
-        if (headerBuilder == null) {
+        if (mHeaderMap == null) {
             return;
         }
 
-        headerBuilder.removeAll(name);
+        mHeaderMap.remove(name);
     }
 
     @Override
@@ -82,64 +90,19 @@ public class FileDownloadHeader implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-
-        checkAndInitValues();
-        dest.writeString(nameAndValuesString);
+        dest.writeMap(mHeaderMap);
     }
 
-    private void checkAndInitValues() {
-        if (headerBuilder != null) {
-            nameAndValuesString = headerBuilder.build().toString();
-        }
-    }
-
-    public Headers getHeaders() {
-        if (!FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
-            throw new IllegalStateException("the headers object isn't accessible, when the " +
-                    "FileDownloadService in the separate process to UI process.");
-        }
-
-        return headerBuilder == null ? null : headerBuilder.build();
+    public HashMap<String, List<String>> getHeaders() {
+        return mHeaderMap;
     }
 
     public FileDownloadHeader() {
     }
 
     protected FileDownloadHeader(Parcel in) {
-        this.nameAndValuesString = in.readString();
-    }
-
-    /**
-     * Invoke by :filedownloader progress
-     *
-     * @return for {@link Headers#Headers(String[])}
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(Request.Builder)
-     */
-    public String[] getNamesAndValues() {
-
-        do {
-            if (namesAndValues != null) {
-                // has already converted.
-                break;
-            }
-
-            if (nameAndValuesString == null) {
-                // give up
-                break;
-            }
-
-            synchronized (this) {
-                if (namesAndValues != null) {
-                    break;
-                }
-
-                namesAndValues = FileDownloadUtils.convertHeaderString(nameAndValuesString);
-            }
-
-
-        } while (false);
-
-        return namesAndValues;
+        //noinspection unchecked
+        this.mHeaderMap = in.readHashMap(String.class.getClassLoader());
     }
 
     public static final Creator<FileDownloadHeader> CREATOR = new Creator<FileDownloadHeader>() {
@@ -154,6 +117,6 @@ public class FileDownloadHeader implements Parcelable {
 
     @Override
     public String toString() {
-        return this.nameAndValuesString;
+        return mHeaderMap.toString();
     }
 }

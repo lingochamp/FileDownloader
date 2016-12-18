@@ -25,6 +25,7 @@ import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
+import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
 import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException;
@@ -44,19 +45,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-
-import okhttp3.CacheControl;
-import okhttp3.Call;
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The real downloading runnable, what works in the {@link FileDownloadThreadPool}.
  *
  * @see #loop(FileDownloadModel)
- * @see #fetch(Response, boolean, long, long)
+ * @see #fetch(FileDownloadConnection, boolean, long, long)
  * @see FileDownloadThreadPool
  */
 @SuppressWarnings("WeakerAccess")
@@ -90,7 +88,6 @@ public class FileDownloadRunnable implements Runnable {
     private volatile boolean isPending = false;
 
     private final FileDownloadDatabase helper;
-    private final OkHttpClient client;
     private final int autoRetryTimes;
 
     private final FileDownloadHeader header;
@@ -107,9 +104,11 @@ public class FileDownloadRunnable implements Runnable {
     private final int mId;
 
     private final FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
+    private final FileDownloadHelper.ConnectionCreator mConnectionCreator;
 
-    public FileDownloadRunnable(final OkHttpClient client, final IThreadPoolMonitor threadPoolMonitor,
+    public FileDownloadRunnable(final IThreadPoolMonitor threadPoolMonitor,
                                 final FileDownloadHelper.OutputStreamCreator outputStreamCreator,
+                                final FileDownloadHelper.ConnectionCreator connectionCreator,
                                 final FileDownloadModel model,
                                 final FileDownloadDatabase helper, final int autoRetryTimes,
                                 final FileDownloadHeader header, final int minIntervalMillis,
@@ -121,7 +120,6 @@ public class FileDownloadRunnable implements Runnable {
         isPending = true;
         isRunning = false;
 
-        this.client = client;
         this.threadPoolMonitor = threadPoolMonitor;
         this.mOutputStreamCreator = outputStreamCreator;
         this.helper = helper;
@@ -139,6 +137,8 @@ public class FileDownloadRunnable implements Runnable {
         this.model = model;
 
         this.autoRetryTimes = autoRetryTimes;
+
+        this.mConnectionCreator = connectionCreator;
     }
 
     public int getId() {
@@ -230,10 +230,10 @@ public class FileDownloadRunnable implements Runnable {
     private void loop(FileDownloadModel model) {
         int retryingTimes = 0;
         boolean revisedInterval = false;
+        FileDownloadConnection connection = null;
 
         do {
             // loop for retry
-            Response response = null;
             long soFar = 0;
             final int id = mId;
             try {
@@ -254,42 +254,41 @@ public class FileDownloadRunnable implements Runnable {
                 // Step 2, handle resume from breakpoint
                 checkIsResumeAvailable();
 
-                Request.Builder requestBuilder = new Request.Builder().url(model.getUrl());
-                addHeader(requestBuilder);
-                requestBuilder.tag(id);
-                // 目前没有指定cache，下载任务非普通REST请求，用户已经有了存储的地方
-                requestBuilder.cacheControl(CacheControl.FORCE_NETWORK);
+                connection = mConnectionCreator.create(model.getUrl());
+                addHeader(connection);
 
                 // start download----------------
                 // Step 3, init request
-                final Request request = requestBuilder.get().build();
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "%s request header %s", id, request.headers());
+                    FileDownloadLog.d(this, "%s request header %s", id, connection.getRequestHeaderFields());
                 }
 
-                Call call = client.newCall(request);
-
                 // Step 4, build connect
-                response = call.execute();
+                connection.execute();
 
-                final boolean isSucceedStart = response.code() == HttpURLConnection.HTTP_OK;
-                final boolean isSucceedResume = response.code() == HttpURLConnection.HTTP_PARTIAL &&
-                        isResumeDownloadAvailable;
+                final int code = connection.getResponseCode();
+
+                final boolean isSucceedStart =
+                        code == HttpURLConnection.HTTP_OK || code == FileDownloadConnection.NO_RESPONSE_CODE;
+                final boolean isSucceedResume =
+                        ((code == HttpURLConnection.HTTP_PARTIAL) || (code == FileDownloadConnection.RESPONSE_CODE_FROM_OFFSET))
+                                &&
+                                isResumeDownloadAvailable;
 
                 if (isResumeDownloadAvailable && !isSucceedResume) {
                     FileDownloadLog.w(this, "tried to resume from the break point[%d], but the " +
                                     "response code is %d, not 206(PARTIAL).", model.getSoFar(),
-                            response.code());
+                            code);
                 }
 
                 if (isSucceedStart || isSucceedResume) {
                     long total = model.getTotal();
-                    final String transferEncoding = response.header("Transfer-Encoding");
+                    final String transferEncoding = connection.getResponseHeaderField("Transfer-Encoding");
 
                     // Step 5, check response's header
                     if (isSucceedStart || total <= 0) {
                         if (transferEncoding == null) {
-                            total = response.body().contentLength();
+                            total = FileDownloadUtils.convertContentLengthString(connection.getResponseHeaderField("Content-Length"));
                         } else {
                             // if transfer not nil, ignore content-length
                             total = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
@@ -326,7 +325,7 @@ public class FileDownloadRunnable implements Runnable {
                     }
 
                     // Step 6, callback on connected, and update header to db. for save etag.
-                    onConnected(isSucceedResume, total, findEtag(response), findFilename(response));
+                    onConnected(isSucceedResume, total, findEtag(connection), findFilename(connection));
 
                     // Step 7, check whether has same task running after got filename from server/local generate.
                     if (model.isPathAsDirectory()) {
@@ -363,26 +362,26 @@ public class FileDownloadRunnable implements Runnable {
                     }
 
                     // Step 8, start fetch datum from input stream & write to file
-                    if (fetch(response, isSucceedResume, soFar, total)) {
+                    if (fetch(connection, isSucceedResume, soFar, total)) {
                         break;
                     }
 
                 } else {
                     final FileDownloadHttpException httpException =
-                            new FileDownloadHttpException(request, response);
+                            new FileDownloadHttpException(code, connection);
 
                     if (revisedInterval) {
                         throw httpException;
                     }
                     revisedInterval = true;
 
-                    switch (response.code()) {
+                    switch (code) {
                         case HTTP_REQUESTED_RANGE_NOT_SATISFIABLE:
                             deleteTaskFiles();
                             FileDownloadLog.w(FileDownloadRunnable.class, "%d response code %d, " +
                                             "range[%d] isn't make sense, so delete the dirty file[%s]" +
                                             ", and try to redownload it from byte-0.", id,
-                                    response.code(), model.getSoFar(), model.getTempFilePath());
+                                    code, model.getSoFar(), model.getTempFilePath());
                             onRetry(httpException, retryingTimes++);
                             break;
                         default:
@@ -404,8 +403,8 @@ public class FileDownloadRunnable implements Runnable {
                     break;
                 }
             } finally {
-                if (response != null && response.body() != null) {
-                    response.body().close();
+                if (connection != null) {
+                    connection.ending();
                 }
             }
 
@@ -416,7 +415,7 @@ public class FileDownloadRunnable implements Runnable {
      * @return Whether finish looper or not.
      */
     @SuppressWarnings("SameReturnValue")
-    private boolean fetch(Response response, boolean isSucceedContinue,
+    private boolean fetch(FileDownloadConnection connection, boolean isSucceedContinue,
                           long soFar, long total) throws Throwable {
         // fetching datum
         InputStream inputStream = null;
@@ -424,7 +423,7 @@ public class FileDownloadRunnable implements Runnable {
 
         try {
             // Step 1, get input stream
-            inputStream = response.body().byteStream();
+            inputStream = connection.getInputStream();
             byte[] buff = new byte[BUFFER_SIZE];
 
             callbackMinIntervalBytes = calculateCallbackMinIntervalBytes(total, maxProgressCount);
@@ -565,53 +564,50 @@ public class FileDownloadRunnable implements Runnable {
         }
     }
 
-    private void addHeader(Request.Builder builder) {
-        final Headers additionHeaders;
+    private void addHeader(FileDownloadConnection connection) {
+        final HashMap<String, List<String>> additionHeaders;
         if (header != null) {
-            if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
-                /**
-                 * In case of the FileDownloadService is not in separate process, the
-                 * function {@link FileDownloadHeader#writeToParcel} would never be invoked, so
-                 * {@link FileDownloadHeader#checkAndInitValues} would never be invoked.
-                 *
-                 * Instead, we can use {@link FileDownloadHeader#headerBuilder} directly.
-                 */
-                additionHeaders = header.getHeaders();
-            } else {
-                /**
-                 * In case of the FileDownloadService is in separate process to UI process,
-                 * the headers value would be carried by the parcel with
-                 * {@link FileDownloadHeader#checkAndInitValues()} .
-                 */
-                if (header.getNamesAndValues() != null) {
-                    additionHeaders = Headers.of(header.getNamesAndValues());
-                } else {
-                    additionHeaders = null;
-                }
-            }
+            additionHeaders = header.getHeaders();
 
             if (additionHeaders != null) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.v(this, "%d add outside header: %s", mId, additionHeaders);
                 }
-                builder.headers(additionHeaders);
+
+                String name;
+                List<String> list;
+
+                // add addition headers which is provided by the user
+                Set<Map.Entry<String, List<String>>> entries = additionHeaders.entrySet();
+                for (Map.Entry<String, List<String>> e : entries) {
+                    name = e.getKey();
+                    list = e.getValue();
+                    if (list != null) {
+                        for (String value : list) {
+                            connection.addHeader(name, value);
+                        }
+                    }
+                }
+
             }
         }
 
-        if (isResumeDownloadAvailable) {
-            if (!TextUtils.isEmpty(model.getETag())) {
-                builder.addHeader("If-Match", model.getETag());
+        final String etag = model.getETag();
+        final long offset = model.getSoFar();
+        if (isResumeDownloadAvailable && !connection.dispatchAddResumeOffset(etag, offset)) {
+            if (!TextUtils.isEmpty(etag)) {
+                connection.addHeader("If-Match", etag);
             }
-            builder.addHeader("Range", FileDownloadUtils.formatString("bytes=%d-", model.getSoFar()));
+            connection.addHeader("Range", FileDownloadUtils.formatString("bytes=%d-", offset));
         }
     }
 
-    private String findEtag(Response response) {
-        if (response == null) {
-            throw new RuntimeException("response is null when findEtag");
+    private String findEtag(FileDownloadConnection connection) {
+        if (connection == null) {
+            throw new RuntimeException("connection is null when findEtag");
         }
 
-        final String newEtag = response.header("Etag");
+        final String newEtag = connection.getResponseHeaderField("Etag");
 
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "etag find by header %d %s", mId, newEtag);
@@ -620,11 +616,11 @@ public class FileDownloadRunnable implements Runnable {
         return newEtag;
     }
 
-    private String findFilename(Response response) {
+    private String findFilename(FileDownloadConnection connection) {
         String filename;
         if (model.isPathAsDirectory() && model.getFilename() == null) {
-            filename = FileDownloadUtils.parseContentDisposition(response.
-                    header("Content-Disposition"));
+            filename = FileDownloadUtils.parseContentDisposition(connection.
+                    getResponseHeaderField("Content-Disposition"));
             if (TextUtils.isEmpty(filename)) {
                 filename = FileDownloadUtils.generateFileName(model.getUrl());
             }
