@@ -30,6 +30,11 @@ android {
 
 apply from: 'https://raw.githubusercontent.com/Jacksgong/JCenter/master/license.gradle'
 
+dependencies {
+    testCompile "junit:junit:4.4"
+    testCompile "org.mockito:mockito-core:2.+"
+}
+
 if (isForUpload2Maven()) {
     println ':library:include upload 2 maven methods'
     apply from: 'https://raw.githubusercontent.com/Jacksgong/JCenter/master/installv1.gradle'
