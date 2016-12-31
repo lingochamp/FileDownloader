@@ -38,6 +38,8 @@ From now on, FileDownloader support following components to be customized by you
 | OutputStream | [FileDownloadOutputStream][FileDownloadOutputStream-java-link] | [FileDownloadRandomAccessFile][FileDownloadRandomAccessFile-java-link]
 | Database | [FileDownloadDatabase][FileDownloadDatabase-java-link] | [DefaultDatabaseImpl][DefaultDatabaseImpl-java-link]
 
+> If you want to use okhttp as your connection component, the simplest way is [this repo](https://github.com/Jacksgong/filedownloader-okhttp3-connection).
+
 ### How to valid it?
 
 Just create your own `DownloadMgrInitialParams.InitCustomMaker` and put those customized component to it, finally init the FileDownloader with it: [FileDownloader#init](https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/FileDownloader.java#L62)
