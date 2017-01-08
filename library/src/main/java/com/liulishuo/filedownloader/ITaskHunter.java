@@ -89,12 +89,6 @@ public interface ITaskHunter extends IDownloadSpeed.Lookup {
     boolean isLargeFile();
 
     /**
-     * @return {@code true} if the current hunter already has downloading data, it means that the
-     * hunter is running or has ran.
-     */
-    boolean isUsing();
-
-    /**
      * Free the current hunter.
      */
     void free();

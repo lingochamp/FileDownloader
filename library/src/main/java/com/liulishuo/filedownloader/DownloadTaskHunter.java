@@ -36,6 +36,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         BaseDownloadTask.LifeCycleCallback {
 
     private IFileDownloadMessenger mMessenger;
+    private final Object mPauseLock;
 
     @Override
     public boolean updateKeepAhead(MessageSnapshot snapshot) {
@@ -311,7 +312,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
     }
 
     private final ICaptureTask mTask;
-    private byte mStatus = FileDownloadStatus.INVALID_STATUS;
+    private volatile byte mStatus = FileDownloadStatus.INVALID_STATUS;
     private Throwable mThrowable = null;
 
     private final IDownloadSpeed.Monitor mSpeedMonitor;
@@ -324,14 +325,13 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
     private boolean mIsLargeFile;
 
-    volatile boolean mIsUsing = false;
-
     private boolean mIsResuming;
     private String mEtag;
 
     private boolean mIsReusedOldFile = false;
 
-    DownloadTaskHunter(ICaptureTask task) {
+    DownloadTaskHunter(ICaptureTask task, Object pauseLock) {
+        mPauseLock = pauseLock;
         mTask = task;
         final DownloadSpeedMonitor monitor = new DownloadSpeedMonitor();
         mSpeedMonitor = monitor;
@@ -341,10 +341,20 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
     @Override
     public void intoLaunchPool() {
+        synchronized (mPauseLock) {
+            if (mStatus != FileDownloadStatus.INVALID_STATUS) {
+                FileDownloadLog.w(this, "High concurrent cause, this task %d will not input " +
+                                "to launch pool, because of the status isn't idle : %d",
+                        getId(), mStatus);
+                return;
+            }
+
+            mStatus = FileDownloadStatus.toLaunchPool;
+        }
+
         final BaseDownloadTask.IRunningTask runningTask = mTask.getRunningTask();
         final BaseDownloadTask origin = runningTask.getOrigin();
 
-        mIsUsing = true;
         if (FileDownloadMonitor.isValid()) {
             FileDownloadMonitor.getMonitor().onRequestStart(origin);
         }
@@ -377,8 +387,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
     @Override
     public boolean pause() {
-        final BaseDownloadTask.IRunningTask runningTask = mTask.getRunningTask();
-        final BaseDownloadTask origin = runningTask.getOrigin();
         if (FileDownloadStatus.isOver(getStatus())) {
             if (FileDownloadLog.NEED_LOG) {
                 /**
@@ -388,14 +396,16 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                  * High concurrent cause.
                  */
                 FileDownloadLog.d(this, "High concurrent cause, Already is over, can't pause " +
-                        "again, %d %d", getStatus(), origin.getId());
+                        "again, %d %d", getStatus(), mTask.getRunningTask().getOrigin().getId());
             }
             return false;
         }
-        FileDownloadTaskLauncher.getImpl().expire(this);
-
         this.mStatus = FileDownloadStatus.paused;
 
+        final BaseDownloadTask.IRunningTask runningTask = mTask.getRunningTask();
+        final BaseDownloadTask origin = runningTask.getOrigin();
+
+        FileDownloadTaskLauncher.getImpl().expire(this);
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "the task[%d] has been expired from the launch pool.", getId());
         }
@@ -439,7 +449,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         mTotalBytes = 0;
 
         mSpeedMonitor.reset();
-        free();
 
         if (FileDownloadStatus.isOver(mStatus)) {
             mMessenger.discard();
@@ -502,13 +511,11 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
     }
 
     @Override
-    public boolean isUsing() {
-        return mIsUsing;
-    }
-
-    @Override
     public void free() {
-        mIsUsing = false;
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "free the task %d, when the status is %d", getId(), mStatus);
+        }
+        mStatus = FileDownloadStatus.INVALID_STATUS;
     }
 
     private void prepare() {
@@ -547,6 +554,13 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
     @Override
     public void start() {
+        if (mStatus != FileDownloadStatus.toLaunchPool) {
+            FileDownloadLog.w(this, "High concurrent cause, this task %d will not start," +
+                            " because the of status isn't toLaunchPool: %d",
+                    getId(), mStatus);
+            return;
+        }
+
         final BaseDownloadTask.IRunningTask runningTask = mTask.getRunningTask();
         final BaseDownloadTask origin = runningTask.getOrigin();
 
@@ -556,6 +570,18 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
             if (lostConnectedHandler.dispatchTaskStart(runningTask)) {
                 return;
+            }
+
+            synchronized (mPauseLock) {
+                if (mStatus != FileDownloadStatus.toLaunchPool) {
+                    FileDownloadLog.w(this, "High concurrent cause, this task %d will not start," +
+                                    " the status can't assign to toFileDownloadService, because the status" +
+                                    " isn't toLaunchPool: %d",
+                            getId(), mStatus);
+                    return;
+                }
+
+                mStatus = FileDownloadStatus.toFileDownloadService;
             }
 
             FileDownloadList.getImpl().add(runningTask);
@@ -576,6 +602,15 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                             origin.isForceReDownload(),
                             mTask.getHeader(),
                             origin.isWifiRequired());
+
+            if (mStatus == FileDownloadStatus.paused) {
+                FileDownloadLog.w(this, "High concurrent cause, this task %d will be paused," +
+                        "because of the status is paused, so the pause action must be applied", getId());
+                if (succeed) {
+                    FileDownloadServiceProxy.getImpl().pause(getId());
+                }
+                return;
+            }
 
             if (!succeed) {
                 //noinspection StatementWithEmptyBody

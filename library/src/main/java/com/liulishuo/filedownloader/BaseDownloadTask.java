@@ -658,6 +658,13 @@ public interface BaseDownloadTask {
          * Currently, this rescue is occurred when the filedownloader service connected.
          */
         void startTaskByRescue();
+
+        /**
+         * Get the object as a lock for synchronized with the pause area.
+         *
+         * @return the object as a lock for synchronized with the pause area.
+         */
+        Object getPauseLock();
     }
 
     /**

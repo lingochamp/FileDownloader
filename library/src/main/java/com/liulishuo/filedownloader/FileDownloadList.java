@@ -80,6 +80,25 @@ public class FileDownloadList {
         return null;
     }
 
+    List<BaseDownloadTask.IRunningTask> getReceiveServiceTaskList(final int id){
+        final List<BaseDownloadTask.IRunningTask> list = new ArrayList<>();
+        synchronized (this.mList) {
+            for (BaseDownloadTask.IRunningTask task : this.mList) {
+                if (task.is(id) && !task.isOver()) {
+
+                    final byte status = task.getOrigin().getStatus();
+                    if (status != FileDownloadStatus.INVALID_STATUS &&
+                            status != FileDownloadStatus.toLaunchPool) {
+
+                        list.add(task);
+                    }
+                }
+            }
+        }
+
+        return list;
+    }
+
     List<BaseDownloadTask.IRunningTask> getDownloadingList(final int id) {
         final List<BaseDownloadTask.IRunningTask> list = new ArrayList<>();
         synchronized (this.mList) {

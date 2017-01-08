@@ -69,8 +69,7 @@ public class MessageSnapshotGate implements MessageSnapshotFlow.MessageReceiver 
         final String updateSyncLock = Integer.toString(snapshot.getId());
         synchronized (updateSyncLock.intern()) {
             final List<BaseDownloadTask.IRunningTask> taskList = FileDownloadList.getImpl().
-                    getDownloadingList(snapshot.getId());
-
+                    getReceiveServiceTaskList(snapshot.getId());
 
             if (taskList.size() > 0) {
                 final BaseDownloadTask topOriginTask = taskList.get(0).getOrigin();

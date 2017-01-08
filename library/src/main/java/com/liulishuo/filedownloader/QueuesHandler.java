@@ -21,6 +21,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.util.SparseArray;
 
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -33,11 +34,9 @@ import java.util.List;
 
 class QueuesHandler implements IQueuesHandler {
 
-    private final Object mPauseLock;
     private final SparseArray<Handler> mRunningSerialMap;
 
     public QueuesHandler(Object pauseLock) {
-        this.mPauseLock = pauseLock;
         this.mRunningSerialMap = new SparseArray<>();
     }
 
@@ -193,8 +192,9 @@ class QueuesHandler implements IQueuesHandler {
 
                 mRunningIndex = msg.arg1;
                 final BaseDownloadTask.IRunningTask stackTopTask = this.mList.get(mRunningIndex);
-                synchronized (mPauseLock) {
-                    if (!FileDownloadList.getImpl().contains(stackTopTask)) {
+                synchronized (stackTopTask.getPauseLock()) {
+                    if (stackTopTask.getOrigin().getStatus() != FileDownloadStatus.INVALID_STATUS ||
+                            !FileDownloadList.getImpl().contains(stackTopTask)) {
                         // pause?
                         if (FileDownloadLog.NEED_LOG) {
                             FileDownloadLog.d(SerialHandlerCallback.class,
@@ -203,12 +203,11 @@ class QueuesHandler implements IQueuesHandler {
                         goNext(msg.arg1 + 1);
                         return true;
                     }
+
+                    stackTopTask.getOrigin()
+                            .addFinishListener(mSerialFinishListener.setNextIndex(mRunningIndex + 1));
+                    stackTopTask.startTaskByQueue();
                 }
-
-
-                stackTopTask.getOrigin()
-                        .addFinishListener(mSerialFinishListener.setNextIndex(mRunningIndex + 1));
-                stackTopTask.startTaskByQueue();
 
             } else if (msg.what == WHAT_FREEZE) {
                 freeze();
