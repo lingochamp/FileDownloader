@@ -369,6 +369,10 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         if (ready) {
             FileDownloadTaskLauncher.getImpl().launch(this);
         }
+
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "the task[%d] has been into the launch pool.", getId());
+        }
     }
 
     @Override
@@ -391,6 +395,10 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         FileDownloadTaskLauncher.getImpl().expire(this);
 
         this.mStatus = FileDownloadStatus.paused;
+
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.v(this, "the task[%d] has been expired from the launch pool.", getId());
+        }
 
         if (!FileDownloader.getImpl().isServiceConnected()) {
             if (FileDownloadLog.NEED_LOG) {
