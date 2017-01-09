@@ -36,7 +36,7 @@ class QueuesHandler implements IQueuesHandler {
 
     private final SparseArray<Handler> mRunningSerialMap;
 
-    public QueuesHandler(Object pauseLock) {
+    public QueuesHandler() {
         this.mRunningSerialMap = new SparseArray<>();
     }
 
@@ -194,7 +194,7 @@ class QueuesHandler implements IQueuesHandler {
                 final BaseDownloadTask.IRunningTask stackTopTask = this.mList.get(mRunningIndex);
                 synchronized (stackTopTask.getPauseLock()) {
                     if (stackTopTask.getOrigin().getStatus() != FileDownloadStatus.INVALID_STATUS ||
-                            !FileDownloadList.getImpl().contains(stackTopTask)) {
+                            FileDownloadList.getImpl().isNotContains(stackTopTask)) {
                         // pause?
                         if (FileDownloadLog.NEED_LOG) {
                             FileDownloadLog.d(SerialHandlerCallback.class,

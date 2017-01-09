@@ -111,7 +111,7 @@ public class FileDownloadUrlConnection implements FileDownloadConnection {
 
 
     public static class Creator implements FileDownloadHelper.ConnectionCreator {
-        private Configuration mConfiguration;
+        private final Configuration mConfiguration;
 
         public Creator() {
             this(null);

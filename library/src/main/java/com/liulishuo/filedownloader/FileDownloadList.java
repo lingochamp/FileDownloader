@@ -113,8 +113,8 @@ public class FileDownloadList {
         return list;
     }
 
-    boolean contains(final BaseDownloadTask.IRunningTask download) {
-        return !mList.isEmpty() && mList.contains(download);
+    boolean isNotContains(final BaseDownloadTask.IRunningTask download) {
+        return mList.isEmpty() || !mList.contains(download);
     }
 
     List<BaseDownloadTask.IRunningTask> copy(final FileDownloadListener listener) {

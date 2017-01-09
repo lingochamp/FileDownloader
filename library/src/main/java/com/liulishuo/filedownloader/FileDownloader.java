@@ -212,15 +212,12 @@ public class FileDownloader {
         FileDownloadTaskLauncher.getImpl().expire(listener);
         final List<BaseDownloadTask.IRunningTask> taskList =
                 FileDownloadList.getImpl().copy(listener);
-        synchronized (pauseLock) {
-            for (BaseDownloadTask.IRunningTask task : taskList) {
-                task.getOrigin().pause();
-            }
+        for (BaseDownloadTask.IRunningTask task : taskList) {
+            task.getOrigin().pause();
         }
     }
 
     private Runnable pauseAllRunnable;
-    private final static Object pauseLock = new Object();
 
     /**
      * Pause all tasks running in FileDownloader.
@@ -228,11 +225,9 @@ public class FileDownloader {
     public void pauseAll() {
         FileDownloadTaskLauncher.getImpl().expireAll();
         final BaseDownloadTask.IRunningTask[] downloadList = FileDownloadList.getImpl().copy();
-        synchronized (pauseLock) {
             for (BaseDownloadTask.IRunningTask task : downloadList) {
                 task.getOrigin().pause();
             }
-        }
         // double check, for case: File Download progress alive but ui progress has died and relived,
         // so FileDownloadList not always contain all running task exactly.
         if (FileDownloadServiceProxy.getImpl().isConnected()) {
@@ -707,7 +702,7 @@ public class FileDownloader {
         if (mQueuesHandler == null) {
             synchronized (INIT_QUEUES_HANDLER_LOCK) {
                 if (mQueuesHandler == null) {
-                    mQueuesHandler = new QueuesHandler(pauseLock);
+                    mQueuesHandler = new QueuesHandler();
                 }
             }
         }

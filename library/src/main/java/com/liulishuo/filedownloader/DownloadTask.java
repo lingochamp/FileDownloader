@@ -270,6 +270,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
     @Override
     public boolean isRunning() {
+        //noinspection SimplifiableIfStatement
         if (FileDownloader.getImpl().getLostConnectedHandler().isInWaitingList(this)) {
             return true;
         }
@@ -558,7 +559,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public void free() {
         mHunter.free();
-        if (!FileDownloadList.getImpl().contains(this)) {
+        if (FileDownloadList.getImpl().isNotContains(this)) {
             mIsMarkedAdded2List = false;
         }
     }

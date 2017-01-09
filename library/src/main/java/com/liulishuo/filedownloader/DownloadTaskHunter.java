@@ -620,7 +620,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                                     " maybe some problem in binder, maybe the process was killed in " +
                                     "unexpected."));
 
-                    if (!FileDownloadList.getImpl().contains(runningTask)) {
+                    if (FileDownloadList.getImpl().isNotContains(runningTask)) {
                         lostConnectedHandler.taskWorkFine(runningTask);
                         FileDownloadList.getImpl().add(runningTask);
                     }
