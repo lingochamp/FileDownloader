@@ -34,9 +34,9 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     private final FileDownloadMgr downloadManager;
     private final WeakReference<FileDownloadService> wService;
 
-    FDServiceSharedHandler(WeakReference<FileDownloadService> wService) {
+    FDServiceSharedHandler(WeakReference<FileDownloadService> wService, FileDownloadMgr manager) {
         this.wService = wService;
-        this.downloadManager = new FileDownloadMgr();
+        this.downloadManager = manager;
     }
 
     @Override

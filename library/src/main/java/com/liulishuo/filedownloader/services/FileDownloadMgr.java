@@ -43,10 +43,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
     private final FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
     private final FileDownloadHelper.ConnectionCreator mConnectionCreator;
 
-    public FileDownloadMgr() {
-
-        final DownloadMgrInitialParams params = FileDownloadHelper.getDownloadMgrInitialParams();
-
+    public FileDownloadMgr(final DownloadMgrInitialParams params) {
         this.mDatabase = params.createDatabase();
         this.mThreadPool = new FileDownloadThreadPool(params.getMaxNetworkThreadCount());
         this.mOutputStreamCreator = params.createOutputStreamCreator();

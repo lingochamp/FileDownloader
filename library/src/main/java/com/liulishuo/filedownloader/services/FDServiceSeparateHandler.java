@@ -56,9 +56,9 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
         return n;
     }
 
-    FDServiceSeparateHandler(WeakReference<FileDownloadService> wService) {
+    FDServiceSeparateHandler(WeakReference<FileDownloadService> wService, FileDownloadMgr manager) {
         this.wService = wService;
-        this.downloadManager = new FileDownloadMgr();
+        this.downloadManager = manager;
 
         MessageSnapshotFlow.getImpl().setReceiver(this);
     }

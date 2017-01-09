@@ -24,7 +24,6 @@ import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadBufferedOutputStream;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
@@ -42,7 +41,6 @@ public class FileDownloadHelper {
 
     @SuppressLint("StaticFieldLeak")
     private static Context APP_CONTEXT;
-    private static DownloadMgrInitialParams DOWNLOAD_MANAGER_INITIAL_PARAMS;
 
     public static void holdContext(final Context context) {
         APP_CONTEXT = context;
@@ -50,21 +48,6 @@ public class FileDownloadHelper {
 
     public static Context getAppContext() {
         return APP_CONTEXT;
-    }
-
-    public static void initializeDownloadMgrParams(DownloadMgrInitialParams.InitCustomMaker customMaker) {
-        if (!FileDownloadUtils.isDownloaderProcess(FileDownloadHelper.getAppContext())) {
-            throw new IllegalStateException(
-                    FileDownloadUtils.formatString("the DownloadMgrInitialParams is only " +
-                            "can be touched in the process which the download service settles on"));
-        }
-
-        DOWNLOAD_MANAGER_INITIAL_PARAMS = new DownloadMgrInitialParams(customMaker);
-    }
-
-    public static DownloadMgrInitialParams getDownloadMgrInitialParams() {
-        return DOWNLOAD_MANAGER_INITIAL_PARAMS == null ?
-                new DownloadMgrInitialParams(null) : DOWNLOAD_MANAGER_INITIAL_PARAMS;
     }
 
     public interface DatabaseCustomMaker {

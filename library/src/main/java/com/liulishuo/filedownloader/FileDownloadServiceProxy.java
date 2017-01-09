@@ -19,6 +19,7 @@ import android.app.Notification;
 import android.content.Context;
 
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 
@@ -33,6 +34,8 @@ import com.liulishuo.filedownloader.util.FileDownloadProperties;
  * separate `:filedownloader` process.
  */
 public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
+    private DownloadMgrInitialParams.InitCustomMaker mInitCustomMaker;
+
     private final static class HolderClass {
         private final static FileDownloadServiceProxy INSTANCE = new FileDownloadServiceProxy();
     }
@@ -54,6 +57,14 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
         handler = FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE ?
                 new FileDownloadServiceSharedTransmit() :
                 new FileDownloadServiceUIGuard();
+    }
+
+    void setInitCustomMaker(DownloadMgrInitialParams.InitCustomMaker initCustomMaker) {
+        mInitCustomMaker = initCustomMaker;
+    }
+
+    public DownloadMgrInitialParams getDownloadMgrInitialParams() {
+        return new DownloadMgrInitialParams(mInitCustomMaker);
     }
 
     @Override

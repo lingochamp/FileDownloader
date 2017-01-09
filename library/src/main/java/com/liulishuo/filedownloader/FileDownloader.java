@@ -47,9 +47,6 @@ public class FileDownloader {
 
     /**
      * Initialize the FileDownloader.
-     * <p>
-     * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
-     * loading classes.
      *
      * @see #init(Context, DownloadMgrInitialParams.InitCustomMaker)
      */
@@ -58,25 +55,20 @@ public class FileDownloader {
     }
 
 
-
     /**
      * * Initialize the FileDownloader.
      * <p>
-     * <strong>Note:</strong> this method consumes 4~28ms in nexus 5. the most cost used for
-     * loading classes.
+     * <strong>Note:</strong> This method just hold {@code context} and {@code maker}, so it is very
+     * light(it is maybe need to spend 5ms for load some relate classes).
      * <p>
-     * This method cache {@code context} in Main-Process and FileDownloader-Process, and if the
-     * {@code okHttpClientCustomMaker} is provided, FileDownloader will initialize the okHttpClient
-     * in the FileDownloadService settled downed process.
-     * <p/>
-     * <strong>Tips:</strong> As default, you need invoke this method in {@link Application#onCreate()}
-     * to make sure the {@code context} can be hold in both Main-Process and FileDownloader-Process.
-     * But if you set the downloader service running in the main process, you can invoke this method
-     * when you need use FileDownloader. Ref {@link FileDownloadProperties} to set the downloader
-     * service running in the main process.
+     * You need to invoke this method in {@link Application#onCreate()}, since the FileDownloadService
+     * is running with the {@link android.app.Service#START_STICKY}, so it is just if you invoke this
+     * this method in {@link Application#onCreate()}, FileDownloader can make sure the {@code maker}
+     * can be assigned corrected each time when FileDownloadService is launching.
      *
      * @param context The context.
      * @param maker   Used to customize the download service, this value can be {@code null}.
+     * @see #init(Context)
      */
     public static void init(final Context context,
                             /**Nullable **/final DownloadMgrInitialParams.InitCustomMaker maker) {
@@ -86,16 +78,7 @@ public class FileDownloader {
 
         FileDownloadHelper.holdContext(context);
 
-        if (FileDownloadUtils.isDownloaderProcess(context)) {
-            FileDownloadHelper.initializeDownloadMgrParams(maker);
-
-            try {
-                FileDownloadUtils.setMinProgressStep(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_STEP);
-                FileDownloadUtils.setMinProgressTime(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_TIME);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
+        FileDownloadServiceProxy.getImpl().setInitCustomMaker(maker);
     }
 
 
