@@ -32,7 +32,8 @@ public class FileDownloadHttpException extends RuntimeException {
 
     public FileDownloadHttpException(final int code, final FileDownloadConnection connection) {
         super(FileDownloadUtils.formatString("response code error: %d, \n request headers: %s \n " +
-                "response headers: %s", code, connection));
+                        "response headers: %s", code,
+                connection.getRequestHeaderFields(), connection.getResponseHeaderFields()));
 
         this.mCode = code;
         this.mRequestHeaderMap = connection.getRequestHeaderFields();
