@@ -271,6 +271,10 @@ public class MultitaskTestActivity extends AppCompatActivity {
     }
 
     private void stopTimeCount() {
+        if (isFinishing()) {
+            return;
+        }
+
         isStopTimer = true;
         timeConsumeTv.getHandler().removeCallbacks(timeCountRunnable);
         final long consume = System.currentTimeMillis() - start;
@@ -423,6 +427,9 @@ public class MultitaskTestActivity extends AppCompatActivity {
     private boolean isStopTimer = true;
 
     private void goTimeCount() {
+        if (isFinishing()) {
+            return;
+        }
         final int time = (int) timeConsumeTv.getTag();
         timeConsumeTv.setText(String.valueOf(time));
         timeConsumeTv.getHandler().postDelayed(timeCountRunnable, 1000);
