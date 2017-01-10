@@ -8,13 +8,13 @@ _2017-01-11_
 
 #### Enhancement
 
-- Improve Performance: Optimize the logic in `FileDownloader#init`, let it more lighter(just do some action like assign `context` and `maker`)
+- Improve Performance: Optimize the logic in `FileDownloader#init`, let it lighter(just do some action like assign `context` and `maker`)
 
 #### Fix
 
-- Fix(pause): fix can't stop the task when occur the high concurrency event about pausing task after start it in very close time. Closes #402
+- Fix(pause): fix can't stop the task when occurring the high concurrency event about pausing task after starting it in very close time. Closes #402
 - Fix(init FileDownloader): fix the very low frequent crash when init FileDownloader on the process the `FileDownloadService` settled on. Closes #420  
-- Fix(FileDownloadHttpException): fix params can't match the formatter when occur `FileDownloadHttpException` Closes #438
+- Fix(FileDownloadHttpException): fix params can't match the `formatter` when occur `FileDownloadHttpException` Closes #438
 
 ## Version 1.3.9
 
