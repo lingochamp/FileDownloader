@@ -2,6 +2,20 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.4.0
+
+_2017-01-11_
+
+#### 性能与提高
+
+- 提高性能: 优化`FileDownloader#init`中的逻辑, 使其更加的轻量(仅仅做了赋值`context`与`maker`的操作)
+
+#### 修复
+
+- 修复(pause): 修复高并发情况下，当在启动一个任务的时候，很短的时间间隔内去暂停一个任务，可能无法暂停下来任务的问题。 Closes #402
+- 修复(init FileDownloader): 修复在很低概率下在`FileDownloadService`所在进程初始化FileDownloader时出现Crash的问题。 Closes #420  
+- 修复(FileDownloadHttpException): 修复在遇到`FileDownloadHttpException`类型Crash时，由于字符串的formatter无法匹配导致Crash的问题 Closes #438
+
 ## Version 1.3.9
 
 _2016-12-18_
@@ -9,7 +23,7 @@ _2016-12-18_
 ### 核心:
 
 - 这个版本开始，你可以定制自己的网络连接组件: [FileDownloadConnection][FileDownloadConnection-java-link]，默认情况下我们使用[这个][FileDownloadUrlConnection-java-link]。
-- 这个版本开始，我们不再默认依赖okhttp，你可以根据自己的需求进行定制。
+- 这个版本开始，我们不再默认依赖okhttp，你可以根据自己的需求进行定制。(如果你依然想要使用okhttp，可以考虑集成下这个[仓库](https://github.com/Jacksgong/filedownloader-okhttp3-connection))
 
 > 如果你依然需要配置`timeout`、`proxy`，请不用担心，我已经对默认的网络连接组件实现了这几个接口: [DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java#L35)，如果有需要可以看看。
 

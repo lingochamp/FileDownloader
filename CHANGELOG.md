@@ -2,6 +2,20 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.4.0
+
+_2017-01-11_
+
+#### Enhancement
+
+- Improve Performance: Optimize the logic in `FileDownloader#init`, let it more lighter(just do some action like assign `context` and `maker`)
+
+#### Fix
+
+- Fix(pause): fix can't stop the task when occur the high concurrency event about pausing task after start it in very close time. Closes #402
+- Fix(init FileDownloader): fix the very low frequent crash when init FileDownloader on the process the `FileDownloadService` settled on. Closes #420  
+- Fix(FileDownloadHttpException): fix params can't match the formatter when occur `FileDownloadHttpException` Closes #438
+
 ## Version 1.3.9
 
 _2016-12-18_
@@ -9,7 +23,7 @@ _2016-12-18_
 ### Important:
 
 - Since this version you can customize you own [FileDownloadConnection][FileDownloadConnection-java-link] component, we use [this one][FileDownloadUrlConnection-java-link] as default.
-- Since this version, FileDownloader don't dependency the okhttp as default.
+- Since this version, FileDownloader don't dependency the okhttp as default. (If you still want to use the okhttp as your connection component, you can integrate [this repo](https://github.com/Jacksgong/filedownloader-okhttp3-connection) feel free)
 
 > If you still need configure `timeout`、`proxy` for the connection component, but you don't want to implement your own one, don't worry, I implement it for the default connection component too, just move to : [DemoApplication](https://github.com/lingochamp/FileDownloader/blob/master/demo/src/main/java/com/liulishuo/filedownloader/demo/DemoApplication.java#L35), check the code if you want.
 
