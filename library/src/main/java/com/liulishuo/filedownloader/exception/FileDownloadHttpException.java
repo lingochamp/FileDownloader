@@ -15,9 +15,10 @@
  */
 package com.liulishuo.filedownloader.exception;
 
-import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,14 +31,15 @@ public class FileDownloadHttpException extends RuntimeException {
     private final Map<String, List<String>> mRequestHeaderMap;
     private final Map<String, List<String>> mResponseHeaderMap;
 
-    public FileDownloadHttpException(final int code, final FileDownloadConnection connection) {
+    public FileDownloadHttpException(final int code,
+                                     final Map<String, List<String>> requestHeaderMap,
+                                     final Map<String, List<String>> responseHeaderMap) {
         super(FileDownloadUtils.formatString("response code error: %d, \n request headers: %s \n " +
-                        "response headers: %s", code,
-                connection.getRequestHeaderFields(), connection.getResponseHeaderFields()));
+                "response headers: %s", code, requestHeaderMap, responseHeaderMap));
 
         this.mCode = code;
-        this.mRequestHeaderMap = connection.getRequestHeaderFields();
-        this.mResponseHeaderMap = connection.getResponseHeaderFields();
+        this.mRequestHeaderMap = cloneSerializableMap(requestHeaderMap);
+        this.mResponseHeaderMap = cloneSerializableMap(requestHeaderMap);
     }
 
     /**
@@ -59,5 +61,17 @@ public class FileDownloadHttpException extends RuntimeException {
      */
     public int getCode() {
         return this.mCode;
+    }
+
+    private static Map<String, List<String>> cloneSerializableMap(final Map<String, List<String>> originMap) {
+        final Map<String, List<String>> serialMap = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> entry : originMap.entrySet()) {
+            final String key = entry.getKey();
+            final List<String> values = new ArrayList<>(entry.getValue());
+            serialMap.put(key, values);
+        }
+
+        return serialMap;
     }
 }

@@ -259,8 +259,12 @@ public class FileDownloadRunnable implements Runnable {
 
                 // start download----------------
                 // Step 3, init request
+                // get the request header in here, because of there are many connection
+                // component(such as HttpsURLConnectionImpl, HttpURLConnectionImpl in okhttp3) don't
+                // allow access to the request header after it connected.
+                final Map<String, List<String>> requestHeader = connection.getRequestHeaderFields();
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "%s request header %s", id, connection.getRequestHeaderFields());
+                    FileDownloadLog.d(this, "%s request header %s", id, requestHeader);
                 }
 
                 // Step 4, build connect
@@ -368,7 +372,8 @@ public class FileDownloadRunnable implements Runnable {
 
                 } else {
                     final FileDownloadHttpException httpException =
-                            new FileDownloadHttpException(code, connection);
+                            new FileDownloadHttpException(code,
+                                    requestHeader, connection.getResponseHeaderFields());
 
                     if (revisedInterval) {
                         throw httpException;
