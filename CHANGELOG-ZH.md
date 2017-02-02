@@ -2,6 +2,15 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.4.1
+
+_2017-02-03_
+
+#### Fix
+
+- 修复(高并发): 修复由于Messenger在已经收到结束的信息将Task对象赋值为Null以后依然收到其他消息，导致NPE的问题。 Closes #462
+- 修复(`FileDownloadHttpException`): 修复由于在建立连接后无法取到请求头以至于遇到`FileDownloadHttpException`时发生`IllegalStateException`的问题。 Closes #458
+
 ## Version 1.4.0
 
 _2017-01-11_

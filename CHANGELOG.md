@@ -2,6 +2,15 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.4.1
+
+_2017-02-03_
+
+#### Fix
+
+- Fix(High concurrency): Fix occurring the NPE crash because of it still receiving message-snapshot in the messenger but the host task has been assigned to null since it has been received over-status message-snapshot. Closes #462
+- Fix(`FileDownloadHttpException`): Fix occurring the `IllegalStateException` because of cannot access request header fields after connection is set when occurring http-exception. Closes #458
+
 ## Version 1.4.0
 
 _2017-01-11_
