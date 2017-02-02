@@ -195,6 +195,18 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     }
 
     private void process(MessageSnapshot snapshot) {
+        if (mTask == null) {
+            if (FileDownloadLog.NEED_LOG) {
+                // the most possible of occurring this case is the thread for flowing the paused
+                // message is different with others.
+                FileDownloadLog.d(this, "occur this case, it would be the host task of this " +
+                                "messenger has been over(paused/warn/completed/error) on the " +
+                                "other thread before receiving the snapshot(id[%d], status[%d])",
+                        snapshot.getId(), snapshot.getStatus());
+            }
+            return;
+        }
+
         if (mIsDiscard || mTask.getOrigin().getListener() == null) {
             if (FileDownloadMonitor.isValid() &&
                     snapshot.getStatus() == FileDownloadStatus.blockComplete) {
@@ -205,19 +217,10 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
             inspectAndHandleOverStatus(snapshot.getStatus());
         } else {
-            offer(snapshot);
+            parcelQueue.offer(snapshot);
 
             FileDownloadMessageStation.getImpl().requestEnqueue(this);
         }
-    }
-
-    private void offer(MessageSnapshot snapshot) {
-        final byte status = snapshot.getStatus();
-        Assert.assertTrue(
-                FileDownloadUtils.formatString("request process message %d, but has already over %d",
-                        status, parcelQueue.size()), mTask != null);
-
-        parcelQueue.offer(snapshot);
     }
 
     private void inspectAndHandleOverStatus(int status) {
