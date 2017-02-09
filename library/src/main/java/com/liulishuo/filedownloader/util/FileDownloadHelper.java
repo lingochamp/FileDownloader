@@ -109,6 +109,17 @@ public class FileDownloadHelper {
         FileDownloadConnection create(String url) throws IOException;
     }
 
+    /**
+     * @param id              the {@code id} used for filter out which task would be notified the
+     *                        'completed' message if need.
+     * @param path            if the file with {@code path} is exist it means the relate task would
+     *                        be completed.
+     * @param forceReDownload whether the task is force to redownload ignore whether the file has
+     *                        been exist or not.
+     * @param flowDirectly    {@code true} if flow the message if need directly without throw to the
+     *                        message-queue.
+     * @return whether the task with {@code id} has been downloaded.
+     */
     public static boolean inspectAndInflowDownloaded(int id, String path, boolean forceReDownload,
                                                      boolean flowDirectly) {
         if (forceReDownload) {
@@ -127,6 +138,15 @@ public class FileDownloadHelper {
         return false;
     }
 
+    /**
+     * @param id           the {@code id} used for filter out which task would be notified the
+     *                     'warn' message if need.
+     * @param model        the target model will be checked for judging whether it is downloading.
+     * @param monitor      the monitor for download-thread.
+     * @param flowDirectly {@code true} if flow the message if need directly without throw to the
+     *                     message-queue.
+     * @return whether the {@code model} is downloading.
+     */
     public static boolean inspectAndInflowDownloading(int id, FileDownloadModel model,
                                                       IThreadPoolMonitor monitor,
                                                       boolean flowDirectly) {
