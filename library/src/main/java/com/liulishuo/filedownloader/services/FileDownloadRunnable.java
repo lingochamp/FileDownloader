@@ -274,15 +274,16 @@ public class FileDownloadRunnable implements Runnable {
 
                 final boolean isSucceedStart =
                         code == HttpURLConnection.HTTP_OK || code == FileDownloadConnection.NO_RESPONSE_CODE;
+                // if the response status code isn't point to PARTIAL/OFFSET, isSucceedResume will
+                // be assigned to false, so filedownloader will download the file from very beginning.
                 final boolean isSucceedResume =
                         ((code == HttpURLConnection.HTTP_PARTIAL) || (code == FileDownloadConnection.RESPONSE_CODE_FROM_OFFSET))
                                 &&
                                 isResumeDownloadAvailable;
 
                 if (isResumeDownloadAvailable && !isSucceedResume) {
-                    FileDownloadLog.w(this, "tried to resume from the break point[%d], but the " +
-                                    "response code is %d, not 206(PARTIAL).", model.getSoFar(),
-                            code);
+                    FileDownloadLog.d(this, "want to resume from the breakpoint[%d], but the " +
+                            "response status code is[%d]", model.getSoFar(), code);
                 }
 
                 if (isSucceedStart || isSucceedResume) {
