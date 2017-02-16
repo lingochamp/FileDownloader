@@ -74,6 +74,15 @@ public class FileDownloadSerialQueue {
     }
 
     /**
+     * Get the count of tasks which is waiting on this queue.
+     *
+     * @return the count of waiting tasks on this queue.
+     */
+    public int getWaitingTaskCount() {
+        return mTasks.size();
+    }
+
+    /**
      * Attempts to stop the working task, halts the processing of waiting tasks, and returns a list
      * of the tasks that were awaiting execution. These tasks are drained (removed) from the task
      * queue upon return from this method.
