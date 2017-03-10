@@ -260,6 +260,11 @@ public class FileDownloadUtils {
 
     private static Boolean IS_DOWNLOADER_PROCESS;
 
+    /**
+     * @param context the context
+     * @return {@code true} if the FileDownloadService is allowed to run on the current process,
+     * {@code false} otherwise.
+     */
     public static boolean isDownloaderProcess(final Context context) {
         if (IS_DOWNLOADER_PROCESS != null) {
             return IS_DOWNLOADER_PROCESS;
