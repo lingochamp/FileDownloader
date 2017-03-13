@@ -26,7 +26,6 @@ android {
         // avoid warning for "Not all execution paths return a value"
         return true
     }
-    buildToolsVersion '25.0.0'
 }
 
 dependencies {
