@@ -2,6 +2,18 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.4.2
+
+_2017-03-15_
+
+#### Fix
+
+- Fix(Same File Path): Avoid two tasks writing to the same file simultaneously, Once there is an another running task with the same target path to the current task's, the current task will receive the `PathConflictException` to refused start downloading. Closes #471
+
+#### New Interfaces
+
+- Add `FileDownloadSerialQueue#getWaitingTaskCount`: Get the count of tasks which is waiting on the serial-queue instance. Refs #345
+
 ## Version 1.4.1
 
 _2017-02-03_

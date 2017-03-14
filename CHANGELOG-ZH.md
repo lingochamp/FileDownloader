@@ -2,11 +2,23 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.4.2
+
+_2017-03-15_
+
+#### 修复
+
+- 修复(Same File Path): 避免多个问题同时对相同的文件写入，一旦存在另外一个正在运行中的任务与当前任务的文件存储路径一致，当前任务将会收到`PathConflictException`来拒绝启动。 Closes #471
+
+#### New Interfaces
+
+-  新增 `FileDownloadSerialQueue#getWaitingTaskCount`: 获取动态串行队列中正在等待启动的任务个数。Refs #345
+
 ## Version 1.4.1
 
 _2017-02-03_
 
-#### Fix
+#### 修复
 
 - 修复(高并发): 修复由于Messenger在已经收到结束的信息将Task对象赋值为Null以后依然收到其他消息，导致NPE的问题。 Closes #462
 - 修复(`FileDownloadHttpException`): 修复由于在建立连接后无法取到请求头以至于遇到`FileDownloadHttpException`时发生`IllegalStateException`的问题。 Closes #458

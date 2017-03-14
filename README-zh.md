@@ -57,7 +57,7 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.4.1'
+compile 'com.liulishuo.filedownloader:library:1.4.2'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -425,6 +425,8 @@ III. 异常处理
 | `FileDownloadGiveUpRetryException` | 在请求返回的 response-header 中没有带有文件大小(content-length)，并且不是流媒体(transfer-encoding)的情况下会抛出该异常；出现这个异常，将会忽略所有重试的机会(`BaseDownloadTask#setAutoRetryTimes`). 你可以通过在 `filedownloader.properties`中添加 `http.lenient=true` 来忽略这个异常，并且在该情况下，直接作为流媒体进行下载。
 | `FileDownloadOutOfSpaceException` | 当将要下载的文件大小大于剩余磁盘大小时，会抛出这个异常。
 | 其他 | 程序错误。
+| `FileDownloadNetworkPolicyException` | 设置了`BaseDownloadTask#setWifiRequired(true)`，在下载过程中，一旦发现网络情况转为非Wifi环境，便会抛回这个异常
+| `PathConflictException` | 当有一个正在下载的任务，它的存储路径与当前任务的存储路径完全一致，为了避免多个任务对同一个文件进行写入，当前任务便会抛回这个异常
 
 
 
