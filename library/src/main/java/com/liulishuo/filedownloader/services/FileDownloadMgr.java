@@ -85,11 +85,26 @@ class FileDownloadMgr implements IThreadPoolMonitor {
 
         final String targetFilePath = model != null ? model.getTargetFilePath() :
                 FileDownloadUtils.getTargetFilePath(path, pathAsDirectory, null);
-
         if (FileDownloadHelper.inspectAndInflowDownloaded(id, targetFilePath, forceReDownload,
                 true)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already completed downloading %d", id);
+            }
+            return;
+        }
+
+        final long sofar = model != null ? model.getSoFar() : 0;
+        final String tempFilePath = model != null ? model.getTempFilePath() :
+                FileDownloadUtils.getTempPath(targetFilePath);
+        if (FileDownloadHelper.inspectAndInflowConflictPath(id, sofar, tempFilePath, targetFilePath,
+                this)) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "there is an another task with the same target-file-path %d %s",
+                        id, targetFilePath);
+                // because of the file is dirty for this task.
+                if (model != null) {
+                    mDatabase.remove(id);
+                }
             }
             return;
         }
@@ -132,7 +147,7 @@ class FileDownloadMgr implements IThreadPoolMonitor {
         }
 
         // - execute
-        mThreadPool.execute(new FileDownloadRunnable(this, mOutputStreamCreator,mConnectionCreator,
+        mThreadPool.execute(new FileDownloadRunnable(this, mOutputStreamCreator, mConnectionCreator,
                 model, mDatabase, autoRetryTimes, header, callbackProgressMinIntervalMillis,
                 callbackProgressTimes, forceReDownload, isWifiRequired));
 
@@ -350,6 +365,11 @@ class FileDownloadMgr implements IThreadPoolMonitor {
         } while (false);
 
         return isDownloading;
+    }
+
+    @Override
+    public int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId) {
+        return mThreadPool.findRunningTaskIdBySameTempPath(tempFilePath, excludeId);
     }
 
     public boolean clearTaskData(int id) {

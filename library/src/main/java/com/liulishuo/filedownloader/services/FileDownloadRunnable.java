@@ -149,6 +149,10 @@ public class FileDownloadRunnable implements Runnable {
         return isPending || isRunning;
     }
 
+    public String getTempFilePath() {
+        return model.getTempFilePath();
+    }
+
     public boolean isResuming() {
         return isResuming;
     }
@@ -337,13 +341,15 @@ public class FileDownloadRunnable implements Runnable {
                         // this scope for caring about the case of there is another task is provided
                         // the same path to store file and the same url.
 
+                        final String targetFilePath = model.getTargetFilePath();
+
                         // get the ID after got the filename.
                         final int fileCaseId = FileDownloadUtils.generateId(model.getUrl(),
-                                model.getTargetFilePath());
+                                targetFilePath);
 
                         // whether the file with the filename has been existed.
                         if (FileDownloadHelper.inspectAndInflowDownloaded(id,
-                                model.getTargetFilePath(), isForceReDownload, false)) {
+                                targetFilePath, isForceReDownload, false)) {
                             helper.remove(id);
                             break;
                         }
@@ -374,6 +380,15 @@ public class FileDownloadRunnable implements Runnable {
                                 // re connect to resume from breakpoint.
                                 continue;
                             }
+                        }
+
+                        // whether there is an another running task with the same target-file-path.
+                        if (FileDownloadHelper.inspectAndInflowConflictPath(id, model.getSoFar(),
+                                getTempFilePath(),
+                                targetFilePath,
+                                threadPoolMonitor)) {
+                            helper.remove(id);
+                            break;
                         }
                     }
 

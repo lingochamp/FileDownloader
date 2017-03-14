@@ -68,13 +68,11 @@ public class MessageSnapshotTaker {
         }
     }
 
-    public static MessageSnapshot catchException(BaseDownloadTask task) {
-        if (task.isLargeFile()) {
-            return new LargeMessageSnapshot.ErrorMessageSnapshot(task.getId(),
-                    task.getLargeFileSoFarBytes(), task.getErrorCause());
+    public static MessageSnapshot catchException(int id, long sofar, Throwable error) {
+        if (sofar > Integer.MAX_VALUE) {
+            return new LargeMessageSnapshot.ErrorMessageSnapshot(id, sofar, error);
         } else {
-            return new SmallMessageSnapshot.ErrorMessageSnapshot(task.getId(),
-                    task.getSmallFileSoFarBytes(), task.getErrorCause());
+            return new SmallMessageSnapshot.ErrorMessageSnapshot(id, (int) sofar, error);
         }
     }
 

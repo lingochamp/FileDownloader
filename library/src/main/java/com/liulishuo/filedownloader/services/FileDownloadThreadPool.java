@@ -79,7 +79,7 @@ class FileDownloadThreadPool {
 
         final int CHECK_THRESHOLD_VALUE = 600;
         if (mIgnoreCheckTimes >= CHECK_THRESHOLD_VALUE) {
-            checkNoExist();
+            filterOutNoExist();
             mIgnoreCheckTimes = 0;
         } else {
             mIgnoreCheckTimes++;
@@ -87,7 +87,7 @@ class FileDownloadThreadPool {
     }
 
     public void cancel(final int id) {
-        checkNoExist();
+        filterOutNoExist();
         synchronized (this) {
             FileDownloadRunnable r = runnablePool.get(id);
             if (r != null) {
@@ -106,7 +106,7 @@ class FileDownloadThreadPool {
 
     private int mIgnoreCheckTimes = 0;
 
-    private synchronized void checkNoExist() {
+    private synchronized void filterOutNoExist() {
         SparseArray<FileDownloadRunnable> correctedRunnablePool = new SparseArray<>();
         for (int i = 0; i < runnablePool.size(); i++) {
             final int key = runnablePool.keyAt(i);
@@ -116,7 +116,6 @@ class FileDownloadThreadPool {
             }
         }
         runnablePool = correctedRunnablePool;
-
     }
 
     public boolean isInThreadPool(final int downloadId) {
@@ -124,13 +123,30 @@ class FileDownloadThreadPool {
         return runnable != null && runnable.isExist();
     }
 
+    public int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId) {
+        if (null == tempFilePath) {
+            return 0;
+        }
+
+        final int size = runnablePool.size();
+        for (int i = 0; i < size; i++) {
+            final FileDownloadRunnable runnable = runnablePool.valueAt(i);
+            if (runnable.isExist() && runnable.getId() != excludeId &&
+                    tempFilePath.equals(runnable.getTempFilePath())) {
+                return runnable.getId();
+            }
+        }
+
+        return 0;
+    }
+
     public synchronized int exactSize() {
-        checkNoExist();
+        filterOutNoExist();
         return runnablePool.size();
     }
 
     public synchronized List<Integer> getAllExactRunningDownloadIds() {
-        checkNoExist();
+        filterOutNoExist();
 
         List<Integer> list = new ArrayList<>();
         for (int i = 0; i < runnablePool.size(); i++) {

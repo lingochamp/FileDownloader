@@ -118,7 +118,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
     public MessageSnapshot prepareErrorMessage(Throwable cause) {
         mStatus = FileDownloadStatus.error;
         mThrowable = cause;
-        return MessageSnapshotTaker.catchException(mTask.getRunningTask().getOrigin());
+        return MessageSnapshotTaker.catchException(getId(), getSofarBytes(), cause);
     }
 
     private void update(final MessageSnapshot snapshot) {

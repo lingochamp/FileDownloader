@@ -21,6 +21,7 @@ import android.content.Context;
 
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.exception.PathConflictException;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -155,6 +156,34 @@ public class FileDownloadHelper {
                     inflow(MessageSnapshotTaker.catchWarn(id, model.getSoFar(), model.getTotal(),
                             flowDirectly));
             return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param id             the {@code id} used for filter out which task would be notified the
+     *                       'error' message if need.
+     * @param sofar          the so far bytes of the current checking-task.
+     * @param tempFilePath   the temp file path(file path used for downloading) for the current
+     *                       checking-task.
+     * @param targetFilePath the target file path for the current checking-task.
+     * @param monitor        the monitor for download-thread.
+     * @return whether the task with {@code id} is refused to start, because of there is an another
+     * running task with the same {@code tempFilePath}.
+     */
+    public static boolean inspectAndInflowConflictPath(int id, long sofar,
+                                                       String tempFilePath, String targetFilePath,
+                                                       IThreadPoolMonitor monitor) {
+        if (targetFilePath != null && tempFilePath != null) {
+            final int anotherSameTempPathTaskId = monitor.findRunningTaskIdBySameTempPath(tempFilePath, id);
+            if (anotherSameTempPathTaskId != 0) {
+                MessageSnapshotFlow.getImpl().
+                        inflow(MessageSnapshotTaker.catchException(id, sofar,
+                                new PathConflictException(anotherSameTempPathTaskId, tempFilePath,
+                                        targetFilePath)));
+                return true;
+            }
         }
 
         return false;
