@@ -51,7 +51,7 @@ public class FileDownloader {
      * @see #init(Context, DownloadMgrInitialParams.InitCustomMaker)
      */
     public static void init(final Context context) {
-        init(context, null);
+        init(context.getApplicationContext(), null);
     }
 
 
@@ -79,14 +79,6 @@ public class FileDownloader {
         FileDownloadHelper.holdContext(context);
 
         FileDownloadServiceProxy.getImpl().setInitCustomMaker(maker);
-    }
-
-
-    /**
-     * @deprecated Consider use {@link #init(Context)} instead.
-     */
-    public static void init(final Application application) {
-        init(application.getApplicationContext());
     }
 
     private final static class HolderClass {
