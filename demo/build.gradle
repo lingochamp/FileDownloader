@@ -43,7 +43,6 @@ android {
         // which is harmless for us.
         warning 'InvalidPackage'
     }
-    buildToolsVersion '25.0.0'
 }
 
 dependencies {
