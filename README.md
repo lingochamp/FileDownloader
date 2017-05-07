@@ -24,7 +24,7 @@ FileDownloader is installed by adding the following dependency to your `build.gr
 
 ```groovy
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:1.4.2'
+    compile 'com.liulishuo.filedownloader:library:1.4.3'
 }
 ```
 
@@ -55,7 +55,7 @@ Just create your own `DownloadMgrInitialParams.InitCustomMaker` and put those cu
 
 ## Usage
 
-By default, the FileDownloadService runs on the separate process, if you want to run it on the main process, just configure on the [filedownloader.properties](https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties), and you can use `FileDownloadUtils.isDownloaderProcess(Context)` to check whether the FileDownloadService can run on the current process. 
+By default, the FileDownloadService runs on the separate process, if you want to run it on the main process, just configure on the [filedownloader.properties](https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties), and you can use `FileDownloadUtils.isDownloaderProcess(Context)` to check whether the FileDownloadService can run on the current process.
 
 For more readable, Moved to [Wiki](https://github.com/lingochamp/FileDownloader/wiki).
 

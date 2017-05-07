@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.4.3
+
+_2017-05-07_
+
+#### 修复
+
+- 修复: 移除重复的被弃用的方法: `FileDownloader#init(Application)`, 因为`Application`是 `Context`的实现。
+
 ## Version 1.4.2
 
 _2017-03-15_

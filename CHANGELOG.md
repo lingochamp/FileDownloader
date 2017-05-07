@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.4.3
+
+_2017-05-07_
+
+#### Fix
+
+- Fix: Remove redundant deprecated method: `FileDownloader#init(Application)`, because `Application` is implement of `Context`.
+
 ## Version 1.4.2
 
 _2017-03-15_
