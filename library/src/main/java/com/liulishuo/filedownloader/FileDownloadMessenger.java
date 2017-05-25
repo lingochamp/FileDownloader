@@ -227,11 +227,12 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         // If this task is in the over state, try to retire this messenger.
         if (FileDownloadStatus.isOver(status)) {
             if (!parcelQueue.isEmpty()) {
+                final MessageSnapshot queueTopTask = parcelQueue.peek();
                 throw new IllegalStateException(
-                        FileDownloadUtils.formatString("the messenger[%s] has already " +
+                        FileDownloadUtils.formatString("the messenger[%s](with id[%d]) has already " +
                                         "accomplished all his job, but there still are some messages in" +
-                                        " parcel queue[%d]",
-                                this, parcelQueue.size()));
+                                        " parcel queue[%d] queue-top-status[%d]",
+                                this, queueTopTask.getId(), parcelQueue.size(), queueTopTask.getStatus()));
             }
             mTask = null;
         }
