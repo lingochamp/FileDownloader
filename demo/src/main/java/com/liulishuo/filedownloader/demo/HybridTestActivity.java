@@ -140,6 +140,8 @@ public class HybridTestActivity extends AppCompatActivity {
                 .start();
     }
 
+    // 用于缓存线性下载的listener，用于暂停
+    private FileDownloadListener mSerialDownloadListener;
     /**
      * Start multiple download tasks serial
      * <p>
@@ -150,9 +152,17 @@ public class HybridTestActivity extends AppCompatActivity {
     public void onClickMultiSerial(final View view) {
         updateDisplay(getString(R.string.hybrid_test_start_multiple_tasks_serial, Constant.URLS.length));
 
+        final FileDownloadListener serialTarget;
+        // 1. 如果缓存的listener存在就将其全部暂停
+        if (mSerialDownloadListener != null) {
+            FileDownloader.getImpl().pause(mSerialDownloadListener);
+            serialTarget = mSerialDownloadListener;
+        } else {
+            serialTarget = mSerialDownloadListener = createListener();
+        }
+
         // 以相同的listener作为target，将不同的下载任务绑定起来
         final List<BaseDownloadTask> taskList = new ArrayList<>();
-        final FileDownloadListener serialTarget = createListener();
         int i = 0;
         for (String url : Constant.URLS) {
             taskList.add(FileDownloader.getImpl().create(url)
@@ -160,6 +170,7 @@ public class HybridTestActivity extends AppCompatActivity {
         }
         totalCounts += taskList.size();
 
+        // 2. 开始任务
         new FileDownloadQueueSet(serialTarget)
                 .setCallbackProgressTimes(1)
                 .downloadSequentially(taskList)
