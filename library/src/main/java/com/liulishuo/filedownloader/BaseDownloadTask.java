@@ -605,6 +605,7 @@ public interface BaseDownloadTask {
         /**
          * @return {@code true} if the task has already finished.
          */
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         boolean isOver();
 
         /**

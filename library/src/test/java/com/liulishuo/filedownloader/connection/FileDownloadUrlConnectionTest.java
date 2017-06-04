@@ -31,6 +31,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+@SuppressWarnings("CanBeFinal")
 public class FileDownloadUrlConnectionTest {
 
     @Mock

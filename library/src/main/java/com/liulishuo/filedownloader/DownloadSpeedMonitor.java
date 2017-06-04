@@ -31,7 +31,6 @@ public class DownloadSpeedMonitor implements IDownloadSpeed.Monitor, IDownloadSp
     // KB/s
     private int mSpeed;
 
-    private long mSoFarBytes;
     private long mTotalBytes;
 
     // The min interval millisecond for updating the download mSpeed.
@@ -40,7 +39,7 @@ public class DownloadSpeedMonitor implements IDownloadSpeed.Monitor, IDownloadSp
     @Override
     public void start() {
         this.mStartTime = SystemClock.uptimeMillis();
-        this.mStartSofarBytes = this.mSoFarBytes;
+        this.mStartSofarBytes = 0;
     }
 
     @Override
