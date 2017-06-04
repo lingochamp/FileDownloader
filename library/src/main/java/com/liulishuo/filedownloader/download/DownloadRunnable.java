@@ -67,12 +67,14 @@ public class DownloadRunnable implements Runnable {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
         FileDownloadConnection connection = null;
+        final long beginOffset = connectTask.getProfile().currentOffset;
         do {
 
             try {
                 if (paused) {
                     return;
                 }
+
 
                 connection = connectTask.connect();
                 if (FileDownloadLog.NEED_LOG) {
@@ -97,8 +99,9 @@ public class DownloadRunnable implements Runnable {
                 fetchDataTask.run();
                 break;
             } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException e) {
+                final long invalidIncreaseBytes =  fetchDataTask.currentOffset - beginOffset;
                 if (callback.isRetry(e)) {
-                    callback.onRetry(e);
+                    callback.onRetry(e, invalidIncreaseBytes);
                 } else {
                     callback.onError(e);
                     break;

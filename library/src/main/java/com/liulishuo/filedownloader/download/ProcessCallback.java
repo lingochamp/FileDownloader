@@ -31,7 +31,7 @@ public interface ProcessCallback {
 
     void onError(Exception exception);
 
-    void onRetry(Exception exception);
+    void onRetry(Exception exception, long invalidIncreaseBytes);
 
     void syncProgressFromCache();
 }

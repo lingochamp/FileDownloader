@@ -138,7 +138,12 @@ public class DownloadStatusCallback implements Handler.Callback {
         }
     }
 
-    void onRetry(Exception exception, int remainRetryTimes) {
+    void onRetry(Exception exception, int remainRetryTimes, long invalidIncreaseBytes) {
+        synchronized (increaseLock) {
+            this.callbackIncreaseBuffer = 0;
+            model.setSoFar(model.getSoFar() - invalidIncreaseBytes);
+        }
+
         if (handler == null) {
             // direct
             handleRetry(exception, remainRetryTimes);

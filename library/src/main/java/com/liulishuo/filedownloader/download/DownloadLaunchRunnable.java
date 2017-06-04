@@ -252,7 +252,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
                 } catch (IOException | IllegalAccessException e) {
                     if (isRetry(e)) {
-                        onRetry(e);
+                        onRetry(e, 0);
                         continue;
                     } else {
                         onError(e);
@@ -606,13 +606,13 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     @Override
-    public void onRetry(Exception exception) {
+    public void onRetry(Exception exception, long invalidIncreaseBytes) {
         if (validRetryTimes-- < 0) {
             FileDownloadLog.e(this, "valid retry times is less than 0(%d) for download task(%d)",
                     validRetryTimes, model.getId());
         }
 
-        statusCallback.onRetry(exception, validRetryTimes--);
+        statusCallback.onRetry(exception, validRetryTimes--, invalidIncreaseBytes);
     }
 
     @Override
