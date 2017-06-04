@@ -198,7 +198,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     checkupBeforeConnect();
 
                     // the first connection is for: 1. etag verify; 2. first connect.
-                    final ConnectionProfile connectionProfile = buildFirstConnectProfile();
+                    final List<ConnectionModel> connectionOnDBList = database.findConnectionModel(model.getId());
+                    final ConnectionProfile connectionProfile = buildFirstConnectProfile(connectionOnDBList);
                     final ConnectTask.Builder build = new ConnectTask.Builder();
                     final ConnectTask firstConnectionTask = build.setDownloadId(model.getId())
                             .setUrl(model.getUrl())
@@ -243,7 +244,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         // multiple connection
                         statusCallback.onMultiConnection();
                         if (isResumeAvailableOnDB) {
-                            fetchWithMultipleConnectionFromResume(connectionCount);
+                            fetchWithMultipleConnectionFromResume(connectionCount, connectionOnDBList);
                         } else {
                             fetchWithMultipleConnectionFromBeginning(totalLength, connectionCount);
                         }
@@ -285,7 +286,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         return DEFAULT_CONNECTION_COUNT;
     }
 
-    private ConnectionProfile buildFirstConnectProfile() {
+    private ConnectionProfile buildFirstConnectProfile(List<ConnectionModel> connectionOnDBList) {
         // check resume available
         final long offset;
         final int connectionCount = model.getConnectionCount();
@@ -301,7 +302,18 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 if (!supportSeek) {
                     offset = new File(tempFilePath).length();
                 } else {
-                    offset = model.getSoFar();
+                    if (isMultiConnection) {
+                        // when it is multi connections, the offset would be 0, because it only store on the connection table.
+                        if (connectionCount != connectionOnDBList.size()) {
+                            // dirty data
+                            offset = 0;
+                        } else {
+                            offset = ConnectionModel.getTotalOffset(connectionOnDBList);
+                        }
+                    } else {
+                        offset = model.getSoFar();
+                    }
+
                 }
             } else {
                 offset = 0;
@@ -388,8 +400,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         singleFetchDataTask.run();
     }
 
-    private void fetchWithMultipleConnectionFromResume(final int connectionCount) {
-        final List<ConnectionModel> connectionModelList = database.findConnectionModel(model.getId());
+    private void fetchWithMultipleConnectionFromResume(final int connectionCount, final List<ConnectionModel> connectionModelList) {
         if (connectionCount <= 1 || connectionModelList.size() != connectionCount)
             throw new IllegalArgumentException();
 
@@ -483,8 +494,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
 
         if (totalOffset != model.getSoFar()) {
-            FileDownloadLog.w(this, "the sum of downloading connection[%d] != sofar byte on DB[%d]",
-                    totalOffset, model.getSoFar());
+            FileDownloadLog.w(this, "correct the sofar[%d] from connection table[%d]",
+                    model.getSoFar(), totalOffset);
             model.setSoFar(totalOffset);
         }
 
@@ -528,8 +539,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private long lastUpdateTimestamp = 0;
 
     @Override
-    public void onProgress(FileDownloadOutputStream outputStream, long increaseBytes) {
-        statusCallback.onProgress(outputStream, increaseBytes);
+    public void onProgress(long increaseBytes) {
+        if (paused) return;
+
+        statusCallback.onProgress(increaseBytes);
     }
 
     @Override
@@ -600,6 +613,11 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
 
         statusCallback.onRetry(exception, validRetryTimes--);
+    }
+
+    @Override
+    public void syncProgressFromCache() {
+        database.syncProgressFromCache(model);
     }
 
     private void checkupBeforeConnect()

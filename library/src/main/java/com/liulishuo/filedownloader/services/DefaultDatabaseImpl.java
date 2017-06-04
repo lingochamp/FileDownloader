@@ -356,14 +356,11 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     }
 
     @Override
-    public void updateProgress(FileDownloadModel model, long soFar) {
-        model.setStatus(FileDownloadStatus.progress);
-        model.setSoFar(soFar);
-
+    public void syncProgressFromCache(FileDownloadModel model) {
         // db
         ContentValues cv = new ContentValues();
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.progress);
-        cv.put(FileDownloadModel.SOFAR, soFar);
+        cv.put(FileDownloadModel.SOFAR, model.getSoFar());
         update(model.getId(), cv);
     }
 

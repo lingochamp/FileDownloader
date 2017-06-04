@@ -30,7 +30,6 @@ import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
-import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -106,36 +105,27 @@ public class DownloadStatusCallback implements Handler.Callback {
         handler = new Handler(handlerThread.getLooper(), this);
     }
 
-    private volatile long lastCallbackBytes = 0;
     private volatile long lastCallbackTimestamp = 0;
 
-    private volatile long lastUpdateBytes = 0;
-    private volatile long lastUpdateTimestamp = 0;
-
-    private volatile long increaseBytes = 0;
+    private volatile long callbackIncreaseBuffer = 0;
     private final Object increaseLock = new Object();
 
-    void onProgress(FileDownloadOutputStream outputStream, long increaseBytes) {
-        final long currentProcessing;
-        if (handler != null) {
-            // flow
-            synchronized (increaseLock) {
-                this.increaseBytes += increaseBytes;
-            }
-            currentProcessing = model.getSoFar() + this.increaseBytes;
-        } else {
-            currentProcessing = model.getSoFar() + increaseBytes;
+    void onProgress(long increaseBytes) {
+        synchronized (increaseLock) {
+            this.callbackIncreaseBuffer += increaseBytes;
+            model.setSoFar(model.getSoFar() + increaseBytes);
         }
+
+        model.setStatus(FileDownloadStatus.progress);
 
         final long now = SystemClock.elapsedRealtime();
 
-        final boolean isNeedSync = isNeedSync(now, currentProcessing);
-        final boolean isNeedCallbackToUser = isNeedCallbackToUser(now, currentProcessing);
+        final boolean isNeedCallbackToUser = isNeedCallbackToUser(now);
 
         if (handler == null) {
             // direct
-            handleProgress(outputStream, increaseBytes, now, isNeedSync, isNeedCallbackToUser);
-        } else if (isNeedCallbackToUser || isNeedSync) {
+            handleProgress(now, isNeedCallbackToUser);
+        } else if (isNeedCallbackToUser) {
             // flow
             if (!handlerThread.isAlive()) {
                 if (FileDownloadLog.NEED_LOG) {
@@ -143,9 +133,8 @@ public class DownloadStatusCallback implements Handler.Callback {
                 }
                 return;
             }
-            final Message message = handler.obtainMessage(FileDownloadStatus.progress,
-                    isNeedSync ? 1 : 0, isNeedCallbackToUser ? 1 : 0, outputStream);
-            handler.sendMessage(message);
+
+            handler.sendEmptyMessage(FileDownloadStatus.progress);
         }
     }
 
@@ -184,7 +173,7 @@ public class DownloadStatusCallback implements Handler.Callback {
     void onCompleted() throws IOException {
         if (handler == null) {
             // direct
-            if (interceptBeforeCompleted(0)) {
+            if (interceptBeforeCompleted()) {
                 return;
             }
 
@@ -305,20 +294,10 @@ public class DownloadStatusCallback implements Handler.Callback {
 
         switch (status) {
             case FileDownloadStatus.progress:
-                final FileDownloadOutputStream outputStream = (FileDownloadOutputStream) msg.obj;
-                final long increase;
-                synchronized (increaseLock) {
-                    increase = increaseBytes;
-                    increaseBytes -= increase;
-                }
-
-                if (increase == 0) break;
-
-                handleProgress(outputStream, increase, SystemClock.elapsedRealtime(),
-                        msg.arg1 == 1, msg.arg2 == 1);
+                handleProgress(SystemClock.elapsedRealtime(), true);
                 break;
             case FileDownloadStatus.completed:
-                if (interceptBeforeCompleted(this.increaseBytes)) {
+                if (interceptBeforeCompleted()) {
                     return true;
                 }
 
@@ -347,36 +326,19 @@ public class DownloadStatusCallback implements Handler.Callback {
         return true;
     }
 
-    private void handleProgress(final FileDownloadOutputStream outputStream,
-                                final long increaseBytes, final long now,
-                                final boolean isNeedSync, final boolean isNeedCallbackToUser) {
-        final long currentProcessing = model.getSoFar() + increaseBytes;
-        model.setSoFar(currentProcessing);
-
-        if (currentProcessing == model.getTotal()) {
-            database.updateProgress(model, currentProcessing);
+    private void handleProgress(final long now,
+                                final boolean isNeedCallbackToUser) {
+        if (model.getSoFar() == model.getTotal()) {
+            database.syncProgressFromCache(model);
             return;
-        }
-
-        model.setStatus(FileDownloadStatus.progress);
-
-        if (isNeedSync) {
-            try {
-                outputStream.sync();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            database.updateProgress(model, currentProcessing);
-
-            lastUpdateBytes = currentProcessing;
-            lastUpdateTimestamp = now;
         }
 
         if (isNeedCallbackToUser) {
             lastCallbackTimestamp = now;
-            lastCallbackBytes = currentProcessing;
             onStatusChanged(FileDownloadStatus.progress);
+            synchronized (increaseLock) {
+                callbackIncreaseBuffer = 0;
+            }
         }
     }
 
@@ -389,10 +351,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         onStatusChanged(FileDownloadStatus.completed);
     }
 
-    private boolean interceptBeforeCompleted(long increaseBytes) {
-        if (increaseBytes < 0) throw new IllegalArgumentException();
-        if (increaseBytes > 0) model.setSoFar(model.getSoFar() + increaseBytes);
-
+    private boolean interceptBeforeCompleted() {
         if (model.isChunked()) {
             model.setTotal(model.getSoFar());
         } else if (model.getSoFar() != model.getTotal()) {
@@ -440,19 +399,11 @@ public class DownloadStatusCallback implements Handler.Callback {
         onStatusChanged(FileDownloadStatus.error);
     }
 
-    private boolean isNeedSync(final long now, final long currentProcessing) {
-        final long bytesDelta = currentProcessing - lastUpdateBytes;
-        final long timeDelta = now - lastUpdateTimestamp;
-
-        return FileDownloadUtils.isNeedSync(bytesDelta, timeDelta);
-    }
-
-    private boolean isNeedCallbackToUser(final long now, final long currentProcessing) {
-        final long callbackBytesDelta = currentProcessing - lastCallbackBytes;
+    private boolean isNeedCallbackToUser(final long now) {
         final long callbackTimeDelta = now - lastCallbackTimestamp;
 
 
-        return (callbackMinIntervalBytes != NO_ANY_PROGRESS_CALLBACK && callbackBytesDelta >= callbackMinIntervalBytes)
+        return (callbackMinIntervalBytes != NO_ANY_PROGRESS_CALLBACK && callbackIncreaseBuffer >= callbackMinIntervalBytes)
                 && (callbackTimeDelta >= callbackProgressMinInterval);
     }
 

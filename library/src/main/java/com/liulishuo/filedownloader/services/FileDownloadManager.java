@@ -222,7 +222,17 @@ class FileDownloadManager implements IThreadPoolMonitor {
             return 0;
         }
 
-        return model.getSoFar();
+        final int connectionCount = model.getConnectionCount();
+        if (connectionCount <= 1) {
+            return model.getSoFar();
+        } else {
+            final List<ConnectionModel> modelList = mDatabase.findConnectionModel(id);
+            if (modelList == null || modelList.size() != connectionCount) {
+                return 0;
+            } else {
+                return ConnectionModel.getTotalOffset(modelList);
+            }
+        }
     }
 
     public long getTotal(final int id) {

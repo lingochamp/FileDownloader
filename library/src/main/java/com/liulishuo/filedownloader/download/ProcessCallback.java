@@ -16,8 +16,6 @@
 
 package com.liulishuo.filedownloader.download;
 
-import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
-
 import java.io.IOException;
 
 /**
@@ -25,7 +23,7 @@ import java.io.IOException;
  */
 public interface ProcessCallback {
 
-    void onProgress(FileDownloadOutputStream outputStream, long increaseBytes);
+    void onProgress(long increaseBytes);
 
     void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset) throws IOException;
 
@@ -34,4 +32,6 @@ public interface ProcessCallback {
     void onError(Exception exception);
 
     void onRetry(Exception exception);
+
+    void syncProgressFromCache();
 }

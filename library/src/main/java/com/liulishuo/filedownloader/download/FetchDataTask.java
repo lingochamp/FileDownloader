@@ -110,9 +110,10 @@ public class FetchDataTask {
 
                 currentOffset += byteCount;
 
-                checkAndSync();
                 // callback progress
-                callback.onProgress(outputStream, byteCount);
+                callback.onProgress(byteCount);
+
+                checkAndSync();
 
                 // check status
                 if (paused) {
@@ -167,16 +168,11 @@ public class FetchDataTask {
         return outputStream;
     }
 
-    public boolean isBelongMultiConnection() {
-        return hostRunnable != null;
-    }
-
     private FileDownloadDatabase database;
     private volatile long lastSyncBytes = 0;
     private volatile long lastSyncTimestamp = 0;
 
     private void checkAndSync() {
-        if (!isBelongMultiConnection()) return;
         if (database == null) database = CustomComponentHolder.getImpl().getDatabaseInstance();
 
         final long now = SystemClock.elapsedRealtime();
@@ -184,7 +180,22 @@ public class FetchDataTask {
         final long timestampDelta = now - lastSyncTimestamp;
 
         if (FileDownloadUtils.isNeedSync(bytesDelta, timestampDelta)) {
-            database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
+            try {
+                outputStream.sync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            final boolean isBelongMultiConnection = hostRunnable != null;
+            if (isBelongMultiConnection) {
+                // only need update the connection table.
+                database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
+            } else {
+                // only need update the filedownloader table.
+                callback.syncProgressFromCache();
+            }
+
+
             lastSyncBytes = currentOffset;
             lastSyncTimestamp = currentOffset;
         }

@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader.download;
 
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
+
 /**
  * The connection profile for {@link ConnectTask}.
  */
@@ -30,5 +32,10 @@ public class ConnectionProfile {
         this.startOffset = startOffset;
         this.currentOffset = currentOffset;
         this.endOffset = endOffset;
+    }
+
+    @Override
+    public String toString() {
+        return FileDownloadUtils.formatString("range[%d, %d) current offset[%d]", startOffset, endOffset, currentOffset);
     }
 }

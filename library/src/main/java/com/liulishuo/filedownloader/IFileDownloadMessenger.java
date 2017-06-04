@@ -19,7 +19,6 @@ package com.liulishuo.filedownloader;
 import com.liulishuo.filedownloader.download.DownloadStatusCallback;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 /**
@@ -68,7 +67,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Fetching datum, and write to local disk.
      *
-     * @see DownloadStatusCallback#onProgress(FileDownloadOutputStream, long)
+     * @see DownloadStatusCallback#onProgress(long)
      */
     void notifyProgress(MessageSnapshot snapshot);
 

@@ -21,6 +21,7 @@ import android.os.Process;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.IOException;
@@ -74,6 +75,10 @@ public class DownloadRunnable implements Runnable {
                 }
 
                 connection = connectTask.connect();
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(this, "the connection[%d] for %d, is connected %s",
+                            connectionIndex, downloadId, connectTask.getProfile());
+                }
 
                 final FetchDataTask.Builder builder = new FetchDataTask.Builder();
 

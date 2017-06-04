@@ -18,6 +18,8 @@ package com.liulishuo.filedownloader.model;
 
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.util.List;
+
 /**
  * The connection model used for record each connections on multiple connections case.
  */
@@ -78,6 +80,13 @@ public class ConnectionModel {
         this.endOffset = endOffset;
     }
 
+    public static long getTotalOffset(List<ConnectionModel> modelList) {
+        long totalOffset = 0;
+        for (ConnectionModel model : modelList) {
+            totalOffset += (model.getCurrentOffset() - model.getStartOffset());
+        }
+        return totalOffset;
+    }
     @Override
     public String toString() {
         return FileDownloadUtils.formatString("id[%d] index[%d] range[%d, %d) current offset(%d)",

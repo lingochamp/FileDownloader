@@ -137,12 +137,11 @@ public interface FileDownloadDatabase {
                          final String fileName);
 
     /**
-     * Update the data because of the download status alternative to {@link FileDownloadStatus#progress}.
+     * Sync progress form buffer {@code model}.
      *
      * @param model the data in the model will be updated.
-     * @param soFar the new so far bytes.
      */
-    void updateProgress(final FileDownloadModel model, final long soFar);
+    void syncProgressFromCache(final FileDownloadModel model);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#error}.

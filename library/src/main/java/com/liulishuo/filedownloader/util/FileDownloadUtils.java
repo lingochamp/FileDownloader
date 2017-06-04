@@ -66,7 +66,7 @@ public class FileDownloadUtils {
      *                        <p/>
      *                        Default 65536, which follow the value in
      *                        com.android.providers.downloads.Constants.
-     * @see com.liulishuo.filedownloader.download.DownloadStatusCallback#onProgress(FileDownloadOutputStream, long)
+     * @see com.liulishuo.filedownloader.download.DownloadStatusCallback#onProgress(long)
      * @see #setMinProgressTime(long)
      */
     public static void setMinProgressStep(int minProgressStep) throws IllegalAccessException {
@@ -93,7 +93,7 @@ public class FileDownloadUtils {
      *                        <p/>
      *                        Default 2000, which follow the value in
      *                        com.android.providers.downloads.Constants.
-     * @see com.liulishuo.filedownloader.download.DownloadStatusCallback#onProgress(FileDownloadOutputStream, long)
+     * @see com.liulishuo.filedownloader.download.DownloadStatusCallback#onProgress(long)
      * @see #setMinProgressStep(int)
      */
     public static void setMinProgressTime(long minProgressTime) throws IllegalAccessException {
@@ -630,7 +630,8 @@ public class FileDownloadUtils {
             final long fileLength = file.length();
             final long currentOffset = model.getSoFar();
 
-            if (currentOffset == 0) {
+            if (model.getConnectionCount() <= 1 && currentOffset == 0) {
+                // the sofar is stored on connection table
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d the downloaded-record is zero.",
                             id);
@@ -638,23 +639,23 @@ public class FileDownloadUtils {
                 break;
             }
 
-            final long contentLength = model.getTotal();
+            final long totalLength = model.getTotal();
             if (fileLength < currentOffset ||
-                    (contentLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE  // not chunk transfer encoding data
+                    (totalLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE  // not chunk transfer encoding data
                             &&
-                            (fileLength > contentLength || currentOffset >= contentLength))
+                            (fileLength > totalLength || currentOffset >= totalLength))
                     ) {
                 // dirty data.
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d dirty data" +
                                     " fileLength[%d] sofar[%d] total[%d]",
-                            id, fileLength, currentOffset, contentLength);
+                            id, fileLength, currentOffset, totalLength);
                 }
                 break;
             }
 
             if (outputStreamSupportSeek != null && !outputStreamSupportSeek &&
-                    contentLength == fileLength) {
+                    totalLength == fileLength) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d, because of the " +
                                     "output stream doesn't support seek, but the task has already " +
