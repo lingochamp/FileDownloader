@@ -197,7 +197,7 @@ public class FetchDataTask {
 
 
             lastSyncBytes = currentOffset;
-            lastSyncTimestamp = currentOffset;
+            lastSyncTimestamp = now;
         }
     }
 
