@@ -132,22 +132,20 @@ public class DownloadStatusCallback implements Handler.Callback {
         final boolean isNeedSync = isNeedSync(now, currentProcessing);
         final boolean isNeedCallbackToUser = isNeedCallbackToUser(now, currentProcessing);
 
-        if (isNeedCallbackToUser || isNeedSync) {
+        if (handler == null) {
+            // direct
+            handleProgress(outputStream, increaseBytes, now, isNeedSync, isNeedCallbackToUser);
+        } else if (isNeedCallbackToUser || isNeedSync) {
             // flow
-            if (handler != null) {
-                if (!handlerThread.isAlive()) {
-                    if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(this, "callback progress %d but it has been over", increaseBytes);
-                    }
-                    return;
+            if (!handlerThread.isAlive()) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(this, "callback progress %d but it has been over", increaseBytes);
                 }
-                final Message message = handler.obtainMessage(FileDownloadStatus.progress,
-                        isNeedSync ? 1 : 0, isNeedCallbackToUser ? 1 : 0, outputStream);
-                handler.sendMessage(message);
-            } else {
-                // direct
-                handleProgress(outputStream, increaseBytes, now, isNeedSync, isNeedCallbackToUser);
+                return;
             }
+            final Message message = handler.obtainMessage(FileDownloadStatus.progress,
+                    isNeedSync ? 1 : 0, isNeedCallbackToUser ? 1 : 0, outputStream);
+            handler.sendMessage(message);
         }
     }
 
