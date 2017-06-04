@@ -351,10 +351,20 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             // check whether accept partial.
             final String newEtag = FileDownloadUtils.findEtag(id, connection);
+
             if (newEtag != null) {
-                database.updateOldEtagOverdue(model, newEtag);
+                if (oldEtag.equals(newEtag)) {
+                    FileDownloadLog.w(this, "the old etag[%s] is the same to the new etag[%s], " +
+                            "but the response status code is %d not Partial(206), so wo have to " +
+                            "start this task from very beginning for task[%d]!",
+                            oldEtag, newEtag, code, id);
+                    database.updateOldEtagOverdue(model, null);
+                } else {
+                    database.updateOldEtagOverdue(model, newEtag);
+                }
             }
 
+            // retry to check whether support partial or not.
             throw new RetryDirectly();
         }
 

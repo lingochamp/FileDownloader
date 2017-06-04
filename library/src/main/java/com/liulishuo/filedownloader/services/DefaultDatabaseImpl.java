@@ -306,7 +306,8 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     @Override
     public void updateOldEtagOverdue(FileDownloadModel model, String newEtag) {
         if (model.getETag() == null || model.getETag().equals(newEtag))
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(FileDownloadUtils
+                    .formatString("old[%s] new[%s]", model.getETag(), newEtag));
 
         model.setSoFar(0);
         model.setTotal(0);
