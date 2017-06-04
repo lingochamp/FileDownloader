@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.services;
 
+import com.liulishuo.filedownloader.connection.DefaultConnectionCountAdapter;
 import com.liulishuo.filedownloader.connection.FileDownloadUrlConnection;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
@@ -114,6 +115,22 @@ public class DownloadMgrInitialParams {
         }
     }
 
+    public FileDownloadHelper.ConnectionCountAdapter createConnectionCountAdapter() {
+        if (mMaker == null) {
+            return createDefaultConnectionCountAdapter();
+        }
+
+        final FileDownloadHelper.ConnectionCountAdapter adapter = mMaker.mConnectionCountAdapter;
+        if (adapter != null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "initial FileDownloader manager with the customize " +
+                        "connection count adapter: %s", adapter);
+            }
+            return adapter;
+        } else {
+            return createDefaultConnectionCountAdapter();
+        }
+    }
 
     private int getDefaultMaxNetworkThreadCount() {
         return FileDownloadProperties.getImpl().DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
@@ -131,11 +148,28 @@ public class DownloadMgrInitialParams {
         return new FileDownloadUrlConnection.Creator();
     }
 
+    private FileDownloadHelper.ConnectionCountAdapter createDefaultConnectionCountAdapter() {
+        return new DefaultConnectionCountAdapter();
+    }
+
     public static class InitCustomMaker {
         FileDownloadHelper.DatabaseCustomMaker mDatabaseCustomMaker;
         Integer mMaxNetworkThreadCount;
         FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
         FileDownloadHelper.ConnectionCreator mConnectionCreator;
+        FileDownloadHelper.ConnectionCountAdapter mConnectionCountAdapter;
+
+        /**
+         * customize the connection count adapter.
+         *
+         * @param adapter the adapter used for determine how many connection will be used to
+         *                downloading the target task.
+         * @return the connection count adapter.
+         */
+        public InitCustomMaker connectionCountAdapter(FileDownloadHelper.ConnectionCountAdapter adapter) {
+            this.mConnectionCountAdapter = adapter;
+            return this;
+        }
 
         /**
          * customize the database component.

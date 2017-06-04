@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * You can use this to launch downloading, on here the download will be launched separate following.
+ * You can use this to launch downloading, on here the download will be launched separate following
  * steps:
  * <p/>
  * step 1. create the first connection
@@ -216,21 +216,37 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     // pre-allocate if need.
                     handlePreAllocate(totalLength, model.getTempFilePath());
 
+                    final int connectionCount;
                     // start fetching
-                    if (isUseMultiConnection()) {
-                        // multiple connection
-                        statusCallback.onMultiConnection();
-
-                        isSingleConnection = false;
+                    if (isMultiConnectionAvailable()) {
                         if (isResumeAvailableOnDB) {
-                            fetchWithMultipleConnectionFromResume();
+                            connectionCount = model.getConnectionCount();
                         } else {
-                            fetchWithMultipleConnectionFromBeginning(totalLength);
+                            connectionCount = CustomComponentHolder.getImpl()
+                                    .determineConnectionCount(model.getId(), model.getUrl(), model.getPath(), totalLength);
                         }
                     } else {
+                        connectionCount = 1;
+                    }
+
+                    if (connectionCount <= 0) {
+                        throw new IllegalAccessException(FileDownloadUtils
+                                .formatString("invalid connection count %d, the connection count" +
+                                        " must be larger than 0", connection));
+                    }
+
+                    isSingleConnection = connectionCount == 1;
+                    if (isSingleConnection) {
                         // single connection
-                        isSingleConnection = true;
                         fetchWithSingleConnection(firstConnectionTask.getProfile(), connection);
+                    } else {
+                        // multiple connection
+                        statusCallback.onMultiConnection();
+                        if (isResumeAvailableOnDB) {
+                            fetchWithMultipleConnectionFromResume(connectionCount);
+                        } else {
+                            fetchWithMultipleConnectionFromBeginning(totalLength, connectionCount);
+                        }
                     }
 
                 } catch (IOException | IllegalAccessException e) {
@@ -256,7 +272,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
-    private boolean isUseMultiConnection() {
+    private boolean isMultiConnectionAvailable() {
         //noinspection SimplifiableIfStatement
         if (isResumeAvailableOnDB && model.getConnectionCount() <= 1) {
             return false;
@@ -303,7 +319,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     private void handleFirstConnected(Map<String, List<String>> requestHeader, FileDownloadConnection connection)
-            throws IOException, RetryDirectly, FileDownloadHttpException {
+            throws IOException, RetryDirectly {
         final int id = model.getId();
         final int code = connection.getResponseCode();
 
@@ -372,8 +388,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         singleFetchDataTask.run();
     }
 
-    private void fetchWithMultipleConnectionFromResume() {
-        final int connectionCount = model.getConnectionCount();
+    private void fetchWithMultipleConnectionFromResume(final int connectionCount) {
         final List<ConnectionModel> connectionModelList = database.findConnectionModel(model.getId());
         if (connectionCount <= 1 || connectionModelList.size() != connectionCount)
             throw new IllegalArgumentException();
@@ -381,9 +396,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         fetchWithMultipleConnection(connectionModelList);
     }
 
-    private void fetchWithMultipleConnectionFromBeginning(long totalLength) {
+    private void fetchWithMultipleConnectionFromBeginning(final long totalLength, final int connectionCount) {
         int startOffset = 0;
-        final int connectionCount = determineConnectionCount();
         final long eachRegion = totalLength / connectionCount;
         final int id = model.getId();
 

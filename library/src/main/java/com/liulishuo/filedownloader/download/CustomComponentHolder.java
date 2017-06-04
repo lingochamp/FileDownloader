@@ -20,6 +20,7 @@ import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,7 +30,11 @@ import java.io.IOException;
  * The holder for supported custom components.
  */
 public class CustomComponentHolder {
-    private DownloadMgrInitialParams mMgrInitialParams;
+    private DownloadMgrInitialParams initialParams;
+
+    private FileDownloadHelper.ConnectionCountAdapter connectionCountAdapter;
+    private FileDownloadHelper.ConnectionCreator connectionCreator;
+    private FileDownloadHelper.OutputStreamCreator outputStreamCreator;
     private FileDownloadDatabase database;
 
     private final static class LazyLoader {
@@ -41,29 +46,27 @@ public class CustomComponentHolder {
     }
 
     public void setInitCustomMaker(DownloadMgrInitialParams.InitCustomMaker initCustomMaker) {
-        mMgrInitialParams = new DownloadMgrInitialParams(initCustomMaker);
-    }
-
-    private DownloadMgrInitialParams getDownloadMgrInitialParams() {
-        if (mMgrInitialParams == null) mMgrInitialParams = new DownloadMgrInitialParams();
-        return mMgrInitialParams;
+        synchronized (this) {
+            initialParams = new DownloadMgrInitialParams(initCustomMaker);
+            connectionCreator = null;
+            outputStreamCreator = null;
+            database = null;
+        }
     }
 
     public FileDownloadConnection createConnection(String url) throws IOException {
-        return getDownloadMgrInitialParams().createConnectionCreator().create(url);
+        return getConnectionCreator().create(url);
     }
 
     public FileDownloadOutputStream createOutputStream(File file) throws FileNotFoundException {
-        return getDownloadMgrInitialParams().createOutputStreamCreator().create(file);
+        return getOutputStreamCreator().create(file);
     }
 
     public FileDownloadDatabase getDatabaseInstance() {
         if (database != null) return database;
 
         synchronized (this) {
-            if (database == null) {
-                database = getDownloadMgrInitialParams().createDatabase();
-            }
+            if (database == null) database = getDownloadMgrInitialParams().createDatabase();
         }
 
         return database;
@@ -74,6 +77,54 @@ public class CustomComponentHolder {
     }
 
     public boolean isSupportSeek() {
-        return getDownloadMgrInitialParams().createOutputStreamCreator().supportSeek();
+        return getOutputStreamCreator().supportSeek();
     }
+
+    public int determineConnectionCount(int downloadId, String url, String path, long totalLength) {
+        return getConnectionCountAdapter().determineConnectionCount(downloadId, url, path, totalLength);
+    }
+
+    private FileDownloadHelper.ConnectionCountAdapter getConnectionCountAdapter() {
+        if (connectionCountAdapter != null) return connectionCountAdapter;
+
+        synchronized (this) {
+            if (connectionCountAdapter == null)
+                connectionCountAdapter = getDownloadMgrInitialParams().createConnectionCountAdapter();
+        }
+
+        return connectionCountAdapter;
+    }
+
+    private FileDownloadHelper.ConnectionCreator getConnectionCreator() {
+        if (connectionCreator != null) return connectionCreator;
+
+        synchronized (this) {
+            if (connectionCreator == null)
+                connectionCreator = getDownloadMgrInitialParams().createConnectionCreator();
+        }
+
+        return connectionCreator;
+    }
+
+    private FileDownloadHelper.OutputStreamCreator getOutputStreamCreator() {
+        if (outputStreamCreator != null) return outputStreamCreator;
+
+        synchronized (this) {
+            if (outputStreamCreator == null)
+                outputStreamCreator = getDownloadMgrInitialParams().createOutputStreamCreator();
+        }
+
+        return outputStreamCreator;
+    }
+
+    private DownloadMgrInitialParams getDownloadMgrInitialParams() {
+        if (initialParams != null) return initialParams;
+
+        synchronized (this) {
+            if (initialParams == null) initialParams = new DownloadMgrInitialParams();
+        }
+
+        return initialParams;
+    }
+
 }

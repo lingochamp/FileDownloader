@@ -51,6 +51,28 @@ public class FileDownloadHelper {
         return APP_CONTEXT;
     }
 
+    @SuppressWarnings("UnusedParameters")
+    public interface ConnectionCountAdapter {
+        /**
+         * Before invoke this method to determine how many connection will be used to downloading this task,
+         * there are several conditions must be confirmed:
+         *
+         * 1. the connection is support multiple connection(SUPPORT"Partial Content(206)" AND NOT Chunked)
+         * 2. the current {@link FileDownloadOutputStream} support seek(The default one({@link FileDownloadRandomAccessFile} is support)
+         * 3. this is a new task NOT resume from breakpoint( If the task resume from breakpoint
+         *                                                      the connection count would be using
+         *                                                      the one you determined when the task
+         *                                                      first created ).
+         * <p/>
+         * @param downloadId  the download id.
+         * @param url         the task url.
+         * @param path        the task path.
+         * @param totalLength the total length of the file.
+         * @return the count of connection you want for the task. the value must be large than 0.
+         */
+        int determineConnectionCount( int downloadId, String url, String path, long totalLength);
+    }
+
     public interface DatabaseCustomMaker {
         /**
          * The database is used for storing the {@link FileDownloadModel}.
