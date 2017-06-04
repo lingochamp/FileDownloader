@@ -169,10 +169,11 @@ public class MessageSnapshotTaker {
             default:
                 // deal with as error.
                 final String message = FileDownloadUtils.
-                        formatString("it can't takes a snapshot for the task(%s) when its status " +
-                                "is %d,", model, status);
+                        formatString("it can't takes a snapshot for the task(%s) when its status is %d,",
+                                model, status);
 
-                FileDownloadLog.w(MessageSnapshotTaker.class, message);
+                FileDownloadLog.w(MessageSnapshotTaker.class,
+                        "it can't takes a snapshot for the task(%s) when its status is %d,", model, status);
 
                 final Throwable throwable;
                 if (processParams.getException() != null) {
