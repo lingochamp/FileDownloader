@@ -20,6 +20,8 @@ import android.content.ContentValues;
 
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.io.File;
+
 /**
  * The model of the downloading task will be used in the filedownloader database.
  *
@@ -28,6 +30,7 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadModel {
 
+    public static final int TOTAL_VALUE_IN_CHUNKED_RESOURCE = -1;
     public final static int DEFAULT_CALLBACK_PROGRESS_TIMES = 100;
 
     // download id
@@ -64,6 +67,9 @@ public class FileDownloadModel {
     // header
     private String eTag;
     public final static String ETAG = "etag";
+
+    private int connectionCount;
+    public final static String CONNECTION_COUNT = "connectionCount";
 
     public void setId(int id) {
         this.id = id;
@@ -126,6 +132,10 @@ public class FileDownloadModel {
         return total;
     }
 
+    public boolean isChunked(){
+        return total == TOTAL_VALUE_IN_CHUNKED_RESOURCE;
+    }
+
     public String getETag() {
         return eTag;
     }
@@ -154,6 +164,14 @@ public class FileDownloadModel {
         return filename;
     }
 
+    public void setConnectionCount(int connectionCount) {
+        this.connectionCount = connectionCount;
+    }
+
+    public int getConnectionCount() {
+        return connectionCount;
+    }
+
     public ContentValues toContentValues() {
         ContentValues cv = new ContentValues();
         cv.put(ID, getId());
@@ -164,6 +182,7 @@ public class FileDownloadModel {
         cv.put(TOTAL, getTotal());
         cv.put(ERR_MSG, getErrMsg());
         cv.put(ETAG, getETag());
+        cv.put(CONNECTION_COUNT, getConnectionCount());
         cv.put(PATH_AS_DIRECTORY, isPathAsDirectory());
         if (isPathAsDirectory() && getFilename() != null) {
             cv.put(FILENAME, getFilename());
@@ -179,10 +198,40 @@ public class FileDownloadModel {
         return isLargeFile;
     }
 
+    public void deleteTaskFiles() {
+        deleteTempFile();
+        deleteTargetFile();
+    }
+
+    public void deleteTempFile() {
+        final String tempFilePath = getTempFilePath();
+
+        if (tempFilePath != null) {
+            final File tempFile = new File(tempFilePath);
+            if (tempFile.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                tempFile.delete();
+            }
+        }
+    }
+
+    public void deleteTargetFile() {
+        final String targetFilePath = getTargetFilePath();
+        if (targetFilePath != null) {
+            final File targetFile = new File(targetFilePath);
+            if (targetFile.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                targetFile.delete();
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return FileDownloadUtils.formatString("id[%d], url[%s], path[%s], status[%d], sofar[%d]," +
                         " total[%d], etag[%s], %s", id, url, path, status, soFar, total, eTag,
                 super.toString());
     }
+
+
 }

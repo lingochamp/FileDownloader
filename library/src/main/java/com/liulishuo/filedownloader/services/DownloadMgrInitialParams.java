@@ -32,14 +32,16 @@ public class DownloadMgrInitialParams {
 
     private final InitCustomMaker mMaker;
 
-    public DownloadMgrInitialParams(InitCustomMaker maker) {
-        this.mMaker = maker;
-        if (maker != null) {
-            maker.securityCheck();
-        }
+    public DownloadMgrInitialParams() {
+        mMaker = null;
     }
 
-    int getMaxNetworkThreadCount() {
+    public DownloadMgrInitialParams(InitCustomMaker maker) {
+        this.mMaker = maker;
+        maker.securityCheck();
+    }
+
+    public int getMaxNetworkThreadCount() {
         if (mMaker == null) {
             return getDefaultMaxNetworkThreadCount();
         }
@@ -59,7 +61,7 @@ public class DownloadMgrInitialParams {
 
     }
 
-    FileDownloadDatabase createDatabase() {
+    public FileDownloadDatabase createDatabase() {
         if (mMaker == null || mMaker.mDatabaseCustomMaker == null) {
             return createDefaultDatabase();
         }
@@ -77,7 +79,7 @@ public class DownloadMgrInitialParams {
     }
 
 
-    FileDownloadHelper.OutputStreamCreator createOutputStreamCreator() {
+    public FileDownloadHelper.OutputStreamCreator createOutputStreamCreator() {
         if (mMaker == null) {
             return createDefaultOutputStreamCreator();
         }
@@ -94,7 +96,7 @@ public class DownloadMgrInitialParams {
         }
     }
 
-    FileDownloadHelper.ConnectionCreator createConnectionCreator() {
+    public FileDownloadHelper.ConnectionCreator createConnectionCreator() {
         if (mMaker == null) {
             return createDefaultConnectionCreator();
         }

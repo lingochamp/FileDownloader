@@ -31,10 +31,10 @@ import java.lang.ref.WeakReference;
  */
 public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
         implements IFileDownloadServiceHandler {
-    private final FileDownloadMgr downloadManager;
+    private final FileDownloadManager downloadManager;
     private final WeakReference<FileDownloadService> wService;
 
-    FDServiceSharedHandler(WeakReference<FileDownloadService> wService, FileDownloadMgr manager) {
+    FDServiceSharedHandler(WeakReference<FileDownloadService> wService, FileDownloadManager manager) {
         this.wService = wService;
         this.downloadManager = manager;
     }

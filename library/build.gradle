@@ -30,6 +30,7 @@ android {
 
 dependencies {
     testCompile "junit:junit:4.4"
+    //noinspection GradleDynamicVersion
     testCompile "org.mockito:mockito-core:2.+"
 }
 

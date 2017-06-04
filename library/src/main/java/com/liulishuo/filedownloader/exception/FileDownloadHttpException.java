@@ -17,6 +17,7 @@ package com.liulishuo.filedownloader.exception;
 
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.Map;
  * Throw this exception, when the HTTP status code is not {@link java.net.HttpURLConnection#HTTP_OK},
  * and not {@link java.net.HttpURLConnection#HTTP_PARTIAL} either.
  */
-public class FileDownloadHttpException extends RuntimeException {
+public class FileDownloadHttpException extends IOException {
     private final int mCode;
     private final Map<String, List<String>> mRequestHeaderMap;
     private final Map<String, List<String>> mResponseHeaderMap;

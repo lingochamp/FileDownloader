@@ -1,0 +1,254 @@
+/*
+ * Copyright (c) 2015 LingoChamp Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.liulishuo.filedownloader.download;
+
+import android.os.SystemClock;
+
+import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
+import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException;
+import com.liulishuo.filedownloader.services.FileDownloadDatabase;
+import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.liulishuo.filedownloader.model.FileDownloadModel.TOTAL_VALUE_IN_CHUNKED_RESOURCE;
+
+/**
+ * Fetch data from the provided connection.
+ */
+public class FetchDataTask {
+
+    static final int BUFFER_SIZE = 1024 * 4;
+    private final ProcessCallback callback;
+
+    private final int downloadId;
+    private final int connectionIndex;
+    private final DownloadRunnable hostRunnable;
+    private final FileDownloadConnection connection;
+    private final boolean isWifiRequired;
+
+    private final long startOffset;
+    private final long endOffset;
+    private final String path;
+
+    long currentOffset;
+    private FileDownloadOutputStream outputStream;
+
+    private volatile boolean paused;
+
+    public void pause() {
+        paused = true;
+    }
+
+    private FetchDataTask(FileDownloadConnection connection, ConnectionProfile connectionProfile,
+                          DownloadRunnable host, int id, int connectionIndex,
+                          boolean isWifiRequired, ProcessCallback callback, String path) {
+        this.callback = callback;
+        this.path = path;
+        this.connection = connection;
+        this.isWifiRequired = isWifiRequired;
+        this.hostRunnable = host;
+        this.connectionIndex = connectionIndex;
+        this.downloadId = id;
+
+        startOffset = connectionProfile.startOffset;
+        endOffset = connectionProfile.endOffset;
+        currentOffset = connectionProfile.currentOffset;
+    }
+
+    public void run() throws IOException, IllegalAccessException, IllegalArgumentException,
+            FileDownloadGiveUpRetryException {
+
+        final long contentLength = FileDownloadUtils.findContentLength(connectionIndex, connection);
+        if (contentLength == 0) {
+            FileDownloadLog.w(this, "there isn't any content need to download on %d", connectionIndex);
+            return;
+        }
+
+        final long fetchBeginOffset = currentOffset;
+        // start fetch
+        InputStream inputStream = null;
+        FileDownloadOutputStream outputStream = null;
+
+        try {
+            this.outputStream = outputStream = FileDownloadUtils.createOutputStream(path);
+            outputStream.seek(currentOffset);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "start fetch(%d): range [%d, %d), seek to[%d]",
+                        connectionIndex, startOffset, endOffset, currentOffset);
+            }
+
+            inputStream = connection.getInputStream();
+
+            byte[] buff = new byte[BUFFER_SIZE];
+
+            do {
+                int byteCount = inputStream.read(buff);
+                if (byteCount == -1) {
+                    break;
+                }
+
+                outputStream.write(buff, 0, byteCount);
+
+                currentOffset += byteCount;
+
+                checkAndSync();
+                // callback progress
+                callback.onProgress(outputStream, byteCount);
+
+                // check status
+                if (paused) {
+                    return;
+                }
+
+                if (isWifiRequired && FileDownloadUtils.isNetworkNotOnWifiType()) {
+                    throw new FileDownloadNetworkPolicyException();
+                }
+
+            } while (true);
+
+        } finally {
+
+            if (inputStream != null)
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            try {
+                if (outputStream != null)
+                    outputStream.sync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (outputStream != null)
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+            }
+
+        }
+
+        final long fetchedLength = currentOffset - fetchBeginOffset;
+        if (contentLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE && contentLength != fetchedLength) {
+            throw new FileDownloadGiveUpRetryException(
+                    FileDownloadUtils.formatString("fetched length[%d] != content length[%d]," +
+                                    " range[%d, %d) offset[%d] fetch begin offset",
+                            fetchedLength, contentLength,
+                            startOffset, endOffset, currentOffset, fetchBeginOffset));
+        }
+
+        // callback completed
+        callback.onCompleted(hostRunnable, startOffset, endOffset);
+    }
+
+    public FileDownloadOutputStream getOutputStream() {
+        return outputStream;
+    }
+
+    public boolean isBelongMultiConnection() {
+        return hostRunnable != null;
+    }
+
+    private FileDownloadDatabase database;
+    private volatile long lastSyncBytes = 0;
+    private volatile long lastSyncTimestamp = 0;
+
+    private void checkAndSync() {
+        if (!isBelongMultiConnection()) return;
+        if (database == null) database = CustomComponentHolder.getImpl().getDatabaseInstance();
+
+        final long now = SystemClock.elapsedRealtime();
+        final long bytesDelta = currentOffset - lastSyncBytes;
+        final long timestampDelta = now - lastSyncTimestamp;
+
+        if (FileDownloadUtils.isNeedSync(bytesDelta, timestampDelta)) {
+            database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
+            lastSyncBytes = currentOffset;
+            lastSyncTimestamp = currentOffset;
+        }
+    }
+
+    public static class Builder {
+        DownloadRunnable downloadRunnable;
+        FileDownloadConnection connection;
+        ConnectionProfile connectionProfile;
+        ProcessCallback callback;
+        String path;
+        Boolean isWifiRequired;
+        Integer connectionIndex;
+        Integer downloadId;
+
+        public Builder setConnection(FileDownloadConnection connection) {
+            this.connection = connection;
+            return this;
+        }
+
+        public Builder setConnectionProfile(ConnectionProfile connectionProfile) {
+            this.connectionProfile = connectionProfile;
+            return this;
+        }
+
+        public Builder setCallback(ProcessCallback callback) {
+            this.callback = callback;
+            return this;
+        }
+
+        public Builder setPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Builder setWifiRequired(boolean wifiRequired) {
+            isWifiRequired = wifiRequired;
+            return this;
+        }
+
+        public Builder setHost(DownloadRunnable downloadRunnable) {
+            this.downloadRunnable = downloadRunnable;
+            return this;
+        }
+
+        public Builder setConnectionIndex(int connectionIndex) {
+            this.connectionIndex = connectionIndex;
+            return this;
+        }
+
+        public Builder setDownloadId(int downloadId) {
+            this.downloadId = downloadId;
+            return this;
+        }
+
+        public FetchDataTask build() {
+            if (isWifiRequired == null || connection == null || connectionProfile == null
+                    || callback == null || path == null || downloadId == null || connectionIndex == null)
+                throw new IllegalArgumentException();
+
+            return new FetchDataTask(connection, connectionProfile, downloadRunnable,
+                    downloadId, connectionIndex,
+                    isWifiRequired, callback, path);
+        }
+
+    }
+}

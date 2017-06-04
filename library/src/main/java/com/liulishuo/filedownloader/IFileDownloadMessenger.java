@@ -16,9 +16,9 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.download.DownloadStatusCallback;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.services.FileDownloadRunnable;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
@@ -50,7 +50,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Finish pending, and start download runnable.
      *
-     * @see FileDownloadRunnable#onStarted()
+     * @see DownloadStatusCallback#onStartThread()
      */
     void notifyStarted(MessageSnapshot snapshot);
 
@@ -59,7 +59,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Already connected to the server, and received the Http-response.
      *
-     * @see FileDownloadRunnable#onConnected(boolean, long, String, String)
+     * @see DownloadStatusCallback#onConnected(boolean, long, String, String)
      */
     void notifyConnected(MessageSnapshot snapshot);
 
@@ -68,7 +68,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Fetching datum, and write to local disk.
      *
-     * @see FileDownloadRunnable#onProgress(long, long, FileDownloadOutputStream)
+     * @see DownloadStatusCallback#onProgress(FileDownloadOutputStream, long)
      */
     void notifyProgress(MessageSnapshot snapshot);
 
@@ -77,7 +77,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Already completed download, and block the current thread to do something, such as unzip,etc.
      *
-     * @see FileDownloadRunnable#onComplete(long)
+     * @see DownloadStatusCallback#onCompleted()
      */
     void notifyBlockComplete(MessageSnapshot snapshot);
 
@@ -104,7 +104,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Occur a exception, but don't has any chance to retry.
      *
-     * @see FileDownloadRunnable#onError(Throwable)
+     * @see DownloadStatusCallback#onError(Exception)
      * @see com.liulishuo.filedownloader.exception.FileDownloadHttpException
      * @see com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException
      * @see com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException
@@ -125,7 +125,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Achieve complete ceremony.
      *
-     * @see FileDownloadRunnable#onComplete(long)
+     * @see DownloadStatusCallback#onCompleted()
      */
     void notifyCompleted(MessageSnapshot snapshot);
 

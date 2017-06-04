@@ -20,6 +20,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 
 
@@ -28,7 +29,7 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
  */
 class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "filedownloader.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public DefaultDatabaseOpenHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -47,14 +48,24 @@ class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
                 FileDownloadModel.ERR_MSG + " VARCHAR, " + // error message
                 FileDownloadModel.ETAG + " VARCHAR, " +// e tag
                 FileDownloadModel.PATH_AS_DIRECTORY + " TINYINT(1) DEFAULT 0, " +// path as directory
-                FileDownloadModel.FILENAME + " VARCHAR" +// path as directory
+                FileDownloadModel.FILENAME + " VARCHAR, " +// path as directory
+                FileDownloadModel.CONNECTION_COUNT + " INTEGER DEFAULT 1" + // connection count
                 ")");
-
+        db.execSQL("CREATE TABLE IF NOT EXISTS " +
+                DefaultDatabaseImpl.CONNECTION_TABLE_NAME + "( " +
+                ConnectionModel.ID + " INTEGER, " +
+                ConnectionModel.INDEX + " INTEGER, " +
+                ConnectionModel.START_OFFSET + " INTEGER, " +
+                ConnectionModel.CURRENT_OFFSET + " INTEGER, " +
+                ConnectionModel.END_OFFSET + " INTEGER, " +
+                "PRIMARY KEY ( " + ConnectionModel.ID + ", " + ConnectionModel.INDEX + " )" +
+                ")");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion == 1 && newVersion == 2) {
+
+        if (oldVersion < 2) {
             String addAsDirectoryColumn = "ALTER TABLE " + DefaultDatabaseImpl.TABLE_NAME +
                     " ADD COLUMN " + FileDownloadModel.PATH_AS_DIRECTORY +
                     " TINYINT(1) DEFAULT 0";
@@ -64,6 +75,23 @@ class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
                     " ADD COLUMN " + FileDownloadModel.FILENAME +
                     " VARCHAR";
             db.execSQL(addFilenameColumn);
+        }
+
+        if (oldVersion < 3) {
+            final String addConnectionCount = "ALTER TABLE " + DefaultDatabaseImpl.TABLE_NAME +
+                    " ADD COLUMN " + FileDownloadModel.CONNECTION_COUNT +
+                    " INTEGER DEFAULT 1";
+            db.execSQL(addConnectionCount);
+
+            db.execSQL("CREATE TABLE IF NOT EXISTS " +
+                    DefaultDatabaseImpl.CONNECTION_TABLE_NAME + "( " +
+                    ConnectionModel.ID + " INTEGER, " +
+                    ConnectionModel.INDEX + " INTEGER, " +
+                    ConnectionModel.START_OFFSET + " INTEGER, " +
+                    ConnectionModel.CURRENT_OFFSET + " INTEGER, " +
+                    ConnectionModel.END_OFFSET + " INTEGER, " +
+                    "PRIMARY KEY ( " + ConnectionModel.ID + ", " + ConnectionModel.INDEX + " )" +
+                    ")");
         }
     }
 }

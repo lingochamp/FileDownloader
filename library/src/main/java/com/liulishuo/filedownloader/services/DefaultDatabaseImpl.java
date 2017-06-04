@@ -22,6 +22,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
+import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
@@ -41,6 +42,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     private final SQLiteDatabase db;
 
     public final static String TABLE_NAME = "filedownloader";
+    public final static String CONNECTION_TABLE_NAME = "filedownloaderConnection";
 
     private final SparseArray<FileDownloadModel> downloaderModelMap = new SparseArray<>();
 
@@ -71,6 +73,8 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
                 model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
                 model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
                 model.setFilename(c.getString(c.getColumnIndex(FileDownloadModel.FILENAME)));
+                model.setConnectionCount(c.getInt(c.getColumnIndex(FileDownloadModel.CONNECTION_COUNT)));
+
                 if (model.getStatus() == FileDownloadStatus.progress ||
                         model.getStatus() == FileDownloadStatus.connected ||
                         model.getStatus() == FileDownloadStatus.error ||
@@ -91,7 +95,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
 
                 // consider check in new thread, but SQLite lock | file lock aways effect, so sync
                 if (model.getStatus() == FileDownloadStatus.paused &&
-                        FileDownloadMgr.isBreakpointAvailable(model.getId(), model,
+                        FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
                                 model.getPath(), null)) {
                     // can be reused in the old mechanism(no-temp-file).
 
@@ -116,7 +120,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
                 if (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() <= 0) {
                     // This model is redundant.
                     dirtyList.add(model.getId());
-                } else if (!FileDownloadMgr.isBreakpointAvailable(model.getId(), model)) {
+                } else if (!FileDownloadUtils.isBreakpointAvailable(model.getId(), model)) {
                     // It can't used to resuming from breakpoint.
                     dirtyList.add(model.getId());
                 } else if (targetFile.exists()) {
@@ -140,6 +144,8 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
                 //noinspection ThrowFromFinallyBlock
                 db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
                         TABLE_NAME, FileDownloadModel.ID, args));
+                db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
+                        CONNECTION_TABLE_NAME, ConnectionModel.ID, args));
             }
 
             // 566 data consumes about 140ms
@@ -154,6 +160,71 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     @Override
     public FileDownloadModel find(final int id) {
         return downloaderModelMap.get(id);
+    }
+
+    @Override
+    public List<ConnectionModel> findConnectionModel(int id) {
+        final List<ConnectionModel> resultList = new ArrayList<>();
+
+        Cursor c = null;
+        try {
+            c = db.rawQuery("SELECT * FROM " + CONNECTION_TABLE_NAME
+                            + " WHERE " + ConnectionModel.ID + " = ?"
+                    , new String[]{Integer.toString(id)});
+
+            while (c.moveToNext()) {
+                final ConnectionModel model = new ConnectionModel();
+                model.setId(id);
+                model.setIndex(c.getInt(c.getColumnIndex(ConnectionModel.INDEX)));
+                model.setStartOffset(c.getInt(c.getColumnIndex(ConnectionModel.START_OFFSET)));
+                model.setCurrentOffset(c.getInt(c.getColumnIndex(ConnectionModel.CURRENT_OFFSET)));
+                model.setEndOffset(c.getInt(c.getColumnIndex(ConnectionModel.END_OFFSET)));
+
+                resultList.add(model);
+            }
+        } finally {
+            if (c != null)
+                c.close();
+        }
+
+        return resultList;
+    }
+
+    @Override
+    public void removeConnections(int id) {
+        db.execSQL("DELETE FROM " + CONNECTION_TABLE_NAME + " WHERE " +
+                ConnectionModel.ID + " = " + id);
+    }
+
+    @Override
+    public void insertConnectionModel(ConnectionModel model) {
+        final ContentValues values = new ContentValues();
+        values.put(ConnectionModel.ID, model.getId());
+        values.put(ConnectionModel.INDEX, model.getIndex());
+        values.put(ConnectionModel.START_OFFSET, model.getStartOffset());
+        values.put(ConnectionModel.CURRENT_OFFSET, model.getCurrentOffset());
+        values.put(ConnectionModel.END_OFFSET, model.getEndOffset());
+
+        db.insert(CONNECTION_TABLE_NAME, null, values);
+    }
+
+    @Override
+    public void updateConnectionModel(int id, int index, long currentOffset) {
+        final ContentValues values = new ContentValues();
+        values.put(ConnectionModel.CURRENT_OFFSET, currentOffset);
+        db.update(CONNECTION_TABLE_NAME, values
+                , ConnectionModel.ID + " = ? AND " + ConnectionModel.INDEX + " = ?"
+                , new String[]{Integer.toString(id), Integer.toString(index)});
+    }
+
+    @Override
+    public void updateConnectionCount(FileDownloadModel model, int count) {
+        model.setConnectionCount(count);
+
+        ContentValues values = new ContentValues();
+        values.put(FileDownloadModel.CONNECTION_COUNT, count);
+        db.update(TABLE_NAME, values
+                , FileDownloadModel.ID + " = ? ", new String[]{Integer.toString(model.getId())});
     }
 
     @Override
@@ -233,9 +304,29 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     }
 
     @Override
+    public void updateOldEtagOverdue(FileDownloadModel model, String newEtag) {
+        if (model.getETag() == null || model.getETag().equals(newEtag))
+            throw new IllegalArgumentException();
+
+        model.setSoFar(0);
+        model.setTotal(0);
+        model.setETag(newEtag);
+        // just reset to default value.
+        model.setConnectionCount(1);
+
+        ContentValues values = new ContentValues();
+        values.put(FileDownloadModel.SOFAR, 0);
+        values.put(FileDownloadModel.TOTAL, 0);
+        values.put(FileDownloadModel.ETAG, newEtag);
+        values.put(FileDownloadModel.CONNECTION_COUNT, 1);
+
+        update(model.getId(), values);
+
+    }
+
+    @Override
     public void updateConnected(FileDownloadModel model, long total, String etag, String filename) {
         model.setStatus(FileDownloadStatus.connected);
-
 
         // db
         ContentValues cv = new ContentValues();
@@ -248,14 +339,14 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         }
 
         final String oldEtag = model.getETag();
-        if ((etag != null && !etag.equals(oldEtag)) ||
-                (oldEtag != null && !oldEtag.equals(etag))) {
+        if (oldEtag != null && !oldEtag.equals(etag)) throw new IllegalArgumentException();
+
+        if (oldEtag == null) {
             model.setETag(etag);
             cv.put(FileDownloadModel.ETAG, etag);
         }
 
-        if (model.isPathAsDirectory() &&
-                model.getFilename() == null && filename != null) {
+        if (model.isPathAsDirectory() && filename != null && !filename.equals(model.getFilename())) {
             model.setFilename(filename);
 
             cv.put(FileDownloadModel.FILENAME, filename);
@@ -312,12 +403,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         model.setSoFar(total);
         model.setTotal(total);
 
-        //db
-        ContentValues cv = new ContentValues();
-        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.completed);
-        cv.put(FileDownloadModel.TOTAL, total);
-        cv.put(FileDownloadModel.SOFAR, total);
-        update(model.getId(), cv);
+        remove(model.getId());
     }
 
     @Override

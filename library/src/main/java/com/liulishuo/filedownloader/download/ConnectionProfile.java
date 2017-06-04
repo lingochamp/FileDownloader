@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.liulishuo.filedownloader.exception;
+
+package com.liulishuo.filedownloader.download;
 
 /**
- * Throwing this exception, when we can't know the size of the download file, and its Transfer-Encoding
- * is not Chunked either.
- * <p/>
- * When you occur this type exception, the chance of retry will be ignored.
+ * The connection profile for {@link ConnectTask}.
  */
-public class FileDownloadGiveUpRetryException extends RuntimeException {
-    public FileDownloadGiveUpRetryException(final String detailMessage) {
-        super(detailMessage);
+
+public class ConnectionProfile {
+
+    final long startOffset;
+    final long currentOffset;
+    final long endOffset;
+
+    ConnectionProfile(long startOffset, long currentOffset, long endOffset) {
+        this.startOffset = startOffset;
+        this.currentOffset = currentOffset;
+        this.endOffset = endOffset;
     }
 }

@@ -17,8 +17,10 @@
 package com.liulishuo.filedownloader.services;
 
 
+import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.List;
 
@@ -32,7 +34,7 @@ import java.util.List;
  * since that data is no longer available for resumption of its task pass.
  *
  * @see DefaultDatabaseImpl
- * @see FileDownloadMgr#isBreakpointAvailable(int, FileDownloadModel)
+ * @see FileDownloadUtils#isBreakpointAvailable(int, FileDownloadModel)
  */
 public interface FileDownloadDatabase {
 
@@ -42,6 +44,44 @@ public interface FileDownloadDatabase {
      * @param id the download id.
      */
     FileDownloadModel find(final int id);
+
+    /**
+     * Find the connection model which download identify is {@code id}
+     *
+     * @param id the download id.
+     */
+    List<ConnectionModel> findConnectionModel(int id);
+
+    /**
+     * Delete all connection model store on database through the download id.
+     *
+     * @param id the download id.
+     */
+    void removeConnections(int id);
+
+    /**
+     * Insert the {@code model} to connection table.
+     *
+     * @param model the connection model.
+     */
+    void insertConnectionModel(ConnectionModel model);
+
+    /**
+     * Update the currentOffset with {@code currentOffset} which id is {@code id}, index is
+     * {@code index}
+     *
+     * @param id            the download id.
+     * @param index         the connection index.
+     * @param currentOffset the current offset.
+     */
+    void updateConnectionModel(int id, int index, long currentOffset);
+
+    /**
+     * Update the count of connection.
+     *
+     * @param count the connection count.
+     */
+    void updateConnectionCount(FileDownloadModel model, int count);
 
     /**
      * Insert the model to the database.
@@ -76,6 +116,14 @@ public interface FileDownloadDatabase {
      * Clear all models in this database.
      */
     void clear();
+
+
+    /**
+     * Update the etag when the old one is overdue.
+     *
+     * @param newEtag the new etag.
+     */
+    void updateOldEtagOverdue(FileDownloadModel model, String newEtag);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#connected}.
@@ -115,6 +163,7 @@ public interface FileDownloadDatabase {
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#completed}.
+     * The latest version will remove model from DB.
      *
      * @param model the data in the model will be updated.
      * @param total the new total bytes.

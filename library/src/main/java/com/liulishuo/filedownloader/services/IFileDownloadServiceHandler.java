@@ -23,7 +23,7 @@ import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownload
 /**
  * The handler for {@link FileDownloadService}.
  *
- * @see FileDownloadMgr
+ * @see FileDownloadManager
  */
 @SuppressWarnings("UnusedParameters")
 interface IFileDownloadServiceHandler {

@@ -37,7 +37,7 @@ public class FileDownloadHeader implements Parcelable {
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(FileDownloadConnection)
+     * @see com.liulishuo.filedownloader.download.ConnectTask#addUserRequiredHeader(FileDownloadConnection)
      */
     public void add(String name, String value) {
         if (name == null) throw new NullPointerException("name == null");
@@ -62,7 +62,7 @@ public class FileDownloadHeader implements Parcelable {
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
-     * @see com.liulishuo.filedownloader.services.FileDownloadRunnable#addHeader(FileDownloadConnection)
+     * @see com.liulishuo.filedownloader.download.ConnectTask#addUserRequiredHeader(FileDownloadConnection)
      */
     public void add(String line) {
         String[] parsed = line.split(":");

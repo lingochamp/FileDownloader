@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 
+import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
@@ -78,7 +79,7 @@ public class FileDownloader {
 
         FileDownloadHelper.holdContext(context);
 
-        FileDownloadServiceProxy.getImpl().setInitCustomMaker(maker);
+        CustomComponentHolder.getImpl().setInitCustomMaker(maker);
     }
 
     private final static class HolderClass {
