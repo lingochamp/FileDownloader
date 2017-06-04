@@ -24,7 +24,7 @@ FileDownloader is installed by adding the following dependency to your `build.gr
 
 ```groovy
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:1.4.3'
+    compile 'com.liulishuo.filedownloader:library:1.5.0'
 }
 ```
 
@@ -37,6 +37,7 @@ From now on, FileDownloader support following components to be customized by you
 | Connection | [FileDownloadConnection][FileDownloadConnection-java-link] | [FileDownloadUrlConnection][FileDownloadUrlConnection-java-link]
 | OutputStream | [FileDownloadOutputStream][FileDownloadOutputStream-java-link] | [FileDownloadRandomAccessFile][FileDownloadRandomAccessFile-java-link]
 | Database | [FileDownloadDatabase][FileDownloadDatabase-java-link] | [DefaultDatabaseImpl][DefaultDatabaseImpl-java-link]
+| ConnectionCountAdapter | [ConnectionCountAdapter][ConnectionCountAdapter-java-link] | [DefaultConnectionCountAdapter][DefaultConnectionCountAdapter-java-link]
 
 > If you want to use okhttp as your connection component, the simplest way is [this repo](https://github.com/Jacksgong/filedownloader-okhttp3-connection).
 
@@ -97,3 +98,5 @@ limitations under the License.
 [DefaultDatabaseImpl-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/services/DefaultDatabaseImpl.java
 [FileDownloadOutputStream-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/stream/FileDownloadOutputStream.java
 [FileDownloadRandomAccessFile-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/stream/FileDownloadRandomAccessFile.java
+[ConnectionCountAdapter-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/util/FileDownloadHelper.java#L54
+[DefaultConnectionCountAdapter-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/DefaultConnectionCountAdapter.java

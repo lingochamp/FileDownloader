@@ -2,6 +2,24 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.0
+
+_2017-06-05_
+
+#### 新接口
+
+- 提高实用性: 支持对单个任务多连接(多线程)下载。  Closes #102
+- 提高实用性: 支持通过`ConnectionCountAdapter`定制对每个任务使用连接(线程)数据的定制(可以通过`FileDownloader#init`设置进去)
+- 提高性能: 重构整个下载的逻辑与原始回调逻辑，并删除了1000行左右的`FileDownloadRunnable`。
+
+对于每个任务默认的连接(线程)数目策略，你可以通过`ConnectionCountAdapter`来定制自己的策略:
+
+- 1个连接(线程): 文件大小 [0, 1MB)
+- 2个连接(线程): 文件大小 [1MB, 5MB)
+- 3个连接(线程): 文件大小 [5MB, 50MB)
+- 4个连接(线程): 文件大小 [50MB, 100MB)
+- 5个连接(线程): 文件大小 [100MB, -)
+
 ## Version 1.4.3
 
 _2017-05-07_

@@ -19,6 +19,7 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 ### 特点
 
 - 简单易用
+- 单任务多线程/多连接(并支持通过`ConnectionCountAdapter`定制)
 - 高并发
 - 灵活
 - 可选择性支持: 独立/非独立进程
@@ -267,6 +268,7 @@ if (parallel) {
 | connection | FileDownloadConnection | FileDownloadUrlConnection | FileDownloadUrlConnection | 传入定制化的网络连接组件，用于下载时建立网络连接
 | outputStreamCreator | FileDownloadOutputStream | FileDownloadRandomAccessFile、FileDownloadBufferedOutputStream、FileDownloadOkio | FileDownloadRandomAccessFile | 传入输出流组件，用于下载时写文件使用
 | maxNetworkThreadCount | - | - | 3 | 传入创建下载引擎时，指定可用的下载线程个数
+| ConnectionCountAdapter | ConnectionCountAdapter | DefaultConnectionCountAdapter | DefaultConnectionCountAdapter | 根据任务指定其线程数
 
 > 如果你希望Okhttp作为你的网络连接组件，可以使用[这个库](https://github.com/Jacksgong/filedownloader-okhttp3-connection)。
 

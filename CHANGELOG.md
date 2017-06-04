@@ -2,6 +2,24 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.0
+
+_2017-06-05_
+
+#### New Interfaces
+
+- Improve Practicability: Support multiple-connection(multiple threads) for one downloading task.  Closes #102
+- Improve Practicability: Support `ConnectionCountAdapter` to customize connection count for each task(you can set it through `FileDownloader#init`).
+- Improve Performance: Refactor whole download logic and origin callback logic and remove 1000 line class `FileDownloadRunnable`.
+
+The default connection count strategy for each task, you can customize it through `ConnectionCountAdapter`:
+
+- one connection: file length [0, 1MB)
+- two connections: file length [1MB, 5MB)
+- three connections: file length [5MB, 50MB)
+- four connections: file length [50MB, 100MB)
+- five connections: file length [100MB, -]
+
 ## Version 1.4.3
 
 _2017-05-07_
