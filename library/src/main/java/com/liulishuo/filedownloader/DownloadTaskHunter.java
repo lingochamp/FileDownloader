@@ -154,7 +154,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                     mTask.setFileName(filename);
                 }
 
-                mSpeedMonitor.start();
+                mSpeedMonitor.start(mSoFarBytes);
 
                 // notify
                 mMessenger.notifyConnected(snapshot);
@@ -239,7 +239,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                         this.mTotalBytes = snapshot.getLargeTotalBytes();
                         this.mSoFarBytes = snapshot.getLargeSofarBytes();
 
-                        mSpeedMonitor.start();
+                        mSpeedMonitor.start(mSoFarBytes);
 
                         mMessenger.
                                 notifyPending(((MessageSnapshot.IWarnMessageSnapshot) snapshot).

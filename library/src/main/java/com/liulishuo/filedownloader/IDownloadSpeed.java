@@ -29,7 +29,7 @@ public interface IDownloadSpeed {
         /**
          * Start the monitor.
          */
-        void start();
+        void start(long startBytes);
 
         /**
          * End the monitor, and calculate the average speed during the entire downloading processing.
