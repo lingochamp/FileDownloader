@@ -55,6 +55,7 @@ public class FetchDataTask {
     private volatile boolean paused;
 
     public void pause() {
+        sync();
         paused = true;
     }
 
@@ -180,24 +181,28 @@ public class FetchDataTask {
         final long timestampDelta = now - lastSyncTimestamp;
 
         if (FileDownloadUtils.isNeedSync(bytesDelta, timestampDelta)) {
-            try {
-                outputStream.sync();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
-            final boolean isBelongMultiConnection = hostRunnable != null;
-            if (isBelongMultiConnection) {
-                // only need update the connection table.
-                database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
-            } else {
-                // only need update the filedownloader table.
-                callback.syncProgressFromCache();
-            }
-
+            sync();
 
             lastSyncBytes = currentOffset;
             lastSyncTimestamp = now;
+        }
+    }
+
+    private void sync() {
+        try {
+            outputStream.sync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final boolean isBelongMultiConnection = hostRunnable != null;
+        if (isBelongMultiConnection) {
+            // only need update the connection table.
+            database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
+        } else {
+            // only need update the filedownloader table.
+            callback.syncProgressFromCache();
         }
     }
 
