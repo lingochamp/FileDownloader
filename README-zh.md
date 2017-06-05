@@ -45,6 +45,8 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 
 ## I. 效果
 
+![][single_demo_gif]
+![][chunked_demo_gif]
 ![][serial_tasks_demo_gif]
 ![][parallel_tasks_demo_gif]
 ![][tasks_manager_demo_gif]
@@ -487,6 +489,8 @@ limitations under the License.
 [tasks_manager_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/tasks_manager_demo.gif
 [avoid_drop_frames_1_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/avoid_drop_frames1.gif
 [avoid_drop_frames_2_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/avoid_drop_frames2.gif
+[single_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/single_demo.gif
+[chunked_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/chunked_demo.gif
 [bintray_svg]: https://api.bintray.com/packages/jacksgong/maven/FileDownloader/images/download.svg
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
 [file_download_listener_callback_flow_png]: https://github.com/lingochamp/FileDownloader/raw/master/art/filedownloadlistener_callback_flow.png
