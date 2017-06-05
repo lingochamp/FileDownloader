@@ -2,14 +2,32 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.1
+
+_2017-06-05_
+
+#### 修复
+
+- 修复(crash): 修复在`FileDownloader.init`中，当没有提供`InitCustomMaker`时出现的NPE奔溃。 Closes #592
+- 修复(callback): 修复当之前有多个链接服务于该任务并且正在从端点恢复时，在`pending`中没有带回其正确的`sofarBytes`的问题。
+- 修复(speed-monitor): 矫正`IDownloadSpeed.Monitor`在断点续传下总平均速度不准确的问题。
+
+#### 性能与提高
+
+- 提高稳定性: 当触发暂停时，主动同步FetchTask中的进度确保其进度得到固化到文件系统。
+- 提高稳定性: 当在`FileDownloader.init`中提供的`context`为空时，抛`IllegalArgumentException`以更早的暴露问题。
+
 ## Version 1.5.0
 
 _2017-06-05_
 
 #### 新接口
 
-- 提高实用性: 支持对单个任务多连接(多线程)下载。  Closes #102
-- 提高实用性: 支持通过`ConnectionCountAdapter`定制对每个任务使用连接(线程)数据的定制(可以通过`FileDownloader#init`设置进去)
+- 支持对单个任务多连接(多线程)下载。  Closes #102
+- 支持通过`ConnectionCountAdapter`定制对每个任务使用连接(线程)数据的定制(可以通过`FileDownloader#init`设置进去)
+
+#### 性能与提高
+
 - 提高性能: 重构整个下载的逻辑与原始回调逻辑，并删除了1000行左右的`FileDownloadRunnable`。
 
 对于每个任务默认的连接(线程)数目策略，你可以通过`ConnectionCountAdapter`来定制自己的策略:

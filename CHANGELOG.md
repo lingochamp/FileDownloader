@@ -2,14 +2,32 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.1
+
+_2017-06-05_
+
+#### Fix
+
+- Fix(crash): Fix the NPE crash when don't provided the `InitCustomMaker` on `FileDownloader#init`. Closes #592
+- Fix(callback): Fix on the `pending` callback you can't get the right `sofarBytes` when there are several connections served for the task and the task is resuming from the breakpoint.
+- Fix(speed-monitor): Correct the result of the total average speed when the task resume from a breakpoint on `IDownloadSpeed.Monitor`.
+
+#### Enhancement
+
+- Improve Robust: Sync all process on fetch task manually when it is paused to make the process can be persist.
+- Improve Robust: Raise `IllegalArgumentException` when provide `context` is null on `FileDownloader.init` to expose the problem earlier.
+
 ## Version 1.5.0
 
 _2017-06-05_
 
 #### New Interfaces
 
-- Improve Practicability: Support multiple-connection(multiple threads) for one downloading task.  Closes #102
-- Improve Practicability: Support `ConnectionCountAdapter` to customize connection count for each task(you can set it through `FileDownloader#init`).
+- Support multiple-connection(multiple threads) for one downloading task.  Closes #102
+- Support `ConnectionCountAdapter` to customize connection count for each task(you can set it through `FileDownloader#init`).
+
+#### Enhancement
+
 - Improve Performance: Refactor whole download logic and origin callback logic and remove 1000 line class `FileDownloadRunnable`.
 
 The default connection count strategy for each task, you can customize it through `ConnectionCountAdapter`:
