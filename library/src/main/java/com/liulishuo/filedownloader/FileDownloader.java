@@ -52,6 +52,8 @@ public class FileDownloader {
      * @see #init(Context, DownloadMgrInitialParams.InitCustomMaker)
      */
     public static void init(final Context context) {
+        if (context == null) throw new IllegalArgumentException("the provided context must not be null!");
+
         init(context.getApplicationContext(), null);
     }
 

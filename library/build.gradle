@@ -32,6 +32,7 @@ dependencies {
     testCompile "junit:junit:4.4"
     //noinspection GradleDynamicVersion
     testCompile "org.mockito:mockito-core:2.+"
+    testCompile "org.robolectric:robolectric:3.0"
 }
 
 if (isForUpload2Maven()) {
