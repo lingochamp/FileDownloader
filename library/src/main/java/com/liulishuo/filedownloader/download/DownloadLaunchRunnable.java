@@ -138,6 +138,17 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     public void pending() {
+        if (model.getConnectionCount() > 1) {
+            final List<ConnectionModel> connectionOnDBList = database.findConnectionModel(model.getId());
+            if (model.getConnectionCount() == connectionOnDBList.size()) {
+                model.setSoFar(ConnectionModel.getTotalOffset(connectionOnDBList));
+            } else {
+                // dirty
+                model.setSoFar(0);
+                database.removeConnections(model.getId());
+            }
+        }
+
         statusCallback.onPending();
     }
 
@@ -355,8 +366,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             if (newEtag != null) {
                 if (oldEtag.equals(newEtag)) {
                     FileDownloadLog.w(this, "the old etag[%s] is the same to the new etag[%s], " +
-                            "but the response status code is %d not Partial(206), so wo have to " +
-                            "start this task from very beginning for task[%d]!",
+                                    "but the response status code is %d not Partial(206), so wo have to " +
+                                    "start this task from very beginning for task[%d]!",
                             oldEtag, newEtag, code, id);
                     database.updateOldEtagOverdue(model, null);
                 } else {
