@@ -39,7 +39,9 @@ public class DownloadMgrInitialParams {
 
     public DownloadMgrInitialParams(InitCustomMaker maker) {
         this.mMaker = maker;
-        maker.securityCheck();
+        if (maker != null) {
+            maker.securityCheck();
+        }
     }
 
     public int getMaxNetworkThreadCount() {
