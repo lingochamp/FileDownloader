@@ -24,6 +24,7 @@ import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 /**
  * Params in this class is used in the downloading manager, and would be used for initialize the
@@ -255,6 +256,14 @@ public class DownloadMgrInitialParams {
                             " application assets folder manually for resolving this problem.");
                 }
             }
+        }
+
+        @Override
+        public String toString() {
+            return FileDownloadUtils.formatString("component: database[%s], maxNetworkCount[%s]," +
+                            " outputStream[%s], connection[%s], connectionCountAdapter[%s]",
+                    mDatabaseCustomMaker, mMaxNetworkThreadCount, mOutputStreamCreator,
+                    mConnectionCreator, mConnectionCountAdapter);
         }
     }
 }

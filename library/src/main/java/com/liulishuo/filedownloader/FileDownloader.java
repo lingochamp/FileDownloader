@@ -74,8 +74,11 @@ public class FileDownloader {
     public static void init(final Context context,
                             /**Nullable **/final DownloadMgrInitialParams.InitCustomMaker maker) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(FileDownloader.class, "init Downloader");
+            FileDownloadLog.d(FileDownloader.class, "init Downloader with params: %s %s",
+                    context, maker);
         }
+
+        if (context == null) throw new IllegalArgumentException("the provided context must not be null!");
 
         FileDownloadHelper.holdContext(context);
 
