@@ -185,7 +185,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                 this.mThrowable = snapshot.getThrowable();
                 this.mSoFarBytes = snapshot.getLargeSofarBytes();
 
-                mSpeedMonitor.end(this.mSoFarBytes);
                 // to FileDownloadList
                 FileDownloadList.getImpl().remove(mTask.getRunningTask(), snapshot);
 
@@ -201,7 +200,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                 this.mSoFarBytes = snapshot.getLargeTotalBytes();
                 this.mTotalBytes = snapshot.getLargeTotalBytes();
 
-                mSpeedMonitor.end(this.mSoFarBytes);
                 // to FileDownloadList
                 FileDownloadList.getImpl().remove(mTask.getRunningTask(), snapshot);
 
@@ -288,6 +286,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                     getStatus());
         }
 
+        mSpeedMonitor.end(this.mSoFarBytes);
         if (mTask.getFinishListenerList() != null) {
             @SuppressWarnings("unchecked") final ArrayList<BaseDownloadTask.FinishListener>
                     listenersCopy =
@@ -418,8 +417,6 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         } else {
             FileDownloadServiceProxy.getImpl().pause(origin.getId());
         }
-
-        mSpeedMonitor.end(mSoFarBytes);
 
         // For make sure already added event mListener for receive paused event
         FileDownloadList.getImpl().add(runningTask);

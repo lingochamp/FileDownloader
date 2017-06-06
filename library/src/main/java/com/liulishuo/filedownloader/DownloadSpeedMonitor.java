@@ -34,7 +34,7 @@ public class DownloadSpeedMonitor implements IDownloadSpeed.Monitor, IDownloadSp
     private long mTotalBytes;
 
     // The min interval millisecond for updating the download mSpeed.
-    private int mMinIntervalUpdateSpeed = 500;
+    private int mMinIntervalUpdateSpeed = 1000;
 
     @Override
     public void start(long startBytes) {
@@ -44,7 +44,7 @@ public class DownloadSpeedMonitor implements IDownloadSpeed.Monitor, IDownloadSp
 
     @Override
     public void end(long sofarBytes) {
-        if (mStartTime <= 0 || mStartSofarBytes <= 0) {
+        if (mStartTime <= 0) {
             return;
         }
 
