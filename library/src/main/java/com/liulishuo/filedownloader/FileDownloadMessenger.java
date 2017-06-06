@@ -208,7 +208,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         }
 
         if (mIsDiscard || mTask.getOrigin().getListener() == null) {
-            if (FileDownloadMonitor.isValid() &&
+            if ((FileDownloadMonitor.isValid() || mTask.isContainFinishListener()) &&
                     snapshot.getStatus() == FileDownloadStatus.blockComplete) {
                 // there is a FileDownloadMonitor, so we have to ensure the 'BaseDownloadTask#over'
                 // can be invoked.

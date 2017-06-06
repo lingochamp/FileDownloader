@@ -582,6 +582,11 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         return mPauseLock;
     }
 
+    @Override
+    public boolean isContainFinishListener() {
+        return mFinishListenerList != null && mFinishListenerList.size() > 0;
+    }
+
 
     @Override
     public boolean isMarkedAdded2List() {
