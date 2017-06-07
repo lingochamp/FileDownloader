@@ -191,5 +191,10 @@ public class DownloadRunnable implements Runnable {
                     callback, isWifiRequired, path);
         }
 
+        DownloadRunnable buildForTest(ConnectTask connectTask) {
+            return new DownloadRunnable(connectTask.downloadId, 0, connectTask,
+                    callback, false, "");
+        }
+
     }
 }

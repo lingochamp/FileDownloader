@@ -29,10 +29,10 @@ android {
 }
 
 dependencies {
-    testCompile "junit:junit:4.4"
+    testCompile "junit:junit:4.12"
     //noinspection GradleDynamicVersion
     testCompile "org.mockito:mockito-core:2.+"
-    testCompile "org.robolectric:robolectric:3.0"
+    testCompile "org.robolectric:robolectric:3.3.2"
 }
 
 if (isForUpload2Maven()) {
