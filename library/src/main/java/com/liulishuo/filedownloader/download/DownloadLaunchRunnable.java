@@ -130,8 +130,13 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         this.paused = true;
 
         if (singleFetchDataTask != null) singleFetchDataTask.pause();
-        for (DownloadRunnable runnable : downloadRunnableList) {
-            runnable.pause();
+        @SuppressWarnings("unchecked") ArrayList<DownloadRunnable> pauseList =
+                (ArrayList<DownloadRunnable>) downloadRunnableList.clone();
+        for (DownloadRunnable runnable : pauseList) {
+            if (runnable != null) {
+                runnable.pause();
+                // if runnable is null, then that one must be completed and removed
+            }
         }
 
         statusCallback.onPaused();
@@ -511,6 +516,9 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 FileDownloadLog.d(this, "enable multiple connection: %s", connectionModel);
             }
 
+            if (runnable == null)
+                throw new IllegalArgumentException("the download runnable must not be null!");
+
             downloadRunnableList.add(runnable);
         }
 
@@ -619,8 +627,13 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     public void onError(Exception exception) {
 
         // discard all
-        for (DownloadRunnable runnable : downloadRunnableList) {
-            runnable.discard();
+        @SuppressWarnings("unchecked") ArrayList<DownloadRunnable> discardList =
+                (ArrayList<DownloadRunnable>) downloadRunnableList.clone();
+        for (DownloadRunnable runnable : discardList) {
+            if (runnable != null) {
+                runnable.discard();
+                // if runnable is null, then that one must be completed and removed
+            }
         }
 
         statusCallback.onError(exception);
