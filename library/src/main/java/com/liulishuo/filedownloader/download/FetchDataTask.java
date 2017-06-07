@@ -256,7 +256,7 @@ public class FetchDataTask {
             return this;
         }
 
-        public FetchDataTask build() {
+        public FetchDataTask build() throws IllegalArgumentException {
             if (isWifiRequired == null || connection == null || connectionProfile == null
                     || callback == null || path == null || downloadId == null || connectionIndex == null)
                 throw new IllegalArgumentException();

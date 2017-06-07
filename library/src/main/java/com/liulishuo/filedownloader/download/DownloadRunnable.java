@@ -68,6 +68,7 @@ public class DownloadRunnable implements Runnable {
 
         FileDownloadConnection connection = null;
         final long beginOffset = connectTask.getProfile().currentOffset;
+        boolean isConnected = false;
         do {
 
             try {
@@ -75,8 +76,9 @@ public class DownloadRunnable implements Runnable {
                     return;
                 }
 
-
+                isConnected = false;
                 connection = connectTask.connect();
+                isConnected = true;
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(this, "the connection[%d] for %d, is connected %s",
                             connectionIndex, downloadId, connectTask.getProfile());
@@ -98,14 +100,27 @@ public class DownloadRunnable implements Runnable {
 
                 fetchDataTask.run();
                 break;
-            } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException e) {
-                final long invalidIncreaseBytes =  fetchDataTask.currentOffset - beginOffset;
+            } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException | IllegalArgumentException e) {
                 if (callback.isRetry(e)) {
-                    callback.onRetry(e, invalidIncreaseBytes);
+                    if (!isConnected) {
+                        callback.onRetry(e, 0);
+                    } else if (fetchDataTask != null) {
+                        // connected
+                        final long invalidIncreaseBytes = fetchDataTask.currentOffset - beginOffset;
+                        callback.onRetry(e, invalidIncreaseBytes);
+                    } else {
+                        // connected but create fetch data task failed, give up directly.
+                        FileDownloadLog.w(this, "it is valid to retry and connection is valid but" +
+                                " create fetch-data-task failed, so give up directly with %s", e);
+                        callback.onError(e);
+                        break;
+                    }
+
                 } else {
                     callback.onError(e);
                     break;
                 }
+
             } finally {
                 if (connection != null) connection.ending();
             }
