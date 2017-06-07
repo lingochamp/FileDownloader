@@ -2,6 +2,22 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.2
+
+_2017-06-07_
+
+#### Fix
+
+- Fix(crash): Fix raising NPE crash or ConcurrentModificationException when the Task is paused or error with the connection is completing at the same time. Closes #598
+- Fix(crash): Fix raising NPE crash when pause the `FetchDataTask` and it still without any time to sync data to database or file-system. Refs #598
+- Fix(crash): Fix raising NPE crash when using the multiple connections to download and connect failed or create `FetchDataTast` failed. Refs #598
+- Fix(speed-calculate): Fix the speed result is `0` when ignore all processing callbacks and just using `FinishListener`.
+- Fix(finish-listener): Fix there isn't `over` callback for the `FinishListener` when the file has already been downloaded in the past.
+
+#### Enhancement
+
+- Improve Performance: Enable the WAL for the default sqlite to speed up sql operation because the most of our case is concurrently accessed and modified by multiple threads at the same time.
+
 ## Version 1.5.1
 
 _2017-06-05_

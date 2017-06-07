@@ -2,6 +2,22 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.2
+
+_2017-06-07_
+
+#### 修复
+
+- 修复(crash): 修复当任务需要回调`error`或者被暂停时，刚好该任务的某个或几个链接完成下载，此时遇到NPE或者是`ConcurrentModificationException`的异常。Closes #598
+- 修复(crash): 修复当任务被暂停时，任务从开始到被暂停还没来得及同步一次数据到文件系统或者数据库，此时遇到NPE的异常。Refs #598
+- 修复(crash): 修复当采用多链接下载一个任务时，非首次建链失败或者是创建`FetchDataTast`失败，此时遇到NPE的异常。Refs #598
+- 修复(speed-calculate): 修复忽略整个下载进度回调，并且只使用`FinishListener`时，此时下载速度始终是`0`的问题。
+- 修复(finish-listener): 修复对于之前已经下载好的任务，并且只监听来`FinishListener`，此时`FinishListener`的`over`方法不会被回调到的问题。
+
+#### Enhancement
+
+- 提升性能: 开启了默认数据库的WAL，使得读与写可并行操作来提高性能，因为我们的绝大多数场景读写是会在不同线程中同时执行的，开启这个以后会导致内存的增加，但是在大多数情况下极大的提高了数据库的写入速度，并且更加稳定（更少的使用`fsync()`)。
+
 ## Version 1.5.1
 
 _2017-06-05_
