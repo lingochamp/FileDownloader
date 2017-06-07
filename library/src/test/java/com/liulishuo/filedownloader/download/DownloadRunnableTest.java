@@ -33,6 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+@SuppressWarnings("ALL")
 @RunWith(RobolectricTestRunner.class)
 public class DownloadRunnableTest {
 
@@ -41,6 +42,7 @@ public class DownloadRunnableTest {
 
     private ProcessCallback mockCallback;
 
+    @SuppressWarnings("ThrowableInstanceNeverThrown")
     private Exception mockIOException = new IOException("test");
 
     private DownloadRunnable downloadRunnable;
