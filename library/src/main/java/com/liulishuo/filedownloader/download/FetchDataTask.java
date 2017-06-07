@@ -69,6 +69,7 @@ public class FetchDataTask {
         this.hostRunnable = host;
         this.connectionIndex = connectionIndex;
         this.downloadId = id;
+        this.database = CustomComponentHolder.getImpl().getDatabaseInstance();
 
         startOffset = connectionProfile.startOffset;
         endOffset = connectionProfile.endOffset;
@@ -169,13 +170,11 @@ public class FetchDataTask {
         return outputStream;
     }
 
-    private FileDownloadDatabase database;
+    private final FileDownloadDatabase database;
     private volatile long lastSyncBytes = 0;
     private volatile long lastSyncTimestamp = 0;
 
     private void checkAndSync() {
-        if (database == null) database = CustomComponentHolder.getImpl().getDatabaseInstance();
-
         final long now = SystemClock.elapsedRealtime();
         final long bytesDelta = currentOffset - lastSyncBytes;
         final long timestampDelta = now - lastSyncTimestamp;
