@@ -55,7 +55,7 @@ public class FetchDataTask {
     private volatile boolean paused;
 
     public void pause() {
-        final boolean isFetchStarted = outputStream != null;
+        final boolean isFetchStarted = (outputStream != null);
         if (isFetchStarted) {
             sync();
         } else {
@@ -64,6 +64,8 @@ public class FetchDataTask {
                         "output-stream isn't ready.", downloadId, connectionIndex);
             }
         }
+
+        // why paused argument is after sync? because of if pause the output-stream would be closed.
         paused = true;
     }
 
