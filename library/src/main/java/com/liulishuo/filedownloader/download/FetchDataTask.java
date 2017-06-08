@@ -65,7 +65,7 @@ public class FetchDataTask {
             }
         }
 
-        // why paused argument is after sync? because of if pause the output-stream would be closed.
+        // why do I assign paused argument need wait for sync? because of if paused the output-stream would be closed.
         paused = true;
     }
 
