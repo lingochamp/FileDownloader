@@ -55,7 +55,15 @@ public class FetchDataTask {
     private volatile boolean paused;
 
     public void pause() {
-        sync();
+        final boolean isFetchStarted = outputStream != null;
+        if (isFetchStarted) {
+            sync();
+        } else {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "it[%d %d] is no need to persist the processing, because of the " +
+                        "output-stream isn't ready.", downloadId, connectionIndex);
+            }
+        }
         paused = true;
     }
 
@@ -164,10 +172,6 @@ public class FetchDataTask {
 
         // callback completed
         callback.onCompleted(hostRunnable, startOffset, endOffset);
-    }
-
-    public FileDownloadOutputStream getOutputStream() {
-        return outputStream;
     }
 
     private final FileDownloadDatabase database;
