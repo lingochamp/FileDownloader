@@ -51,7 +51,7 @@ public class DownloadSpeedMonitor implements IDownloadSpeed.Monitor, IDownloadSp
         long downloadSize = sofarBytes - mStartSofarBytes;
         this.mLastRefreshTime = 0;
         long interval = SystemClock.uptimeMillis() - mStartTime;
-        if (interval < 0) {
+        if (interval <= 0) {
             mSpeed = (int) downloadSize;
         } else {
             mSpeed = (int) (downloadSize / interval);
