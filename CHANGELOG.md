@@ -2,6 +2,15 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.3
+
+_2017-06-08_
+
+#### Fix
+
+- Fix(crash): Fix divide by zero on calculating average speed when download completed and connected at the same time. Refs #601
+- Fix(crash): Fix raise NPE crash when you require pause the task between executed the fetch-data-task and fetch-data-task has not yet started. Closes #601
+
 ## Version 1.5.2
 
 _2017-06-07_

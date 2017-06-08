@@ -2,6 +2,15 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.3
+
+_2017-06-08_
+
+#### 修复
+
+- 修复(crash): 修复在计算平均速度的过程中`connected`与`completed`几乎同时回调时发生`divide by zero`异常的问题。 Refs #601
+- 修复(crash): 修复触发暂停的同时，`FetchDataTask`已经被创建并请求执行，但是还没有来得及被执行，导致NPE奔溃的问题。 Closes #601
+
 ## Version 1.5.2
 
 _2017-06-07_
