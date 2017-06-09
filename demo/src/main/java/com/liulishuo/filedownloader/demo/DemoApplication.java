@@ -5,13 +5,11 @@ import android.content.Context;
 import android.util.Log;
 
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.connection.FileDownloadUrlConnection;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
-import java.net.Proxy;
-
+import cn.dreamtobe.filedownloader.OkHttp3Connection;
 import cn.dreamtobe.threaddebugger.IThreadDebugger;
 import cn.dreamtobe.threaddebugger.ThreadDebugger;
 import cn.dreamtobe.threaddebugger.ThreadDebuggers;
@@ -37,13 +35,8 @@ public class DemoApplication extends Application {
          * by below code, so please do not worry about performance.
          * @see FileDownloader#init(Context)
          */
-        FileDownloader.init(getApplicationContext(), new DownloadMgrInitialParams.InitCustomMaker()
-                .connectionCreator(new FileDownloadUrlConnection
-                        .Creator(new FileDownloadUrlConnection.Configuration()
-                        .connectTimeout(15_000) // set connection timeout.
-                        .readTimeout(15_000) // set read timeout.
-                        .proxy(Proxy.NO_PROXY) // set proxy
-                )));
+        FileDownloader.init(this, new DownloadMgrInitialParams.InitCustomMaker()
+                .connectionCreator(new OkHttp3Connection.Creator()));
 
         // below codes just for monitoring thread pools in the FileDownloader:
         IThreadDebugger debugger = ThreadDebugger.install(

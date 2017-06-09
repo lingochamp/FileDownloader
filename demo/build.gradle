@@ -51,6 +51,7 @@ dependencies {
     debugCompile 'cn.dreamtobe.threaddebugger:threaddebugger:1.3.3'
     releaseCompile 'cn.dreamtobe.threaddebugger:threaddebugger-no-op:1.3.3'
     compile project(':library')
+    compile'cn.dreamtobe.filedownloader:filedownloader-okhttp3-connection:1.0.0'
 
     // for testing
     compile 'com.squareup.okio:okio:1.11.0'
