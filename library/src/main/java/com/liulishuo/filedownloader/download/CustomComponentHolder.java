@@ -17,14 +17,19 @@
 package com.liulishuo.filedownloader.download;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.model.FileDownloadModel;
+import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * The holder for supported custom components.
@@ -66,7 +71,10 @@ public class CustomComponentHolder {
         if (database != null) return database;
 
         synchronized (this) {
-            if (database == null) database = getDownloadMgrInitialParams().createDatabase();
+            if (database == null) {
+                database = getDownloadMgrInitialParams().createDatabase();
+                maintainDatabase(database.maintainer());
+            }
         }
 
         return database;
@@ -127,4 +135,97 @@ public class CustomComponentHolder {
         return initialParams;
     }
 
+    private static void maintainDatabase(FileDownloadDatabase.Maintainer maintainer) {
+        final Iterator<FileDownloadModel> iterator = maintainer.iterator();
+        long refreshDataCount = 0;
+        long removedDataCount = 0;
+
+        final long startTimestamp = System.currentTimeMillis();
+        try {
+            while (iterator.hasNext()) {
+                boolean isInvalid = false;
+                final FileDownloadModel model = iterator.next();
+                do {
+                    if (model.getStatus() == FileDownloadStatus.progress ||
+                            model.getStatus() == FileDownloadStatus.connected ||
+                            model.getStatus() == FileDownloadStatus.error ||
+                            (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() > 0)
+                            ) {
+                        // Ensure can be covered by RESUME FROM BREAKPOINT.
+                        model.setStatus(FileDownloadStatus.paused);
+                    }
+                    final String targetFilePath = model.getTargetFilePath();
+                    if (targetFilePath == null) {
+                        // no target file path, can't used to resume from breakpoint.
+                        isInvalid = true;
+                        break;
+                    }
+
+                    final File targetFile = new File(targetFilePath);
+                    // consider check in new thread, but SQLite lock | file lock aways effect, so sync
+                    if (model.getStatus() == FileDownloadStatus.paused &&
+                            FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
+                                    model.getPath(), null)) {
+                        // can be reused in the old mechanism(no-temp-file).
+
+                        final File tempFile = new File(model.getTempFilePath());
+
+                        if (!tempFile.exists() && targetFile.exists()) {
+                            final boolean successRename = targetFile.renameTo(tempFile);
+                            if (FileDownloadLog.NEED_LOG) {
+                                FileDownloadLog.d(FileDownloadDatabase.class,
+                                        "resume from the old no-temp-file architecture [%B], [%s]->[%s]",
+                                        successRename, targetFile.getPath(), tempFile.getPath());
+
+                            }
+                        }
+                    }
+
+                    /**
+                     * Remove {@code model} from DB if it can't used for judging whether the
+                     * old-downloaded file is valid for reused & it can't used for resuming from
+                     * BREAKPOINT, In other words, {@code model} is no use anymore for FileDownloader.
+                     */
+                    if (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() <= 0) {
+                        // This model is redundant.
+                        isInvalid = true;
+                        break;
+                    }
+
+                    if (!FileDownloadUtils.isBreakpointAvailable(model.getId(), model)) {
+                        // It can't used to resuming from breakpoint.
+                        isInvalid = true;
+                        break;
+                    }
+
+                    if (targetFile.exists()) {
+                        // It has already completed downloading.
+                        isInvalid = true;
+                        break;
+                    }
+
+                } while (false);
+
+
+                if (isInvalid) {
+                    iterator.remove();
+                    maintainer.onRemovedInvalidData(model);
+                    removedDataCount++;
+                } else {
+                    maintainer.onRefreshedValidData(model);
+                    refreshDataCount++;
+                }
+            }
+
+        } finally {
+            FileDownloadUtils.markConverted(FileDownloadHelper.getAppContext());
+            maintainer.onFinishMaintain();
+            // 566 data consumes about 140ms
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(FileDownloadDatabase.class,
+                        "refreshed data count: %d , delete data count: %d consume %d",
+                        refreshDataCount, removedDataCount, System.currentTimeMillis() - startTimestamp);
+            }
+        }
+    }
 }

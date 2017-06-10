@@ -164,7 +164,7 @@ public interface FileDownloadDatabase {
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#paused}.
      *
-     * @param id the download id.
+     * @param id    the download id.
      * @param sofar the new so far bytes.
      */
     void updatePause(int id, final long sofar);
@@ -175,4 +175,40 @@ public interface FileDownloadDatabase {
      * @param id the download id.
      */
     void updatePending(int id);
+
+    /**
+     * Get the maintainer for the database, this maintainer will be used when the database is initializing.
+     * <p>
+     * The maintainer will return all data on the database.
+     * <p>
+     * Demo: {@link com.liulishuo.filedownloader.services.DefaultDatabaseImpl.Maintainer}
+     *
+     * @return the maintainer for maintain the database.
+     */
+    Maintainer maintainer();
+
+    /**
+     * the maintainer for the database, this maintainer will be used when the database is initializing.
+     */
+    @SuppressWarnings("EmptyMethod")
+    interface Maintainer extends Iterable<FileDownloadModel> {
+        /**
+         * invoke this method when the operation for maintain is finished.
+         */
+        void onFinishMaintain();
+
+        /**
+         * invoke this method when the {@code model} is invalid and has been removed.
+         *
+         * @param model the removed invalid model.
+         */
+        void onRemovedInvalidData(FileDownloadModel model);
+
+        /**
+         * invoke this method when the {code model} is valid to save and has been refreshed.
+         *
+         * @param model the refreshed valid model.
+         */
+        void onRefreshedValidData(FileDownloadModel model);
+    }
 }

@@ -29,8 +29,8 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -50,111 +50,6 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         DefaultDatabaseOpenHelper openHelper = new DefaultDatabaseOpenHelper(FileDownloadHelper.getAppContext());
 
         db = openHelper.getWritableDatabase();
-
-        refreshDataFromDB();
-    }
-
-    private void refreshDataFromDB() {
-        long start = System.currentTimeMillis();
-        Cursor c = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-
-        List<Integer> dirtyList = new ArrayList<>();
-        //noinspection TryFinallyCanBeTryWithResources
-        try {
-            while (c.moveToNext()) {
-                FileDownloadModel model = new FileDownloadModel();
-                model.setId(c.getInt(c.getColumnIndex(FileDownloadModel.ID)));
-                model.setUrl(c.getString(c.getColumnIndex(FileDownloadModel.URL)));
-                model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)),
-                        c.getShort(c.getColumnIndex(FileDownloadModel.PATH_AS_DIRECTORY)) == 1);
-                model.setStatus((byte) c.getShort(c.getColumnIndex(FileDownloadModel.STATUS)));
-                model.setSoFar(c.getLong(c.getColumnIndex(FileDownloadModel.SOFAR)));
-                model.setTotal(c.getLong(c.getColumnIndex(FileDownloadModel.TOTAL)));
-                model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
-                model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
-                model.setFilename(c.getString(c.getColumnIndex(FileDownloadModel.FILENAME)));
-                model.setConnectionCount(c.getInt(c.getColumnIndex(FileDownloadModel.CONNECTION_COUNT)));
-
-                if (model.getStatus() == FileDownloadStatus.progress ||
-                        model.getStatus() == FileDownloadStatus.connected ||
-                        model.getStatus() == FileDownloadStatus.error ||
-                        (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() > 0)
-                        ) {
-                    // Ensure can be covered by RESUME FROM BREAKPOINT.
-                    model.setStatus(FileDownloadStatus.paused);
-                }
-
-                final String targetFilePath = model.getTargetFilePath();
-                if (targetFilePath == null) {
-                    // no target file path, can't used to resume from breakpoint.
-                    dirtyList.add(model.getId());
-                    continue;
-                }
-
-                final File targetFile = new File(targetFilePath);
-
-                // consider check in new thread, but SQLite lock | file lock aways effect, so sync
-                if (model.getStatus() == FileDownloadStatus.paused &&
-                        FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
-                                model.getPath(), null)) {
-                    // can be reused in the old mechanism(no-temp-file).
-
-                    final File tempFile = new File(model.getTempFilePath());
-
-                    if (!tempFile.exists() && targetFile.exists()) {
-                        final boolean successRename = targetFile.renameTo(tempFile);
-                        if (FileDownloadLog.NEED_LOG) {
-                            FileDownloadLog.d(this,
-                                    "resume from the old no-temp-file architecture [%B], [%s]->[%s]",
-                                    successRename, targetFile.getPath(), tempFile.getPath());
-
-                        }
-                    }
-                }
-
-                /**
-                 * Remove {@code model} from DB if it can't used for judging whether the
-                 * old-downloaded file is valid for reused & it can't used for resuming from
-                 * BREAKPOINT, In other words, {@code model} is no use anymore for FileDownloader.
-                 */
-                if (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() <= 0) {
-                    // This model is redundant.
-                    dirtyList.add(model.getId());
-                } else if (!FileDownloadUtils.isBreakpointAvailable(model.getId(), model)) {
-                    // It can't used to resuming from breakpoint.
-                    dirtyList.add(model.getId());
-                } else if (targetFile.exists()) {
-                    // It has already completed downloading.
-                    dirtyList.add(model.getId());
-                } else {
-                    downloaderModelMap.put(model.getId(), model);
-                }
-
-            }
-        } finally {
-            c.close();
-            FileDownloadUtils.markConverted(FileDownloadHelper.getAppContext());
-
-            // db
-            if (dirtyList.size() > 0) {
-                String args = TextUtils.join(", ", dirtyList);
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "delete %s", args);
-                }
-                //noinspection ThrowFromFinallyBlock
-                db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
-                        TABLE_NAME, FileDownloadModel.ID, args));
-                db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
-                        CONNECTION_TABLE_NAME, ConnectionModel.ID, args));
-            }
-
-            // 566 data consumes about 140ms
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "refresh data %d , will delete: %d consume %d",
-                        downloaderModelMap.size(), dirtyList.size(), System.currentTimeMillis() - start);
-            }
-        }
-
     }
 
     @Override
@@ -342,7 +237,93 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         update(id, cv);
     }
 
+    @Override
+    public FileDownloadDatabase.Maintainer maintainer() {
+        return new Maintainer();
+    }
+
     private void update(final int id, final ContentValues cv) {
         db.update(TABLE_NAME, cv, FileDownloadModel.ID + " = ? ", new String[]{String.valueOf(id)});
+    }
+
+    class Maintainer implements FileDownloadDatabase.Maintainer {
+
+        private MaintainerIterator currentIterator;
+
+        @Override
+        public Iterator<FileDownloadModel> iterator() {
+            return currentIterator = new MaintainerIterator();
+        }
+
+        @Override
+        public void onFinishMaintain() {
+            if (currentIterator != null) currentIterator.onFinishMaintain();
+        }
+
+        @Override
+        public void onRemovedInvalidData(FileDownloadModel model) {
+        }
+
+        @Override
+        public void onRefreshedValidData(FileDownloadModel model) {
+            downloaderModelMap.put(model.getId(), model);
+        }
+    }
+
+    class MaintainerIterator implements Iterator<FileDownloadModel> {
+        private final Cursor c;
+        private final List<Integer> needRemoveId = new ArrayList<>();
+        private int currentId;
+
+        MaintainerIterator() {
+            c = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return c.moveToNext();
+        }
+
+        @Override
+        public FileDownloadModel next() {
+            final FileDownloadModel model = new FileDownloadModel();
+            model.setId(c.getInt(c.getColumnIndex(FileDownloadModel.ID)));
+            model.setUrl(c.getString(c.getColumnIndex(FileDownloadModel.URL)));
+            model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)),
+                    c.getShort(c.getColumnIndex(FileDownloadModel.PATH_AS_DIRECTORY)) == 1);
+            model.setStatus((byte) c.getShort(c.getColumnIndex(FileDownloadModel.STATUS)));
+            model.setSoFar(c.getLong(c.getColumnIndex(FileDownloadModel.SOFAR)));
+            model.setTotal(c.getLong(c.getColumnIndex(FileDownloadModel.TOTAL)));
+            model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
+            model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
+            model.setFilename(c.getString(c.getColumnIndex(FileDownloadModel.FILENAME)));
+            model.setConnectionCount(c.getInt(c.getColumnIndex(FileDownloadModel.CONNECTION_COUNT)));
+
+            currentId = model.getId();
+
+            return model;
+        }
+
+        @Override
+        public void remove() {
+            needRemoveId.add(currentId);
+        }
+
+        void onFinishMaintain() {
+            c.close();
+
+            if (!needRemoveId.isEmpty()) {
+                String args = TextUtils.join(", ", needRemoveId);
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(this, "delete %s", args);
+                }
+                //noinspection ThrowFromFinallyBlock
+                db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
+                        TABLE_NAME, FileDownloadModel.ID, args));
+                db.execSQL(FileDownloadUtils.formatString("DELETE FROM %s WHERE %s IN (%s);",
+                        CONNECTION_TABLE_NAME, ConnectionModel.ID, args));
+            }
+        }
+
     }
 }
