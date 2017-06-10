@@ -218,13 +218,11 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     }
 
     @Override
-    public void updateConnectionCount(FileDownloadModel model, int count) {
-        model.setConnectionCount(count);
-
+    public void updateConnectionCount(int id, int count) {
         ContentValues values = new ContentValues();
         values.put(FileDownloadModel.CONNECTION_COUNT, count);
         db.update(TABLE_NAME, values
-                , FileDownloadModel.ID + " = ? ", new String[]{Integer.toString(model.getId())});
+                , FileDownloadModel.ID + " = ? ", new String[]{Integer.toString(id)});
     }
 
     @Override
@@ -256,38 +254,6 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
     }
 
     @Override
-    public void update(List<FileDownloadModel> downloadModelList) {
-        if (downloadModelList == null) {
-            FileDownloadLog.w(this, "update a download list, but list == null!");
-            return;
-        }
-
-        db.beginTransaction();
-
-        try {
-            for (FileDownloadModel model : downloadModelList) {
-                if (find(model.getId()) != null) {
-                    // replace
-                    downloaderModelMap.remove(model.getId());
-                    downloaderModelMap.put(model.getId(), model);
-
-                    db.update(TABLE_NAME, model.toContentValues(), FileDownloadModel.ID + " = ? ",
-                            new String[]{String.valueOf(model.getId())});
-                } else {
-                    // insert new one.
-                    downloaderModelMap.put(model.getId(), model);
-
-                    db.insert(TABLE_NAME, null, model.toContentValues());
-                }
-            }
-
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-        }
-    }
-
-    @Override
     public boolean remove(int id) {
         downloaderModelMap.remove(id);
 
@@ -301,129 +267,79 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         downloaderModelMap.clear();
 
         db.delete(TABLE_NAME, null, null);
+        db.delete(TABLE_NAME, null, null);
     }
 
     @Override
-    public void updateOldEtagOverdue(FileDownloadModel model, String newEtag) {
-        if (model.getETag() == null || model.getETag().equals(newEtag))
-            throw new IllegalArgumentException(FileDownloadUtils
-                    .formatString("old[%s] new[%s]", model.getETag(), newEtag));
-
-        model.setSoFar(0);
-        model.setTotal(0);
-        model.setETag(newEtag);
-        // just reset to default value.
-        model.setConnectionCount(1);
-
+    public void updateOldEtagOverdue(int id, String newEtag, long sofar, long total, int connectionCount) {
         ContentValues values = new ContentValues();
-        values.put(FileDownloadModel.SOFAR, 0);
-        values.put(FileDownloadModel.TOTAL, 0);
+        values.put(FileDownloadModel.SOFAR, sofar);
+        values.put(FileDownloadModel.TOTAL, total);
         values.put(FileDownloadModel.ETAG, newEtag);
-        values.put(FileDownloadModel.CONNECTION_COUNT, 1);
+        values.put(FileDownloadModel.CONNECTION_COUNT, connectionCount);
 
-        update(model.getId(), values);
+        update(id, values);
 
     }
 
     @Override
-    public void updateConnected(FileDownloadModel model, long total, String etag, String filename) {
-        model.setStatus(FileDownloadStatus.connected);
-
-        // db
+    public void updateConnected(int id, long total, String etag, String filename) {
         ContentValues cv = new ContentValues();
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.connected);
+        cv.put(FileDownloadModel.TOTAL, total);
+        cv.put(FileDownloadModel.ETAG, etag); // maybe null.
+        cv.put(FileDownloadModel.FILENAME, filename); // maybe null.
 
-        final long oldTotal = model.getTotal();
-        if (oldTotal != total) {
-            model.setTotal(total);
-            cv.put(FileDownloadModel.TOTAL, total);
-        }
-
-        final String oldEtag = model.getETag();
-        if (oldEtag != null && !oldEtag.equals(etag)) throw new IllegalArgumentException();
-
-        if (oldEtag == null) {
-            model.setETag(etag);
-            cv.put(FileDownloadModel.ETAG, etag);
-        }
-
-        if (model.isPathAsDirectory() && filename != null && !filename.equals(model.getFilename())) {
-            model.setFilename(filename);
-
-            cv.put(FileDownloadModel.FILENAME, filename);
-        }
-
-        update(model.getId(), cv);
+        update(id, cv);
     }
 
     @Override
-    public void syncProgressFromCache(FileDownloadModel model) {
-        // db
+    public void updateProgress(int id, long sofarBytes) {
         ContentValues cv = new ContentValues();
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.progress);
-        cv.put(FileDownloadModel.SOFAR, model.getSoFar());
-        update(model.getId(), cv);
+        cv.put(FileDownloadModel.SOFAR, sofarBytes);
+
+        update(id, cv);
     }
 
     @Override
-    public void updateError(FileDownloadModel model, Throwable throwable, long sofar) {
-        final String errMsg = throwable.toString();
-
-        model.setStatus(FileDownloadStatus.error);
-        model.setErrMsg(errMsg);
-        model.setSoFar(sofar);
-
-        // db
+    public void updateError(int id, Throwable throwable, long sofar) {
         ContentValues cv = new ContentValues();
-        cv.put(FileDownloadModel.ERR_MSG, errMsg);
+        cv.put(FileDownloadModel.ERR_MSG, throwable.toString());
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.error);
         cv.put(FileDownloadModel.SOFAR, sofar);
-        update(model.getId(), cv);
+
+        update(id, cv);
     }
 
     @Override
-    public void updateRetry(FileDownloadModel model, Throwable throwable) {
-        final String errMsg = throwable.toString();
-
-        model.setStatus(FileDownloadStatus.retry);
-        model.setErrMsg(errMsg);
-
-        // db
+    public void updateRetry(int id, Throwable throwable) {
         ContentValues cv = new ContentValues();
-        cv.put(FileDownloadModel.ERR_MSG, errMsg);
+        cv.put(FileDownloadModel.ERR_MSG, throwable.toString());
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.retry);
-        update(model.getId(), cv);
+
+        update(id, cv);
     }
 
     @Override
-    public void updateComplete(FileDownloadModel model, final long total) {
-        model.setStatus(FileDownloadStatus.completed);
-        model.setSoFar(total);
-        model.setTotal(total);
-
-        remove(model.getId());
+    public void updateCompleted(int id, final long total) {
+        remove(id);
     }
 
     @Override
-    public void updatePause(FileDownloadModel model, long sofar) {
-        model.setStatus(FileDownloadStatus.paused);
-        model.setSoFar(sofar);
-
-        // db
+    public void updatePause(int id, long sofar) {
         ContentValues cv = new ContentValues();
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.paused);
         cv.put(FileDownloadModel.SOFAR, sofar);
-        update(model.getId(), cv);
+
+        update(id, cv);
     }
 
     @Override
-    public void updatePending(FileDownloadModel model) {
-        model.setStatus(FileDownloadStatus.pending);
-
-        // db
+    public void updatePending(int id) {
         ContentValues cv = new ContentValues();
         cv.put(FileDownloadModel.STATUS, FileDownloadStatus.pending);
-        update(model.getId(), cv);
+        update(id, cv);
     }
 
     private void update(final int id, final ContentValues cv) {

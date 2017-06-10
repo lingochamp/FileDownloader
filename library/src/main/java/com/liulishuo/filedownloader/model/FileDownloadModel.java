@@ -132,7 +132,7 @@ public class FileDownloadModel {
         return total;
     }
 
-    public boolean isChunked(){
+    public boolean isChunked() {
         return total == TOTAL_VALUE_IN_CHUNKED_RESOURCE;
     }
 
@@ -170,6 +170,13 @@ public class FileDownloadModel {
 
     public int getConnectionCount() {
         return connectionCount;
+    }
+
+    /**
+     * reset the connection count to default value: 1.
+     */
+    public void resetConnectionCount() {
+        this.connectionCount = 1;
     }
 
     public ContentValues toContentValues() {

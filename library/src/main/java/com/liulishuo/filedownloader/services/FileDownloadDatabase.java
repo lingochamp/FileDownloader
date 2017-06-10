@@ -36,6 +36,7 @@ import java.util.List;
  * @see DefaultDatabaseImpl
  * @see FileDownloadUtils#isBreakpointAvailable(int, FileDownloadModel)
  */
+@SuppressWarnings("UnusedParameters")
 public interface FileDownloadDatabase {
 
     /**
@@ -81,7 +82,7 @@ public interface FileDownloadDatabase {
      *
      * @param count the connection count.
      */
-    void updateConnectionCount(FileDownloadModel model, int count);
+    void updateConnectionCount(int id, int count);
 
     /**
      * Insert the model to the database.
@@ -98,13 +99,6 @@ public interface FileDownloadDatabase {
     void update(final FileDownloadModel downloadModel);
 
     /**
-     * Update the batch of datum compare to the {@code downloadModelList}
-     *
-     * @param downloadModelList the list of model.
-     */
-    void update(final List<FileDownloadModel> downloadModelList);
-
-    /**
      * Remove the model which identify is {@code id}.
      *
      * @param id the download id.
@@ -119,68 +113,66 @@ public interface FileDownloadDatabase {
 
 
     /**
-     * Update the etag when the old one is overdue.
-     *
-     * @param newEtag the new etag.
+     * Update when the old one is overdue.
      */
-    void updateOldEtagOverdue(FileDownloadModel model, String newEtag);
+    void updateOldEtagOverdue(int id, String newEtag, long sofar, long total, int connectionCount);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#connected}.
      *
-     * @param model    the data in the model will be updated.
+     * @param id       the download id.
      * @param total    the new total bytes.
-     * @param etag     the new etag.
-     * @param fileName the new file name.
+     * @param etag     the new etag. this value will be {@code null} when we can't find it on response header.
+     * @param filename the new file name. this value will be {@code null} when its no need to store.
      */
-    void updateConnected(final FileDownloadModel model, final long total, final String etag,
-                         final String fileName);
+    void updateConnected(int id, long total, String etag, String filename);
 
     /**
-     * Sync progress form buffer {@code model}.
+     * Update the sofar bytes with the status {@code progress}, so don't forget to store the
+     * {@link FileDownloadStatus#progress} too.
      *
-     * @param model the data in the model will be updated.
+     * @param sofarBytes the current sofar bytes.
      */
-    void syncProgressFromCache(final FileDownloadModel model);
+    void updateProgress(int id, long sofarBytes);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#error}.
      *
-     * @param model     the data in the model will be updated.
+     * @param id        the download id.
      * @param throwable the new exception.
      * @param sofar     the new so far bytes.
      */
-    void updateError(final FileDownloadModel model, final Throwable throwable, final long sofar);
+    void updateError(int id, Throwable throwable, long sofar);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#retry}.
      *
-     * @param model     the data in the model will be updated.
+     * @param id        the download id.
      * @param throwable the new exception.
      */
-    void updateRetry(final FileDownloadModel model, final Throwable throwable);
+    void updateRetry(int id, Throwable throwable);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#completed}.
      * The latest version will remove model from DB.
      *
-     * @param model the data in the model will be updated.
+     * @param id    the download id.
      * @param total the new total bytes.
      */
-    void updateComplete(final FileDownloadModel model, final long total);
+    void updateCompleted(int id, final long total);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#paused}.
      *
-     * @param model the data in the model will be updated.
+     * @param id the download id.
      * @param sofar the new so far bytes.
      */
-    void updatePause(final FileDownloadModel model, final long sofar);
+    void updatePause(int id, final long sofar);
 
     /**
      * Update the data because of the download status alternative to {@link FileDownloadStatus#pending}.
      *
-     * @param model the data in the model will be updated.
+     * @param id the download id.
      */
-    void updatePending(final FileDownloadModel model);
+    void updatePending(int id);
 }

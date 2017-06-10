@@ -366,7 +366,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             isResumeAvailableOnDB = false;
 
             // check whether accept partial.
-            final String newEtag = FileDownloadUtils.findEtag(id, connection);
+            String newEtag = FileDownloadUtils.findEtag(id, connection);
 
             if (newEtag != null) {
                 if (oldEtag.equals(newEtag)) {
@@ -374,10 +374,14 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                                     "but the response status code is %d not Partial(206), so wo have to " +
                                     "start this task from very beginning for task[%d]!",
                             oldEtag, newEtag, code, id);
-                    database.updateOldEtagOverdue(model, null);
-                } else {
-                    database.updateOldEtagOverdue(model, newEtag);
+                    newEtag = null;
                 }
+                model.setSoFar(0);
+                model.setTotal(0);
+                model.setETag(newEtag);
+                model.resetConnectionCount();
+
+                database.updateOldEtagOverdue(id, model.getETag(), model.getSoFar(), model.getTotal(), model.getConnectionCount());
             }
 
             // retry to check whether support partial or not.
@@ -463,7 +467,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             startOffset += eachRegion;
         }
 
-        database.updateConnectionCount(model, connectionCount);
+        model.setConnectionCount(connectionCount);
+        database.updateConnectionCount(id, connectionCount);
 
         fetchWithMultipleConnection(connectionModelList);
     }
@@ -651,7 +656,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     @Override
     public void syncProgressFromCache() {
-        database.syncProgressFromCache(model);
+        database.updateProgress(model.getId(), model.getSoFar());
     }
 
     private void checkupBeforeConnect()

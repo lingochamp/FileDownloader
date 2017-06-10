@@ -78,8 +78,10 @@ public class DownloadStatusCallback implements Handler.Callback {
     }
 
     public void onPending() {
+        model.setStatus(FileDownloadStatus.pending);
+
         // direct
-        database.updatePending(model);
+        database.updatePending(model.getId());
         onStatusChanged(FileDownloadStatus.pending);
     }
 
@@ -90,10 +92,18 @@ public class DownloadStatusCallback implements Handler.Callback {
     }
 
     void onConnected(boolean isResume, long totalLength, String etag, String fileName) {
+        final String oldEtag = model.getETag();
+        if (oldEtag != null && !oldEtag.equals(etag)) throw new IllegalArgumentException();
+
         // direct
         processParams.setResuming(isResume);
 
-        database.updateConnected(model, totalLength, etag, fileName);
+        model.setStatus(FileDownloadStatus.connected);
+        model.setTotal(totalLength);
+        model.setETag(etag);
+        model.setFilename(fileName);
+
+        database.updateConnected(model.getId(), totalLength, etag, fileName);
         onStatusChanged(FileDownloadStatus.connected);
 
         callbackMinIntervalBytes = calculateCallbackMinIntervalBytes(totalLength, callbackProgressMaxCount);
@@ -334,7 +344,7 @@ public class DownloadStatusCallback implements Handler.Callback {
     private void handleProgress(final long now,
                                 final boolean isNeedCallbackToUser) {
         if (model.getSoFar() == model.getTotal()) {
-            database.syncProgressFromCache(model);
+            database.updateProgress(model.getId(), model.getSoFar());
             return;
         }
 
@@ -350,7 +360,9 @@ public class DownloadStatusCallback implements Handler.Callback {
     private void handleCompleted() throws IOException {
         renameTempFile();
 
-        database.updateComplete(model, model.getTotal());
+        model.setStatus(FileDownloadStatus.completed);
+
+        database.updateCompleted(model.getId(), model.getTotal());
         database.removeConnections(model.getId());
 
         onStatusChanged(FileDownloadStatus.completed);
@@ -374,12 +386,17 @@ public class DownloadStatusCallback implements Handler.Callback {
         processParams.setException(processEx);
         processParams.setRetryingTimes(maxRetryTimes - remainRetryTimes);
 
-        database.updateRetry(model, processEx);
+        model.setStatus(FileDownloadStatus.retry);
+        model.setErrMsg(processEx.toString());
+
+        database.updateRetry(model.getId(), processEx);
         onStatusChanged(FileDownloadStatus.retry);
     }
 
     private void handlePaused() {
-        database.updatePause(model, model.getSoFar());
+        model.setStatus(FileDownloadStatus.paused);
+
+        database.updatePause(model.getId(), model.getSoFar());
         onStatusChanged(FileDownloadStatus.paused);
     }
 
@@ -393,7 +410,11 @@ public class DownloadStatusCallback implements Handler.Callback {
         } else {
             // Normal case.
             try {
-                database.updateError(model, errProcessEx, model.getSoFar());
+
+                model.setStatus(FileDownloadStatus.error);
+                model.setErrMsg(exception.toString());
+
+                database.updateError(model.getId(), errProcessEx, model.getSoFar());
             } catch (SQLiteFullException fullException) {
                 errProcessEx = fullException;
                 handleSQLiteFullException((SQLiteFullException) errProcessEx);
