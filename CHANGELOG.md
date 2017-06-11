@@ -2,6 +2,19 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.4
+
+_2017-06-11_
+
+#### New Interfaces
+
+- Support customizing the download task identify generator through `IdGenerator`. Closes #224
+
+#### Enhancement
+
+- Improve Practicability: Decoupling the filedownload-database with filedownload-model, let filedownload-database only care about database operation.
+- Improve Practicability: Decoupling the database initial-maintain from the filedownload-database default implementation to let the customized database can be maintained.
+
 ## Version 1.5.3
 
 _2017-06-08_

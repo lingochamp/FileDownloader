@@ -2,6 +2,19 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.4
+
+_2017-06-11_
+
+#### 新接口
+
+- 通过`IdGenerator`支持了定制下载任务id生成器。 Closes #224
+
+#### 性能与提高
+
+- 提高实用性: 将`FileDownloadModel`的维护从`FileDownloadDatabase`中解藕，让`FileDownloadDatabase`只关心数据库相关操作。
+- 提高实用性: 将数据库初始化的维护工作从默认的数据库实现中解藕出来，让定制的数据库也能够被采用相同机制维护到。
+
 ## Version 1.5.3
 
 _2017-06-08_
