@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader.model;
 
+import android.content.ContentValues;
+
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.List;
@@ -80,6 +82,16 @@ public class ConnectionModel {
         this.endOffset = endOffset;
     }
 
+    public ContentValues toContentValues() {
+        final ContentValues values = new ContentValues();
+        values.put(ConnectionModel.ID, id);
+        values.put(ConnectionModel.INDEX, index);
+        values.put(ConnectionModel.START_OFFSET, startOffset);
+        values.put(ConnectionModel.CURRENT_OFFSET, currentOffset);
+        values.put(ConnectionModel.END_OFFSET, endOffset);
+        return values;
+    }
+
     public static long getTotalOffset(List<ConnectionModel> modelList) {
         long totalOffset = 0;
         for (ConnectionModel model : modelList) {
@@ -87,6 +99,7 @@ public class ConnectionModel {
         }
         return totalOffset;
     }
+
     @Override
     public String toString() {
         return FileDownloadUtils.formatString("id[%d] index[%d] range[%d, %d) current offset(%d)",

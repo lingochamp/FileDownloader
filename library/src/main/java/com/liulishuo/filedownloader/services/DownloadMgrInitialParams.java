@@ -135,6 +135,28 @@ public class DownloadMgrInitialParams {
         }
     }
 
+    public FileDownloadHelper.IdGenerator createIdGenerator() {
+        if (mMaker == null) {
+            return createDefaultIdGenerator();
+        }
+
+        final FileDownloadHelper.IdGenerator idGenerator = mMaker.mIdGenerator;
+        if (idGenerator != null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "initial FileDownloader manager with the customize " +
+                        "id generator: %s", idGenerator);
+            }
+
+            return idGenerator;
+        } else {
+            return createDefaultIdGenerator();
+        }
+    }
+
+    private FileDownloadHelper.IdGenerator createDefaultIdGenerator() {
+        return new DefaultIdGenerator();
+    }
+
     private int getDefaultMaxNetworkThreadCount() {
         return FileDownloadProperties.getImpl().DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
     }
@@ -161,6 +183,17 @@ public class DownloadMgrInitialParams {
         FileDownloadHelper.OutputStreamCreator mOutputStreamCreator;
         FileDownloadHelper.ConnectionCreator mConnectionCreator;
         FileDownloadHelper.ConnectionCountAdapter mConnectionCountAdapter;
+        FileDownloadHelper.IdGenerator mIdGenerator;
+
+        /**
+         * customize the id generator.
+         *
+         * @param idGenerator the id generator used for generating download identify manually.
+         */
+        public InitCustomMaker idGenerator(FileDownloadHelper.IdGenerator idGenerator) {
+            this.mIdGenerator = idGenerator;
+            return this;
+        }
 
         /**
          * customize the connection count adapter.

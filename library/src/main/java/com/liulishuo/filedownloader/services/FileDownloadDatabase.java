@@ -20,6 +20,7 @@ package com.liulishuo.filedownloader.services;
 import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.List;
@@ -205,10 +206,21 @@ public interface FileDownloadDatabase {
         void onRemovedInvalidData(FileDownloadModel model);
 
         /**
-         * invoke this method when the {code model} is valid to save and has been refreshed.
+         * invoke this method when the {@code model} is valid to save and has been refreshed.
          *
          * @param model the refreshed valid model.
          */
         void onRefreshedValidData(FileDownloadModel model);
+
+        /**
+         * invoke this method when the {@link FileDownloadModel#id} is changed because of the
+         * different {@link FileDownloadHelper.IdGenerator}, which generate the new id for the task.
+         * <p>
+         * tips: you need to update the filedownloader-table and the connection-table.
+         *
+         * @param oldId          the old id for the {@code modelWithNewId}
+         * @param modelWithNewId the model with the new id.
+         */
+        void changeFileDownloadModelId(int oldId, FileDownloadModel modelWithNewId);
     }
 }

@@ -193,7 +193,7 @@ public class FileDownloadUtils {
      * @return The download id.
      */
     public static int generateId(final String url, final String path) {
-        return generateId(url, path, false);
+        return CustomComponentHolder.getImpl().getIdGeneratorInstance().generateId(url, path, false);
     }
 
     /**
@@ -205,14 +205,10 @@ public class FileDownloadUtils {
      * @return The download id.
      */
     public static int generateId(final String url, final String path, final boolean pathAsDirectory) {
-        if (pathAsDirectory) {
-            return md5(formatString("%sp%s@dir", url, path)).hashCode();
-        } else {
-            return md5(formatString("%sp%s", url, path)).hashCode();
-        }
+        return CustomComponentHolder.getImpl().getIdGeneratorInstance().generateId(url, path, pathAsDirectory);
     }
 
-    private static String md5(String string) {
+    public static String md5(String string) {
         byte[] hash;
         try {
             hash = MessageDigest.getInstance("MD5").digest(string.getBytes("UTF-8"));

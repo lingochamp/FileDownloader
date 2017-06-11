@@ -41,6 +41,7 @@ public class CustomComponentHolder {
     private FileDownloadHelper.ConnectionCreator connectionCreator;
     private FileDownloadHelper.OutputStreamCreator outputStreamCreator;
     private FileDownloadDatabase database;
+    private FileDownloadHelper.IdGenerator idGenerator;
 
     private final static class LazyLoader {
         private final static CustomComponentHolder INSTANCE = new CustomComponentHolder();
@@ -56,6 +57,7 @@ public class CustomComponentHolder {
             connectionCreator = null;
             outputStreamCreator = null;
             database = null;
+            idGenerator = null;
         }
     }
 
@@ -65,6 +67,18 @@ public class CustomComponentHolder {
 
     public FileDownloadOutputStream createOutputStream(File file) throws FileNotFoundException {
         return getOutputStreamCreator().create(file);
+    }
+
+    public FileDownloadHelper.IdGenerator getIdGeneratorInstance() {
+        if (idGenerator != null) return idGenerator;
+
+        synchronized (this) {
+            if (idGenerator == null) {
+                idGenerator = getDownloadMgrInitialParams().createIdGenerator();
+            }
+        }
+
+        return idGenerator;
     }
 
     public FileDownloadDatabase getDatabaseInstance() {
@@ -139,6 +153,8 @@ public class CustomComponentHolder {
         final Iterator<FileDownloadModel> iterator = maintainer.iterator();
         long refreshDataCount = 0;
         long removedDataCount = 0;
+        long resetIdCount = 0;
+        final FileDownloadHelper.IdGenerator idGenerator = getImpl().getIdGeneratorInstance();
 
         final long startTimestamp = System.currentTimeMillis();
         try {
@@ -212,6 +228,17 @@ public class CustomComponentHolder {
                     maintainer.onRemovedInvalidData(model);
                     removedDataCount++;
                 } else {
+                    final int oldId = model.getId();
+                    final int newId = idGenerator.transOldId(oldId, model.getUrl(), model.getPath(), model.isPathAsDirectory());
+                    if (newId != oldId) {
+                        if (FileDownloadLog.NEED_LOG) {
+                            FileDownloadLog.d(FileDownloadDatabase.class, "the id is changed on restoring from db: old[%d] -> new[%d]", oldId, newId);
+                        }
+                        model.setId(newId);
+                        maintainer.changeFileDownloadModelId(oldId, model);
+                        resetIdCount++;
+                    }
+
                     maintainer.onRefreshedValidData(model);
                     refreshDataCount++;
                 }
@@ -223,8 +250,8 @@ public class CustomComponentHolder {
             // 566 data consumes about 140ms
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(FileDownloadDatabase.class,
-                        "refreshed data count: %d , delete data count: %d consume %d",
-                        refreshDataCount, removedDataCount, System.currentTimeMillis() - startTimestamp);
+                        "refreshed data count: %d , delete data count: %d, reset id count: %d. consume %d",
+                        refreshDataCount, removedDataCount, resetIdCount, System.currentTimeMillis() - startTimestamp);
             }
         }
     }

@@ -93,14 +93,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public void insertConnectionModel(ConnectionModel model) {
-        final ContentValues values = new ContentValues();
-        values.put(ConnectionModel.ID, model.getId());
-        values.put(ConnectionModel.INDEX, model.getIndex());
-        values.put(ConnectionModel.START_OFFSET, model.getStartOffset());
-        values.put(ConnectionModel.CURRENT_OFFSET, model.getCurrentOffset());
-        values.put(ConnectionModel.END_OFFSET, model.getEndOffset());
-
-        db.insert(CONNECTION_TABLE_NAME, null, values);
+        db.insert(CONNECTION_TABLE_NAME, null, model.toContentValues());
     }
 
     @Override
@@ -248,6 +241,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
 
     class Maintainer implements FileDownloadDatabase.Maintainer {
 
+        private final SparseArray<FileDownloadModel> needChangeIdList = new SparseArray<>();
         private MaintainerIterator currentIterator;
 
         @Override
@@ -258,6 +252,35 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         @Override
         public void onFinishMaintain() {
             if (currentIterator != null) currentIterator.onFinishMaintain();
+
+            final int length = needChangeIdList.size();
+            if (length < 0) return;
+
+            db.beginTransaction();
+            try {
+                for (int i = 0; i < length; i++) {
+                    final int oldId = needChangeIdList.keyAt(i);
+                    final FileDownloadModel modelWithNewId = needChangeIdList.get(oldId);
+                    db.delete(TABLE_NAME, FileDownloadModel.ID + " = ?", new String[]{String.valueOf(oldId)});
+                    db.insert(TABLE_NAME, null, modelWithNewId.toContentValues());
+
+                    if (modelWithNewId.getConnectionCount() > 1) {
+                        List<ConnectionModel> connectionModelList = findConnectionModel(oldId);
+                        if (connectionModelList.size() <= 0) continue;
+
+                        db.delete(CONNECTION_TABLE_NAME, ConnectionModel.ID + " = ?", new String[]{String.valueOf(oldId)});
+                        for (ConnectionModel connectionModel : connectionModelList) {
+                            connectionModel.setId(modelWithNewId.getId());
+                            db.insert(CONNECTION_TABLE_NAME, null, connectionModel.toContentValues());
+                        }
+                    }
+                }
+
+                db.setTransactionSuccessful();
+            } finally {
+                db.endTransaction();
+            }
+
         }
 
         @Override
@@ -268,6 +291,12 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         public void onRefreshedValidData(FileDownloadModel model) {
             downloaderModelMap.put(model.getId(), model);
         }
+
+        @Override
+        public void changeFileDownloadModelId(int oldId, FileDownloadModel modelWithNewId) {
+            needChangeIdList.put(oldId, modelWithNewId);
+        }
+
     }
 
     class MaintainerIterator implements Iterator<FileDownloadModel> {
