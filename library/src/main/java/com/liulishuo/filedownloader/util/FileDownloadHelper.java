@@ -71,7 +71,16 @@ public class FileDownloadHelper {
         int transOldId(final int oldId, final String url, final String path, final boolean pathAsDirectory);
 
         /**
-         * Invoke this method when there is a new task from very beginning
+         * Invoke this method when there is a new task from very beginning.
+         * <p>
+         * Important Ting: this method would be used on the FileDownloadService and the upper-layer,
+         * so as default FileDownloadService is running on the `:filedownloader` process, and upper-layer
+         * is on the user process, in this case, if you want to cache something on this instance, it
+         * would be two different caches on two processes.
+         * <p>
+         * Tips: if you want the FileDownloadService runs on the upper-layer process too, just config
+         * {@code process.non-separate=true} on the filedownloader.properties, more detail please
+         * move to {@link FileDownloadProperties}
          *
          * @param url             the download url.
          * @param path            the download path.
