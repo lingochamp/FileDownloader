@@ -6,7 +6,7 @@
 
 _2017-06-12_
 
-#### Fix
+#### 修复
 
 - 修复(max-network-thread-count): 修复当任务都是多线程下载时，`download.max-network-thread-count`参数没起作用，并同时下载任务无上限的问题。 Closes #607
 
