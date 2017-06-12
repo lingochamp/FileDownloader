@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.5
+
+_2017-06-12_
+
+#### Fix
+
+- Fix(max-network-thread-count): fix the `download.max-network-thread-count` not work and there are no restrictions on the number of tasks downloaded at the same time since v1.5.0 when tasks runs on the multi-connection Closes #607
+
 ## Version 1.5.4
 
 _2017-06-11_

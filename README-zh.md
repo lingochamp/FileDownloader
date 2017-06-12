@@ -19,7 +19,7 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 ### 特点
 
 - 简单易用
-- 单任务多线程/多连接(并支持通过`ConnectionCountAdapter`定制)
+- 单任务多线程/多连接/分块下载(并支持通过`ConnectionCountAdapter`定制)
 - 高并发
 - 灵活
 - 可选择性支持: 独立/非独立进程
@@ -60,7 +60,7 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.5.4'
+compile 'com.liulishuo.filedownloader:library:1.5.5'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
