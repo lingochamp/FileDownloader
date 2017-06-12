@@ -44,6 +44,9 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -266,7 +269,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         }
                     }
 
-                } catch (IOException | IllegalAccessException e) {
+                } catch (IOException | IllegalAccessException | InterruptedException e) {
                     if (isRetry(e)) {
                         onRetry(e, 0);
                         continue;
@@ -430,14 +433,14 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         singleFetchDataTask.run();
     }
 
-    private void fetchWithMultipleConnectionFromResume(final int connectionCount, final List<ConnectionModel> connectionModelList) {
+    private void fetchWithMultipleConnectionFromResume(final int connectionCount, final List<ConnectionModel> connectionModelList) throws InterruptedException {
         if (connectionCount <= 1 || connectionModelList.size() != connectionCount)
             throw new IllegalArgumentException();
 
         fetchWithMultipleConnection(connectionModelList);
     }
 
-    private void fetchWithMultipleConnectionFromBeginning(final long totalLength, final int connectionCount) {
+    private void fetchWithMultipleConnectionFromBeginning(final long totalLength, final int connectionCount) throws InterruptedException {
         int startOffset = 0;
         final long eachRegion = totalLength / connectionCount;
         final int id = model.getId();
@@ -474,7 +477,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
 
-    private void fetchWithMultipleConnection(final List<ConnectionModel> connectionModelList) {
+    private void fetchWithMultipleConnection(final List<ConnectionModel> connectionModelList) throws InterruptedException {
         final int id = model.getId();
         final String etag = model.getETag();
         final String url = model.getUrl();
@@ -533,8 +536,17 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             model.setSoFar(totalOffset);
         }
 
+        List<Callable<Object>> subTasks = new ArrayList<>(downloadRunnableList.size());
         for (DownloadRunnable runnable : downloadRunnableList) {
-            DOWNLOAD_EXECUTOR.execute(runnable);
+            subTasks.add(Executors.callable(runnable));
+        }
+
+        List<Future<Object>> subTaskFutures = DOWNLOAD_EXECUTOR.invokeAll(subTasks);
+        if (FileDownloadLog.NEED_LOG) {
+            for (Future<Object> future : subTaskFutures) {
+                FileDownloadLog.d(this, "finish sub-task for [%d] %B %B",
+                        id, future.isDone(), future.isCancelled());
+            }
         }
     }
 
