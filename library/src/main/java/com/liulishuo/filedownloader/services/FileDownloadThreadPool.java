@@ -109,7 +109,8 @@ class FileDownloadThreadPool {
 
     private synchronized void filterOutNoExist() {
         SparseArray<DownloadLaunchRunnable> correctedRunnablePool = new SparseArray<>();
-        for (int i = 0; i < runnablePool.size(); i++) {
+        final int size = runnablePool.size();
+        for (int i = 0; i < size; i++) {
             final int key = runnablePool.keyAt(i);
             final DownloadLaunchRunnable runnable = runnablePool.get(key);
             if (runnable.isAlive()) {
@@ -132,6 +133,15 @@ class FileDownloadThreadPool {
         final int size = runnablePool.size();
         for (int i = 0; i < size; i++) {
             final DownloadLaunchRunnable runnable = runnablePool.valueAt(i);
+            // why not clone, no out-of-bounds exception? -- yes, we dig into SparseArray and find out
+            // there are only two ways can change mValues: GrowingArrayUtils#insert and GrowingArrayUtils#append
+            // they all only grow size, and valueAt only get value on mValues.
+            if (runnable == null) {
+                // why it is possible to occur null on here, because the value on  runnablePool can
+                // be remove on #cancel method.
+                continue;
+            }
+
             if (runnable.isAlive() && runnable.getId() != excludeId &&
                     tempFilePath.equals(runnable.getTempFilePath())) {
                 return runnable.getId();
