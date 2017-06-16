@@ -91,9 +91,12 @@ public class DownloadStatusCallback implements Handler.Callback {
         onStatusChanged(FileDownloadStatus.started);
     }
 
-    void onConnected(boolean isResume, long totalLength, String etag, String fileName) {
+    void onConnected(boolean isResume, long totalLength, String etag, String fileName) throws IllegalArgumentException {
         final String oldEtag = model.getETag();
-        if (oldEtag != null && !oldEtag.equals(etag)) throw new IllegalArgumentException();
+        if (oldEtag != null && !oldEtag.equals(etag)) throw
+                new IllegalArgumentException(FileDownloadUtils.formatString("callback " +
+                                "onConnected must with precondition succeed, but the etag is changes(%s != %s)",
+                        etag, oldEtag));
 
         // direct
         processParams.setResuming(isResume);

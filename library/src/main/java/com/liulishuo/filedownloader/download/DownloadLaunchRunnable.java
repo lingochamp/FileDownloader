@@ -269,7 +269,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         }
                     }
 
-                } catch (IOException | IllegalAccessException | InterruptedException e) {
+                } catch (IOException | IllegalAccessException | InterruptedException | IllegalArgumentException e) {
                     if (isRetry(e)) {
                         onRetry(e, 0);
                         continue;
@@ -350,7 +350,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     private void handleFirstConnected(Map<String, List<String>> requestHeader, FileDownloadConnection connection)
-            throws IOException, RetryDirectly {
+            throws IOException, RetryDirectly, IllegalArgumentException {
         final int id = model.getId();
         final int code = connection.getResponseCode();
 
@@ -362,30 +362,54 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 || code == FileDownloadConnection.NO_RESPONSE_CODE);
 
         final String oldEtag = model.getETag();
-        if (onlyFromBeginning && oldEtag != null) {
+        String newEtag = FileDownloadUtils.findEtag(id, connection);
+
+        // handle whether need retry because of etag is overdue
+        boolean isPreconditionFailed = false;
+        do {
+            if (code == HttpURLConnection.HTTP_PRECON_FAILED) {
+                isPreconditionFailed = true;
+                break;
+            }
+
+            if (oldEtag != null && !oldEtag.equals(newEtag)) {
+                // etag changed.
+                if (onlyFromBeginning || acceptPartial) {
+                    // 200 or 206
+                    isPreconditionFailed = true;
+                    break;
+                }
+            }
+
+        } while (false);
+
+
+        if (isPreconditionFailed) {
             // the file on remote is changed
+            if (acceptPartial) {
+                FileDownloadLog.w(this, "there is precondition failed on this request[%d] " +
+                        "with old etag[%s] != new etag[%s], but the response code is %d",
+                        id, oldEtag, newEtag, code);
+            }
+
             database.removeConnections(model.getId());
             FileDownloadUtils.deleteTaskFiles(model.getTargetFilePath(), model.getTempFilePath());
             isResumeAvailableOnDB = false;
 
-            // check whether accept partial.
-            String newEtag = FileDownloadUtils.findEtag(id, connection);
-
-            if (newEtag != null) {
-                if (oldEtag.equals(newEtag)) {
-                    FileDownloadLog.w(this, "the old etag[%s] is the same to the new etag[%s], " +
-                                    "but the response status code is %d not Partial(206), so wo have to " +
-                                    "start this task from very beginning for task[%d]!",
-                            oldEtag, newEtag, code, id);
-                    newEtag = null;
-                }
-                model.setSoFar(0);
-                model.setTotal(0);
-                model.setETag(newEtag);
-                model.resetConnectionCount();
-
-                database.updateOldEtagOverdue(id, model.getETag(), model.getSoFar(), model.getTotal(), model.getConnectionCount());
+            if (oldEtag != null && oldEtag.equals(newEtag)) {
+                FileDownloadLog.w(this, "the old etag[%s] is the same to the new etag[%s], " +
+                                "but the response status code is %d not Partial(206), so wo have to " +
+                                "start this task from very beginning for task[%d]!",
+                        oldEtag, newEtag, code, id);
+                newEtag = null;
             }
+
+            model.setSoFar(0);
+            model.setTotal(0);
+            model.setETag(newEtag);
+            model.resetConnectionCount();
+
+            database.updateOldEtagOverdue(id, model.getETag(), model.getSoFar(), model.getTotal(), model.getConnectionCount());
 
             // retry to check whether support partial or not.
             throw new RetryDirectly();
@@ -395,7 +419,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             final long contentLength = FileDownloadUtils.findContentLength(id, connection);
 
             // update model
-            final String newEtag = FileDownloadUtils.findEtag(id, connection);
             String fileName = null;
             if (model.isPathAsDirectory()) {
                 // filename
