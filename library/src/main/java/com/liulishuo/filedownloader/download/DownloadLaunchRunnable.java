@@ -269,7 +269,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         }
                     }
 
-                } catch (IOException | IllegalAccessException | InterruptedException | IllegalArgumentException e) {
+                } catch (IOException | IllegalAccessException | InterruptedException | IllegalArgumentException | FileDownloadNetworkPolicyException e) {
                     if (isRetry(e)) {
                         onRetry(e, 0);
                         continue;
