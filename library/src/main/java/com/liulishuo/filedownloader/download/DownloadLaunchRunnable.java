@@ -647,6 +647,14 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     @Override
     public void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset)
             throws IOException {
+        if (paused) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "the task[%d] has already been paused, so pass the" +
+                        " completed callback", model.getId());
+            }
+            return;
+        }
+
         boolean allConnectionCompleted = false;
 
         final int doneConnectionIndex = doneRunnable == null ? -1 : doneRunnable.connectionIndex;
@@ -695,6 +703,13 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     @Override
     public void onError(Exception exception) {
+        if (paused) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "the task[%d] has already been paused, so pass the" +
+                        " error callback", model.getId());
+            }
+            return;
+        }
 
         // discard all
         @SuppressWarnings("unchecked") ArrayList<DownloadRunnable> discardList =
@@ -711,6 +726,14 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     @Override
     public void onRetry(Exception exception, long invalidIncreaseBytes) {
+        if (paused) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "the task[%d] has already been paused, so pass the" +
+                        " retry callback", model.getId());
+            }
+            return;
+        }
+
         if (validRetryTimes-- < 0) {
             FileDownloadLog.e(this, "valid retry times is less than 0(%d) for download task(%d)",
                     validRetryTimes, model.getId());

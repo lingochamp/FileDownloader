@@ -140,14 +140,7 @@ public class DownloadStatusCallback implements Handler.Callback {
             handleProgress(now, isNeedCallbackToUser);
         } else if (isNeedCallbackToUser) {
             // flow
-            if (!handlerThread.isAlive()) {
-                if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "callback progress %d but it has been over", increaseBytes);
-                }
-                return;
-            }
-
-            handler.sendEmptyMessage(FileDownloadStatus.progress);
+            sendMessage(handler.obtainMessage(FileDownloadStatus.progress));
         }
     }
 
@@ -162,8 +155,7 @@ public class DownloadStatusCallback implements Handler.Callback {
             handleRetry(exception, remainRetryTimes);
         } else {
             // flow
-            final Message message = handler.obtainMessage(FileDownloadStatus.retry, remainRetryTimes, 0, exception);
-            handler.sendMessage(message);
+            sendMessage(handler.obtainMessage(FileDownloadStatus.retry, remainRetryTimes, 0, exception));
         }
     }
 
@@ -173,7 +165,7 @@ public class DownloadStatusCallback implements Handler.Callback {
             handlePaused();
         } else {
             // flow
-            handler.sendEmptyMessage(FileDownloadStatus.paused);
+            sendMessage(handler.obtainMessage(FileDownloadStatus.paused));
         }
     }
 
@@ -183,8 +175,7 @@ public class DownloadStatusCallback implements Handler.Callback {
             handleError(exception);
         } else {
             // flow
-            final Message message = handler.obtainMessage(FileDownloadStatus.error, exception);
-            handler.sendMessage(message);
+            sendMessage(handler.obtainMessage(FileDownloadStatus.error, exception));
         }
     }
 
@@ -198,10 +189,36 @@ public class DownloadStatusCallback implements Handler.Callback {
             handleCompleted();
         } else {
             // flow
-            handler.sendEmptyMessage(FileDownloadStatus.completed);
+            sendMessage(handler.obtainMessage(FileDownloadStatus.completed));
         }
     }
 
+    private final static String ALREADY_DEAD_MESSAGE = "require callback %d but the host thread of the flow has " +
+            "already dead, what is occurred because of there are several reason can " +
+            "final this flow on different thread.";
+
+    private void sendMessage(Message message) {
+
+        if (!handlerThread.isAlive()) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, ALREADY_DEAD_MESSAGE, message.what);
+            }
+            return;
+        }
+
+        try {
+            handler.sendMessage(message);
+        } catch (IllegalStateException e) {
+            if (!handlerThread.isAlive()) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(this, ALREADY_DEAD_MESSAGE, message.what);
+                }
+            } else {
+                // unknown error
+                throw e;
+            }
+        }
+    }
 
     private static long calculateCallbackMinIntervalBytes(final long contentLength,
                                                           final long callbackProgressMaxCount) {
