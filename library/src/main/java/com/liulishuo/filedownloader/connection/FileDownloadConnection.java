@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by Jacksgong on 06/12/2016.
- * <p>
  * The connection used for connecting to the network.
  */
 

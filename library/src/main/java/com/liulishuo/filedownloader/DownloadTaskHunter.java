@@ -613,7 +613,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                 //noinspection StatementWithEmptyBody
                 if (!lostConnectedHandler.dispatchTaskStart(runningTask)) {
                     final MessageSnapshot snapshot = prepareErrorMessage(
-                            new RuntimeException("Occur Unknow Error, when request to start" +
+                            new RuntimeException("Occur Unknown Error, when request to start" +
                                     " maybe some problem in binder, maybe the process was killed in " +
                                     "unexpected."));
 

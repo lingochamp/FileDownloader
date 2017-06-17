@@ -63,9 +63,8 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
 
         Cursor c = null;
         try {
-            c = db.rawQuery("SELECT * FROM " + CONNECTION_TABLE_NAME
-                            + " WHERE " + ConnectionModel.ID + " = ?"
-                    , new String[]{Integer.toString(id)});
+            c = db.rawQuery(FileDownloadUtils.formatString("SELECT * FROM %s WHERE %s = ?",
+                    CONNECTION_TABLE_NAME, ConnectionModel.ID), new String[]{Integer.toString(id)});
 
             while (c.moveToNext()) {
                 final ConnectionModel model = new ConnectionModel();

@@ -182,7 +182,7 @@ public abstract class MessageSnapshot implements IMessageSnapshot, Parcelable {
             if (snapshot != null) {
                 snapshot.isLargeFile = largeFile;
             } else {
-                throw new IllegalStateException("Can't restore the snapshot because unknow " +
+                throw new IllegalStateException("Can't restore the snapshot because unknown " +
                         "status: " + status);
             }
 

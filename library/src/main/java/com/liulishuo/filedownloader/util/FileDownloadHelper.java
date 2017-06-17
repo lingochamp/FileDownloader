@@ -183,7 +183,7 @@ public class FileDownloadHelper {
      *                        'completed' message if need.
      * @param path            if the file with {@code path} is exist it means the relate task would
      *                        be completed.
-     * @param forceReDownload whether the task is force to redownload ignore whether the file has
+     * @param forceReDownload whether the task is force to re-download ignore whether the file has
      *                        been exist or not.
      * @param flowDirectly    {@code true} if flow the message if need directly without throw to the
      *                        message-queue.
