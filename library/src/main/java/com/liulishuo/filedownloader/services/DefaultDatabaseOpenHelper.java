@@ -34,9 +34,6 @@ class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
 
     public DefaultDatabaseOpenHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            setWriteAheadLoggingEnabled(true);
-        }
     }
 
     @Override
