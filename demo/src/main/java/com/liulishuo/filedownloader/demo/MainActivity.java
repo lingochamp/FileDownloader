@@ -38,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSingle(final View view) {
-        startActivity(new Intent(this, SingleTaskTestActivity.class));
+//        startActivity(new Intent(this, SingleTaskTestActivity.class));
+        startActivity(new Intent(this, Reproduce542Activity.class));
     }
 
     public void onClickHybridTest(final View view) {
