@@ -129,6 +129,36 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 maxRetryTimes, minIntervalMillis, callbackProgressMaxCount);
     }
 
+    private DownloadLaunchRunnable(DownloadStatusCallback callback, FileDownloadModel model, FileDownloadHeader header,
+                                   IThreadPoolMonitor threadPoolMonitor,
+                                   final int minIntervalMillis, int callbackProgressMaxCount,
+                                   boolean isForceReDownload, boolean isWifiRequired, int maxRetryTimes) {
+        this.alive = true;
+        this.paused = false;
+        this.isTriedFixRangeNotSatisfiable = false;
+
+        this.model = model;
+        this.userRequestHeader = header;
+        this.isForceReDownload = isForceReDownload;
+        this.isWifiRequired = isWifiRequired;
+        this.database = CustomComponentHolder.getImpl().getDatabaseInstance();
+        this.supportSeek = CustomComponentHolder.getImpl().isSupportSeek();
+        this.threadPoolMonitor = threadPoolMonitor;
+        this.validRetryTimes = maxRetryTimes;
+
+        this.statusCallback = callback;
+    }
+
+    static DownloadLaunchRunnable createForTest(DownloadStatusCallback callback,
+                                                FileDownloadModel model, FileDownloadHeader header,
+                                                IThreadPoolMonitor threadPoolMonitor,
+                                                final int minIntervalMillis, int callbackProgressMaxCount,
+                                                boolean isForceReDownload, boolean isWifiRequired, int maxRetryTimes) {
+        return new DownloadLaunchRunnable(callback, model, header, threadPoolMonitor,
+                minIntervalMillis, callbackProgressMaxCount, isForceReDownload, isWifiRequired,
+                maxRetryTimes);
+    }
+
     public void pause() {
         this.paused = true;
 
