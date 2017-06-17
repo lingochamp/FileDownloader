@@ -25,6 +25,7 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
@@ -515,7 +516,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         mStatus = FileDownloadStatus.INVALID_STATUS;
     }
 
-    private void prepare() {
+    private void prepare() throws IOException {
         final BaseDownloadTask.IRunningTask runningTask = mTask.getRunningTask();
         final BaseDownloadTask origin = runningTask.getOrigin();
 
@@ -540,8 +541,12 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         }
 
         if (!dir.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            dir.mkdirs();
+            if (!dir.mkdirs() && !dir.exists()) {
+                throw new IOException(FileDownloadUtils.
+                        formatString("Create parent directory failed, please make sure " +
+                                        "you have permission to create file or directory on the path: %s",
+                                dir.getAbsolutePath()));
+            }
         }
     }
 
