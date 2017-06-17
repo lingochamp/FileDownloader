@@ -195,6 +195,7 @@ public class FetchDataTask {
     }
 
     private void sync() {
+        final long startTimestamp = SystemClock.uptimeMillis();
         try {
             outputStream.sync();
         } catch (IOException e) {
@@ -208,6 +209,11 @@ public class FetchDataTask {
         } else {
             // only need update the filedownloader table.
             callback.syncProgressFromCache();
+        }
+
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "require sync id[%d] index[%d] offset[%d], consume[%d]",
+                    downloadId, connectionIndex, currentOffset, SystemClock.uptimeMillis() - startTimestamp);
         }
     }
 
