@@ -91,8 +91,8 @@ public class FetchDataTask {
 
         final long contentLength = FileDownloadUtils.findContentLength(connectionIndex, connection);
         if (contentLength == 0) {
-            FileDownloadLog.w(this, "there isn't any content need to download on %d", connectionIndex);
-            return;
+            throw new FileDownloadGiveUpRetryException(FileDownloadUtils.
+                    formatString("there isn't any content need to download on %d-%d with the content-length is 0", downloadId, connectionIndex));
         }
 
         final long fetchBeginOffset = currentOffset;

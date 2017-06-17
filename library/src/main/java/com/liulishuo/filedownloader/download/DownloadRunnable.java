@@ -25,6 +25,8 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
 
 /**
  * The single download runnable used for establish one connection and fetch data from it.
@@ -78,12 +80,21 @@ public class DownloadRunnable implements Runnable {
 
                 isConnected = false;
                 connection = connectTask.connect();
-                isConnected = true;
+                final int code = connection.getResponseCode();
+
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "the connection[%d] for %d, is connected %s",
-                            connectionIndex, downloadId, connectTask.getProfile());
+                    FileDownloadLog.d(this, "the connection[%d] for %d, is connected %s with code[%d]",
+                            connectionIndex, downloadId, connectTask.getProfile(), code);
                 }
 
+                if (code != HttpURLConnection.HTTP_PARTIAL && code != HttpURLConnection.HTTP_OK) {
+                    throw new SocketException(FileDownloadUtils.
+                            formatString("Connection failed with code[%d] on task[%d], " +
+                                            "which is changed after verify connection, so please try again.",
+                                    code, downloadId));
+                }
+
+                isConnected = true;
                 final FetchDataTask.Builder builder = new FetchDataTask.Builder();
 
                 fetchDataTask = builder
