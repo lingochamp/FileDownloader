@@ -2,6 +2,24 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.6
+
+_2017-06-18_
+
+#### Fix
+
+- Fix(crash): fix raise NPE crash when require paused a task and invoking `findRunningTaskIdBySameTempPath` at the same time. Closes #613
+- Fix(crash): fix raise `IllegalArgumentException` when response code is 206 and its ETAG is changed. Closes #612
+- Fix(crash): fix raise `FileDownloadNetworkPolicyException` unhandled exception, when user enable wifi-required but no wifi-state. Thanks @tao
+- Fix(crash): fix raise `IllegalStateException` when user upgrades from `v1.4.3` or older version to `v1.5.2` or newer version directly and some more conditions, more detail please move to #610
+- Fix(crash): fix some small probability case raise `IllegalStateException` when callback-flow has been final but occurring completed/error at the same time.
+- Fix(no-response): fix no-response after start download and receive connected callback because the resource state has been changed during the connection of verification and connections of fetch data.
+
+#### Enhancement
+
+- Improve Practicability: callback `error` directly when create the parent directory failed. Closes #542
+- Improve Practicability: handle the case of response code is `416`. Closes #612
+
 ## Version 1.5.5
 
 _2017-06-12_

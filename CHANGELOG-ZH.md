@@ -2,6 +2,24 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.6
+
+_2017-06-18_
+
+#### 修复
+
+- 修复(crash): 修复当调用`findRunningTaskIdBySameTempPath`的同时请求了暂停可能导致NPE奔溃的问题。 Closes #613
+- 修复(crash): 修复返回状态是`206`并且它的ETAG发生变化时导致`IllegalArgumentException`错误奔溃的问题。 Closes #612
+- 修复(crash): 修复当用户请求下载需要Wifi并当前不是Wifi环境时，出现`FileDownloadNetworkPolicyException`未处理导致奔溃的问题。 感谢 @tao
+- 修复(crash): 修复当用户直接从`v1.4.3`升级到`v1.5.2`并且在一些其他综合因素下（具体可以参见 #610 ) 初始化数据库时出现`IllegalStateException`错误奔溃的问题。Closes #610
+- 修复(crash): 修复当回调流已经结束当时与此同时刚好出现错误或下载完成或暂停，小概率会出现`IllegalStateException`奔溃的问题。
+- 修复(no-response): 修复在接收到`connected`回调之后，多线程下载建立连接，此时在检验连接与数据获取连接期间服务端数据发生错误或变更导致启动下载后没有响应的问题。
+
+#### 性能与提高
+
+- 提高实用性: 当父级目录创建失败时直接回调`error`。 Closes #542
+- 提高实用性: 处理了返回状态是`416`的情况。 Refs #612
+
 ## Version 1.5.5
 
 _2017-06-12_
