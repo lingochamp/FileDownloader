@@ -17,6 +17,8 @@
 package com.liulishuo.filedownloader.model;
 
 import android.content.ContentValues;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -28,7 +30,7 @@ import java.io.File;
  * @see com.liulishuo.filedownloader.services.FileDownloadDatabase
  */
 @SuppressWarnings("WeakerAccess")
-public class FileDownloadModel {
+public class FileDownloadModel implements Parcelable {
 
     public static final int TOTAL_VALUE_IN_CHUNKED_RESOURCE = -1;
     public final static int DEFAULT_CALLBACK_PROGRESS_TIMES = 100;
@@ -241,4 +243,54 @@ public class FileDownloadModel {
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.id);
+        dest.writeString(this.url);
+        dest.writeString(this.path);
+        dest.writeByte(this.pathAsDirectory ? (byte) 1 : (byte) 0);
+        dest.writeString(this.filename);
+        dest.writeByte(this.status);
+        dest.writeLong(this.soFar);
+        dest.writeLong(this.total);
+        dest.writeString(this.errMsg);
+        dest.writeString(this.eTag);
+        dest.writeInt(this.connectionCount);
+        dest.writeByte(this.isLargeFile ? (byte) 1 : (byte) 0);
+    }
+
+    public FileDownloadModel() {
+    }
+
+    protected FileDownloadModel(Parcel in) {
+        this.id = in.readInt();
+        this.url = in.readString();
+        this.path = in.readString();
+        this.pathAsDirectory = in.readByte() != 0;
+        this.filename = in.readString();
+        this.status = in.readByte();
+        this.soFar = in.readLong();
+        this.total = in.readLong();
+        this.errMsg = in.readString();
+        this.eTag = in.readString();
+        this.connectionCount = in.readInt();
+        this.isLargeFile = in.readByte() != 0;
+    }
+
+    public static final Parcelable.Creator<FileDownloadModel> CREATOR = new Parcelable.Creator<FileDownloadModel>() {
+        @Override
+        public FileDownloadModel createFromParcel(Parcel source) {
+            return new FileDownloadModel(source);
+        }
+
+        @Override
+        public FileDownloadModel[] newArray(int size) {
+            return new FileDownloadModel[size];
+        }
+    };
 }

@@ -29,6 +29,7 @@ import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.services.FileDownloadBroadCastHandler;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -386,6 +387,10 @@ public class DownloadStatusCallback implements Handler.Callback {
         database.removeConnections(model.getId());
 
         onStatusChanged(FileDownloadStatus.completed);
+
+        if (FileDownloadProperties.getImpl().BROADCAST_COMPLETED) {
+            FileDownloadBroadCastHandler.sendCompletedBroadcast(model);
+        }
     }
 
     private boolean interceptBeforeCompleted() {

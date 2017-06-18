@@ -15,6 +15,8 @@
  */
 package com.liulishuo.filedownloader.util;
 
+import com.liulishuo.filedownloader.services.FileDownloadBroadCastHandler;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,6 +95,24 @@ import java.util.Properties;
  * FileDownloader is designed to create the file and pre-allocates the 'content-length' space for it
  * when start downloading.Because FileDownloader want to prevent the space is not enough to store
  * coming data in downloading state as default.
+ * <p/>
+ * Key {@code broadcast.completed}
+ * Value: {@code true} or {@code false}
+ * Default: {@code false}.
+ * Such as: broadcast.completed=false
+ * Description:
+ * Whether need to post an broadcast when downloading is completed.
+ * This option is very useful when you download something silent on the background on the filedownloader
+ * process, and the main process is killed, but you want to do something on the main process when tasks
+ * are completed downloading on the filedownloader process, so you can set this one to `true`, then
+ * when a task is completed task, you will receive the broadcast, and the main process will be relaunched
+ * to handle the broadcast.
+ *
+ * If you want to receive such broadcast, you also need to declare 'filedownloader.permission.RECEIVE_STATE'
+ * permission on the manifest, and register receiver with 'filedownloader.intent.action.completed' action
+ * name.
+ *
+ * You can use {@link FileDownloadBroadCastHandler} class to parse the received intent.
  */
 public class FileDownloadProperties {
 
@@ -102,6 +122,7 @@ public class FileDownloadProperties {
     private final static String KEY_DOWNLOAD_MIN_PROGRESS_TIME = "download.min-progress-time";
     private final static String KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT = "download.max-network-thread-count";
     private final static String KEY_FILE_NON_PRE_ALLOCATION = "file.non-pre-allocation";
+    private final static String KEY_BROADCAST_COMPLETED = "broadcast.completed";
 
     public final int DOWNLOAD_MIN_PROGRESS_STEP;
     public final long DOWNLOAD_MIN_PROGRESS_TIME;
@@ -109,6 +130,7 @@ public class FileDownloadProperties {
     public final boolean PROCESS_NON_SEPARATE;
     public final int DOWNLOAD_MAX_NETWORK_THREAD_COUNT;
     public final boolean FILE_NON_PRE_ALLOCATION;
+    public final boolean BROADCAST_COMPLETED;
 
     public static class HolderClass {
         private final static FileDownloadProperties INSTANCE = new FileDownloadProperties();
@@ -135,6 +157,7 @@ public class FileDownloadProperties {
         String downloadMinProgressTime = null;
         String downloadMaxNetworkThreadCount = null;
         String fileNonPreAllocation = null;
+        String broadcastCompleted = null;
 
         Properties p = new Properties();
         InputStream inputStream = null;
@@ -150,6 +173,7 @@ public class FileDownloadProperties {
                 downloadMinProgressTime = p.getProperty(KEY_DOWNLOAD_MIN_PROGRESS_TIME);
                 downloadMaxNetworkThreadCount = p.getProperty(KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT);
                 fileNonPreAllocation = p.getProperty(KEY_FILE_NON_PRE_ALLOCATION);
+                broadcastCompleted = p.getProperty(KEY_BROADCAST_COMPLETED);
             }
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
@@ -232,6 +256,19 @@ public class FileDownloadProperties {
             FILE_NON_PRE_ALLOCATION = fileNonPreAllocation.equals(TRUE_STRING);
         } else {
             FILE_NON_PRE_ALLOCATION = false;
+        }
+
+        if (broadcastCompleted != null) {
+            if (!broadcastCompleted.equals(TRUE_STRING) &&
+                    !broadcastCompleted.equals(FALSE_STRING)) {
+                throw new IllegalStateException(
+                        FileDownloadUtils.formatString("the value of '%s' must be '%s' or '%s'",
+                                KEY_BROADCAST_COMPLETED, TRUE_STRING, FALSE_STRING));
+            }
+            BROADCAST_COMPLETED = broadcastCompleted.equals(TRUE_STRING);
+
+        } else {
+            BROADCAST_COMPLETED = false;
         }
 
         if (FileDownloadLog.NEED_LOG) {
