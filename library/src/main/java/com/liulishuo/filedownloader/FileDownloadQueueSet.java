@@ -155,7 +155,7 @@ public class FileDownloadQueueSet {
             }
 
             if (this.isWifiRequired != null) {
-                task.setWifiRequired(true);
+                task.setWifiRequired(this.isWifiRequired);
             }
 
             task.asInQueueTask().enqueue();
