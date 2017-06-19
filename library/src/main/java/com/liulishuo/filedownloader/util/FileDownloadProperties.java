@@ -15,7 +15,7 @@
  */
 package com.liulishuo.filedownloader.util;
 
-import com.liulishuo.filedownloader.services.FileDownloadBroadCastHandler;
+import com.liulishuo.filedownloader.services.FileDownloadBroadcastHandler;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -112,7 +112,7 @@ import java.util.Properties;
  * permission on the manifest, and register receiver with 'filedownloader.intent.action.completed' action
  * name.
  *
- * You can use {@link FileDownloadBroadCastHandler} class to parse the received intent.
+ * You can use {@link FileDownloadBroadcastHandler} class to parse the received intent.
  */
 public class FileDownloadProperties {
 
