@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -107,10 +108,27 @@ public class FileDownloadModel implements Parcelable {
         return url;
     }
 
+    /**
+     * Get the path user set from {@link BaseDownloadTask#setPath(String)}
+     *
+     * @return the path user set from {@link BaseDownloadTask#setPath(String)}
+     * @see #getTargetFilePath()
+     */
     public String getPath() {
         return path;
     }
 
+    /**
+     * Get the finally target file path is used for store the download file.
+     * <p/>
+     * This path is composited with {@link #path}、{@link #pathAsDirectory}、{@link #filename}.
+     * <p/>
+     * Why {@link #getPath()} may be not equal to getTargetFilePath()? this case only occurred
+     * when the {@link #isPathAsDirectory()} is {@code true}, on this scenario the {@link #getPath()}
+     * is directory, and the getTargetFilePath() is 'directory + "/" + filename'.
+     *
+     * @return the finally target file path.
+     */
     public String getTargetFilePath() {
         return FileDownloadUtils.getTargetFilePath(getPath(), isPathAsDirectory(), getFilename());
     }
