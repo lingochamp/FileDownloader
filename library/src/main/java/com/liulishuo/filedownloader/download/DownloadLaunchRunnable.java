@@ -495,6 +495,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 .setConnectionProfile(profile)
                 .setPath(model.getTempFilePath());
 
+        model.setConnectionCount(1);
+        database.updateConnectionCount(model.getId(), 1);
         singleFetchDataTask = builder.build();
         singleFetchDataTask.run();
     }

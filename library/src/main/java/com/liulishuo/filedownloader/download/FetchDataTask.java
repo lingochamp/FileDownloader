@@ -101,8 +101,16 @@ public class FetchDataTask {
         FileDownloadOutputStream outputStream = null;
 
         try {
+            final boolean isSupportSeek = CustomComponentHolder.getImpl().isSupportSeek();
+            if (hostRunnable != null && !isSupportSeek) {
+                throw new IllegalAccessException("can't using multi-download when the output stream can't support seek");
+            }
+
             this.outputStream = outputStream = FileDownloadUtils.createOutputStream(path);
-            outputStream.seek(currentOffset);
+            if (isSupportSeek) {
+                outputStream.seek(currentOffset);
+            }
+
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "start fetch(%d): range [%d, %d), seek to[%d]",
                         connectionIndex, startOffset, endOffset, currentOffset);
