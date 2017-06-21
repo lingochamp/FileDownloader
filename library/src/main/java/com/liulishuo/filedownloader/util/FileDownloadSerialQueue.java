@@ -21,7 +21,6 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloader;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -36,18 +35,23 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class FileDownloadSerialQueue {
 
+    private final Object operationLock = new Object();
     private final BlockingQueue<BaseDownloadTask> mTasks = new LinkedBlockingQueue<>();
     private final HandlerThread mHandlerThread;
     private final Handler mHandler;
 
     private final static int WHAT_NEXT = 1;
-    private final static int ID_INVALID = 0;
-    private int mWorkingTaskId = ID_INVALID;
+    public final static int ID_INVALID = 0;
+
+    volatile BaseDownloadTask workingTask;
+    final SerialFinishCallback finishCallback;
+    volatile boolean paused = false;
 
     public FileDownloadSerialQueue() {
         mHandlerThread = new HandlerThread("SerialDownloadManager");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper(), new SerialLoop());
+        finishCallback = new SerialFinishCallback(new WeakReference<>(this));
         sendNext();
     }
 
@@ -64,13 +68,56 @@ public class FileDownloadSerialQueue {
     }
 
     /**
+     * Pause the queue.
+     *
+     * @see #resume()
+     */
+    public void pause() {
+        synchronized (finishCallback) {
+            if (paused) {
+                FileDownloadLog.w(this, "require pause this[%d] queue, but it has already been paused");
+                return;
+            }
+
+            paused = true;
+            if (workingTask != null) {
+                workingTask.removeFinishListener(finishCallback);
+                workingTask.pause();
+            }
+        }
+
+    }
+
+    /**
+     * Resume the queue if the queue is paused.
+     *
+     * @see #pause()
+     */
+    public void resume() {
+        synchronized (finishCallback) {
+            if (!paused) {
+                FileDownloadLog.w(this, "require resume this[%d] queue, but it is still running");
+                return;
+            }
+
+            paused = false;
+            if (workingTask == null) {
+                sendNext();
+            } else {
+                workingTask.addFinishListener(finishCallback);
+                workingTask.start();
+            }
+        }
+    }
+
+    /**
      * Returns the identify of the working task, if there is task is working, you will receive
      * {@link #ID_INVALID}.
      *
      * @return the identify of the working task
      */
     public int getWorkingTaskId() {
-        return mWorkingTaskId;
+        return workingTask != null ? workingTask.getId() : ID_INVALID;
     }
 
     /**
@@ -88,8 +135,8 @@ public class FileDownloadSerialQueue {
      * queue upon return from this method.
      */
     public List<BaseDownloadTask> shutdown() {
-        if (mWorkingTaskId != ID_INVALID) {
-            FileDownloader.getImpl().pause(mWorkingTaskId);
+        if (workingTask != null) {
+            pause();
         }
 
         final List<BaseDownloadTask> unDealTaskList = new ArrayList<>();
@@ -109,11 +156,13 @@ public class FileDownloadSerialQueue {
             switch (msg.what) {
                 case WHAT_NEXT:
                     try {
-                        mWorkingTaskId = mTasks.take().
-                                addFinishListener(
-                                        new SerialFinishCallback(
-                                                new WeakReference<>(FileDownloadSerialQueue.this))).
-                                start();
+                        synchronized (finishCallback) {
+                            if (paused) break;
+                            workingTask = mTasks.take();
+                            workingTask.addFinishListener(finishCallback)
+                                    .start();
+                        }
+
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -131,7 +180,7 @@ public class FileDownloadSerialQueue {
         }
 
         @Override
-        public void over(BaseDownloadTask task) {
+        public synchronized void over(BaseDownloadTask task) {
             task.removeFinishListener(this);
 
             if (mQueueWeakReference == null) {
@@ -143,7 +192,10 @@ public class FileDownloadSerialQueue {
                 return;
             }
 
-            queue.mWorkingTaskId = ID_INVALID;
+            queue.workingTask = null;
+            if (queue.paused) {
+                return;
+            }
             queue.sendNext();
         }
     }
