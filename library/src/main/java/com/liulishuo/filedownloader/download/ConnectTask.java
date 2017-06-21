@@ -57,7 +57,7 @@ public class ConnectTask {
         final FileDownloadConnection connection = CustomComponentHolder.getImpl().createConnection(url);
 
         addUserRequiredHeader(connection);
-        addRangeHeader(connection, profile.startOffset, profile.currentOffset, profile.endOffset);
+        addRangeHeader(connection);
 
         // init request
         // get the request header in here, because of there are many connection
@@ -102,9 +102,8 @@ public class ConnectTask {
         }
     }
 
-    void addRangeHeader(FileDownloadConnection connection,
-                        long startOffset, long currentOffset, long endOffset) {
-        if (connection.dispatchAddResumeOffset(etag, startOffset)) {
+    void addRangeHeader(FileDownloadConnection connection) {
+        if (connection.dispatchAddResumeOffset(etag, profile.startOffset)) {
             return;
         }
 
@@ -112,12 +111,16 @@ public class ConnectTask {
             connection.addHeader("If-Match", etag);
         }
         final String range;
-        if (endOffset == 0) {
-            range = FileDownloadUtils.formatString("bytes=%d-", currentOffset);
+        if (profile.endOffset == 0) {
+            range = FileDownloadUtils.formatString("bytes=%d-", profile.currentOffset);
         } else {
-            range = FileDownloadUtils.formatString("bytes=%d-%d", currentOffset, endOffset);
+            range = FileDownloadUtils.formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
         }
         connection.addHeader("Range", range);
+    }
+
+    boolean isRangeNotFromBeginning(){
+        return profile.currentOffset > 0;
     }
 
     public Map<String, List<String>> getRequestHeader() {

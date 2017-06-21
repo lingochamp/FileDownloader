@@ -258,7 +258,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                             .build();
 
                     connection = firstConnectionTask.connect();
-                    handleFirstConnected(firstConnectionTask.getRequestHeader(), connection);
+                    handleFirstConnected(firstConnectionTask.getRequestHeader(),
+                            firstConnectionTask, connection);
 
                     // 2. fetch
                     checkupBeforeFetch();
@@ -379,7 +380,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         return new ConnectionProfile(0, offset, 0);
     }
 
-    private void handleFirstConnected(Map<String, List<String>> requestHeader, FileDownloadConnection connection)
+    private void handleFirstConnected(Map<String, List<String>> requestHeader,
+                                      ConnectTask connectTask, FileDownloadConnection connection)
             throws IOException, RetryDirectly, IllegalArgumentException {
         final int id = model.getId();
         final int code = connection.getResponseCode();
@@ -389,6 +391,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         acceptPartial = (code == HttpURLConnection.HTTP_PARTIAL
                 || code == FileDownloadConnection.RESPONSE_CODE_FROM_OFFSET);
         final boolean onlyFromBeginning = (code == HttpURLConnection.HTTP_OK
+                || code == HttpURLConnection.HTTP_CREATED
                 || code == FileDownloadConnection.NO_RESPONSE_CODE);
 
         final String oldEtag = model.getETag();
@@ -409,6 +412,16 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     isPreconditionFailed = true;
                     break;
                 }
+            }
+
+            if (code == HttpURLConnection.HTTP_CREATED && connectTask.isRangeNotFromBeginning()) {
+                // The request has been fulfilled and has resulted in one or more new resources being created.
+                // mark this case is precondition failed for
+                // 1. checkout whether accept partial
+                // 2. 201 means new resources so range must be from beginning otherwise it can't match
+                // local range.
+                isPreconditionFailed = true;
+                break;
             }
 
         } while (false);
