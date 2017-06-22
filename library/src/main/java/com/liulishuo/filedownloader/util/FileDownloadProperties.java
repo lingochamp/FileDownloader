@@ -107,11 +107,11 @@ import java.util.Properties;
  * are completed downloading on the filedownloader process, so you can set this one to `true`, then
  * when a task is completed task, you will receive the broadcast, and the main process will be relaunched
  * to handle the broadcast.
- *
+ * <p>
  * If you want to receive such broadcast, you also need to declare 'filedownloader.permission.RECEIVE_STATE'
  * permission on the manifest, and register receiver with 'filedownloader.intent.action.completed' action
  * name.
- *
+ * <p>
  * You can use {@link FileDownloadBroadcastHandler} class to parse the received intent.
  */
 public class FileDownloadProperties {
@@ -146,8 +146,10 @@ public class FileDownloadProperties {
     // init properties, normally consume <= 2ms
     private FileDownloadProperties() {
         if (FileDownloadHelper.getAppContext() == null) {
-            throw new IllegalStateException("Please invoke the FileDownloader#init in " +
-                    "Application#onCreate first.");
+            throw new IllegalStateException("Please invoke the 'FileDownloader#setup' before using " +
+                    "FileDownloader. If you want to register some components on FileDownloader " +
+                    "please invoke the 'FileDownloader#setupOnApplicationOnCreate' on the " +
+                    "'Application#onCreate' first.");
         }
 
         final long start = System.currentTimeMillis();

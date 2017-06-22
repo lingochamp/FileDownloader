@@ -40,9 +40,6 @@ public class DownloadMgrInitialParams {
 
     public DownloadMgrInitialParams(InitCustomMaker maker) {
         this.mMaker = maker;
-        if (maker != null) {
-            maker.securityCheck();
-        }
     }
 
     public int getMaxNetworkThreadCount() {
@@ -260,6 +257,17 @@ public class DownloadMgrInitialParams {
          */
         public InitCustomMaker outputStreamCreator(FileDownloadHelper.OutputStreamCreator creator) {
             this.mOutputStreamCreator = creator;
+            if (mOutputStreamCreator != null && !mOutputStreamCreator.supportSeek()) {
+                if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION) {
+                    throw new IllegalArgumentException("Since the provided FileDownloadOutputStream " +
+                            "does not support the seek function, if FileDownloader pre-allocates " +
+                            "file size at the beginning of the download, it will can not be resumed" +
+                            " from the breakpoint. If you need to ensure that the resumption is" +
+                            " available, please add and set the value of 'file.non-pre-allocation' " +
+                            "field to 'true' in the 'filedownloader.properties' file which is in your" +
+                            " application assets folder manually for resolving this problem.");
+                }
+            }
             return this;
         }
 
@@ -277,18 +285,9 @@ public class DownloadMgrInitialParams {
             return this;
         }
 
-        private void securityCheck() {
-            if (mOutputStreamCreator != null && !mOutputStreamCreator.supportSeek()) {
-                if (!FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION) {
-                    throw new IllegalArgumentException("Since the provided FileDownloadOutputStream " +
-                            "does not support the seek function, if FileDownloader pre-allocates " +
-                            "file size at the beginning of the download, it will can not be resumed" +
-                            " from the breakpoint. If you need to ensure that the resumption is" +
-                            " available, please add and set the value of 'file.non-pre-allocation' " +
-                            "field to 'true' in the 'filedownloader.properties' file which is in your" +
-                            " application assets folder manually for resolving this problem.");
-                }
-            }
+        @SuppressWarnings("EmptyMethod")
+        public void commit() {
+            // do nothing now.
         }
 
         @Override

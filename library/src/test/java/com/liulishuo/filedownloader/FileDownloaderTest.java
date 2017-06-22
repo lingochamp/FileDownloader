@@ -16,6 +16,11 @@
 
 package com.liulishuo.filedownloader;
 
+import com.liulishuo.filedownloader.download.CustomComponentHolder;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
+
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -24,19 +29,27 @@ import static org.robolectric.RuntimeEnvironment.application;
 
 @RunWith(RobolectricTestRunner.class)
 public class FileDownloaderTest {
+
     @Test
-    public void init_withNullInitCustomMaker_pass() {
-        FileDownloader.init(application);
-        FileDownloader.init(application, null);
+    public void setup_withContext_hold() {
+        FileDownloader.setup(application);
+
+        Assert.assertEquals(application.getApplicationContext(), FileDownloadHelper.getAppContext());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void init_withNullContext_exception() {
-        FileDownloader.init(null);
+    @Test
+    public void setupOnApplicationOnCreate_withContext_hold() {
+        FileDownloader.setupOnApplicationOnCreate(application);
+
+        Assert.assertEquals(application.getApplicationContext(), FileDownloadHelper.getAppContext());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void init2_withNullContext_exception() {
-        FileDownloader.init(null, null);
+    @Test
+    public void setupOnApplicationOnCreate_InitCustomMaker_valid() {
+        FileDownloader.setupOnApplicationOnCreate(application)
+                .maxNetworkThreadCount(6)
+                .commit();
+
+        Assert.assertEquals(CustomComponentHolder.getImpl().getMaxNetworkThreadCount(), 6);
     }
 }

@@ -21,6 +21,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -41,6 +42,7 @@ public class FileDownloadService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        FileDownloadHelper.holdContext(this);
 
         try {
             FileDownloadUtils.setMinProgressStep(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_STEP);

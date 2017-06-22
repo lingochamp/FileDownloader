@@ -47,42 +47,77 @@ import java.util.List;
 public class FileDownloader {
 
     /**
-     * Initialize the FileDownloader.
+     * You can invoke this method anytime before you using the FileDownloader.
+     * <p>
+     * If you want to register your own customize components please using {@link #setupOnApplicationOnCreate(Application)}
+     * on the {@link Application#onCreate()} instead.
      *
-     * @see #init(Context, DownloadMgrInitialParams.InitCustomMaker)
+     * @param context the context of Application or Activity etc..
+     */
+    public static void setup(Context context) {
+        FileDownloadHelper.holdContext(context.getApplicationContext());
+    }
+
+    /**
+     * Using this method to setup the FileDownloader only you want to register your own customize
+     * components for Filedownloader, otherwise just using {@link #setup(Context)} instead.
+     * <p/>
+     * Please invoke this method on the {@link Application#onCreate()} because of the customize
+     * components must be assigned before FileDownloader is running.
+     * <p/>
+     * Such as:
+     * <p/>
+     * class MyApplication extends Application {
+     *     ...
+     *     public void onCreate() {
+     *          ...
+     *          FileDownloader.setupOnApplicationOnCreate(this)
+     *              .idGenerator(new MyIdGenerator())
+     *              .database(new MyDatabase())
+     *              ...
+     *              .commit();
+     *          ...
+     *     }
+     *     ...
+     * }
+     * @param application the application.
+     * @return the customize components maker.
+     */
+    public static DownloadMgrInitialParams.InitCustomMaker setupOnApplicationOnCreate(Application application) {
+        final Context context = application.getApplicationContext();
+        FileDownloadHelper.holdContext(context);
+
+        DownloadMgrInitialParams.InitCustomMaker customMaker = new DownloadMgrInitialParams.InitCustomMaker();
+        CustomComponentHolder.getImpl().setInitCustomMaker(customMaker);
+
+        return customMaker;
+    }
+
+    /**
+     * @deprecated please use {@link #setup(Context)} instead.
      */
     public static void init(final Context context) {
-        if (context == null) throw new IllegalArgumentException("the provided context must not be null!");
+        if (context == null)
+            throw new IllegalArgumentException("the provided context must not be null!");
 
-        init(context.getApplicationContext(), null);
+        init(context, null);
     }
 
 
     /**
-     * * Initialize the FileDownloader.
-     * <p>
-     * <strong>Note:</strong> This method just hold {@code context} and {@code maker}, so it is very
-     * light(it is maybe need to spend 5ms for load some relate classes).
-     * <p>
-     * You need to invoke this method in {@link Application#onCreate()}, since the FileDownloadService
-     * is running with the {@link android.app.Service#START_STICKY}, so it is just if you invoke this
-     * this method in {@link Application#onCreate()}, FileDownloader can make sure the {@code maker}
-     * can be assigned corrected each time when FileDownloadService is launching.
-     *
-     * @param context The context.
-     * @param maker   Used to customize the download service, this value can be {@code null}.
-     * @see #init(Context)
+     * @deprecated please using {@link #setupOnApplicationOnCreate(Application)} instead.
      */
     public static void init(final Context context,
-                            /**Nullable **/final DownloadMgrInitialParams.InitCustomMaker maker) {
+                            final DownloadMgrInitialParams.InitCustomMaker maker) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(FileDownloader.class, "init Downloader with params: %s %s",
                     context, maker);
         }
 
-        if (context == null) throw new IllegalArgumentException("the provided context must not be null!");
+        if (context == null)
+            throw new IllegalArgumentException("the provided context must not be null!");
 
-        FileDownloadHelper.holdContext(context);
+        FileDownloadHelper.holdContext(context.getApplicationContext());
 
         CustomComponentHolder.getImpl().setInitCustomMaker(maker);
     }
@@ -223,9 +258,9 @@ public class FileDownloader {
     public void pauseAll() {
         FileDownloadTaskLauncher.getImpl().expireAll();
         final BaseDownloadTask.IRunningTask[] downloadList = FileDownloadList.getImpl().copy();
-            for (BaseDownloadTask.IRunningTask task : downloadList) {
-                task.getOrigin().pause();
-            }
+        for (BaseDownloadTask.IRunningTask task : downloadList) {
+            task.getOrigin().pause();
+        }
         // double check, for case: File Download progress alive but ui progress has died and relived,
         // so FileDownloadList not always contain all running task exactly.
         if (FileDownloadServiceProxy.getImpl().isConnected()) {
