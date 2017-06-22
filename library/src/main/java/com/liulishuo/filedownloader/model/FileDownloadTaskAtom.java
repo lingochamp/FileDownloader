@@ -30,7 +30,7 @@ import java.util.List;
  * @see com.liulishuo.filedownloader.FileDownloader#setTaskCompleted(List)
  * @deprecated No used. {@link com.liulishuo.filedownloader.FileDownloader#setTaskCompleted(String, String, long)}
  */
-@SuppressWarnings({"WeakerAccess", "deprecation"})
+@SuppressWarnings({"WeakerAccess", "deprecation", "DeprecatedIsStillUsed"})
 public class FileDownloadTaskAtom implements Parcelable {
     private String url;
     private String path;
