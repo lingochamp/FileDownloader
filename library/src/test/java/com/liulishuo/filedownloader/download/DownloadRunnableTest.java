@@ -62,7 +62,7 @@ public class DownloadRunnableTest {
     }
 
     @Test
-    public void run_withConnectFailed_retry() throws IOException {
+    public void run_withConnectFailed_retry() throws IOException, IllegalAccessException {
         when(mockConnectTask.connect()).thenThrow(mockIOException);
 
         downloadRunnable.run();
@@ -71,7 +71,7 @@ public class DownloadRunnableTest {
     }
 
     @Test
-    public void run_responseCodeNotMet_error() throws IOException {
+    public void run_responseCodeNotMet_error() throws IOException, IllegalAccessException {
         final FileDownloadConnection connection = mock(FileDownloadConnection.class);
         when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_PRECON_FAILED);
         when(mockConnectTask.connect()).thenReturn(connection);
