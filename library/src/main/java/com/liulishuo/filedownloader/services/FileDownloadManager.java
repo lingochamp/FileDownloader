@@ -17,6 +17,8 @@
 package com.liulishuo.filedownloader.services;
 
 
+import android.text.TextUtils;
+
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.download.DownloadLaunchRunnable;
@@ -139,7 +141,13 @@ class FileDownloadManager implements IThreadPoolMonitor {
 
                 needUpdate2DB = true;
             } else {
-                needUpdate2DB = false;
+                if (!TextUtils.equals(url, model.getUrl())) {
+                    // for cover the case of reusing the downloaded processing with the different url( using with idGenerator ).
+                    model.setUrl(url);
+                    needUpdate2DB = true;
+                } else {
+                    needUpdate2DB = false;
+                }
             }
         } else {
             if (model == null) {
