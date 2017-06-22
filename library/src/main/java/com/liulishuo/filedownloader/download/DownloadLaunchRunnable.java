@@ -431,9 +431,9 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
         if (isPreconditionFailed) {
             // the file on remote is changed
-            if (acceptPartial) {
+            if (isResumeAvailableOnDB) {
                 FileDownloadLog.w(this, "there is precondition failed on this request[%d] " +
-                        "with old etag[%s] != new etag[%s], but the response code is %d",
+                        "with old etag[%s]、new etag[%s]、response code is %d",
                         id, oldEtag, newEtag, code);
             }
 
@@ -560,6 +560,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
 
         long totalOffset = 0;
+
+        // why not with etag when not resume from the database? because do this can avoid
+        // precondition failed on separate downloading.
+        final boolean withEtag = isResumeAvailableOnDB;
         for (ConnectionModel connectionModel : connectionModelList) {
             totalOffset += (connectionModel.getCurrentOffset() - connectionModel.getStartOffset());
 
@@ -584,7 +588,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     .setConnectionIndex(connectionModel.getIndex())
                     .setCallback(this)
                     .setUrl(url)
-                    .setEtag(etag)
+                    .setEtag(withEtag ? etag : null)
                     .setHeader(userRequestHeader)
                     .setWifiRequired(isWifiRequired)
                     .setConnectionModel(connectionProfile)
