@@ -70,11 +70,10 @@ public class RedirectHandler {
                         location, code, redirectLocationList);
             }
 
+            redirectConnection.ending();
             redirectConnection =
                     buildRedirectConnection(requestHeaderFields, location);
             redirectLocationList.add(location);
-
-            if (redirectConnection != null) redirectConnection.ending();
 
             redirectConnection.execute();
             code = redirectConnection.getResponseCode();
