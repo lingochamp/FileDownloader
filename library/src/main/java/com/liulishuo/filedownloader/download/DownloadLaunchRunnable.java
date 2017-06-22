@@ -108,6 +108,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private volatile boolean alive;
     private volatile boolean paused;
 
+    private String redirectedUrl;
+
     private DownloadLaunchRunnable(FileDownloadModel model, FileDownloadHeader header,
                                    IThreadPoolMonitor threadPoolMonitor,
                                    final int minIntervalMillis, int callbackProgressMaxCount,
@@ -458,6 +460,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             throw new RetryDirectly();
         }
 
+        redirectedUrl = connectTask.getFinalRedirectedUrl();
         if (acceptPartial || onlyFromBeginning) {
             final long contentLength = FileDownloadUtils.findContentLength(id, connection);
 
@@ -548,7 +551,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private void fetchWithMultipleConnection(final List<ConnectionModel> connectionModelList) throws InterruptedException {
         final int id = model.getId();
         final String etag = model.getETag();
-        final String url = model.getUrl();
+        final String url = redirectedUrl != null ? redirectedUrl : model.getUrl();
         final String path = model.getTempFilePath();
 
         if (FileDownloadLog.NEED_LOG) {

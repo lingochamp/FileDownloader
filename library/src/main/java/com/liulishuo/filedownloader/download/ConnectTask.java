@@ -19,11 +19,13 @@ package com.liulishuo.filedownloader.download;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.connection.RedirectHandler;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ public class ConnectTask {
     private String etag;
 
     private Map<String, List<String>> requestHeader;
+    private List<String> redirectedUrlList;
 
 
     private ConnectTask(ConnectionProfile profile,
@@ -53,8 +56,8 @@ public class ConnectTask {
         this.profile = profile;
     }
 
-    FileDownloadConnection connect() throws IOException {
-        final FileDownloadConnection connection = CustomComponentHolder.getImpl().createConnection(url);
+    FileDownloadConnection connect() throws IOException, IllegalAccessException {
+        FileDownloadConnection connection = CustomComponentHolder.getImpl().createConnection(url);
 
         addUserRequiredHeader(connection);
         addRangeHeader(connection);
@@ -69,6 +72,8 @@ public class ConnectTask {
         }
 
         connection.execute();
+        redirectedUrlList = new ArrayList<>();
+        connection = RedirectHandler.process(requestHeader, connection, redirectedUrlList);
 
         return connection;
     }
@@ -121,6 +126,14 @@ public class ConnectTask {
 
     boolean isRangeNotFromBeginning(){
         return profile.currentOffset > 0;
+    }
+
+    String getFinalRedirectedUrl() {
+        if (redirectedUrlList != null && !redirectedUrlList.isEmpty()) {
+            return redirectedUrlList.get(redirectedUrlList.size() - 1);
+        }
+
+        return null;
     }
 
     public Map<String, List<String>> getRequestHeader() {
