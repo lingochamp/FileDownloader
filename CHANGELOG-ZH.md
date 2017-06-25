@@ -2,6 +2,30 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.7
+
+_2017-06-25_
+
+#### 新接口
+
+- 支持在`filedownloader.properties`中配置`broadcast.completed`: 决定是否需要在任务下载完成后发送一个完成的广播。 Closes #605
+- 支持接收201的http返回状态码。 Closes #545
+- 为`FileDownloadSerialQueue`支持暂停与继续功能. Closes #547
+- 在FileDownloader内部处理了各类重定向的情况(300、301、302、303、307、308)。 Closes #611
+- 弃用了`FileDownloader#init`取而代之的是`FileDownloader#setup`，现在如果你不需要定制组件，就只需要在使用FileDownloader之前的任意使用调用这个方法就行。 Closes #500
+
+> - 如果你使用`broadcast.completed`并且接收任务完成的广播,你需要在AndroidManifest中申明`filedownloader.permission.RECEIVE_STATE`权限以及注册Action为`filedownloader.intent.action.completed`的广播并且使用`FileDownloadBroadcastHandler`来处理接收到的`Intent`。
+> - 现在, 不再使用`FileDownloader#init`, 取而代之的，如果你需要注册你的定制组件，你需要在`Application#onCreate`中调用`FileDownloader.setupOnApplicationOnCreate(application):InitCustomMaker`, 否则你只需要在使用FileDownloader之前的任意时候调用`FileDownloader.setup(Context)`即可。
+
+#### 修复
+
+- 修复: 修复来`FileDownloadQueueSet`无法处理使wifi-required失效的操作。 感谢 @qtstc
+- 修复(output-stream): 修复当提供的output-stream不支持seek时，FileDownloader无法使用的问题。 Closes #622
+
+#### 性能与提高
+
+- 提高实用性: 覆盖使用不同的Url来复用下载进度的情况（结合`idGenerator`一起使用)。 Closes #617
+
 ## Version 1.5.6
 
 _2017-06-18_

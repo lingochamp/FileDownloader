@@ -2,6 +2,30 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.7
+
+_2017-06-25_
+
+#### New Interfaces
+
+- Support the configuration `broadcast.completed` in `filedownloader.properties`: determine whether need post a broadcast when task is completed. Closes #605
+- Support accepting 201 http status. Closes #545
+- Support pause and resume for the `FileDownloadSerialQueue`. Closes #547
+- Handle the case of redirect(300、301、302、303、307、308) on FileDownloader self. Closes #611
+- Deprecated the `FileDownloader#init` and add the replacer `FileDownloader#setup` to let user invoke anytime before using `Filedownloader`. Closes #500
+
+> - If you want to using `broadcast.completed` and receive completed broadcast, you also need to declare `filedownloader.permission.RECEIVE_STATE` permission on the manifest, and register receiver with `filedownloader.intent.action.completed` action name and please using `FileDownloadBroadcastHandler` class to parse the received `Intent`.
+> - Now, rather than using `FileDownloader#init`, if you want to register your own customize components for FileDownloader please invoking `FileDownloader.setupOnApplicationOnCreate(application):InitCustomMaker` on the `Application#onCreate`, otherwise you just need invoke `FileDownloader.setup(Context)` anytime before using `FileDownloader`.
+
+#### Fix
+
+- Fix: fix `FileDownloadQueueSet` can't handle the case of disable wifi-required. Thanks @qtstc
+- Fix(output-stream): fix broken support for output-stream when it don't support seek. Closes #622
+
+#### Enhancement
+
+- Improve Practicability: Cover the case of reusing the downloaded processing with the different url( using with `idGenerator` ). Closes #617
+
 ## Version 1.5.6
 
 _2017-06-18_

@@ -60,28 +60,16 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.5.6'
+compile 'com.liulishuo.filedownloader:library:1.5.7'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
 
-#### 全局初始化在`Application.onCreate`中
+#### 全局初始化
 
-```java
-public XXApplication extends Application{
+如果你需要注册你的定制组件，你需要在`Application#onCreate`中调用`FileDownloader.setupOnApplicationOnCreate(application):InitCustomMaker`, 否则你只需要在使用FileDownloader之前的任意时候调用`FileDownloader.setup(Context)`即可。
 
-    ...
-    @Override
-    public void onCreate() {
-        /**
-         * 仅仅是缓存Application的Context，不耗时
-         */
-        FileDownloader.init(getApplicationContext);
-    }
-
-    ...
-}
-```
+这些初始化方法都十分的简单，不会启动下载服务，一般都是在10ms内完成。
 
 #### 启动单任务下载
 
@@ -233,8 +221,8 @@ if (parallel) {
 
 | 方法名 | 备注
 | --- | ---
-| init(Context) |  缓存Context，不会启动下载进程
-| init(Context, InitCustomMaker) | 缓存Context，不会启动下载进程；在下载进程启动的时候，会传入定制化组件
+| setup(Context) | 如果不需要注册定制组件，就使用该方法在使用下载引擎前调用，该方法只会缓存Context
+| setupOnApplicationOnCreate(application):InitCustomMaker | 如果需要注册定制组件，就在Application#onCreate中调用该方法来注册定制组件以及初始化下载引擎，该方法不会启动下载服务
 | create(url:String) | 创建一个下载任务
 | start(listener:FileDownloadListener, isSerial:boolean) | 启动是相同监听器的任务，串行/并行启动
 | pause(listener:FileDownloadListener) | 暂停启动相同监听器的任务
@@ -418,7 +406,9 @@ blockComplete -> completed
 | download.min-progress-time | 最小缓冲时间，用于判定是否是时候将缓冲区中进度同步到数据库，以及是否是时候要确保下缓存区的数据都已经写文件。值越小，更新会越频繁，下载速度会越慢，但是应对进程被无法预料的情况杀死时会更加安全 | 2000
 | download.max-network-thread-count | 用于同时下载的最大网络线程数, 区间[1, 12] | 3
 | file.non-pre-allocation | 是否不需要在开始下载的时候，预申请整个文件的大小(`content-length`) | false
+| broadcast.completed | 是否需要在任务下载完成后发送一个完成的广播 | false
 
+> 如果你使用`broadcast.completed`并且接收任务完成的广播,你需要在AndroidManifest中申明`filedownloader.permission.RECEIVE_STATE`权限以及注册Action为`filedownloader.intent.action.completed`的广播并且使用`FileDownloadBroadcastHandler`来处理接收到的`Intent`。
 
 III. 异常处理
 
