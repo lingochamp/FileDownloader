@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadSampleListener;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -64,7 +63,6 @@ public class SingleTaskTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new File(llsApkFilePath).delete();
-                new File(FileDownloadUtils.getTempPath(llsApkFilePath)).delete();
             }
         });
 
@@ -112,7 +110,6 @@ public class SingleTaskTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new File(normalTaskFilePath).delete();
-                new File(FileDownloadUtils.getTempPath(normalTaskFilePath)).delete();
             }
         });
     }
@@ -138,7 +135,6 @@ public class SingleTaskTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new File(chunkedFilePath).delete();
-                new File(FileDownloadUtils.getTempPath(chunkedFilePath)).delete();
             }
         });
     }

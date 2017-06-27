@@ -362,8 +362,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
                     // start task, but file not created yet
                     holder.updateDownloading(status, TasksManager.getImpl().getSoFar(model.getId())
                             , TasksManager.getImpl().getTotal(model.getId()));
-                } else if (!new File(model.getPath()).exists() &&
-                        !new File(FileDownloadUtils.getTempPath(model.getPath())).exists()) {
+                } else if (new File(model.getPath()).exists()) {
                     // not exist file
                     holder.updateNotDownloaded(status, 0, 0);
                 } else if (TasksManager.getImpl().isDownloaded(status)) {
