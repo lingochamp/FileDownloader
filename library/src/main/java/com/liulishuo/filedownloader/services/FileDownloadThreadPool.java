@@ -125,8 +125,8 @@ class FileDownloadThreadPool {
         return runnable != null && runnable.isAlive();
     }
 
-    public int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId) {
-        if (null == tempFilePath) {
+    public int findRunningTaskIdBySamePath(String path, int excludeId) {
+        if (null == path) {
             return 0;
         }
 
@@ -143,7 +143,7 @@ class FileDownloadThreadPool {
             }
 
             if (runnable.isAlive() && runnable.getId() != excludeId &&
-                    tempFilePath.equals(runnable.getTempFilePath())) {
+                    path.equals(runnable.getFilePath())) {
                 return runnable.getId();
             }
         }

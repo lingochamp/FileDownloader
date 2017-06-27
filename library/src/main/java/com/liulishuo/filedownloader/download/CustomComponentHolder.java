@@ -178,21 +178,43 @@ public class CustomComponentHolder {
                     }
 
                     final File targetFile = new File(targetFilePath);
-                    // consider check in new thread, but SQLite lock | file lock aways effect, so sync
-                    if (model.getStatus() == FileDownloadStatus.paused &&
-                            FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
-                                    model.getPath(), null)) {
-                        // can be reused in the old mechanism(no-temp-file).
 
-                        final File tempFile = new File(model.getTempFilePath());
+                    if (model.getStatus() == FileDownloadStatus.paused) {
+                        // old mechanism
 
-                        if (!tempFile.exists() && targetFile.exists()) {
-                            final boolean successRename = targetFile.renameTo(tempFile);
-                            if (FileDownloadLog.NEED_LOG) {
-                                FileDownloadLog.d(FileDownloadDatabase.class,
-                                        "resume from the old no-temp-file architecture [%B], [%s]->[%s]",
-                                        successRename, targetFile.getPath(), tempFile.getPath());
+                        // 1. old non-temp-file architecture
+                        final File lockFile = new File(model.getLockFilePath());
+                        if (!lockFile.exists() &&
+                                FileDownloadUtils.isBreakpointAvailableForMigrateNonTempFile(model)) {
+                            try {
+                                //noinspection ResultOfMethodCallIgnored
+                                lockFile.createNewFile();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
 
+                        // 2. old temp-file architecture
+                        if (model.getTargetFilePath() != null) {
+                            final File tempFile = new File(model.getTargetFilePath() + ".temp");
+                            if (tempFile.exists() &&
+                                    FileDownloadUtils.isBreakpointAvailableForMigrateTempFile(model, tempFile.getAbsolutePath())) {
+                                final boolean successRename = tempFile.renameTo(targetFile);
+                                if (FileDownloadLog.NEED_LOG) {
+                                    FileDownloadLog.d(FileDownloadDatabase.class,
+                                            "resume from the old temp-file architecture [%B], [%s]->[%s]",
+                                            successRename, tempFile.getPath(), targetFile.getPath());
+
+                                }
+
+                                if (successRename) {
+                                    try {
+                                        //noinspection ResultOfMethodCallIgnored
+                                        lockFile.createNewFile();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
                         }
                     }
@@ -208,7 +230,7 @@ public class CustomComponentHolder {
                         break;
                     }
 
-                    if (!FileDownloadUtils.isBreakpointAvailable(model.getId(), model)) {
+                    if (!FileDownloadUtils.isBreakpointAvailable(model)) {
                         // It can't used to resuming from breakpoint.
                         isInvalid = true;
                         break;
@@ -227,6 +249,7 @@ public class CustomComponentHolder {
                     iterator.remove();
                     maintainer.onRemovedInvalidData(model);
                     removedDataCount++;
+                    model.deleteLockFile();
                 } else {
                     final int oldId = model.getId();
                     final int newId = idGenerator.transOldId(oldId, model.getUrl(), model.getPath(), model.isPathAsDirectory());

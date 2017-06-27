@@ -25,5 +25,5 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 public interface IThreadPoolMonitor {
     boolean isDownloading(FileDownloadModel model);
 
-    int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId);
+    int findRunningTaskIdBySamePath(String path, int excludeId);
 }

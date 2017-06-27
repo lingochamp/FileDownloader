@@ -100,7 +100,7 @@ public class FileDownloader {
         if (context == null)
             throw new IllegalArgumentException("the provided context must not be null!");
 
-        init(context, null);
+        setup(context);
     }
 
 
@@ -323,10 +323,11 @@ public class FileDownloader {
         if (FileDownloadServiceProxy.getImpl().clearTaskData(id)) {
             // delete the task data in the filedownloader database successfully or no data with the
             // id in filedownloader database.
-            final File intermediateFile = new File(FileDownloadUtils.getTempPath(targetFilePath));
-            if (intermediateFile.exists()) {
+            final File lockFile = new File(FileDownloadUtils.
+                    getLockFilePath(FileDownloadHelper.getAppContext(), targetFilePath));
+            if (lockFile.exists()) {
                 //noinspection ResultOfMethodCallIgnored
-                intermediateFile.delete();
+                lockFile.delete();
             }
 
             final File targetFile = new File(targetFilePath);
@@ -421,12 +422,28 @@ public class FileDownloader {
 
         if (path != null && status == FileDownloadStatus.INVALID_STATUS) {
             if (FileDownloadUtils.isFilenameConverted(FileDownloadHelper.getAppContext()) &&
-                    new File(path).exists()) {
+                    isCompleted(id, path)) {
                 status = FileDownloadStatus.completed;
             }
         }
 
         return status;
+    }
+
+    /**
+     * whether the task with {@code id} and {@code path} has been completed download.
+     * <p>
+     * more detail: if the task didn't completed yet, there is a relate lock file on filedownloader
+     * folder.
+     *
+     * @param id   the download id.
+     * @param path the target file path.
+     * @return {@code true} if the task has been completed download.
+     */
+    public boolean isCompleted(final int id, final String path) {
+        final File file = new File(path);
+        return file.exists() && !file.isDirectory() &&
+                !new File(FileDownloadUtils.getLockFilePath(FileDownloadHelper.getAppContext(), path)).exists();
     }
 
     /**

@@ -21,6 +21,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -133,11 +134,8 @@ public class FileDownloadModel implements Parcelable {
         return FileDownloadUtils.getTargetFilePath(getPath(), isPathAsDirectory(), getFilename());
     }
 
-    public String getTempFilePath() {
-        if (getTargetFilePath() == null) {
-            return null;
-        }
-        return FileDownloadUtils.getTempPath(getTargetFilePath());
+    public String getLockFilePath() {
+        return FileDownloadUtils.getLockFilePath(FileDownloadHelper.getAppContext(), getTargetFilePath());
     }
 
     public byte getStatus() {
@@ -226,20 +224,8 @@ public class FileDownloadModel implements Parcelable {
     }
 
     public void deleteTaskFiles() {
-        deleteTempFile();
+        deleteLockFile();
         deleteTargetFile();
-    }
-
-    public void deleteTempFile() {
-        final String tempFilePath = getTempFilePath();
-
-        if (tempFilePath != null) {
-            final File tempFile = new File(tempFilePath);
-            if (tempFile.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                tempFile.delete();
-            }
-        }
     }
 
     public void deleteTargetFile() {
@@ -251,6 +237,18 @@ public class FileDownloadModel implements Parcelable {
                 targetFile.delete();
             }
         }
+    }
+
+    public void deleteLockFile() {
+        final String lockFilePath = getLockFilePath();
+        if (lockFilePath != null) {
+            final File lockFile = new File(lockFilePath);
+            if (lockFile.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                lockFile.delete();
+            }
+        }
+
     }
 
     @Override

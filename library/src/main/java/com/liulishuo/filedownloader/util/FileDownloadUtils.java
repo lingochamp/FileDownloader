@@ -179,12 +179,29 @@ public class FileDownloadUtils {
     }
 
     /**
-     * @param targetPath The target path for the download task.
-     * @return The temp path is {@code targetPath} in downloading status; The temp path is used for
-     * storing the file not completed downloaded yet.
+     * @deprecated we no longer using temp path, alternative we using {@link #getLockFilePath(Context, String)} to
+     * mark whether the file has been completed downloading. If you want to check whether the task is completed,
+     * you can use {@link com.liulishuo.filedownloader.FileDownloader#isCompleted(int, String)}.
      */
     public static String getTempPath(final String targetPath) {
-        return FileDownloadUtils.formatString("%s.temp", targetPath);
+        throw new IllegalStateException("we no longer using temp path, alternative we using " +
+                "FileDownloadUtils.getLocalFilePath to mark whether the file has been completed " +
+                "downloading. If you want to check whether the task is completed, you can use " +
+                "FileDownloader#isCompleted(int, String) instead.");
+    }
+
+    /**
+     * Get the lock file for the {@code id}, if there is a lock file, what indicate that the task with
+     * {@code id} is not completed downloading. otherwise with the target file is exist what means the file
+     * is completed downloading.
+     *
+     * @param path the task download identify.
+     * @return the lock file path of {@code id}.
+     */
+    public static String getLockFilePath(final Context context, final String path) {
+        if (path == null) return null;
+
+        return new File(context.getDir("filedownloader", Context.MODE_PRIVATE), md5(path) + ".lock").getAbsolutePath();
     }
 
     /**
@@ -572,36 +589,22 @@ public class FileDownloadUtils {
         return CustomComponentHolder.getImpl().createOutputStream(file);
     }
 
-    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model) {
-        return isBreakpointAvailable(id, model, null);
+    public static boolean isBreakpointAvailable(final FileDownloadModel model) {
+        return isBreakpointAvailable(model, model.getTargetFilePath(), true);
     }
 
-    /**
-     * @return can resume by break point
-     */
-    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model,
-                                                final Boolean outputStreamSupportSeek) {
-        if (model == null) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d model == null", id);
-            }
-            return false;
-        }
-
-        if (model.getTempFilePath() == null) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d temp path == null", id);
-            }
-            return false;
-        }
-
-        return isBreakpointAvailable(id, model, model.getTempFilePath(), outputStreamSupportSeek);
+    public static boolean isBreakpointAvailableForMigrateTempFile(final FileDownloadModel model, String tempPath) {
+        return isBreakpointAvailable(model, tempPath, false);
     }
 
-    public static boolean isBreakpointAvailable(final int id, final FileDownloadModel model,
-                                                final String path,
-                                                final Boolean outputStreamSupportSeek) {
+    public static boolean isBreakpointAvailableForMigrateNonTempFile(final FileDownloadModel model) {
+        return isBreakpointAvailable(model, model.getTargetFilePath(), false);
+    }
+
+    private static boolean isBreakpointAvailable(final FileDownloadModel model,final String path,  boolean checkLockFile) {
         boolean result = false;
+
+        final int id = model.getId();
 
         do {
             if (path == null) {
@@ -650,12 +653,21 @@ public class FileDownloadUtils {
                 break;
             }
 
-            if (outputStreamSupportSeek != null && !outputStreamSupportSeek &&
+            if (!CustomComponentHolder.getImpl().isSupportSeek() &&
                     totalLength == fileLength) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d, because of the " +
                                     "output stream doesn't support seek, but the task has already " +
                                     "pre-allocated, so we only can download it from the very beginning.",
+                            id);
+                }
+                break;
+            }
+
+            if (checkLockFile && !new File(model.getLockFilePath()).exists()) {
+                if (FileDownloadLog.NEED_LOG) {
+                    FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d, because of the " +
+                                    "lock file isn't exist",
                             id);
                 }
                 break;
@@ -668,32 +680,7 @@ public class FileDownloadUtils {
         return result;
     }
 
-    public static void deleteTaskFiles(String targetFilepath, String tempFilePath) {
-        deleteTempFile(tempFilePath);
-        deleteTargetFile(targetFilepath);
-    }
-
-    public static void deleteTempFile(String tempFilePath) {
-        if (tempFilePath != null) {
-            final File tempFile = new File(tempFilePath);
-            if (tempFile.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                tempFile.delete();
-            }
-        }
-    }
-
-    public static void deleteTargetFile(String targetFilePath) {
-        if (targetFilePath != null) {
-            final File targetFile = new File(targetFilePath);
-            if (targetFile.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                targetFile.delete();
-            }
-        }
-    }
-
-    public static boolean isNeedSync(long bytesDelta, long timestampDelta){
+    public static boolean isNeedSync(long bytesDelta, long timestampDelta) {
         return bytesDelta > FileDownloadUtils.getMinProgressStep() &&
                 timestampDelta > FileDownloadUtils.getMinProgressTime();
     }

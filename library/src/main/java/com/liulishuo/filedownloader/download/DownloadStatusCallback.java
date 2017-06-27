@@ -234,7 +234,7 @@ public class DownloadStatusCallback implements Handler.Callback {
     }
 
     private Exception exFiltrate(Exception ex) {
-        final String tempPath = model.getTempFilePath();
+        final String path = model.getTargetFilePath();
         /**
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
          * in {@link #getOutputStream(boolean, long)}.
@@ -242,13 +242,13 @@ public class DownloadStatusCallback implements Handler.Callback {
         if ((model.isChunked() ||
                 FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION)
                 && ex instanceof IOException &&
-                new File(tempPath).exists()) {
+                new File(path).exists()) {
             // chunked
-            final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(tempPath);
+            final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(path);
             if (freeSpaceBytes <= BUFFER_SIZE) {
                 // free space is not enough.
                 long downloadedSize = 0;
-                final File file = new File(tempPath);
+                final File file = new File(path);
                 if (!file.exists()) {
                     FileDownloadLog.e(this, ex, "Exception with: free " +
                             "space isn't enough, and the target file not exist.");
@@ -285,41 +285,15 @@ public class DownloadStatusCallback implements Handler.Callback {
         database.removeConnections(id);
     }
 
-    private void renameTempFile() throws IOException {
-        final String tempPath = model.getTempFilePath();
-        final String targetPath = model.getTargetFilePath();
-
-        final File tempFile = new File(tempPath);
-        try {
-            final File targetFile = new File(targetPath);
-
-            if (targetFile.exists()) {
-                final long oldTargetFileLength = targetFile.length();
-                if (!targetFile.delete()) {
-                    throw new IOException(FileDownloadUtils.formatString(
-                            "Can't delete the old file([%s], [%d]), " +
-                                    "so can't replace it with the new downloaded one.",
-                            targetPath, oldTargetFileLength
-                    ));
-                } else {
-                    FileDownloadLog.w(this, "The target file([%s], [%d]) will be replaced with" +
-                                    " the new downloaded file[%d]",
-                            targetPath, oldTargetFileLength, tempFile.length());
-                }
-            }
-
-            if (!tempFile.renameTo(targetFile)) {
-                throw new IOException(FileDownloadUtils.formatString(
-                        "Can't rename the  temp downloaded file(%s) to the target file(%s)",
-                        tempPath, targetPath
-                ));
-            }
-        } finally {
-            if (tempFile.exists()) {
-                if (!tempFile.delete()) {
-                    FileDownloadLog.w(this, "delete the temp file(%s) failed, on completed downloading.",
-                            tempPath);
-                }
+    private void removeLockFile() throws IOException {
+        final File lockFile = new File(model.getLockFilePath());
+        if (!lockFile.exists()) {
+            FileDownloadLog.w(this, "require to remove lock file[%s] but it isn't exist!",
+                    lockFile.getPath());
+        } else {
+            if (!lockFile.delete()) {
+                throw new IOException(FileDownloadUtils.
+                        formatString("require to remove lock file[%s] but delete failed!", lockFile.getPath()));
             }
         }
     }
@@ -379,8 +353,14 @@ public class DownloadStatusCallback implements Handler.Callback {
     }
 
     private void handleCompleted() throws IOException {
-        renameTempFile();
+        removeLockFile();
 
+        final long fileLength = new File(model.getTargetFilePath()).length();
+        if (fileLength != model.getTotal()) {
+            throw new IOException(FileDownloadUtils.formatString("complete downloading, but" +
+                            " the file length[%d] != totalLength[%d] and the current sofar bytes[%d]",
+                    fileLength, model.getTotal(), model.getSoFar()));
+        }
         model.setStatus(FileDownloadStatus.completed);
 
         database.updateCompleted(model.getId(), model.getTotal());
@@ -451,6 +431,7 @@ public class DownloadStatusCallback implements Handler.Callback {
     }
 
     private boolean isFirstCallback = true;
+
     private boolean isNeedCallbackToUser(final long now) {
         if (isFirstCallback) {
             isFirstCallback = false;

@@ -27,42 +27,26 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 public class PathConflictException extends IllegalAccessException {
 
     private final String mDownloadingConflictPath;
-    private final String mTargetFilePath;
     private final int mAnotherSamePathTaskId;
 
-    public PathConflictException(final int anotherSamePathTaskId, final String conflictPath,
-                                 final String targetFilePath) {
+    public PathConflictException(final int anotherSamePathTaskId, final String conflictPath) {
         super(FileDownloadUtils.formatString("There is an another running task(%d) with the same " +
-                        "downloading path(%s), because of they are with the same target-file-path(%s)," +
-                        "so if the current task is started, the path of the file is sure to be " +
+                        "downloading path(%s), so if the current task is started, the path of the file is sure to be " +
                         "written by multiple tasks, it is wrong, then you receive this exception to" +
                         " avoid such conflict.",
-                anotherSamePathTaskId, conflictPath, targetFilePath));
+                anotherSamePathTaskId, conflictPath));
 
         mAnotherSamePathTaskId = anotherSamePathTaskId;
         mDownloadingConflictPath = conflictPath;
-        mTargetFilePath = targetFilePath;
     }
 
     /**
-     * Get the conflict downloading file path, normally, this path is used for store the downloading
-     * file relate with the {@link #mTargetFilePath}, and it would be generated from
-     * {@link FileDownloadUtils#getTempPath(String)}.
+     * Get the conflict downloading file path.
      *
      * @return the conflict downloading file path.
      */
     public String getDownloadingConflictPath() {
         return mDownloadingConflictPath;
-    }
-
-    /**
-     * Get the target file path, which downloading file path is conflict when downloading the task.
-     *
-     * @return the target file path, which downloading file path is conflict when downloading the
-     * task.
-     */
-    public String getTargetFilePath() {
-        return mTargetFilePath;
     }
 
     /**

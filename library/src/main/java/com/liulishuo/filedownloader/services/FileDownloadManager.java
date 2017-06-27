@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.services;
 
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
@@ -63,6 +64,7 @@ class FileDownloadManager implements IThreadPoolMonitor {
             FileDownloadLog.d(this, "request start the task with url(%s) path(%s) isDirectory(%B)",
                     url, path, pathAsDirectory);
         }
+        final Context context = FileDownloadHelper.getAppContext();
 
         final int id = FileDownloadUtils.generateId(url, path, pathAsDirectory);
         FileDownloadModel model = mDatabase.find(id);
@@ -92,8 +94,9 @@ class FileDownloadManager implements IThreadPoolMonitor {
 
         final String targetFilePath = model != null ? model.getTargetFilePath() :
                 FileDownloadUtils.getTargetFilePath(path, pathAsDirectory, null);
-        if (FileDownloadHelper.inspectAndInflowDownloaded(id, targetFilePath, forceReDownload,
-                true)) {
+        if (FileDownloadHelper.inspectAndInflowDownloaded(id,
+                FileDownloadUtils.getLockFilePath(context, targetFilePath),
+                targetFilePath, forceReDownload, true)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "has already completed downloading %d", id);
             }
@@ -101,9 +104,7 @@ class FileDownloadManager implements IThreadPoolMonitor {
         }
 
         final long sofar = model != null ? model.getSoFar() : 0;
-        final String tempFilePath = model != null ? model.getTempFilePath() :
-                FileDownloadUtils.getTempPath(targetFilePath);
-        if (FileDownloadHelper.inspectAndInflowConflictPath(id, sofar, tempFilePath, targetFilePath,
+        if (FileDownloadHelper.inspectAndInflowConflictPath(id, sofar, targetFilePath,
                 this)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "there is an another task with the same target-file-path %d %s",
@@ -313,8 +314,8 @@ class FileDownloadManager implements IThreadPoolMonitor {
     }
 
     @Override
-    public int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId) {
-        return mThreadPool.findRunningTaskIdBySameTempPath(tempFilePath, excludeId);
+    public int findRunningTaskIdBySamePath(String path, int excludeId) {
+        return mThreadPool.findRunningTaskIdBySamePath(path, excludeId);
     }
 
     public boolean clearTaskData(int id) {

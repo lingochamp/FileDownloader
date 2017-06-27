@@ -587,9 +587,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
             }
 
             FileDownloadList.getImpl().add(runningTask);
-            if (FileDownloadHelper.inspectAndInflowDownloaded(
-                    origin.getId(), origin.getTargetFilePath(), origin.isForceReDownload(), true)
-                    ) {
+            if (FileDownloadHelper.inspectAndInflowDownloaded(origin, true)) {
                 // Will be removed when the complete message is received in #update
                 return;
             }

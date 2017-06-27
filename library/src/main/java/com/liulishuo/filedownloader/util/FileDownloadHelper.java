@@ -19,6 +19,7 @@ package com.liulishuo.filedownloader.util;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
+import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.exception.PathConflictException;
@@ -178,6 +179,21 @@ public class FileDownloadHelper {
         FileDownloadConnection create(String url) throws IOException;
     }
 
+    public static boolean inspectAndInflowDownloaded(BaseDownloadTask task, boolean flowDirectly) {
+        return inspectAndInflowDownloaded(
+                task.getId(),
+                FileDownloadUtils.getLockFilePath(FileDownloadHelper.getAppContext(), task.getTargetFilePath()),
+                task.getTargetFilePath(), task.isForceReDownload(), flowDirectly);
+
+    }
+
+    public static boolean inspectAndInflowDownloaded(FileDownloadModel model, boolean forceReDownload,
+                                                     boolean flowDirectly) {
+        return inspectAndInflowDownloaded(
+                model.getId(), model.getLockFilePath(), model.getTargetFilePath(),
+                forceReDownload, flowDirectly);
+    }
+
     /**
      * @param id              the {@code id} used for filter out which task would be notified the
      *                        'completed' message if need.
@@ -189,15 +205,16 @@ public class FileDownloadHelper {
      *                        message-queue.
      * @return whether the task with {@code id} has been downloaded.
      */
-    public static boolean inspectAndInflowDownloaded(int id, String path, boolean forceReDownload,
+    public static boolean inspectAndInflowDownloaded(int id, String lockFilePath, String path, boolean forceReDownload,
                                                      boolean flowDirectly) {
         if (forceReDownload) {
             return false;
         }
 
-        if (path != null) {
+        if (path != null && lockFilePath != null) {
             final File file = new File(path);
-            if (file.exists()) {
+            final File lockFile = new File(lockFilePath);
+            if (file.exists() && !lockFile.exists()) {
                 MessageSnapshotFlow.getImpl().inflow(MessageSnapshotTaker.
                         catchCanReusedOldFile(id, file, flowDirectly));
                 return true;
@@ -230,26 +247,23 @@ public class FileDownloadHelper {
     }
 
     /**
-     * @param id             the {@code id} used for filter out which task would be notified the
-     *                       'error' message if need.
-     * @param sofar          the so far bytes of the current checking-task.
-     * @param tempFilePath   the temp file path(file path used for downloading) for the current
-     *                       checking-task.
-     * @param targetFilePath the target file path for the current checking-task.
-     * @param monitor        the monitor for download-thread.
+     * @param id      the {@code id} used for filter out which task would be notified the
+     *                'error' message if need.
+     * @param sofar   the so far bytes of the current checking-task.
+     * @param path    the target file path for the current checking-task.
+     * @param monitor the monitor for download-thread.
      * @return whether the task with {@code id} is refused to start, because of there is an another
-     * running task with the same {@code tempFilePath}.
+     * running task with the same {@code path}.
      */
     public static boolean inspectAndInflowConflictPath(int id, long sofar,
-                                                       String tempFilePath, String targetFilePath,
+                                                       String path,
                                                        IThreadPoolMonitor monitor) {
-        if (targetFilePath != null && tempFilePath != null) {
-            final int anotherSameTempPathTaskId = monitor.findRunningTaskIdBySameTempPath(tempFilePath, id);
+        if (path != null) {
+            final int anotherSameTempPathTaskId = monitor.findRunningTaskIdBySamePath(path, id);
             if (anotherSameTempPathTaskId != 0) {
                 MessageSnapshotFlow.getImpl().
                         inflow(MessageSnapshotTaker.catchException(id, sofar,
-                                new PathConflictException(anotherSameTempPathTaskId, tempFilePath,
-                                        targetFilePath)));
+                                new PathConflictException(anotherSameTempPathTaskId, path)));
                 return true;
             }
         }

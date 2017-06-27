@@ -35,7 +35,7 @@ import java.util.List;
  * since that data is no longer available for resumption of its task pass.
  *
  * @see DefaultDatabaseImpl
- * @see FileDownloadUtils#isBreakpointAvailable(int, FileDownloadModel)
+ * @see FileDownloadUtils#isBreakpointAvailable(FileDownloadModel)
  */
 @SuppressWarnings("UnusedParameters")
 public interface FileDownloadDatabase {

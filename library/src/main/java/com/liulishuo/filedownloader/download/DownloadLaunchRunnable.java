@@ -271,8 +271,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     // 2. fetch
                     checkupBeforeFetch();
                     final long totalLength = model.getTotal();
+                    // create lock file.
+                    createLockFile();
                     // pre-allocate if need.
-                    handlePreAllocate(totalLength, model.getTempFilePath());
+                    handlePreAllocate(totalLength, model.getTargetFilePath());
 
                     final int connectionCount;
                     // start fetching
@@ -352,17 +354,17 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         // check resume available
         final long offset;
         final int connectionCount = model.getConnectionCount();
-        final String tempFilePath = model.getTempFilePath();
+        final String path = model.getTargetFilePath();
         final String targetFilePath = model.getTargetFilePath();
         final boolean isMultiConnection = connectionCount > 1;
         if (isMultiConnection && !supportSeek) {
             // can't support seek for multi-connection is fatal problem, so discard resume.
             offset = 0;
         } else {
-            final boolean resumeAvailable = FileDownloadUtils.isBreakpointAvailable(model.getId(), model);
+            final boolean resumeAvailable = FileDownloadUtils.isBreakpointAvailable(model);
             if (resumeAvailable) {
                 if (!supportSeek) {
-                    offset = new File(tempFilePath).length();
+                    offset = new File(path).length();
                 } else {
                     if (isMultiConnection) {
                         // when it is multi connections, the offset would be 0, because it only store on the connection table.
@@ -386,7 +388,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         isResumeAvailableOnDB = offset > 0;
         if (!isResumeAvailableOnDB) {
             database.removeConnections(model.getId());
-            FileDownloadUtils.deleteTaskFiles(targetFilePath, tempFilePath);
+            model.deleteTaskFiles();
         }
 
         return new ConnectionProfile(0, offset, 0);
@@ -448,7 +450,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             }
 
             database.removeConnections(model.getId());
-            FileDownloadUtils.deleteTaskFiles(model.getTargetFilePath(), model.getTempFilePath());
+            model.deleteTaskFiles();
             isResumeAvailableOnDB = false;
 
             if (oldEtag != null && oldEtag.equals(newEtag)) {
@@ -506,7 +508,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 .setWifiRequired(isWifiRequired)
                 .setConnection(connection)
                 .setConnectionProfile(profile)
-                .setPath(model.getTempFilePath());
+                .setPath(model.getTargetFilePath());
 
         model.setConnectionCount(1);
         database.updateConnectionCount(model.getId(), 1);
@@ -567,7 +569,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         final int id = model.getId();
         final String etag = model.getETag();
         final String url = redirectedUrl != null ? redirectedUrl : model.getUrl();
-        final String path = model.getTempFilePath();
+        final String path = model.getTargetFilePath();
 
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "fetch data with multiple connection(count: [%d]) for task[%d]",
@@ -648,6 +650,17 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
+    private void createLockFile() throws FileDownloadGiveUpRetryException, IOException {
+        final File lockFile = new File(model.getLockFilePath());
+            if (!lockFile.exists()) {
+                if (!lockFile.createNewFile()) {
+                    throw new FileDownloadGiveUpRetryException(FileDownloadUtils.
+                            formatString("failed to start task[%d] because try to create the" +
+                                    " lock file[%s] failed!", model.getId(), lockFile.getPath()));
+                }
+            }
+    }
+
     private void handlePreAllocate(long contentLength, String path)
             throws IOException, IllegalAccessException {
 
@@ -655,7 +668,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         try {
 
             if (contentLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
-                outputStream = FileDownloadUtils.createOutputStream(model.getTempFilePath());
+                outputStream = FileDownloadUtils.createOutputStream(model.getTargetFilePath());
                 final long breakpointBytes = new File(path).length();
                 final long requiredSpaceBytes = contentLength - breakpointBytes;
 
@@ -736,7 +749,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             if (isSingleConnection && code == HTTP_REQUESTED_RANGE_NOT_SATISFIABLE) {
                 if (!isTriedFixRangeNotSatisfiable) {
-                    FileDownloadUtils.deleteTaskFiles(model.getTargetFilePath(), model.getTempFilePath());
+                    model.deleteTaskFiles();
                     isTriedFixRangeNotSatisfiable = true;
                     return true;
                 }
@@ -825,9 +838,9 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             final int fileCaseId = FileDownloadUtils.generateId(model.getUrl(),
                     targetFilePath);
 
+
             // whether the file with the filename has been existed.
-            if (FileDownloadHelper.inspectAndInflowDownloaded(id,
-                    targetFilePath, isForceReDownload, false)) {
+            if (FileDownloadHelper.inspectAndInflowDownloaded(model, isForceReDownload, false)) {
                 database.remove(id);
                 database.removeConnections(id);
                 throw new DiscardSafely();
@@ -853,9 +866,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 // the another task with the same file name and url is paused
                 database.remove(fileCaseId);
                 database.removeConnections(fileCaseId);
-                FileDownloadUtils.deleteTargetFile(model.getTargetFilePath());
 
-                if (FileDownloadUtils.isBreakpointAvailable(fileCaseId, fileCaseModel)) {
+                if (FileDownloadUtils.isBreakpointAvailable(fileCaseModel)) {
                     model.setSoFar(fileCaseModel.getSoFar());
                     model.setTotal(fileCaseModel.getTotal());
                     model.setETag(fileCaseModel.getETag());
@@ -877,7 +889,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             // whether there is an another running task with the same target-file-path.
             if (FileDownloadHelper.inspectAndInflowConflictPath(id, model.getSoFar(),
-                    model.getTempFilePath(),
                     targetFilePath,
                     threadPoolMonitor)) {
                 database.remove(id);
@@ -896,8 +907,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         return alive || this.statusCallback.isAlive();
     }
 
-    public String getTempFilePath() {
-        return model.getTempFilePath();
+    public String getFilePath() {
+        return model.getTargetFilePath();
     }
 
     class RetryDirectly extends Throwable {
