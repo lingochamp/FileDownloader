@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.download;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -26,7 +27,6 @@ import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
@@ -52,13 +52,14 @@ public class DownloadLaunchRunnableTest {
     @Test
     public void run_noWifiButRequired_callbackNetworkError() {
         // init context
-        final Context context = spy(application);
-        when(context.getApplicationContext()).thenReturn(context);
-        FileDownloader.init(context, new DownloadMgrInitialParams.InitCustomMaker()
-                .database(getMockNonOptDatabaseMaker()));
+        final Application spyApplication = spy(application);
+        when(spyApplication.getApplicationContext()).thenReturn(spyApplication);
+        FileDownloader.setupOnApplicationOnCreate(spyApplication)
+                .database(getMockNonOptDatabaseMaker())
+                .commit();
 
         // no wifi state
-        mockContextNoWifiState(context);
+        mockContextNoWifiState(spyApplication);
 
         // pending model
         final FileDownloadModel model = mock(FileDownloadModel.class);
