@@ -97,6 +97,7 @@ public class DownloadRunnable implements Runnable {
                 isConnected = true;
                 final FetchDataTask.Builder builder = new FetchDataTask.Builder();
 
+                if (paused) return;
                 fetchDataTask = builder
                         .setDownloadId(downloadId)
                         .setConnectionIndex(connectionIndex)
@@ -110,6 +111,9 @@ public class DownloadRunnable implements Runnable {
 
 
                 fetchDataTask.run();
+                if (paused){
+                    fetchDataTask.pause();
+                }
                 break;
             } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException | IllegalArgumentException e) {
                 if (callback.isRetry(e)) {

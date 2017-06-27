@@ -89,6 +89,8 @@ public class FetchDataTask {
     public void run() throws IOException, IllegalAccessException, IllegalArgumentException,
             FileDownloadGiveUpRetryException {
 
+        if (paused) return;
+
         final long contentLength = FileDownloadUtils.findContentLength(connectionIndex, connection);
         if (contentLength == 0) {
             throw new FileDownloadGiveUpRetryException(FileDownloadUtils.
@@ -120,6 +122,8 @@ public class FetchDataTask {
 
             byte[] buff = new byte[BUFFER_SIZE];
 
+            if (paused) return;
+
             do {
                 int byteCount = inputStream.read(buff);
                 if (byteCount == -1) {
@@ -136,9 +140,7 @@ public class FetchDataTask {
                 checkAndSync();
 
                 // check status
-                if (paused) {
-                    return;
-                }
+                if (paused) return;
 
                 if (isWifiRequired && FileDownloadUtils.isNetworkNotOnWifiType()) {
                     throw new FileDownloadNetworkPolicyException();

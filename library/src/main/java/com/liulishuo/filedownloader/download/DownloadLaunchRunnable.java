@@ -263,6 +263,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     handleFirstConnected(firstConnectionTask.getRequestHeader(),
                             firstConnectionTask, connection);
 
+                    if (paused) return;
+
                     // 2. fetch
                     checkupBeforeFetch();
                     final long totalLength = model.getTotal();
@@ -288,6 +290,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                                         " must be larger than 0", connection));
                     }
 
+                    if (paused) return;
                     isSingleConnection = connectionCount == 1;
                     if (isSingleConnection) {
                         // single connection
@@ -502,6 +505,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         database.updateConnectionCount(model.getId(), 1);
         singleFetchDataTask = builder.build();
         singleFetchDataTask.run();
+        if (paused) singleFetchDataTask.pause();
     }
 
     private void fetchWithMultipleConnectionFromResume(final int connectionCount, final List<ConnectionModel> connectionModelList) throws InterruptedException {
@@ -613,8 +617,13 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
         List<Callable<Object>> subTasks = new ArrayList<>(downloadRunnableList.size());
         for (DownloadRunnable runnable : downloadRunnableList) {
+            if (paused) {
+                runnable.pause();
+                continue;
+            }
             subTasks.add(Executors.callable(runnable));
         }
+        if (paused) return;
 
         List<Future<Object>> subTaskFutures = DOWNLOAD_EXECUTOR.invokeAll(subTasks);
         if (FileDownloadLog.NEED_LOG) {
