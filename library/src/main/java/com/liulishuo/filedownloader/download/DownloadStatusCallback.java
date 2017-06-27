@@ -450,7 +450,13 @@ public class DownloadStatusCallback implements Handler.Callback {
         onStatusChanged(FileDownloadStatus.error);
     }
 
+    private boolean isFirstCallback = true;
     private boolean isNeedCallbackToUser(final long now) {
+        if (isFirstCallback) {
+            isFirstCallback = false;
+            return true;
+        }
+
         final long callbackTimeDelta = now - lastCallbackTimestamp;
 
 
