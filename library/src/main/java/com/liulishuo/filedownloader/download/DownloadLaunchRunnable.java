@@ -263,7 +263,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     handleFirstConnected(firstConnectionTask.getRequestHeader(),
                             firstConnectionTask, connection);
 
-                    if (paused) return;
+                    if (paused) {
+                        model.setStatus(FileDownloadStatus.paused);
+                        return;
+                    }
 
                     // 2. fetch
                     checkupBeforeFetch();
@@ -290,7 +293,11 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                                         " must be larger than 0", connection));
                     }
 
-                    if (paused) return;
+                    if (paused) {
+                        model.setStatus(FileDownloadStatus.paused);
+                        return;
+                    }
+
                     isSingleConnection = connectionCount == 1;
                     if (isSingleConnection) {
                         // single connection
@@ -504,8 +511,12 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         model.setConnectionCount(1);
         database.updateConnectionCount(model.getId(), 1);
         singleFetchDataTask = builder.build();
-        singleFetchDataTask.run();
-        if (paused) singleFetchDataTask.pause();
+        if (paused) {
+            model.setStatus(FileDownloadStatus.paused);
+            singleFetchDataTask.pause();
+        } else {
+            singleFetchDataTask.run();
+        }
     }
 
     private void fetchWithMultipleConnectionFromResume(final int connectionCount, final List<ConnectionModel> connectionModelList) throws InterruptedException {
@@ -623,7 +634,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             }
             subTasks.add(Executors.callable(runnable));
         }
-        if (paused) return;
+        if (paused) {
+            model.setStatus(FileDownloadStatus.paused);
+            return;
+        }
 
         List<Future<Object>> subTaskFutures = DOWNLOAD_EXECUTOR.invokeAll(subTasks);
         if (FileDownloadLog.NEED_LOG) {
