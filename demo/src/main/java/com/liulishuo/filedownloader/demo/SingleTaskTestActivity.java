@@ -1,16 +1,17 @@
 package com.liulishuo.filedownloader.demo;
 
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadSampleListener;
 import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -324,7 +325,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
 
         private void toast(final String msg) {
             if (this.weakReferenceContext != null && this.weakReferenceContext.get() != null) {
-                Toast.makeText(this.weakReferenceContext.get(), msg, Toast.LENGTH_SHORT).show();
+                Snackbar.make(weakReferenceContext.get().startBtn1, msg, Snackbar.LENGTH_LONG).show();
             }
         }
 
