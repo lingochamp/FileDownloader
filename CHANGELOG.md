@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.8
+
+_2017-06-28_
+
+#### Fix
+
+- Fix(no-response): fix no-response when switch between pause and start for the same task very fast frequency. Closes #625
+
 ## Version 1.5.7
 
 _2017-06-25_

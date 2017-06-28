@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.8
+
+_2017-06-28_
+
+#### 修复
+
+- 修复(无响应): 修复非常快速的对相同任务启动、暂停来回切换会使得任务到后面没有响应的问题。Closes #625
+
 ## Version 1.5.7
 
 _2017-06-25_
