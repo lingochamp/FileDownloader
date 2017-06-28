@@ -19,8 +19,8 @@ package com.liulishuo.filedownloader.services;
 import com.liulishuo.filedownloader.connection.DefaultConnectionCountAdapter;
 import com.liulishuo.filedownloader.connection.FileDownloadUrlConnection;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
+import com.liulishuo.filedownloader.stream.DefaultOutputStreamCreator;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
-import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -163,7 +163,7 @@ public class DownloadMgrInitialParams {
     }
 
     private FileDownloadHelper.OutputStreamCreator createDefaultOutputStreamCreator() {
-        return new FileDownloadRandomAccessFile.Creator();
+        return new DefaultOutputStreamCreator();
     }
 
     private FileDownloadHelper.ConnectionCreator createDefaultConnectionCreator() {

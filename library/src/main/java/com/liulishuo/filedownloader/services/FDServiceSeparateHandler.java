@@ -17,6 +17,7 @@ package com.liulishuo.filedownloader.services;
 
 import android.app.Notification;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
@@ -81,10 +82,10 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     @Override
     public void start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
                       int callbackProgressMinIntervalMillis, int autoRetryTimes, boolean forceReDownload,
-                      FileDownloadHeader header, boolean isWifiRequired) throws RemoteException {
+                      FileDownloadHeader header, boolean isWifiRequired, Uri uri) throws RemoteException {
         downloadManager.start(url, path, pathAsDirectory, callbackProgressTimes,
                 callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header,
-                isWifiRequired);
+                isWifiRequired, uri);
     }
 
     @Override

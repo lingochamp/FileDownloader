@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.model;
 
 import android.content.ContentValues;
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -49,6 +50,7 @@ public class FileDownloadModel implements Parcelable {
     private String path;
     public final static String PATH = "path";
 
+    private Uri uri;
 
     private boolean pathAsDirectory;
     public final static String PATH_AS_DIRECTORY = "pathAsDirectory";
@@ -81,6 +83,13 @@ public class FileDownloadModel implements Parcelable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public void setUri(Uri uri) {
+        this.path = uri.getPath();
+        this.pathAsDirectory = false;
+
+        this.uri = uri;
     }
 
     public void setPath(String path, boolean pathAsDirectory) {
@@ -132,6 +141,10 @@ public class FileDownloadModel implements Parcelable {
      */
     public String getTargetFilePath() {
         return FileDownloadUtils.getTargetFilePath(getPath(), isPathAsDirectory(), getFilename());
+    }
+
+    public Uri getUri() {
+        return this.uri;
     }
 
     public String getLockFilePath() {
@@ -278,6 +291,7 @@ public class FileDownloadModel implements Parcelable {
         dest.writeString(this.eTag);
         dest.writeInt(this.connectionCount);
         dest.writeByte(this.isLargeFile ? (byte) 1 : (byte) 0);
+        dest.writeParcelable(uri, flags);
     }
 
     public FileDownloadModel() {
@@ -296,6 +310,7 @@ public class FileDownloadModel implements Parcelable {
         this.eTag = in.readString();
         this.connectionCount = in.readInt();
         this.isLargeFile = in.readByte() != 0;
+        this.uri = in.readParcelable(Uri.class.getClassLoader());
     }
 
     public static final Parcelable.Creator<FileDownloadModel> CREATOR = new Parcelable.Creator<FileDownloadModel>() {

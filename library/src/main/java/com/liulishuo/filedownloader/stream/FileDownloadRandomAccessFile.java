@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader.stream;
 
+import android.net.Uri;
+
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 import java.io.File;
@@ -64,6 +66,11 @@ public class FileDownloadRandomAccessFile implements FileDownloadOutputStream {
         @Override
         public FileDownloadOutputStream create(File file) throws FileNotFoundException {
             return new FileDownloadRandomAccessFile(file);
+        }
+
+        @Override
+        public FileDownloadOutputStream create(Uri uri) throws FileNotFoundException {
+            return new FileDownloadRandomAccessFile(new File(uri.getPath()));
         }
 
         @Override

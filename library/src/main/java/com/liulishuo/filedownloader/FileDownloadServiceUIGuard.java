@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader;
 
 import android.app.Notification;
+import android.net.Uri;
 import android.os.IBinder;
 import android.os.RemoteException;
 
@@ -91,7 +92,7 @@ class FileDownloadServiceUIGuard extends
                          final int callbackProgressTimes,
                          final int callbackProgressMinIntervalMillis,
                          final int autoRetryTimes, final boolean forceReDownload,
-                         final FileDownloadHeader header, final boolean isWifiRequired) {
+                         final FileDownloadHeader header, final boolean isWifiRequired, Uri uri) {
         if (!isConnected()) {
             return DownloadServiceNotConnectedHelper.start(url, path, pathAsDirectory);
         }
@@ -99,7 +100,7 @@ class FileDownloadServiceUIGuard extends
         try {
             getService().start(url, path, pathAsDirectory, callbackProgressTimes,
                     callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header,
-                    isWifiRequired);
+                    isWifiRequired, uri);
         } catch (RemoteException e) {
             e.printStackTrace();
 

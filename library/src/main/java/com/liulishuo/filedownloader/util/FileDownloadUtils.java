@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
@@ -558,7 +559,8 @@ public class FileDownloadUtils {
         return filename;
     }
 
-    public static FileDownloadOutputStream createOutputStream(final String path) throws IOException {
+    public static FileDownloadOutputStream createOutputStream(final Uri uri, final String path) throws IOException {
+        if (uri != null) return CustomComponentHolder.getImpl().createOutputStream(uri);
 
         if (TextUtils.isEmpty(path)) {
             throw new RuntimeException("found invalid internal destination path, empty");

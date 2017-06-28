@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader.services;
 
 
 import android.content.Context;
+import android.net.Uri;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
@@ -38,7 +39,7 @@ import java.util.List;
  * The downloading manager in FileDownloadService, which is used to control all download-inflow.
  * <p/>
  * Handling real {@link #start(String, String, boolean, int, int, int, boolean, FileDownloadHeader,
- * boolean)}.
+ * boolean, Uri)}.
  *
  * @see FileDownloadThreadPool
  * @see DownloadLaunchRunnable
@@ -59,7 +60,8 @@ class FileDownloadManager implements IThreadPoolMonitor {
                                    final int callbackProgressTimes,
                                    final int callbackProgressMinIntervalMillis,
                                    final int autoRetryTimes, final boolean forceReDownload,
-                                   final FileDownloadHeader header, final boolean isWifiRequired) {
+                                   final FileDownloadHeader header, final boolean isWifiRequired,
+                                   final Uri uri) {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "request start the task with url(%s) path(%s) isDirectory(%B)",
                     url, path, pathAsDirectory);

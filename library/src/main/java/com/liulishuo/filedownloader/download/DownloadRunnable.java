@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.download;
 
+import android.net.Uri;
 import android.os.Process;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
@@ -36,6 +37,7 @@ public class DownloadRunnable implements Runnable {
     private final ConnectTask connectTask;
     private final ProcessCallback callback;
     private final String path;
+    private final Uri uri;
     private final boolean isWifiRequired;
 
     private FetchDataTask fetchDataTask;
@@ -45,7 +47,7 @@ public class DownloadRunnable implements Runnable {
     final int connectionIndex;
 
     private DownloadRunnable(int id, int connectionIndex, ConnectTask connectTask,
-                             ProcessCallback callback, boolean isWifiRequired, String path) {
+                             ProcessCallback callback, boolean isWifiRequired, String path, Uri uri) {
         this.downloadId = id;
         this.connectionIndex = connectionIndex;
         this.paused = false;
@@ -53,6 +55,7 @@ public class DownloadRunnable implements Runnable {
         this.path = path;
         this.connectTask = connectTask;
         this.isWifiRequired = isWifiRequired;
+        this.uri = uri;
     }
 
     public void pause() {
@@ -107,6 +110,7 @@ public class DownloadRunnable implements Runnable {
                         .setConnection(connection)
                         .setConnectionProfile(this.connectTask.getProfile())
                         .setPath(path)
+                        .setUri(uri)
                         .build();
 
 
@@ -147,6 +151,7 @@ public class DownloadRunnable implements Runnable {
         private final ConnectTask.Builder connectTaskBuilder = new ConnectTask.Builder();
         private ProcessCallback callback;
         private String path;
+        private Uri uri;
         private Boolean isWifiRequired;
         private Integer connectionIndex;
 
@@ -196,6 +201,11 @@ public class DownloadRunnable implements Runnable {
             return this;
         }
 
+        public Builder setUri(Uri uri) {
+            this.uri = uri;
+            return this;
+        }
+
         public DownloadRunnable build() {
             if (callback == null || path == null || isWifiRequired == null || connectionIndex == null)
                 throw new IllegalArgumentException(FileDownloadUtils.formatString("%s %s %B"
@@ -203,12 +213,12 @@ public class DownloadRunnable implements Runnable {
 
             final ConnectTask connectTask = connectTaskBuilder.build();
             return new DownloadRunnable(connectTask.downloadId, connectionIndex, connectTask,
-                    callback, isWifiRequired, path);
+                    callback, isWifiRequired, path, uri);
         }
 
         DownloadRunnable buildForTest(ConnectTask connectTask) {
             return new DownloadRunnable(connectTask.downloadId, 0, connectTask,
-                    callback, false, "");
+                    callback, false, "", uri);
         }
 
     }

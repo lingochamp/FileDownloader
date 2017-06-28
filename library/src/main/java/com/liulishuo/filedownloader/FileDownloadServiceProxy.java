@@ -17,6 +17,7 @@ package com.liulishuo.filedownloader;
 
 import android.app.Notification;
 import android.content.Context;
+import android.net.Uri;
 
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
@@ -61,10 +62,10 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     public boolean start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
                          int callbackProgressMinIntervalMillis,
                          int autoRetryTimes, boolean forceReDownload, FileDownloadHeader header,
-                         boolean isWifiRequired) {
+                         boolean isWifiRequired, Uri uri) {
         return handler.start(url, path, pathAsDirectory, callbackProgressTimes,
                 callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header,
-                isWifiRequired);
+                isWifiRequired, uri);
     }
 
     @Override

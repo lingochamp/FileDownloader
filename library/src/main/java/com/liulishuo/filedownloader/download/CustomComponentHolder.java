@@ -16,6 +16,8 @@
 
 package com.liulishuo.filedownloader.download;
 
+import android.net.Uri;
+
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
@@ -67,6 +69,10 @@ public class CustomComponentHolder {
 
     public FileDownloadOutputStream createOutputStream(File file) throws FileNotFoundException {
         return getOutputStreamCreator().create(file);
+    }
+
+    public FileDownloadOutputStream createOutputStream(Uri uri) throws FileNotFoundException {
+        return getOutputStreamCreator().create(uri);
     }
 
     public FileDownloadHelper.IdGenerator getIdGeneratorInstance() {

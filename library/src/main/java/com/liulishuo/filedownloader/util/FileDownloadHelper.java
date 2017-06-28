@@ -18,6 +18,7 @@ package com.liulishuo.filedownloader.util;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.net.Uri;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
@@ -156,6 +157,8 @@ public class FileDownloadHelper {
          * @see FileDownloadBufferedOutputStream.Creator
          */
         FileDownloadOutputStream create(File file) throws FileNotFoundException;
+
+        FileDownloadOutputStream create(Uri uri) throws FileNotFoundException;
 
         /**
          * @return {@code true} if the {@link FileDownloadOutputStream} is created through

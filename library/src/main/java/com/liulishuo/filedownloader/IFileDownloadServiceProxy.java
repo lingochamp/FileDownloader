@@ -17,6 +17,7 @@ package com.liulishuo.filedownloader;
 
 import android.app.Notification;
 import android.content.Context;
+import android.net.Uri;
 
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 
@@ -28,7 +29,7 @@ public interface IFileDownloadServiceProxy {
                   final int callbackProgressTimes,
                   final int callbackProgressMinIntervalMillis,
                   final int autoRetryTimes, boolean forceReDownload,
-                  final FileDownloadHeader header, boolean isWifiRequired);
+                  final FileDownloadHeader header, boolean isWifiRequired, Uri uri);
 
     boolean pause(final int id);
 

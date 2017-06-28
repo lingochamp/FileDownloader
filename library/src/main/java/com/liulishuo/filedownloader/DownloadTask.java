@@ -16,12 +16,16 @@
 
 package com.liulishuo.filedownloader;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -43,6 +47,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
     private final String mUrl;
     private String mPath;
+    private Uri mUri;
     private String mFilename;
     private boolean mPathAsDirectory;
 
@@ -95,6 +100,12 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
     @Override
     public BaseDownloadTask setPath(final String path, final boolean pathAsDirectory) {
+        if (this.mUri != null) {
+            FileDownloadLog.w(this, "the uri[%s] you set is discard because of you " +
+                    "provide path: %s %B", mUri, path, pathAsDirectory);
+            this.mUri = null;
+        }
+
         this.mPath = path;
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "setPath %s", path);
@@ -111,6 +122,25 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
             this.mFilename = new File(path).getName();
         }
 
+        return this;
+    }
+
+    @Override
+    public BaseDownloadTask setUri(Uri uri) {
+        if (this.mPath != null) {
+            FileDownloadLog.w(this, "the path[%s, %B] you set is discard because of you " +
+                    "provide uri: %s", mPath, mPathAsDirectory, mUri);
+            this.mPath = null;
+            this.mPathAsDirectory = false;
+        }
+
+        final int permission = FileDownloadHelper.getAppContext().checkCallingUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        if (permission == PackageManager.PERMISSION_DENIED) {
+            throw new IllegalArgumentException(FileDownloadUtils.
+                    formatString("please provide a uri we can write access, you provide " +
+                            "uri[%s] we can't write to it.", uri));
+        }
+        this.mUri = uri;
         return this;
     }
 
@@ -385,6 +415,11 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public String getPath() {
         return mPath;
+    }
+
+    @Override
+    public Uri getUri() {
+        return mUri;
     }
 
     @Override

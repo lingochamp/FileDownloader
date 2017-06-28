@@ -29,7 +29,7 @@ import java.io.IOException;
  * <p/>
  * When the resource is non-Chunked(normally), we will check the space and handle this problem before
  * fetch data from the input stream:
- * {@link FileDownloadUtils#createOutputStream(String)}
+ * {@link FileDownloadUtils#createOutputStream(android.net.Uri, String)}
  * When the resource is chunked, we will handle this problem when the free space is not enough to
  * store the following chunk:
  * {@link DownloadStatusCallback#exFiltrate(Exception)}

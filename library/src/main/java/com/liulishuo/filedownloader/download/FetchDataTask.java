@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.download;
 
+import android.net.Uri;
 import android.os.SystemClock;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
@@ -48,6 +49,7 @@ public class FetchDataTask {
     private final long startOffset;
     private final long endOffset;
     private final String path;
+    private final Uri uri;
 
     long currentOffset;
     private FileDownloadOutputStream outputStream;
@@ -71,7 +73,7 @@ public class FetchDataTask {
 
     private FetchDataTask(FileDownloadConnection connection, ConnectionProfile connectionProfile,
                           DownloadRunnable host, int id, int connectionIndex,
-                          boolean isWifiRequired, ProcessCallback callback, String path) {
+                          boolean isWifiRequired, ProcessCallback callback, String path, Uri uri) {
         this.callback = callback;
         this.path = path;
         this.connection = connection;
@@ -80,10 +82,12 @@ public class FetchDataTask {
         this.connectionIndex = connectionIndex;
         this.downloadId = id;
         this.database = CustomComponentHolder.getImpl().getDatabaseInstance();
+        this.uri = uri;
 
         startOffset = connectionProfile.startOffset;
         endOffset = connectionProfile.endOffset;
         currentOffset = connectionProfile.currentOffset;
+
     }
 
     public void run() throws IOException, IllegalAccessException, IllegalArgumentException,
@@ -108,7 +112,7 @@ public class FetchDataTask {
                 throw new IllegalAccessException("can't using multi-download when the output stream can't support seek");
             }
 
-            this.outputStream = outputStream = FileDownloadUtils.createOutputStream(path);
+            this.outputStream = outputStream = FileDownloadUtils.createOutputStream(uri, path);
             if (isSupportSeek) {
                 outputStream.seek(currentOffset);
             }
@@ -233,6 +237,7 @@ public class FetchDataTask {
         ConnectionProfile connectionProfile;
         ProcessCallback callback;
         String path;
+        Uri uri;
         Boolean isWifiRequired;
         Integer connectionIndex;
         Integer downloadId;
@@ -277,6 +282,11 @@ public class FetchDataTask {
             return this;
         }
 
+        public Builder setUri(Uri uri) {
+            this.uri = uri;
+            return this;
+        }
+
         public FetchDataTask build() throws IllegalArgumentException {
             if (isWifiRequired == null || connection == null || connectionProfile == null
                     || callback == null || path == null || downloadId == null || connectionIndex == null)
@@ -284,7 +294,7 @@ public class FetchDataTask {
 
             return new FetchDataTask(connection, connectionProfile, downloadRunnable,
                     downloadId, connectionIndex,
-                    isWifiRequired, callback, path);
+                    isWifiRequired, callback, path, uri);
         }
 
     }

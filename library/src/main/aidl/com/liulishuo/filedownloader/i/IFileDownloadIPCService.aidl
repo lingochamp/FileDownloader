@@ -4,6 +4,7 @@ import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadTaskAtom;
+import android.net.Uri;
 import android.app.Notification;
 
 interface IFileDownloadIPCService {
@@ -19,7 +20,7 @@ interface IFileDownloadIPCService {
     // will execute sync on the {@link FileDownloadEventPool#sendPool}
     void start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
                 int callbackProgressMinIntervalMillis, int autoRetryTimes, boolean forceReDownload,
-                in FileDownloadHeader header, boolean isWifiRequired);
+                in FileDownloadHeader header, boolean isWifiRequired, in Uri uri);
     boolean pause(int downloadId);
     void pauseAllTasks();
 

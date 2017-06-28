@@ -16,13 +16,17 @@
 
 package com.liulishuo.filedownloader.stream;
 
+import android.net.Uri;
+
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * The FileDownloadOutputStream implemented using {@link BufferedOutputStream}.
@@ -34,6 +38,14 @@ public class FileDownloadBufferedOutputStream implements FileDownloadOutputStrea
 
     FileDownloadBufferedOutputStream(File file) throws FileNotFoundException {
         mStream = new BufferedOutputStream(new FileOutputStream(file, true));
+    }
+
+    FileDownloadBufferedOutputStream(Uri uri) throws FileNotFoundException {
+        OutputStream outputStream = FileDownloadHelper.getAppContext().getContentResolver().
+                openOutputStream(uri, "rw");
+        if (outputStream == null) throw new IllegalArgumentException(
+                FileDownloadUtils.formatString("can't open output stream from uri[%s]", uri));
+        mStream = new BufferedOutputStream(outputStream);
     }
 
     @Override
@@ -66,6 +78,11 @@ public class FileDownloadBufferedOutputStream implements FileDownloadOutputStrea
         @Override
         public FileDownloadOutputStream create(File file) throws FileNotFoundException {
             return new FileDownloadBufferedOutputStream(file);
+        }
+
+        @Override
+        public FileDownloadOutputStream create(Uri uri) throws FileNotFoundException {
+            return new FileDownloadBufferedOutputStream(uri);
         }
 
         @Override

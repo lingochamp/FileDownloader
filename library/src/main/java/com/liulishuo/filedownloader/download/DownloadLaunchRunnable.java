@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.download;
 
 import android.Manifest;
+import android.net.Uri;
 import android.os.Process;
 
 import com.liulishuo.filedownloader.DownloadTask;
@@ -274,7 +275,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     // create lock file.
                     createLockFile();
                     // pre-allocate if need.
-                    handlePreAllocate(totalLength, model.getTargetFilePath());
+                    handlePreAllocate(totalLength);
 
                     final int connectionCount;
                     // start fetching
@@ -508,7 +509,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 .setWifiRequired(isWifiRequired)
                 .setConnection(connection)
                 .setConnectionProfile(profile)
-                .setPath(model.getTargetFilePath());
+                .setPath(model.getTargetFilePath())
+                .setUri(model.getUri());
 
         model.setConnectionCount(1);
         database.updateConnectionCount(model.getId(), 1);
@@ -570,6 +572,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         final String etag = model.getETag();
         final String url = redirectedUrl != null ? redirectedUrl : model.getUrl();
         final String path = model.getTargetFilePath();
+        final Uri uri = model.getUri();
 
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "fetch data with multiple connection(count: [%d]) for task[%d]",
@@ -610,6 +613,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     .setWifiRequired(isWifiRequired)
                     .setConnectionModel(connectionProfile)
                     .setPath(path)
+                    .setUri(uri)
                     .build();
 
             if (FileDownloadLog.NEED_LOG) {
@@ -661,14 +665,17 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             }
     }
 
-    private void handlePreAllocate(long contentLength, String path)
+    private void handlePreAllocate(long contentLength)
             throws IOException, IllegalAccessException {
+
+        final String path = model.getTargetFilePath();
 
         FileDownloadOutputStream outputStream = null;
         try {
 
             if (contentLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
-                outputStream = FileDownloadUtils.createOutputStream(model.getTargetFilePath());
+
+                outputStream = FileDownloadUtils.createOutputStream(model.getUri(), path);
                 final long breakpointBytes = new File(path).length();
                 final long requiredSpaceBytes = contentLength - breakpointBytes;
 
