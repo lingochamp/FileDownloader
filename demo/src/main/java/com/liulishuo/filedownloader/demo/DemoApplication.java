@@ -42,7 +42,8 @@ public class DemoApplication extends Application {
                         .connectTimeout(15_000) // set connection timeout.
                         .readTimeout(15_000) // set read timeout.
                         .proxy(Proxy.NO_PROXY) // set proxy
-                ));
+                ))
+                .commit();
 
         // below codes just for monitoring thread pools in the FileDownloader:
         IThreadDebugger debugger = ThreadDebugger.install(
