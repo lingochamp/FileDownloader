@@ -408,7 +408,7 @@ blockComplete -> completed
 | file.non-pre-allocation | 是否不需要在开始下载的时候，预申请整个文件的大小(`content-length`) | false
 | broadcast.completed | 是否需要在任务下载完成后发送一个完成的广播 | false
 
-> 如果你使用`broadcast.completed`并且接收任务完成的广播,你需要在AndroidManifest中申明`filedownloader.permission.RECEIVE_STATE`权限以及注册Action为`filedownloader.intent.action.completed`的广播并且使用`FileDownloadBroadcastHandler`来处理接收到的`Intent`。
+> 如果你使用`broadcast.completed`并且接收任务完成的广播,你需要注册Action为`filedownloader.intent.action.completed`的广播并且使用`FileDownloadBroadcastHandler`来处理接收到的`Intent`。
 
 III. 异常处理
 

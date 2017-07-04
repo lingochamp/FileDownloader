@@ -22,7 +22,7 @@ _2017-06-25_
 - 在FileDownloader内部处理了各类重定向的情况(300、301、302、303、307、308)。 Closes #611
 - 弃用了`FileDownloader#init`取而代之的是`FileDownloader#setup`，现在如果你不需要定制组件，就只需要在使用FileDownloader之前的任意使用调用这个方法就行。 Closes #500
 
-> - 如果你使用`broadcast.completed`并且接收任务完成的广播,你需要在AndroidManifest中申明`filedownloader.permission.RECEIVE_STATE`权限以及注册Action为`filedownloader.intent.action.completed`的广播并且使用`FileDownloadBroadcastHandler`来处理接收到的`Intent`。
+> - 如果你使用`broadcast.completed`并且接收任务完成的广播,你需要在AndroidManifest中注册Action为`filedownloader.intent.action.completed`的广播并且使用`FileDownloadBroadcastHandler`来处理接收到的`Intent`。
 > - 现在, 不再使用`FileDownloader#init`, 取而代之的，如果你需要注册你的定制组件，你需要在`Application#onCreate`中调用`FileDownloader.setupOnApplicationOnCreate(application):InitCustomMaker`, 否则你只需要在使用FileDownloader之前的任意时候调用`FileDownloader.setup(Context)`即可。
 
 #### 修复
