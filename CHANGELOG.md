@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.5.9
+
+_2017-07-04_
+
+#### Fix
+
+- Fix(duplicate-permission): fix `INSTALL_FAILED_DUPLICATE_PERMISSION` when there are more than one application using FileDownloader lib 1.5.7 or more newer since Android 5.0. This problem is raised since v1.5.7, because of we declared permission for receiving completed status broadcast more secure, now we remove it to fix this problem. Closes #641
+
 ## Version 1.5.8
 
 _2017-06-28_

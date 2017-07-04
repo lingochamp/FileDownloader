@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.5.9
+
+_2017-07-04_
+
+#### 修复
+
+- 修复(duplicate-permission): 修复在Android 5.0或更高版本系统的手机中已经有一个应用引用了1.5.7或更新版本的FileDownloader后，再安装引用1.5.7或更新版本的FileDownloader的应用会报`INSTALL_FAILED_DUPLICATE_PERMISSION`的问题，这个问题是因为在1.5.7版本中我们申明了一个接收结束广播的权限导致，现在我们移除了这个权限申明来修复这个问题。Closes #641
+
 ## Version 1.5.8
 
 _2017-06-28_
