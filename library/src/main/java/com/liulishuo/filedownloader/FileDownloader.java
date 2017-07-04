@@ -100,7 +100,7 @@ public class FileDownloader {
         if (context == null)
             throw new IllegalArgumentException("the provided context must not be null!");
 
-        init(context, null);
+        setup(context);
     }
 
 
