@@ -27,7 +27,6 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
  * The handler broadcast from filedownloader.
  */
 public class FileDownloadBroadcastHandler {
-    public final static String PERMISSION = "filedownloader.permission.RECEIVE_STATE";
     public final static String ACTION_COMPLETED = "filedownloader.intent.action.completed";
     public final static String KEY_MODEL = "model";
 
@@ -54,6 +53,6 @@ public class FileDownloadBroadcastHandler {
         final Intent intent = new Intent(ACTION_COMPLETED);
         intent.putExtra(KEY_MODEL, model);
 
-        FileDownloadHelper.getAppContext().sendBroadcast(intent, PERMISSION);
+        FileDownloadHelper.getAppContext().sendBroadcast(intent);
     }
 }

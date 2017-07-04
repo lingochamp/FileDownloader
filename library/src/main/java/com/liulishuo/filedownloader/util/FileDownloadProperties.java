@@ -108,9 +108,8 @@ import java.util.Properties;
  * when a task is completed task, you will receive the broadcast, and the main process will be relaunched
  * to handle the broadcast.
  * <p>
- * If you want to receive such broadcast, you also need to declare 'filedownloader.permission.RECEIVE_STATE'
- * permission on the manifest, and register receiver with 'filedownloader.intent.action.completed' action
- * name.
+ * If you want to receive such broadcast, you also need to register receiver with
+ * 'filedownloader.intent.action.completed' action name on 'AndroidManifest.xml'.
  * <p>
  * You can use {@link FileDownloadBroadcastHandler} class to parse the received intent.
  */
