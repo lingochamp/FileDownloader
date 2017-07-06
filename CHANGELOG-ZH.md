@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.0
+
+_2017-07-07_
+
+#### 修复
+
+- 修复(no-response): 修复当多线程分块下载同时完成时，有可能会由于线程安全问题导致completed无法得到回调的问题，具体情况参看[这里](https://github.com/lingochamp/FileDownloader/issues/631#issuecomment-313387299)。 Closes #631
+
 ## Version 1.5.9
 
 _2017-07-04_

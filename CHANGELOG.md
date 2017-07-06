@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.0
+
+_2017-07-07_
+
+#### Fix
+
+- Fix(no-response): Fix may occur no-respose when multiple connections complete fetch data simultaneously, more detail please move to [here](https://github.com/lingochamp/FileDownloader/issues/631#issuecomment-313451398). Closes #631
+
 ## Version 1.5.9
 
 _2017-07-04_
