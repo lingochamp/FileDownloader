@@ -716,7 +716,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             allConnectionCompleted = true;
         } else {
-            downloadRunnableList.remove(doneRunnable);
+            synchronized (downloadRunnableList) {
+                downloadRunnableList.remove(doneRunnable);
+            }
+
             if (downloadRunnableList.size() <= 0) {
                 allConnectionCompleted = true;
             }
