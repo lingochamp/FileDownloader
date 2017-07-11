@@ -27,11 +27,13 @@ public class ConnectionProfile {
     final long startOffset;
     final long currentOffset;
     final long endOffset;
+    final long contentLength;
 
-    ConnectionProfile(long startOffset, long currentOffset, long endOffset) {
+    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength) {
         this.startOffset = startOffset;
         this.currentOffset = currentOffset;
         this.endOffset = endOffset;
+        this.contentLength = contentLength;
     }
 
     @Override

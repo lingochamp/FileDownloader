@@ -47,6 +47,7 @@ public class FetchDataTask {
 
     private final long startOffset;
     private final long endOffset;
+    private final long contentLength;
     private final String path;
 
     long currentOffset;
@@ -84,6 +85,7 @@ public class FetchDataTask {
         startOffset = connectionProfile.startOffset;
         endOffset = connectionProfile.endOffset;
         currentOffset = connectionProfile.currentOffset;
+        contentLength = connectionProfile.contentLength;
     }
 
     public void run() throws IOException, IllegalAccessException, IllegalArgumentException,
@@ -95,6 +97,20 @@ public class FetchDataTask {
         if (contentLength == 0) {
             throw new FileDownloadGiveUpRetryException(FileDownloadUtils.
                     formatString("there isn't any content need to download on %d-%d with the content-length is 0", downloadId, connectionIndex));
+        }
+
+        if (this.contentLength > 0 && contentLength != this.contentLength) {
+            final String range;
+            if (endOffset == 0) {
+                range = FileDownloadUtils.formatString("range[%d-)", startOffset);
+            } else {
+                range = FileDownloadUtils.formatString("range[%d-%d)", startOffset, endOffset);
+            }
+            throw new FileDownloadGiveUpRetryException(FileDownloadUtils.
+                    formatString("require %s with contentLength(%d), but the " +
+                                    "backend response contentLength is %d on downloadId[%d]-connectionIndex[%d]," +
+                                    " please ask your backend dev to fix such problem.",
+                            range, this.contentLength, contentLength, downloadId, connectionIndex));
         }
 
         final long fetchBeginOffset = currentOffset;

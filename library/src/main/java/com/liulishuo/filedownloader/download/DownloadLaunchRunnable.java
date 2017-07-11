@@ -389,7 +389,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             FileDownloadUtils.deleteTaskFiles(targetFilePath, tempFilePath);
         }
 
-        return new ConnectionProfile(0, offset, 0);
+        return new ConnectionProfile(0, offset, 0, model.getTotal());
     }
 
     private void handleFirstConnected(Map<String, List<String>> requestHeader,
@@ -523,7 +523,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         if (connectionCount <= 1 || connectionModelList.size() != connectionCount)
             throw new IllegalArgumentException();
 
-        fetchWithMultipleConnection(connectionModelList);
+        fetchWithMultipleConnection(connectionModelList, model.getTotal());
     }
 
     private void fetchWithMultipleConnectionFromBeginning(final long totalLength, final int connectionCount) throws InterruptedException {
@@ -559,11 +559,11 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         model.setConnectionCount(connectionCount);
         database.updateConnectionCount(id, connectionCount);
 
-        fetchWithMultipleConnection(connectionModelList);
+        fetchWithMultipleConnection(connectionModelList, totalLength);
     }
 
 
-    private void fetchWithMultipleConnection(final List<ConnectionModel> connectionModelList) throws InterruptedException {
+    private void fetchWithMultipleConnection(final List<ConnectionModel> connectionModelList, final long totalLength) throws InterruptedException {
         final int id = model.getId();
         final String etag = model.getETag();
         final String url = redirectedUrl != null ? redirectedUrl : model.getUrl();
@@ -580,6 +580,14 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         // precondition failed on separate downloading.
         final boolean withEtag = isResumeAvailableOnDB;
         for (ConnectionModel connectionModel : connectionModelList) {
+            final long contentLength;
+            if (connectionModel.getEndOffset() == 0) {
+                // must be the last one
+                contentLength = totalLength - connectionModel.getCurrentOffset();
+            } else {
+                contentLength = connectionModel.getEndOffset() - connectionModel.getCurrentOffset() + 1;
+            }
+
             totalOffset += (connectionModel.getCurrentOffset() - connectionModel.getStartOffset());
 
             if (connectionModel.getEndOffset() == connectionModel.getCurrentOffset() - 1) {
@@ -596,7 +604,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             final ConnectionProfile connectionProfile = new ConnectionProfile(
                     connectionModel.getStartOffset(), connectionModel.getCurrentOffset(),
-                    connectionModel.getEndOffset());
+                    connectionModel.getEndOffset(), contentLength);
 
             final DownloadRunnable runnable = builder
                     .setId(id)
