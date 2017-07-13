@@ -56,17 +56,6 @@ public class FetchDataTask {
     private volatile boolean paused;
 
     public void pause() {
-        final boolean isFetchStarted = (outputStream != null);
-        if (isFetchStarted) {
-            sync();
-        } else {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "it[%d %d] is no need to persist the processing, because of the " +
-                        "output-stream isn't ready.", downloadId, connectionIndex);
-            }
-        }
-
-        // why do I assign paused argument need wait for sync? because of if paused the output-stream would be closed.
         paused = true;
     }
 
@@ -175,9 +164,7 @@ public class FetchDataTask {
 
             try {
                 if (outputStream != null)
-                    outputStream.sync();
-            } catch (IOException e) {
-                e.printStackTrace();
+                    sync();
             } finally {
                 if (outputStream != null)
                     try {
