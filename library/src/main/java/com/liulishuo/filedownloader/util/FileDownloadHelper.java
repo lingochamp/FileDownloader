@@ -109,6 +109,7 @@ public class FileDownloadHelper {
          * the one you determined when the task
          * first created ).
          * <p/>
+         * The best strategy is refer to how much speed of each connection for the ip:port not file size.
          *
          * @param downloadId  the download id.
          * @param url         the task url.
