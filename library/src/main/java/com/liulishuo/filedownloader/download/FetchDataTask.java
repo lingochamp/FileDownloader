@@ -91,9 +91,9 @@ public class FetchDataTask {
         if (this.contentLength > 0 && contentLength != this.contentLength) {
             final String range;
             if (endOffset == 0) {
-                range = FileDownloadUtils.formatString("range[%d-)", startOffset);
+                range = FileDownloadUtils.formatString("range[%d-)", currentOffset);
             } else {
-                range = FileDownloadUtils.formatString("range[%d-%d)", startOffset, endOffset);
+                range = FileDownloadUtils.formatString("range[%d-%d)", currentOffset, endOffset);
             }
             throw new FileDownloadGiveUpRetryException(FileDownloadUtils.
                     formatString("require %s with contentLength(%d), but the " +

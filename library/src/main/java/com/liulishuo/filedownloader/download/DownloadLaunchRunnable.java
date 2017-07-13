@@ -389,7 +389,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             FileDownloadUtils.deleteTaskFiles(targetFilePath, tempFilePath);
         }
 
-        return new ConnectionProfile(0, offset, 0, model.getTotal());
+        return new ConnectionProfile(0, offset, 0, model.getTotal() - offset);
     }
 
     private void handleFirstConnected(Map<String, List<String>> requestHeader,
