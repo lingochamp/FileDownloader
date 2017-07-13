@@ -2,6 +2,19 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.1
+
+_2017-07-13_
+
+#### Enhancement
+
+- Import Practicability: Throw `GiveUpException` directly when the response `content-length` isn't equal to the expect `content-length` calculated from range. Closes #636
+
+#### Fix
+
+- Fix: Fix sync twice when downloading paused/error.
+- Fix: fix file is destroyed when you download chunked file from breakpoint.
+
 ## Version 1.6.0
 
 _2017-07-07_

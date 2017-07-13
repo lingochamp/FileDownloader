@@ -2,6 +2,19 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.1
+
+_2017-07-13_
+
+#### 性能与提高
+
+- 提高实用性: 当返回的`content-length`不等于通过Range计算出来的`content-length`时直接抛回`GiveUpException`而不继续下载。 Closes #636
+
+#### 修复
+
+- 修复: 修复下载出现错误或暂停下载时强制多`sync`了一次的问题。
+- 修复: 修复当从断点中恢复chuncked任务后下载文件被损坏的问题。
+
 ## Version 1.6.0
 
 _2017-07-07_
