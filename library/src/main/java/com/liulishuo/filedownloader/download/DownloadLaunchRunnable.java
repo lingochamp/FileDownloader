@@ -443,7 +443,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             // the file on remote is changed
             if (isResumeAvailableOnDB) {
                 FileDownloadLog.w(this, "there is precondition failed on this request[%d] " +
-                        "with old etag[%s]、new etag[%s]、response code is %d",
+                                "with old etag[%s]、new etag[%s]、response code is %d",
                         id, oldEtag, newEtag, code);
             }
 
@@ -498,7 +498,20 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
-    private void fetchWithSingleConnection(final ConnectionProfile profile, FileDownloadConnection connection) throws IOException, IllegalAccessException {
+    private void fetchWithSingleConnection(final ConnectionProfile firstConnectionProfile,
+                                           FileDownloadConnection connection)
+            throws IOException, IllegalAccessException {
+        
+        final ConnectionProfile profile;
+        if (!acceptPartial) {
+            model.setSoFar(0);
+
+            profile = new ConnectionProfile(0, 0,
+                    firstConnectionProfile.endOffset, firstConnectionProfile.contentLength);
+        } else {
+            profile = firstConnectionProfile;
+        }
+
         final FetchDataTask.Builder builder = new FetchDataTask.Builder();
         builder.setCallback(this)
                 .setDownloadId(model.getId())
