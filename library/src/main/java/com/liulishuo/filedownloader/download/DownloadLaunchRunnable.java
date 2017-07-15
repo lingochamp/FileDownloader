@@ -540,7 +540,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     private void fetchWithMultipleConnectionFromBeginning(final long totalLength, final int connectionCount) throws InterruptedException {
-        int startOffset = 0;
+        long startOffset = 0;
         final long eachRegion = totalLength / connectionCount;
         final int id = model.getId();
 
