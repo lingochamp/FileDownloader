@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.2
+
+_2017-07-16_
+
+#### Fix
+
+- fix: fix raise 'offset < 0' exception when FileDownloader downloading file with the one split connection range begin with larger than 1.99G. Closes #669
+
 ## Version 1.6.1
 
 _2017-07-13_

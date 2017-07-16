@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.2
+
+_2017-07-16_
+
+#### 修复
+
+- 修复: 修复当FileDownloader下载文件有一个分块从大于1.99G的地方开始下载，就会发生'offset < 0'异常的问题。 Closes #669
+
 ## Version 1.6.1
 
 _2017-07-13_
