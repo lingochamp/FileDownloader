@@ -8,7 +8,7 @@ _2017-07-16_
 
 #### Fix
 
-- fix: fix raise 'offset < 0' exception when FileDownloader downloading file with the one split connection range begin with larger than 1.99G. Closes #669
+- Fix: Fix raise 'offset < 0' exception when FileDownloader downloading file with the one split connection range begin with larger than 1.99G. Closes #669
 
 ## Version 1.6.1
 
