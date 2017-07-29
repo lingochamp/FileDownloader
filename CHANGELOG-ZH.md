@@ -2,6 +2,15 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.3
+
+_2017-07-29_
+
+#### 修复
+
+- 修复: 修复当正在处理回调结束任务的事务时，调用了`pause`极小概率出现NPE的问题。 Closes #680
+- 修复: 修复当暂停或恢复`FileDownloaderSerialQueue`的时候，其已经完成了该操作，出现`MissingFormatArgumentException`的问题。 Closes #699
+
 ## Version 1.6.2
 
 _2017-07-16_

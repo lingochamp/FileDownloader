@@ -2,6 +2,15 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.3
+
+_2017-07-29_
+
+#### Fix
+
+- Fix: Fix the small probability occur npe when the task is calling back over status with user invoke pause simultaneously. Closes #680
+- Fix: Fix `MissingFormatArgumentException` when you pause or resume the FileDownloadserialQueue with it has already done it. Closes #699
+
 ## Version 1.6.2
 
 _2017-07-16_
