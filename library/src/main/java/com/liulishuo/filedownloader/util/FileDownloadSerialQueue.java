@@ -75,7 +75,8 @@ public class FileDownloadSerialQueue {
     public void pause() {
         synchronized (finishCallback) {
             if (paused) {
-                FileDownloadLog.w(this, "require pause this[%d] queue, but it has already been paused");
+                FileDownloadLog.w(this, "require pause this queue(remain %d), but " +
+                        "it has already been paused", mTasks.size());
                 return;
             }
 
@@ -96,7 +97,8 @@ public class FileDownloadSerialQueue {
     public void resume() {
         synchronized (finishCallback) {
             if (!paused) {
-                FileDownloadLog.w(this, "require resume this[%d] queue, but it is still running");
+                FileDownloadLog.w(this, "require resume this queue(remain %d), but it is" +
+                        " still running", mTasks.size());
                 return;
             }
 
