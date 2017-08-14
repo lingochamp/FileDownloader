@@ -127,6 +127,8 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
 
         final Object[] lists = listeners.toArray();
         for (Object o : lists) {
+            if (o == null) continue; // it has been removed while before listeners.toArray().
+
             if (((IDownloadListener) o).callback(event)) {
                 break;
             }
