@@ -37,6 +37,7 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.liulishuo.filedownloader.download.FetchDataTask.BUFFER_SIZE;
 import static com.liulishuo.filedownloader.model.FileDownloadModel.TOTAL_VALUE_IN_CHUNKED_RESOURCE;
@@ -121,14 +122,12 @@ public class DownloadStatusCallback implements Handler.Callback {
 
     private volatile long lastCallbackTimestamp = 0;
 
-    private volatile long callbackIncreaseBuffer = 0;
-    private final Object increaseLock = new Object();
+    private final AtomicLong callbackIncreaseBuffer = new AtomicLong();
 
     void onProgress(long increaseBytes) {
-        synchronized (increaseLock) {
-            this.callbackIncreaseBuffer += increaseBytes;
-            model.setSoFar(model.getSoFar() + increaseBytes);
-        }
+
+        callbackIncreaseBuffer.addAndGet(increaseBytes);
+        model.increaseSoFar(increaseBytes);
 
         model.setStatus(FileDownloadStatus.progress);
 
@@ -146,10 +145,8 @@ public class DownloadStatusCallback implements Handler.Callback {
     }
 
     void onRetry(Exception exception, int remainRetryTimes, long invalidIncreaseBytes) {
-        synchronized (increaseLock) {
-            this.callbackIncreaseBuffer = 0;
-            model.setSoFar(model.getSoFar() - invalidIncreaseBytes);
-        }
+        this.callbackIncreaseBuffer.set(0);
+        model.increaseSoFar(-invalidIncreaseBytes);
 
         if (handler == null) {
             // direct
@@ -372,9 +369,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         if (isNeedCallbackToUser) {
             lastCallbackTimestamp = now;
             onStatusChanged(FileDownloadStatus.progress);
-            synchronized (increaseLock) {
-                callbackIncreaseBuffer = 0;
-            }
+            callbackIncreaseBuffer.set(0);
         }
     }
 
@@ -460,7 +455,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         final long callbackTimeDelta = now - lastCallbackTimestamp;
 
 
-        return (callbackMinIntervalBytes != NO_ANY_PROGRESS_CALLBACK && callbackIncreaseBuffer >= callbackMinIntervalBytes)
+        return (callbackMinIntervalBytes != NO_ANY_PROGRESS_CALLBACK && callbackIncreaseBuffer.get() >= callbackMinIntervalBytes)
                 && (callbackTimeDelta >= callbackProgressMinInterval);
     }
 

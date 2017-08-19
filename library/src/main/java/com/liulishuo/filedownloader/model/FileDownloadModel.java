@@ -24,6 +24,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The model of the downloading task will be used in the filedownloader database.
@@ -58,7 +59,7 @@ public class FileDownloadModel implements Parcelable {
     private byte status;
     public final static String STATUS = "status";
 
-    private long soFar;
+    private final AtomicLong soFar;
     private long total;
 
     public final static String SOFAR = "sofar";
@@ -92,7 +93,11 @@ public class FileDownloadModel implements Parcelable {
     }
 
     public void setSoFar(long soFar) {
-        this.soFar = soFar;
+        this.soFar.set(soFar);
+    }
+
+    public void increaseSoFar(long increaseBytes){
+        this.soFar.addAndGet(increaseBytes);
     }
 
     public void setTotal(long total) {
@@ -145,7 +150,7 @@ public class FileDownloadModel implements Parcelable {
     }
 
     public long getSoFar() {
-        return soFar;
+        return soFar.get();
     }
 
     public long getTotal() {
@@ -274,7 +279,7 @@ public class FileDownloadModel implements Parcelable {
         dest.writeByte(this.pathAsDirectory ? (byte) 1 : (byte) 0);
         dest.writeString(this.filename);
         dest.writeByte(this.status);
-        dest.writeLong(this.soFar);
+        dest.writeLong(this.soFar.get());
         dest.writeLong(this.total);
         dest.writeString(this.errMsg);
         dest.writeString(this.eTag);
@@ -283,6 +288,7 @@ public class FileDownloadModel implements Parcelable {
     }
 
     public FileDownloadModel() {
+        this.soFar = new AtomicLong();
     }
 
     protected FileDownloadModel(Parcel in) {
@@ -292,7 +298,7 @@ public class FileDownloadModel implements Parcelable {
         this.pathAsDirectory = in.readByte() != 0;
         this.filename = in.readString();
         this.status = in.readByte();
-        this.soFar = in.readLong();
+        this.soFar = new AtomicLong(in.readLong());
         this.total = in.readLong();
         this.errMsg = in.readString();
         this.eTag = in.readString();
