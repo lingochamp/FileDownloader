@@ -89,9 +89,10 @@ public class DownloadRunnable implements Runnable {
 
                 if (code != HttpURLConnection.HTTP_PARTIAL && code != HttpURLConnection.HTTP_OK) {
                     throw new SocketException(FileDownloadUtils.
-                            formatString("Connection failed with code[%d] on task[%d], " +
+                            formatString("Connection failed with request[%s] response[%s] http-state[%d] on task[%d-%d], " +
                                             "which is changed after verify connection, so please try again.",
-                                    code, downloadId));
+                                    connectTask.getRequestHeader(), connection.getResponseHeaderFields(),
+                                    code, downloadId, connectionIndex));
                 }
 
                 isConnected = true;

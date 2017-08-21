@@ -607,8 +607,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 // [start, end), offset contain the start one, so need - 1.
                 // it has already done, so pass.
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "pass connection[%d], because it has been completed",
-                            connectionModel.getId());
+                    FileDownloadLog.d(this, "pass connection[%d-%d], because it has been completed",
+                            connectionModel.getId(), connectionModel.getIndex());
                 }
                 continue;
             }
