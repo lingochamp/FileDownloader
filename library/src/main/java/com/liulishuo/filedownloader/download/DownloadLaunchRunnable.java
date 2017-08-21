@@ -303,6 +303,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         // single connection
                         fetchWithSingleConnection(firstConnectionTask.getProfile(), connection);
                     } else {
+                        if (connection != null) {
+                            connection.ending();
+                            connection = null;
+                        }
                         // multiple connection
                         statusCallback.onMultiConnection();
                         if (isResumeAvailableOnDB) {
