@@ -283,6 +283,11 @@ public class FileDownloadUtils {
             final ActivityManager activityManager = (ActivityManager) context.
                     getSystemService(Context.ACTIVITY_SERVICE);
 
+            if (activityManager == null) {
+                FileDownloadLog.w(FileDownloadUtils.class, "fail to get the activity manager!");
+                return false;
+            }
+
             final List<ActivityManager.RunningAppProcessInfo> runningAppProcessInfoList =
                     activityManager.getRunningAppProcesses();
 
@@ -466,6 +471,12 @@ public class FileDownloadUtils {
     public static boolean isNetworkNotOnWifiType() {
         final ConnectivityManager manager = (ConnectivityManager) FileDownloadHelper.getAppContext().
                 getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (manager == null) {
+            FileDownloadLog.w(FileDownloadUtils.class, "failed to get connectivity manager!");
+            return true;
+        }
+
         final NetworkInfo info = manager.getActiveNetworkInfo();
 
         return info == null || info.getType() != ConnectivityManager.TYPE_WIFI;

@@ -1,11 +1,18 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Jacksgong">
     <words>
+      <w>buildship</w>
       <w>chunked</w>
+      <w>classpathentry</w>
       <w>dreamtobe</w>
       <w>etag</w>
       <w>filedownloader</w>
+      <w>gradleclasspathcontainer</w>
+      <w>gradleprojectbuilder</w>
+      <w>gradleprojectnature</w>
       <w>jacksgong</w>
+      <w>javabuilder</w>
+      <w>javanature</w>
       <w>liulishuo</w>
       <w>okhttp</w>
       <w>robolectric</w>
