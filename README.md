@@ -26,7 +26,7 @@ FileDownloader is installed by adding the following dependency to your `build.gr
 
 ```groovy
 dependencies {
-    compile 'com.liulishuo.filedownloader:library:1.6.3'
+    compile 'com.liulishuo.filedownloader:library:1.6.4'
 }
 ```
 
@@ -42,7 +42,8 @@ From now on, FileDownloader support following components to be customized by you
 | ConnectionCountAdapter | [ConnectionCountAdapter][ConnectionCountAdapter-java-link] | [DefaultConnectionCountAdapter][DefaultConnectionCountAdapter-java-link]
 | IdGenerator | [IdGenerator][IdGenerator-java-link] | [DefaultIdGenerator][DefaultIdGenerator-java-link]
 
-> If you want to use okhttp as your connection component, the simplest way is [this repo](https://github.com/Jacksgong/filedownloader-okhttp3-connection).
+> - If you want to use okhttp as your connection component, the simplest way is [this repo](https://github.com/Jacksgong/filedownloader-okhttp3-connection).
+> - If you don't want to use any database on FileDownloader(the database on FileDownloader is used for persist tasks' breakpoint info) just using [NoDatabaseImpl.java](https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/services/NoDatabaseImpl.java)
 
 ### How to valid it?
 

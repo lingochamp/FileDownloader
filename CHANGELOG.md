@@ -2,6 +2,23 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.4
+
+_2017-08-21_
+
+#### New Interfaces
+
+- Add `NoDatabaseImpl` for the case of some users need a no-database FileDownloader. Refs #727
+
+#### Enhancement
+
+- Import Performance: Using the `AtomicLong` instead of lock to make better efficiency on increase progressing.
+
+#### Fix
+
+- Fix: Fix response 416 http status because of the last connection range is wrong when resume downloading with the last connection has been downloaded. Closes #737
+- Fix(npe): Fix the small probability NPE crash when publish event with it has been removed on other thread. Closes #723
+
 ## Version 1.6.3
 
 _2017-07-29_

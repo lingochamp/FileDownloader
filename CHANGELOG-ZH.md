@@ -2,6 +2,23 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.4
+
+_2017-08-21_
+
+#### 新接口
+
+- 新增 `NoDatabaseImpl`: 为了有些用户需要一个没有数据库的FileDownloader的用户。 Refs #727
+
+#### 性能与提高
+
+- 提高性能: 使用`AtomicLong`代替锁的方式，使得下载进度递增性能更好。
+
+#### 修复
+
+- 修复(分块下载): 修复在断点续传时之前已经下载了分块下载的最后一块，可是在继续下载时重新请求了最后一块给了错误的Range导致416的错误。 Closes #737
+- 修复(npe): 修复极小概率当事件监听已经被其他线程移除时还在分发事件导致NPE的问题。 Closes #723
+
 ## Version 1.6.3
 
 _2017-07-29_
