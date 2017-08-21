@@ -587,8 +587,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         final String path = model.getTempFilePath();
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "fetch data with multiple connection(count: [%d]) for task[%d]",
-                    connectionModelList.size(), id);
+            FileDownloadLog.d(this, "fetch data with multiple connection(count: [%d]) for task[%d] totalLength[%d]",
+                    connectionModelList.size(), id, totalLength);
         }
 
         long totalOffset = 0;
@@ -607,7 +607,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             totalOffset += (connectionModel.getCurrentOffset() - connectionModel.getStartOffset());
 
-            if (connectionModel.getEndOffset() == connectionModel.getCurrentOffset() - 1) {
+            if (contentLength == 0) {
                 // [start, end), offset contain the start one, so need - 1.
                 // it has already done, so pass.
                 if (FileDownloadLog.NEED_LOG) {
