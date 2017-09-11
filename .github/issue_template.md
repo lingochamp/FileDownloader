@@ -7,7 +7,7 @@
 #### Issue
 
 1. What problem do you get?
-2. Which version of FileDownloader you are using when you produce such problem?
+2. Which version of FileDownloader are you using when you produce such problem?
 3. How to reproduce such problem?
 4. Do you set `FileDownloadLog.NEED_LOG=true`?
 5. Could you please reproduce this problem and provide all main process and `:filedownloader` process logcat 
