@@ -260,7 +260,7 @@ public class FileDownloadModel implements Parcelable {
 
     @Override
     public String toString() {
-        return FileDownloadUtils.formatString("id[%d], url[%s], path[%s], status[%d], sofar[%d]," +
+        return FileDownloadUtils.formatString("id[%d], url[%s], path[%s], status[%d], sofar[%s]," +
                         " total[%d], etag[%s], %s", id, url, path, status, soFar, total, eTag,
                 super.toString());
     }
