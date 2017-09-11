@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.5
+
+_2017-09-11_
+
+#### 修复
+
+- 修复(crash): 修复因为使用`%d`格式化`AtomicLong`导致`IllegalFormatConversionException`的问题。 Closes #743
+
 ## Version 1.6.4
 
 _2017-08-21_

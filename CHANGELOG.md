@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.5
+
+_2017-09-11_
+
+#### Fix
+
+- Fix: fix `IllegalFormatConversionException` because of format `AtomicLong` with `%d` on `FileDownloadModel.toString`. Closes #743
+
 ## Version 1.6.4
 
 _2017-08-21_
