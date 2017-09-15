@@ -52,9 +52,39 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         db = openHelper.getWritableDatabase();
     }
 
-    @Override
+     @Override
     public FileDownloadModel find(final int id) {
-        return downloaderModelMap.get(id);
+        FileDownloadModel model = downloaderModelMap.get(id);
+        if (model != null) {
+            return model;
+        }
+
+        Cursor c = null;
+        try {
+            c = db.rawQuery(FileDownloadUtils.formatString("SELECT * FROM %s WHERE %s = ?",
+                    TABLE_NAME, FileDownloadModel.ID), new String[]{Integer.toString(id)});
+
+            while (c.moveToNext()) {
+                model = new FileDownloadModel();
+                model.setId(c.getInt(c.getColumnIndex(FileDownloadModel.ID)));
+                model.setUrl(c.getString(c.getColumnIndex(FileDownloadModel.URL)));
+                model.setPath(c.getString(c.getColumnIndex(FileDownloadModel.PATH)),
+                        c.getShort(c.getColumnIndex(FileDownloadModel.PATH_AS_DIRECTORY)) == 1);
+                model.setStatus((byte) c.getShort(c.getColumnIndex(FileDownloadModel.STATUS)));
+                model.setSoFar(c.getLong(c.getColumnIndex(FileDownloadModel.SOFAR)));
+                model.setTotal(c.getLong(c.getColumnIndex(FileDownloadModel.TOTAL)));
+                model.setErrMsg(c.getString(c.getColumnIndex(FileDownloadModel.ERR_MSG)));
+                model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
+                model.setFilename(c.getString(c.getColumnIndex(FileDownloadModel.FILENAME)));
+                model.setConnectionCount(c.getInt(c.getColumnIndex(FileDownloadModel.CONNECTION_COUNT)));
+                
+                downloaderModelMap.put(model.getId(), model);
+            }
+        } finally {
+            if (c != null)
+                c.close();
+        }
+        return model;
     }
 
     @Override
