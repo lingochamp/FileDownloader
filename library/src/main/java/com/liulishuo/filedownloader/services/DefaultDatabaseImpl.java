@@ -77,7 +77,8 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
                 model.setETag(c.getString(c.getColumnIndex(FileDownloadModel.ETAG)));
                 model.setFilename(c.getString(c.getColumnIndex(FileDownloadModel.FILENAME)));
                 model.setConnectionCount(c.getInt(c.getColumnIndex(FileDownloadModel.CONNECTION_COUNT)));
-
+                
+                downloaderModelMap.put(model.getId(), model);
             }
         } finally {
             if (c != null)
