@@ -63,9 +63,10 @@ public class DownloadStatusCallback implements Handler.Callback {
 
     private Handler handler;
     private HandlerThread handlerThread;
+    private DownloadLaunchRunnable downloadLaunchRunnable;
 
     DownloadStatusCallback(FileDownloadModel model,
-                           int maxRetryTimes, final int minIntervalMillis, int callbackProgressMaxCount) {
+                           int maxRetryTimes, final int minIntervalMillis, int callbackProgressMaxCount,DownloadLaunchRunnable downloadLaunchRunnable) {
         this.model = model;
         this.database = CustomComponentHolder.getImpl().getDatabaseInstance();
         this.callbackProgressMinInterval = minIntervalMillis < CALLBACK_SAFE_MIN_INTERVAL_MILLIS
@@ -73,6 +74,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         this.callbackProgressMaxCount = callbackProgressMaxCount;
         this.processParams = new ProcessParams();
         this.maxRetryTimes = maxRetryTimes;
+        this.downloadLaunchRunnable = downloadLaunchRunnable;
     }
 
     public boolean isAlive() {
@@ -207,6 +209,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         try {
             handler.sendMessage(message);
         } catch (IllegalStateException e) {
+            handleError(e);
             if (!handlerThread.isAlive()) {
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(this, ALREADY_DEAD_MESSAGE, message.what);
@@ -443,6 +446,7 @@ public class DownloadStatusCallback implements Handler.Callback {
 
         processParams.setException(errProcessEx);
         onStatusChanged(FileDownloadStatus.error);
+        downloadLaunchRunnable.deleteThread(model.getId());
     }
 
     private boolean isFirstCallback = true;

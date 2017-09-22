@@ -317,6 +317,11 @@ class FileDownloadManager implements IThreadPoolMonitor {
         return mThreadPool.findRunningTaskIdBySameTempPath(tempFilePath, excludeId);
     }
 
+    @Override
+    public void deleteThread(int id) {
+        mThreadPool.cancel(id);
+    }
+
     public boolean clearTaskData(int id) {
         if (id == 0) {
             FileDownloadLog.w(this, "The task[%d] id is invalid, can't clear it.", id);

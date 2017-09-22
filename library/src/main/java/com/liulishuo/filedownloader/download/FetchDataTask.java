@@ -77,6 +77,11 @@ public class FetchDataTask {
         contentLength = connectionProfile.contentLength;
     }
 
+    private boolean tag = true;
+    public void stop(){
+        tag = false;
+    }
+
     public void run() throws IOException, IllegalAccessException, IllegalArgumentException,
             FileDownloadGiveUpRetryException {
 
@@ -151,7 +156,7 @@ public class FetchDataTask {
                     throw new FileDownloadNetworkPolicyException();
                 }
 
-            } while (true);
+            } while (tag);
 
         } finally {
 

@@ -60,6 +60,10 @@ public class DownloadRunnable implements Runnable {
         if (fetchDataTask != null) fetchDataTask.pause();
     }
 
+    public void stopTask(){
+        fetchDataTask.stop();
+    }
+
     public void discard() {
         pause();
     }
@@ -117,6 +121,7 @@ public class DownloadRunnable implements Runnable {
                 }
                 break;
             } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException | IllegalArgumentException e) {
+
                 if (callback.isRetry(e)) {
                     if (!isConnected) {
                         callback.onRetry(e, 0);

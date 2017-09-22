@@ -54,16 +54,16 @@ import java.util.concurrent.ThreadPoolExecutor;
  * steps:
  * <p/>
  * step 1. create the first connection
- *          ( this first connection is used for:
- *                  1. checkup the saved etag is overdue
- *                  2. checkup whether the partial-accept is supported
- *                  3. checkup whether the current connection is chunked. )
- *
+ * ( this first connection is used for:
+ * 1. checkup the saved etag is overdue
+ * 2. checkup whether the partial-accept is supported
+ * 3. checkup whether the current connection is chunked. )
+ * <p>
  * step 2. if the saved etag is overdue -> jump to step 1 to checkup whether the partial-accept is supported.
  * step 3. if (NOT chunked) & partial-accept & output stream support-seek:
- *              create multiple {@link DownloadTask} to download.
- *         else:
- *              reuse the first connection and use {@link FetchDataTask} to fetch data from the connection.
+ * create multiple {@link DownloadTask} to download.
+ * else:
+ * reuse the first connection and use {@link FetchDataTask} to fetch data from the connection.
  * <p/>
  * We use {@link DownloadStatusCallback} to handle all events sync to DB/filesystem and callback to user.
  */
@@ -128,7 +128,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         this.validRetryTimes = maxRetryTimes;
 
         this.statusCallback = new DownloadStatusCallback(model,
-                maxRetryTimes, minIntervalMillis, callbackProgressMaxCount);
+                maxRetryTimes, minIntervalMillis, callbackProgressMaxCount, this);
     }
 
     private DownloadLaunchRunnable(DownloadStatusCallback callback, FileDownloadModel model, FileDownloadHeader header,
@@ -505,7 +505,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private void fetchWithSingleConnection(final ConnectionProfile firstConnectionProfile,
                                            FileDownloadConnection connection)
             throws IOException, IllegalAccessException {
-        
+
         final ConnectionProfile profile;
         if (!acceptPartial) {
             model.setSoFar(0);
@@ -776,7 +776,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     @Override
     public void onError(Exception exception) {
-        if (paused) {
+        if (paused && (model.getStatus() == FileDownloadStatus.error || model.getStatus() == FileDownloadStatus.paused)) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "the task[%d] has already been paused, so pass the" +
                         " error callback", model.getId());
@@ -914,6 +914,14 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 throw new DiscardSafely();
             }
         }
+    }
+
+    public void deleteThread(int id) {
+        for (DownloadRunnable downloadRunnable : downloadRunnableList
+                ) {
+            downloadRunnable.stopTask();
+        }
+        threadPoolMonitor.deleteThread(id);
     }
 
     public int getId() {
