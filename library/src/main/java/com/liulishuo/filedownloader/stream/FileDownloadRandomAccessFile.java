@@ -18,8 +18,10 @@ package com.liulishuo.filedownloader.stream;
 
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -28,41 +30,46 @@ import java.io.RandomAccessFile;
  */
 
 public class FileDownloadRandomAccessFile implements FileDownloadOutputStream {
-    private final RandomAccessFile mAccessFile;
+    private final BufferedOutputStream out;
+    private final FileDescriptor fd;
+    private final RandomAccessFile randomAccess;
 
-    FileDownloadRandomAccessFile(File file) throws FileNotFoundException {
-        mAccessFile = new RandomAccessFile(file, "rw");
+    FileDownloadRandomAccessFile(File file) throws IOException {
+        randomAccess = new RandomAccessFile(file, "rw");
+        fd = randomAccess.getFD();
+        out = new BufferedOutputStream(new FileOutputStream(randomAccess.getFD()));
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        mAccessFile.write(b, off, len);
+        out.write(b, off, len);
     }
 
     @Override
-    public void sync() throws IOException {
-        mAccessFile.getFD().sync();
+    public void flushAndSync() throws IOException {
+        out.flush();
+        fd.sync();
     }
 
     @Override
     public void close() throws IOException {
-        mAccessFile.close();
+        out.close();
     }
 
     @Override
     public void seek(long offset) throws IOException {
-        mAccessFile.seek(offset);
+        randomAccess.seek(offset);
     }
 
     @Override
     public void setLength(long totalBytes) throws IOException {
-        mAccessFile.setLength(totalBytes);
+        randomAccess.setLength(totalBytes);
     }
 
     public static class Creator implements FileDownloadHelper.OutputStreamCreator {
 
         @Override
-        public FileDownloadOutputStream create(File file) throws FileNotFoundException {
+        public FileDownloadOutputStream create(File file) throws IOException {
             return new FileDownloadRandomAccessFile(file);
         }
 

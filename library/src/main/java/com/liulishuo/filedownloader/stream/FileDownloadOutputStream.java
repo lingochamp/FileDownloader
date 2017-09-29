@@ -21,12 +21,12 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.SyncFailedException;
 
 /**
  * The output stream used to write the file for download.
  *
  * @see FileDownloadRandomAccessFile
- * @see FileDownloadBufferedOutputStream
  */
 
 public interface FileDownloadOutputStream {
@@ -43,15 +43,20 @@ public interface FileDownloadOutputStream {
     void write(byte b[], int off, int len) throws IOException;
 
     /**
-     * Force all system buffers to synchronize with the underlying device.
+     * Flush all buffer to system and force all system buffers to synchronize with the underlying
+     * device.
+     * <p>
+     * This method must ensure all data whatever on buffers of VM or buffers of system for this
+     * output stream must persist on the physical media, otherwise the breakpoint will not be
+     * integrity.
      *
-     * @throws IOException if an I/O error occurs or the buffers cannot be flushed, or because the
-     *                     system cannot guarantee that all the buffers have been synchronized with
-     *                     physical media.
-     * @see FileDescriptor#sync()
+     * @throws SyncFailedException Thrown when the buffers cannot be flushed,
+     *                             or because the system cannot guarantee that all the
+     *                             buffers have been synchronized with physical media.
      * @see OutputStream#flush()
+     * @see FileDescriptor#sync()
      */
-    void sync() throws IOException;
+    void flushAndSync() throws IOException;
 
     /**
      * Closes this output stream and releases any system resources associated with this stream. The
@@ -83,7 +88,7 @@ public interface FileDownloadOutputStream {
      * @see java.io.RandomAccessFile#seek(long)
      * @see java.nio.channels.FileChannel#position(long)
      */
-    void seek(long offset) throws IOException, IllegalAccessException;
+    void seek(long offset) throws IOException;
 
     /**
      * Sets the length of this file.
@@ -103,5 +108,5 @@ public interface FileDownloadOutputStream {
      * @throws IllegalAccessException If in this output stream doesn't support this function.
      * @see java.io.RandomAccessFile#setLength(long)
      */
-    void setLength(final long newLength) throws IOException, IllegalAccessException;
+    void setLength(final long newLength) throws IOException;
 }

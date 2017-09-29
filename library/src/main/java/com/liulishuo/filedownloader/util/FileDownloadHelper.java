@@ -26,7 +26,6 @@ import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.FileDownloadDatabase;
-import com.liulishuo.filedownloader.stream.FileDownloadBufferedOutputStream;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 
@@ -153,9 +152,8 @@ public class FileDownloadHelper {
          *                               rather than a regular file, does not exist but cannot
          *                               be created, or cannot be opened for any other reason
          * @see FileDownloadRandomAccessFile.Creator
-         * @see FileDownloadBufferedOutputStream.Creator
          */
-        FileDownloadOutputStream create(File file) throws FileNotFoundException;
+        FileDownloadOutputStream create(File file) throws IOException;
 
         /**
          * @return {@code true} if the {@link FileDownloadOutputStream} is created through

@@ -210,7 +210,7 @@ public class FetchDataTask {
     private void sync() {
         final long startTimestamp = SystemClock.uptimeMillis();
         try {
-            outputStream.sync();
+            outputStream.flushAndSync();
         } catch (IOException e) {
             e.printStackTrace();
         }

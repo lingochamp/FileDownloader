@@ -27,7 +27,6 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -65,7 +64,7 @@ public class CustomComponentHolder {
         return getConnectionCreator().create(url);
     }
 
-    public FileDownloadOutputStream createOutputStream(File file) throws FileNotFoundException {
+    public FileDownloadOutputStream createOutputStream(File file) throws IOException {
         return getOutputStreamCreator().create(file);
     }
 
