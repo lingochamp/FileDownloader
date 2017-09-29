@@ -2,6 +2,19 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.6
+
+_2017-09-29_
+
+#### 修复
+
+- 修复(文件完整性): 只有在确保缓存已经完全固化到本地文件了才更新数据库的进度，防止在该次暂停时固化失败，然后数据库更新了进度，导致下一次断点续传的时候(使用预分配策略的情况下)，本地已经下载的文件的进度与数据库记录的进度实际不一致，导致最后下载完成了文件不完整的问题。 Closes #745
+- 修复(清理): 修复调用`FileDownloader#clearAllTaskData`并没有清理连接表的问题。 Closes #754
+
+#### 性能与提高
+
+- 提高性能: 使用`BufferedOutputStream`来优化默认输出流，现在虚拟机内的缓存大小为8192字节。
+
 ## Version 1.6.5
 
 _2017-09-11_

@@ -60,7 +60,7 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.6.5'
+compile 'com.liulishuo.filedownloader:library:1.6.6'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
@@ -256,7 +256,7 @@ if (parallel) {
 | --- | --- | --- | --- | ---
 | database | FileDownloadDatabase | DefaultDatabaseImpl、NoDatabaseImpl | DefaultDatabaseImpl | 传入定制化数据库组件，用于存储用于断点续传的数据
 | connection | FileDownloadConnection | FileDownloadUrlConnection | FileDownloadUrlConnection | 传入定制化的网络连接组件，用于下载时建立网络连接
-| outputStreamCreator | FileDownloadOutputStream | FileDownloadRandomAccessFile、FileDownloadBufferedOutputStream、FileDownloadOkio | FileDownloadRandomAccessFile | 传入输出流组件，用于下载时写文件使用
+| outputStreamCreator | FileDownloadOutputStream | FileDownloadRandomAccessFile | FileDownloadRandomAccessFile | 传入输出流组件，用于下载时写文件使用
 | maxNetworkThreadCount | - | - | 3 | 传入创建下载引擎时，指定可用的下载线程个数
 | ConnectionCountAdapter | ConnectionCountAdapter | DefaultConnectionCountAdapter | DefaultConnectionCountAdapter | 根据任务指定其线程数
 | IdGenerator | IdGenerator | DefaultIdGenerator | DefaultIdGenerator | 自定义任务Id生成器

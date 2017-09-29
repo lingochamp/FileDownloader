@@ -2,6 +2,19 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.6
+
+_2017-09-29_
+
+#### Fix
+
+- Fix(file-integrality): update the process to database only if all buffers on output-stream or system has been flush and sync to device successfully to avoid resume on the wrong point raise complete file not integrality. Closes #745
+- Fix(clear): fix `FileDownloader#clearAllTaskData` not clear connection table. Closes #754
+
+#### Enhancement
+
+- Import Performance: optimize the default output-stream with buffered-output-stream, now the VM buffers length is 8192 bytes.
+
 ## Version 1.6.5
 
 _2017-09-11_
