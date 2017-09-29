@@ -154,7 +154,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
         downloaderModelMap.clear();
 
         db.delete(TABLE_NAME, null, null);
-        db.delete(TABLE_NAME, null, null);
+        db.delete(CONNECTION_TABLE_NAME, null, null);
     }
 
     @Override
