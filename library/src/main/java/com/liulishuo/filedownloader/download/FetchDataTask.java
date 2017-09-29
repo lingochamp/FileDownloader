@@ -199,7 +199,6 @@ public class FetchDataTask {
         final long timestampDelta = now - lastSyncTimestamp;
 
         if (FileDownloadUtils.isNeedSync(bytesDelta, timestampDelta)) {
-
             sync();
 
             lastSyncBytes = currentOffset;
@@ -209,24 +208,34 @@ public class FetchDataTask {
 
     private void sync() {
         final long startTimestamp = SystemClock.uptimeMillis();
+
+        boolean bufferPersistToDevice;
         try {
             outputStream.flushAndSync();
+            bufferPersistToDevice = true;
         } catch (IOException e) {
-            e.printStackTrace();
+            bufferPersistToDevice = false;
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "Because of the system cannot guarantee that all " +
+                        "the buffers have been synchronized with physical media, or write to file " +
+                        "failed, we just not flushAndSync process to database too %s", e);
+            }
         }
 
-        final boolean isBelongMultiConnection = hostRunnable != null;
-        if (isBelongMultiConnection) {
-            // only need update the connection table.
-            database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
-        } else {
-            // only need update the filedownloader table.
-            callback.syncProgressFromCache();
-        }
+        if (bufferPersistToDevice) {
+            final boolean isBelongMultiConnection = hostRunnable != null;
+            if (isBelongMultiConnection) {
+                // only need update the connection table.
+                database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
+            } else {
+                // only need update the filedownloader table.
+                callback.syncProgressFromCache();
+            }
 
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "require sync id[%d] index[%d] offset[%d], consume[%d]",
-                    downloadId, connectionIndex, currentOffset, SystemClock.uptimeMillis() - startTimestamp);
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "require flushAndSync id[%d] index[%d] offset[%d], consume[%d]",
+                        downloadId, connectionIndex, currentOffset, SystemClock.uptimeMillis() - startTimestamp);
+            }
         }
     }
 
