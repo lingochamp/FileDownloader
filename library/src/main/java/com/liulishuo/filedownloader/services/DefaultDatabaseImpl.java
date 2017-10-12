@@ -70,9 +70,9 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
                 final ConnectionModel model = new ConnectionModel();
                 model.setId(id);
                 model.setIndex(c.getInt(c.getColumnIndex(ConnectionModel.INDEX)));
-                model.setStartOffset(c.getInt(c.getColumnIndex(ConnectionModel.START_OFFSET)));
-                model.setCurrentOffset(c.getInt(c.getColumnIndex(ConnectionModel.CURRENT_OFFSET)));
-                model.setEndOffset(c.getInt(c.getColumnIndex(ConnectionModel.END_OFFSET)));
+                model.setStartOffset(c.getLong(c.getColumnIndex(ConnectionModel.START_OFFSET)));
+                model.setCurrentOffset(c.getLong(c.getColumnIndex(ConnectionModel.CURRENT_OFFSET)));
+                model.setEndOffset(c.getLong(c.getColumnIndex(ConnectionModel.END_OFFSET)));
 
                 resultList.add(model);
             }
