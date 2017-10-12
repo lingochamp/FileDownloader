@@ -6,7 +6,7 @@
 
 _2017-10-12_
 
-#### Fix
+#### 修复
 
 - 修复: 避免`error`与`pause`的状态被运行中的状态覆盖导致下次断点续传失败。 closes #769, closes #764, closes #761, closes #763, closes #721, closes #716
 - 修复: 感谢 @hongbiangoal 对问题的定位，修复了当某一个分块的断点进度大于1.99G时，请求的范围出现负数的情况。 closes #791
