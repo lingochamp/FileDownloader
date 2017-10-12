@@ -2,7 +2,7 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
-## Version 1.6.6
+## Version 1.6.7
 
 _2017-10-12_
 
