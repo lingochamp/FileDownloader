@@ -4,6 +4,15 @@
 
 ## Version 1.6.6
 
+_2017-10-12_
+
+#### Fix
+
+- Fix: Avoid error/pause status is covered by other processing-status which will cause resume-failed, task-never-end. this closes #769, closes #764, closes #761, closes #763, closes #721, closes #716
+- Fix: Fix request range value turn to negative when resuming a task which has a process more than 1.99G on its one block. Thanks to @hongbiangoal closes #791
+
+## Version 1.6.6
+
 _2017-09-29_
 
 #### Fix
