@@ -92,7 +92,7 @@ public class DownloadRunnableTest {
         }
 
         @Override
-        public void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset) throws IOException {
+        public void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset) {
         }
 
         boolean isFirstTime = true;
