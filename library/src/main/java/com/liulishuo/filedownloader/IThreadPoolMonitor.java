@@ -26,4 +26,6 @@ public interface IThreadPoolMonitor {
     boolean isDownloading(FileDownloadModel model);
 
     int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId);
+
+    void deleteThread(int id);
 }
