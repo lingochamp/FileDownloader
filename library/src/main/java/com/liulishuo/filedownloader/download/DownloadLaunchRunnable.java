@@ -107,6 +107,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     private volatile boolean alive;
     private volatile boolean paused;
+    private volatile boolean error;
+    private volatile Exception errorException;
 
     private String redirectedUrl;
 
@@ -173,8 +175,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 // if runnable is null, then that one must be completed and removed
             }
         }
-
-        statusCallback.onPaused();
     }
 
     public void pending() {
@@ -336,6 +336,17 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             } while (true);
         } finally {
             alive = false;
+            if (paused) {
+                statusCallback.onPaused();
+            } else if (error) {
+                statusCallback.onError(errorException);
+            } else {
+                try {
+                    statusCallback.onCompleted();
+                } catch (IOException e) {
+                    statusCallback.onError(e);
+                }
+            }
         }
     }
 
@@ -715,8 +726,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     @Override
-    public void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset)
-            throws IOException {
+    public void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset) {
         if (paused) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "the task[%d] has already been paused, so pass the" +
@@ -724,8 +734,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             }
             return;
         }
-
-        boolean allConnectionCompleted = false;
 
         final int doneConnectionIndex = doneRunnable == null ? -1 : doneRunnable.connectionIndex;
         if (FileDownloadLog.NEED_LOG) {
@@ -738,20 +746,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 FileDownloadLog.e(this, "the single task not completed corrected(%d, %d != %d) " +
                         "for task(%d)", startOffset, endOffset, model.getTotal(), model.getId());
             }
-
-            allConnectionCompleted = true;
         } else {
             synchronized (downloadRunnableList) {
                 downloadRunnableList.remove(doneRunnable);
             }
-
-            if (downloadRunnableList.size() <= 0) {
-                allConnectionCompleted = true;
-            }
-        }
-
-        if (allConnectionCompleted) {
-            statusCallback.onCompleted();
         }
     }
 
@@ -776,6 +774,9 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     @Override
     public void onError(Exception exception) {
+        error = true;
+        errorException = exception;
+
         if (paused) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "the task[%d] has already been paused, so pass the" +
@@ -793,8 +794,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 // if runnable is null, then that one must be completed and removed
             }
         }
-
-        statusCallback.onError(exception);
     }
 
     @Override

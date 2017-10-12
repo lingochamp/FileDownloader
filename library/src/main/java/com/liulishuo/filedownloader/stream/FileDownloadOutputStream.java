@@ -88,7 +88,7 @@ public interface FileDownloadOutputStream {
      * @see java.io.RandomAccessFile#seek(long)
      * @see java.nio.channels.FileChannel#position(long)
      */
-    void seek(long offset) throws IOException;
+    void seek(long offset) throws IOException, IllegalAccessException;
 
     /**
      * Sets the length of this file.
@@ -108,5 +108,5 @@ public interface FileDownloadOutputStream {
      * @throws IllegalAccessException If in this output stream doesn't support this function.
      * @see java.io.RandomAccessFile#setLength(long)
      */
-    void setLength(final long newLength) throws IOException;
+    void setLength(final long newLength) throws IOException, IllegalAccessException;
 }

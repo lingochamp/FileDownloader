@@ -16,8 +16,6 @@
 
 package com.liulishuo.filedownloader.download;
 
-import java.io.IOException;
-
 /**
  * The process event callbacks.
  */
@@ -25,7 +23,7 @@ public interface ProcessCallback {
 
     void onProgress(long increaseBytes);
 
-    void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset) throws IOException;
+    void onCompleted(DownloadRunnable doneRunnable, long startOffset, long endOffset);
 
     boolean isRetry(Exception exception);
 
