@@ -106,7 +106,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private boolean acceptPartial;
     private boolean isChunked;
 
-    private AtomicBoolean alive;
+    private final AtomicBoolean alive;
     private volatile boolean paused;
     private volatile boolean error;
     private volatile Exception errorException;

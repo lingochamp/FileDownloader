@@ -76,7 +76,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Already completed download, and block the current thread to do something, such as unzip,etc.
      *
-     * @see DownloadStatusCallback#onCompleted()
+     * @see DownloadStatusCallback#onCompletedDirectly()
      */
     void notifyBlockComplete(MessageSnapshot snapshot);
 
@@ -103,7 +103,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Occur a exception, but don't has any chance to retry.
      *
-     * @see DownloadStatusCallback#onError(Exception)
+     * @see DownloadStatusCallback#onErrorDirectly(Exception)
      * @see com.liulishuo.filedownloader.exception.FileDownloadHttpException
      * @see com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException
      * @see com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException
@@ -124,7 +124,7 @@ interface IFileDownloadMessenger {
      * <p/>
      * Achieve complete ceremony.
      *
-     * @see DownloadStatusCallback#onCompleted()
+     * @see DownloadStatusCallback#onCompletedDirectly()
      */
     void notifyCompleted(MessageSnapshot snapshot);
 
