@@ -451,6 +451,12 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 break;
             }
 
+            if (code == HTTP_REQUESTED_RANGE_NOT_SATISFIABLE && model.getSoFar() > 0) {
+                // On the first connection range not satisfiable, there must something wrong, so have to retry.
+                isPreconditionFailed = true;
+                break;
+            }
+
         } while (false);
 
 
