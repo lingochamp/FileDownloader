@@ -46,7 +46,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         init(task, callback);
     }
 
-    private void init(final BaseDownloadTask.IRunningTask task, BaseDownloadTask.LifeCycleCallback callback) {
+    private void init(final BaseDownloadTask.IRunningTask task,
+                      BaseDownloadTask.LifeCycleCallback callback) {
         this.mTask = task;
         this.mLifeCycleCallback = callback;
         parcelQueue = new LinkedBlockingQueue<>();
@@ -107,7 +108,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         final BaseDownloadTask originTask = mTask.getOrigin();
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify progress %s %d %d",
-                    originTask, originTask.getLargeFileSoFarBytes(), originTask.getLargeFileTotalBytes());
+                    originTask, originTask.getLargeFileSoFarBytes(),
+                    originTask.getLargeFileTotalBytes());
         }
         if (originTask.getCallbackProgressTimes() <= 0) {
             if (FileDownloadLog.NEED_LOG) {
@@ -128,7 +130,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     @Override
     public void notifyBlockComplete(MessageSnapshot snapshot) {
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify block completed %s %s", mTask, Thread.currentThread().getName());
+            FileDownloadLog.d(this, "notify block completed %s %s", mTask,
+                    Thread.currentThread().getName());
         }
 
         mLifeCycleCallback.onIng();
@@ -141,7 +144,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         if (FileDownloadLog.NEED_LOG) {
             final BaseDownloadTask originTask = mTask.getOrigin();
             FileDownloadLog.d(this, "notify retry %s %d %d %s", mTask,
-                    originTask.getAutoRetryTimes(), originTask.getRetryingTimes(), originTask.getErrorCause());
+                    originTask.getAutoRetryTimes(), originTask.getRetryingTimes(),
+                    originTask.getErrorCause());
         }
 
         mLifeCycleCallback.onIng();
@@ -228,11 +232,11 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         if (FileDownloadStatus.isOver(status)) {
             if (!parcelQueue.isEmpty()) {
                 final MessageSnapshot queueTopTask = parcelQueue.peek();
-                throw new IllegalStateException(
-                        FileDownloadUtils.formatString("the messenger[%s](with id[%d]) has already " +
-                                        "accomplished all his job, but there still are some messages in" +
-                                        " parcel queue[%d] queue-top-status[%d]",
-                                this, queueTopTask.getId(), parcelQueue.size(), queueTopTask.getStatus()));
+                FileDownloadLog.w(this,
+                        "the messenger[%s](with id[%d]) has already " +
+                                "accomplished all his job, but there still are some messages in" +
+                                " parcel queue[%d] queue-top-status[%d]",
+                        this, queueTopTask.getId(), parcelQueue.size(), queueTopTask.getStatus());
             }
             mTask = null;
         }
@@ -392,6 +396,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public String toString() {
-        return FileDownloadUtils.formatString("%d:%s", mTask == null ? -1 : mTask.getOrigin().getId(), super.toString());
+        return FileDownloadUtils.formatString("%d:%s",
+                mTask == null ? -1 : mTask.getOrigin().getId(), super.toString());
     }
 }
