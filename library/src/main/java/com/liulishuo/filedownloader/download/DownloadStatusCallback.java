@@ -462,7 +462,7 @@ public class DownloadStatusCallback implements Handler.Callback {
     private void onStatusChanged(final byte status) {
         // In current situation, it maybe invoke this method simultaneously between #onPause() and
         // others.
-        if (model.getStatus() == FileDownloadStatus.paused) {
+        if (status == FileDownloadStatus.paused) {
             if (FileDownloadLog.NEED_LOG) {
                 /**
                  * Already paused or the current status is paused.
