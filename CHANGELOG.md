@@ -2,6 +2,18 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.8
+
+_2017-10-13_
+
+#### Fix
+
+- Fix: fix resume from breakpoint failed because of `isAlive` not guarantee on Network-thread. this closes #793
+- Fix: fix resume from breakpoint failed, because of multi-thread update status very frequently and Messenger can't guarantee order. this refs #793, #764, #721, #769, #763, #761, #716
+- Fix: do not crash user when a task has finished but the messenger still has messages, because it's fine for the user. this closes #562
+- Fix: fix the callback error of 'it can't take a snapshot for the task xxx' when a user invokes pause very frequently.
+- Fix: fix the case of process on the model is wrong which raise 416 each time when restarting it.
+
 ## Version 1.6.7
 
 _2017-10-12_

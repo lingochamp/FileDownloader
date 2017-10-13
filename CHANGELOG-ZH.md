@@ -2,6 +2,18 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.6.8
+
+_2017-10-13_
+
+#### 修复
+
+- 修复: 修复断点续传失败, 由于Network线程中的`isAlive`不可靠导致的问题。 this closes #793
+- 修复: 修复断点续传失败，由于多个线程频繁的更新`status`并且`DownloadStatusCallback`的`sendMessage`无法保证有序性，导致下一次启动时最终状态是`process`无法断点续传(具体原因参看[这里](https://github.com/lingochamp/FileDownloader/issues/793#issuecomment-336370126))。 this refs #793, #764, #721, #769, #763, #761, #716
+- 修复: 不再由于任务已经结束依然存在需要派发的信息而让用户程序奔溃，因为这个对用户并不会照成影响。 this closes #562
+- 修复: 修复当用户频繁调用`pause`时，有可能出现`it can't take a snapshot for the task xxx`错误的问题。
+- 修复: 修复由于内部存储的任务对象大小存在问题，导致这样的对象任务每一次启动都必然会`416`的问题。
+
 ## Version 1.6.7
 
 _2017-10-12_
