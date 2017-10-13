@@ -97,7 +97,7 @@ public class FileDownloadModel implements Parcelable {
         this.soFar.set(soFar);
     }
 
-    public void increaseSoFar(long increaseBytes){
+    public void increaseSoFar(long increaseBytes) {
         this.soFar.addAndGet(increaseBytes);
     }
 

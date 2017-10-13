@@ -48,6 +48,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * You can use this to launch downloading, on here the download will be launched separate following
@@ -105,7 +106,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private boolean acceptPartial;
     private boolean isChunked;
 
-    private volatile boolean alive;
+    private AtomicBoolean alive;
     private volatile boolean paused;
     private volatile boolean error;
     private volatile Exception errorException;
@@ -116,7 +117,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                                    IThreadPoolMonitor threadPoolMonitor,
                                    final int minIntervalMillis, int callbackProgressMaxCount,
                                    boolean isForceReDownload, boolean isWifiRequired, int maxRetryTimes) {
-        this.alive = true;
+        this.alive = new AtomicBoolean(true);
         this.paused = false;
         this.isTriedFixRangeNotSatisfiable = false;
 
@@ -137,7 +138,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                                    IThreadPoolMonitor threadPoolMonitor,
                                    final int minIntervalMillis, int callbackProgressMaxCount,
                                    boolean isForceReDownload, boolean isWifiRequired, int maxRetryTimes) {
-        this.alive = true;
+        this.alive = new AtomicBoolean(true);
         this.paused = false;
         this.isTriedFixRangeNotSatisfiable = false;
 
@@ -349,7 +350,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 }
             }
 
-            alive = false;
+            alive.set(false);
         }
     }
 
@@ -929,7 +930,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     public boolean isAlive() {
-        return alive || this.statusCallback.isAlive();
+        return alive.get() || this.statusCallback.isAlive();
     }
 
     public String getTempFilePath() {
