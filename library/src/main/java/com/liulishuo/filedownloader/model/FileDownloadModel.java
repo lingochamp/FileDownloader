@@ -24,6 +24,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -56,7 +57,7 @@ public class FileDownloadModel implements Parcelable {
     private String filename;
     public final static String FILENAME = "filename";
 
-    private byte status;
+    private final AtomicInteger status;
     public final static String STATUS = "status";
 
     private final AtomicLong soFar;
@@ -89,7 +90,7 @@ public class FileDownloadModel implements Parcelable {
     }
 
     public void setStatus(byte status) {
-        this.status = status;
+        this.status.set(status);
     }
 
     public void setSoFar(long soFar) {
@@ -146,7 +147,7 @@ public class FileDownloadModel implements Parcelable {
     }
 
     public byte getStatus() {
-        return status;
+        return (byte) status.get();
     }
 
     public long getSoFar() {
@@ -261,7 +262,7 @@ public class FileDownloadModel implements Parcelable {
     @Override
     public String toString() {
         return FileDownloadUtils.formatString("id[%d], url[%s], path[%s], status[%d], sofar[%s]," +
-                        " total[%d], etag[%s], %s", id, url, path, status, soFar, total, eTag,
+                        " total[%d], etag[%s], %s", id, url, path, status.get(), soFar, total, eTag,
                 super.toString());
     }
 
@@ -278,7 +279,7 @@ public class FileDownloadModel implements Parcelable {
         dest.writeString(this.path);
         dest.writeByte(this.pathAsDirectory ? (byte) 1 : (byte) 0);
         dest.writeString(this.filename);
-        dest.writeByte(this.status);
+        dest.writeByte((byte) this.status.get());
         dest.writeLong(this.soFar.get());
         dest.writeLong(this.total);
         dest.writeString(this.errMsg);
@@ -289,6 +290,7 @@ public class FileDownloadModel implements Parcelable {
 
     public FileDownloadModel() {
         this.soFar = new AtomicLong();
+        this.status = new AtomicInteger();
     }
 
     protected FileDownloadModel(Parcel in) {
@@ -297,7 +299,7 @@ public class FileDownloadModel implements Parcelable {
         this.path = in.readString();
         this.pathAsDirectory = in.readByte() != 0;
         this.filename = in.readString();
-        this.status = in.readByte();
+        this.status = new AtomicInteger(in.readByte());
         this.soFar = new AtomicLong(in.readLong());
         this.total = in.readLong();
         this.errMsg = in.readString();

@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException;
@@ -37,7 +38,9 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.LockSupport;
 
 import static com.liulishuo.filedownloader.download.FetchDataTask.BUFFER_SIZE;
 import static com.liulishuo.filedownloader.model.FileDownloadModel.TOTAL_VALUE_IN_CHUNKED_RESOURCE;
@@ -65,7 +68,8 @@ public class DownloadStatusCallback implements Handler.Callback {
     private HandlerThread handlerThread;
 
     DownloadStatusCallback(FileDownloadModel model,
-                           int maxRetryTimes, final int minIntervalMillis, int callbackProgressMaxCount) {
+                           int maxRetryTimes, final int minIntervalMillis,
+                           int callbackProgressMaxCount) {
         this.model = model;
         this.database = CustomComponentHolder.getImpl().getDatabaseInstance();
         this.callbackProgressMinInterval = minIntervalMillis < CALLBACK_SAFE_MIN_INTERVAL_MILLIS
@@ -77,6 +81,22 @@ public class DownloadStatusCallback implements Handler.Callback {
 
     public boolean isAlive() {
         return handlerThread != null && handlerThread.isAlive();
+    }
+
+    private volatile boolean handlingMessage = false;
+    private volatile Thread parkThread;
+
+    void discardAllMessage() {
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+            handlerThread.quit();
+
+            parkThread = Thread.currentThread();
+            while (handlingMessage) {
+                LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(100));
+            }
+            parkThread = null;
+        }
     }
 
     public void onPending() {
@@ -93,7 +113,8 @@ public class DownloadStatusCallback implements Handler.Callback {
         onStatusChanged(FileDownloadStatus.started);
     }
 
-    void onConnected(boolean isResume, long totalLength, String etag, String fileName) throws IllegalArgumentException {
+    void onConnected(boolean isResume, long totalLength, String etag, String fileName) throws
+            IllegalArgumentException {
         final String oldEtag = model.getETag();
         if (oldEtag != null && !oldEtag.equals(etag)) throw
                 new IllegalArgumentException(FileDownloadUtils.formatString("callback " +
@@ -111,7 +132,9 @@ public class DownloadStatusCallback implements Handler.Callback {
         database.updateConnected(model.getId(), totalLength, etag, fileName);
         onStatusChanged(FileDownloadStatus.connected);
 
-        callbackMinIntervalBytes = calculateCallbackMinIntervalBytes(totalLength, callbackProgressMaxCount);
+        callbackMinIntervalBytes = calculateCallbackMinIntervalBytes(totalLength,
+                callbackProgressMaxCount);
+        needSetProcess = true;
     }
 
     void onMultiConnection() {
@@ -125,11 +148,9 @@ public class DownloadStatusCallback implements Handler.Callback {
     private final AtomicLong callbackIncreaseBuffer = new AtomicLong();
 
     void onProgress(long increaseBytes) {
-
         callbackIncreaseBuffer.addAndGet(increaseBytes);
         model.increaseSoFar(increaseBytes);
 
-        model.setStatus(FileDownloadStatus.progress);
 
         final long now = SystemClock.elapsedRealtime();
 
@@ -153,49 +174,33 @@ public class DownloadStatusCallback implements Handler.Callback {
             handleRetry(exception, remainRetryTimes);
         } else {
             // flow
-            sendMessage(handler.obtainMessage(FileDownloadStatus.retry, remainRetryTimes, 0, exception));
+            sendMessage(handler.obtainMessage(FileDownloadStatus.retry, remainRetryTimes, 0,
+                    exception));
         }
     }
 
-    void onPaused() {
-        if (handler == null) {
-            // direct
-            handlePaused();
-        } else {
-            // flow
-            sendMessage(handler.obtainMessage(FileDownloadStatus.paused));
-        }
+
+    void onPausedDirectly() {
+        handlePaused();
     }
 
-    void onError(Exception exception) {
-        if (handler == null) {
-            // direct
-            handleError(exception);
-        } else {
-            // flow
-            sendMessage(handler.obtainMessage(FileDownloadStatus.error, exception));
-        }
+    void onErrorDirectly(Exception exception) {
+        handleError(exception);
     }
 
-    void onCompleted() throws IOException {
-        if (handler == null) {
-            // direct
-            if (interceptBeforeCompleted()) {
-                return;
-            }
-
-            handleCompleted();
-        } else {
-            // flow
-            sendMessage(handler.obtainMessage(FileDownloadStatus.completed));
+    void onCompletedDirectly() throws IOException {
+        if (interceptBeforeCompleted()) {
+            return;
         }
+
+        handleCompleted();
     }
 
     private final static String ALREADY_DEAD_MESSAGE = "require callback %d but the host thread of the flow has " +
             "already dead, what is occurred because of there are several reason can " +
             "final this flow on different thread.";
 
-    private void sendMessage(Message message) {
+    private synchronized void sendMessage(Message message) {
 
         if (!handlerThread.isAlive()) {
             if (FileDownloadLog.NEED_LOG) {
@@ -314,7 +319,8 @@ public class DownloadStatusCallback implements Handler.Callback {
         } finally {
             if (tempFile.exists()) {
                 if (!tempFile.delete()) {
-                    FileDownloadLog.w(this, "delete the temp file(%s) failed, on completed downloading.",
+                    FileDownloadLog.w(this,
+                            "delete the temp file(%s) failed, on completed downloading.",
                             tempPath);
                 }
             }
@@ -323,47 +329,39 @@ public class DownloadStatusCallback implements Handler.Callback {
 
     @Override
     public boolean handleMessage(Message msg) {
+        handlingMessage = true;
         final int status = msg.what;
 
-        switch (status) {
-            case FileDownloadStatus.progress:
-                handleProgress(SystemClock.elapsedRealtime(), true);
-                break;
-            case FileDownloadStatus.completed:
-                if (interceptBeforeCompleted()) {
-                    return true;
-                }
-
-                try {
-                    handleCompleted();
-                } catch (IOException e) {
-                    onError(e);
-                    return true;
-                }
-                break;
-            case FileDownloadStatus.retry:
-                handleRetry((Exception) msg.obj, msg.arg1);
-                break;
-            case FileDownloadStatus.paused:
-                handlePaused();
-                break;
-            case FileDownloadStatus.error:
-                handleError((Exception) msg.obj);
-                break;
+        try {
+            switch (status) {
+                case FileDownloadStatus.progress:
+                    handleProgress(SystemClock.elapsedRealtime(), true);
+                    break;
+                case FileDownloadStatus.retry:
+                    handleRetry((Exception) msg.obj, msg.arg1);
+                    break;
+            }
+        } finally {
+            handlingMessage = false;
+            if (parkThread != null) LockSupport.unpark(parkThread);
         }
 
-        if (FileDownloadStatus.isOver(status)) {
-            handlerThread.quit();
-        }
 
         return true;
     }
+
+    private volatile boolean needSetProcess;
 
     private void handleProgress(final long now,
                                 final boolean isNeedCallbackToUser) {
         if (model.getSoFar() == model.getTotal()) {
             database.updateProgress(model.getId(), model.getSoFar());
             return;
+        }
+
+        if (needSetProcess) {
+            needSetProcess = false;
+            model.setStatus(FileDownloadStatus.progress);
         }
 
         if (isNeedCallbackToUser) {
@@ -392,7 +390,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         if (model.isChunked()) {
             model.setTotal(model.getSoFar());
         } else if (model.getSoFar() != model.getTotal()) {
-            onError(new FileDownloadGiveUpRetryException(
+            onErrorDirectly(new FileDownloadGiveUpRetryException(
                     FileDownloadUtils.formatString("sofar[%d] not equal total[%d]",
                             model.getSoFar(), model.getTotal())));
             return true;
@@ -446,6 +444,7 @@ public class DownloadStatusCallback implements Handler.Callback {
     }
 
     private boolean isFirstCallback = true;
+
     private boolean isNeedCallbackToUser(final long now) {
         if (isFirstCallback) {
             isFirstCallback = false;
@@ -481,7 +480,8 @@ public class DownloadStatusCallback implements Handler.Callback {
             return;
         }
 
-        MessageSnapshotFlow.getImpl().inflow(MessageSnapshotTaker.take(status, model, processParams));
+        MessageSnapshotFlow.getImpl().inflow(
+                MessageSnapshotTaker.take(status, model, processParams));
     }
 
     public static class ProcessParams {

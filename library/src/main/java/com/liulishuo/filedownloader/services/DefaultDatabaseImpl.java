@@ -224,9 +224,7 @@ class DefaultDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public void updatePending(int id) {
-        ContentValues cv = new ContentValues();
-        cv.put(FileDownloadModel.STATUS, FileDownloadStatus.pending);
-        update(id, cv);
+        // No need to persist pending status.
     }
 
     @Override

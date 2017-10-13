@@ -335,18 +335,21 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 break;
             } while (true);
         } finally {
-            alive = false;
+            statusCallback.discardAllMessage();
+
             if (paused) {
-                statusCallback.onPaused();
+                statusCallback.onPausedDirectly();
             } else if (error) {
-                statusCallback.onError(errorException);
+                statusCallback.onErrorDirectly(errorException);
             } else {
                 try {
-                    statusCallback.onCompleted();
+                    statusCallback.onCompletedDirectly();
                 } catch (IOException e) {
-                    statusCallback.onError(e);
+                    statusCallback.onErrorDirectly(e);
                 }
             }
+
+            alive = false;
         }
     }
 

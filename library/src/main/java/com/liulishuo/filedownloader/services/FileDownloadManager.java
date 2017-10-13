@@ -122,7 +122,10 @@ class FileDownloadManager implements IThreadPoolMonitor {
         boolean needUpdate2DB;
         if (model != null &&
                 (model.getStatus() == FileDownloadStatus.paused ||
-                        model.getStatus() == FileDownloadStatus.error) // FileDownloadRunnable invoke
+                        model.getStatus() == FileDownloadStatus.error ||
+                        model.getStatus() == FileDownloadStatus.pending ||
+                        model.getStatus() == FileDownloadStatus.started ||
+                        model.getStatus() == FileDownloadStatus.connected) // FileDownloadRunnable invoke
             // #isBreakpointAvailable to determine whether it is really invalid.
                 ) {
             if (model.getId() != id) {
