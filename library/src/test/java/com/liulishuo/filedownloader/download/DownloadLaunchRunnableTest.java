@@ -76,7 +76,7 @@ public class DownloadLaunchRunnableTest {
 
         launchRunnable.run();
 
-        verify(callback).onError(any(FileDownloadNetworkPolicyException.class));
+        verify(callback).onErrorDirectly(any(FileDownloadNetworkPolicyException.class));
     }
 
 
