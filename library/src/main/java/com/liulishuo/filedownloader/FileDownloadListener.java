@@ -53,7 +53,7 @@ public abstract class FileDownloadListener {
      *
      * @return {@code true} If you don't want to receive any callbacks for this listener.
      */
-    protected boolean isInvalid() {
+    public boolean isInvalid() {
         return false;
     }
 
@@ -65,7 +65,7 @@ public abstract class FileDownloadListener {
      * @param totalBytes Total bytes stored in the db
      * @see IFileDownloadMessenger#notifyPending(MessageSnapshot)
      */
-    protected abstract void pending(final BaseDownloadTask task, final int soFarBytes,
+    public abstract void pending(final BaseDownloadTask task, final int soFarBytes,
                                     final int totalBytes);
 
     /**
@@ -74,7 +74,7 @@ public abstract class FileDownloadListener {
      * @param task Current task.
      * @see IFileDownloadMessenger#notifyStarted(MessageSnapshot)
      */
-    protected void started(final BaseDownloadTask task) {
+    public void started(final BaseDownloadTask task) {
     }
 
     /**
@@ -87,7 +87,7 @@ public abstract class FileDownloadListener {
      * @param totalBytes Total size of the download in bytes
      * @see IFileDownloadMessenger#notifyConnected(MessageSnapshot)
      */
-    protected void connected(final BaseDownloadTask task, final String etag,
+    public void connected(final BaseDownloadTask task, final String etag,
                              final boolean isContinue, final int soFarBytes, final int totalBytes) {
 
     }
@@ -100,7 +100,7 @@ public abstract class FileDownloadListener {
      * @param totalBytes Total size of the download in bytes
      * @see IFileDownloadMessenger#notifyProgress(MessageSnapshot)
      */
-    protected abstract void progress(final BaseDownloadTask task, final int soFarBytes,
+    public abstract void progress(final BaseDownloadTask task, final int soFarBytes,
                                      final int totalBytes);
 
     /**
@@ -116,7 +116,7 @@ public abstract class FileDownloadListener {
      *                   {@code throwable} parameter instead of the {@link #completed(BaseDownloadTask)}.
      * @see IFileDownloadMessenger#notifyBlockComplete(MessageSnapshot)
      */
-    protected void blockComplete(final BaseDownloadTask task) throws Throwable {
+    public void blockComplete(final BaseDownloadTask task) throws Throwable {
     }
 
     /**
@@ -129,7 +129,7 @@ public abstract class FileDownloadListener {
      * @param soFarBytes    Number of bytes download so far
      * @see IFileDownloadMessenger#notifyRetry(MessageSnapshot)
      */
-    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes,
+    public void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes,
                          final int soFarBytes) {
     }
 
@@ -144,7 +144,7 @@ public abstract class FileDownloadListener {
      * @see IFileDownloadMessenger#notifyCompleted(MessageSnapshot)
      * @see #blockComplete(BaseDownloadTask)
      */
-    protected abstract void completed(final BaseDownloadTask task);
+    public abstract void completed(final BaseDownloadTask task);
 
     /**
      * Task is paused, the vast majority of cases is invoking the {@link BaseDownloadTask#pause()}
@@ -155,7 +155,7 @@ public abstract class FileDownloadListener {
      * @param totalBytes Total size of the download in bytes
      * @see IFileDownloadMessenger#notifyPaused(com.liulishuo.filedownloader.message.MessageSnapshot)
      */
-    protected abstract void paused(final BaseDownloadTask task, final int soFarBytes,
+    public abstract void paused(final BaseDownloadTask task, final int soFarBytes,
                                    final int totalBytes);
 
     /**
@@ -168,7 +168,7 @@ public abstract class FileDownloadListener {
      * @see com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException
      * @see com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException
      */
-    protected abstract void error(final BaseDownloadTask task, final Throwable e);
+    public abstract void error(final BaseDownloadTask task, final Throwable e);
 
     /**
      * There has already had some same Tasks(Same-URL & Same-SavePath) in Pending-Queue or is
@@ -177,6 +177,6 @@ public abstract class FileDownloadListener {
      * @param task The task
      * @see IFileDownloadMessenger#notifyWarn(com.liulishuo.filedownloader.message.MessageSnapshot)
      */
-    protected abstract void warn(final BaseDownloadTask task);
+    public abstract void warn(final BaseDownloadTask task);
 
 }
