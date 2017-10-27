@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadSampleListener;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -191,44 +190,44 @@ public class SingleTaskTestActivity extends AppCompatActivity {
                 .setListener(new FileDownloadSampleListener() {
 
                     @Override
-                    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    public void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                         super.pending(task, soFarBytes, totalBytes);
                         ((ViewHolder) task.getTag()).updatePending(task);
                     }
 
                     @Override
-                    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    public void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                         super.progress(task, soFarBytes, totalBytes);
                         ((ViewHolder) task.getTag()).updateProgress(soFarBytes, totalBytes,
                                 task.getSpeed());
                     }
 
                     @Override
-                    protected void error(BaseDownloadTask task, Throwable e) {
+                    public void error(BaseDownloadTask task, Throwable e) {
                         super.error(task, e);
                         ((ViewHolder) task.getTag()).updateError(e, task.getSpeed());
                     }
 
                     @Override
-                    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+                    public void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
                         super.connected(task, etag, isContinue, soFarBytes, totalBytes);
                         ((ViewHolder) task.getTag()).updateConnected(etag, task.getFilename());
                     }
 
                     @Override
-                    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    public void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                         super.paused(task, soFarBytes, totalBytes);
                         ((ViewHolder) task.getTag()).updatePaused(task.getSpeed());
                     }
 
                     @Override
-                    protected void completed(BaseDownloadTask task) {
+                    public void completed(BaseDownloadTask task) {
                         super.completed(task);
                         ((ViewHolder) task.getTag()).updateCompleted(task);
                     }
 
                     @Override
-                    protected void warn(BaseDownloadTask task) {
+                    public void warn(BaseDownloadTask task) {
                         super.warn(task);
                         ((ViewHolder) task.getTag()).updateWarn();
                     }
