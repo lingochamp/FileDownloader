@@ -37,7 +37,7 @@ import java.util.List;
  * For storing and updating the {@link FileDownloadModel} to the filedownloader database, and also
  * maintain the database when FileDownloader-Process is launching automatically.
  */
-class DefaultDatabaseImpl implements FileDownloadDatabase {
+public class DefaultDatabaseImpl implements FileDownloadDatabase {
 
     private final SQLiteDatabase db;
 

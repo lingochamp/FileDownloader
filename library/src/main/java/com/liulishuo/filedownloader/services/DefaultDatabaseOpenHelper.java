@@ -28,7 +28,7 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 /**
  * The default opener of the filedownloader database helper.
  */
-class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
+public class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "filedownloader.db";
     private static final int DATABASE_VERSION = 3;
 
