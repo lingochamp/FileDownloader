@@ -100,7 +100,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private boolean isSingleConnection;
 
     private final static ThreadPoolExecutor DOWNLOAD_EXECUTOR = FileDownloadExecutors
-            .newDefaultThreadPool(Integer.MAX_VALUE, "download-executor");
+        .newDefaultThreadPool("download-executor");
 
     private boolean isResumeAvailableOnDB;
     private boolean acceptPartial;
@@ -566,12 +566,13 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     private void fetchWithMultipleConnectionFromBeginning(final long totalLength, final int connectionCount) throws InterruptedException {
         long startOffset = 0;
-        final long eachRegion = totalLength / connectionCount;
+        final long partSize = FileDownloadProperties.getImpl().HTTP_CHUNKED_SIZE;
+        final long partCount = totalLength / partSize;
         final int id = model.getId();
 
         final List<ConnectionModel> connectionModelList = new ArrayList<>();
 
-        for (int i = 0; i < connectionCount; i++) {
+        for (int i = 0; i < partCount; i++) {
 
             final long endOffset;
             if (i == connectionCount - 1) {
@@ -579,7 +580,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 endOffset = 0;
             } else {
                 // [startOffset, endOffset)
-                endOffset = startOffset + eachRegion - 1;
+                endOffset = startOffset + partSize - 1;
             }
 
             final ConnectionModel connectionModel = new ConnectionModel();
@@ -591,7 +592,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             connectionModelList.add(connectionModel);
 
             database.insertConnectionModel(connectionModel);
-            startOffset += eachRegion;
+            startOffset += partSize;
         }
 
         model.setConnectionCount(connectionCount);

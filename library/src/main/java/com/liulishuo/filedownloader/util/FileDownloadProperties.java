@@ -41,6 +41,13 @@ import java.util.Properties;
  * If true, will ignore HTTP response header does not has content-length either not chunk transfer
  * encoding.
  * <p/>
+ * Key {@code http.chunked-size}
+ * Value: [1048576, {@link Long#MAX_VALUE}]
+ * Default: 1048576,1MB is the default size and the min size.
+ * Such as: http.chunked-size=1048576
+ * Description:
+ * If use chunked transfer encoding, this is a response size
+ * <p/>
  * Key {@code process.non-separate}
  * Value: {@code true} or {@code false}
  * Default: {@code false}.
@@ -116,6 +123,7 @@ import java.util.Properties;
 public class FileDownloadProperties {
 
     private final static String KEY_HTTP_LENIENT = "http.lenient";
+    private final static String KEY_HTTP_CHUNKED_SIZE = "http.chunked-size";
     private final static String KEY_PROCESS_NON_SEPARATE = "process.non-separate";
     private final static String KEY_DOWNLOAD_MIN_PROGRESS_STEP = "download.min-progress-step";
     private final static String KEY_DOWNLOAD_MIN_PROGRESS_TIME = "download.min-progress-time";
@@ -124,6 +132,7 @@ public class FileDownloadProperties {
     private final static String KEY_BROADCAST_COMPLETED = "broadcast.completed";
 
     public final int DOWNLOAD_MIN_PROGRESS_STEP;
+    public final long HTTP_CHUNKED_SIZE;
     public final long DOWNLOAD_MIN_PROGRESS_TIME;
     public final boolean HTTP_LENIENT;
     public final boolean PROCESS_NON_SEPARATE;
@@ -153,6 +162,7 @@ public class FileDownloadProperties {
 
         final long start = System.currentTimeMillis();
         String httpLenient = null;
+        String httpChunked = null;
         String processNonSeparate = null;
         String downloadMinProgressStep = null;
         String downloadMinProgressTime = null;
@@ -169,6 +179,7 @@ public class FileDownloadProperties {
             if (inputStream != null) {
                 p.load(inputStream);
                 httpLenient = p.getProperty(KEY_HTTP_LENIENT);
+                httpChunked = p.getProperty(KEY_HTTP_CHUNKED_SIZE);
                 processNonSeparate = p.getProperty(KEY_PROCESS_NON_SEPARATE);
                 downloadMinProgressStep = p.getProperty(KEY_DOWNLOAD_MIN_PROGRESS_STEP);
                 downloadMinProgressTime = p.getProperty(KEY_DOWNLOAD_MIN_PROGRESS_TIME);
@@ -205,6 +216,14 @@ public class FileDownloadProperties {
             HTTP_LENIENT = httpLenient.equals(TRUE_STRING);
         } else {
             HTTP_LENIENT = false;
+        }
+
+        //http.chunked-size
+        if (httpChunked != null) {
+            long size = Long.valueOf(httpChunked);
+            HTTP_CHUNKED_SIZE = Math.max(size, 1048576);
+        } else {
+            HTTP_CHUNKED_SIZE = 1048576;
         }
 
         //process.non-separate
