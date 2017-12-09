@@ -35,6 +35,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FileDownloadExecutors {
     private final static int DEFAULT_IDLE_SECOND = 5;
 
+    public static ThreadPoolExecutor newDefaultThreadPool(String prefix) {
+        return newDefaultThreadPool(FileDownloadProperties.getImpl().DOWNLOAD_MAX_NETWORK_THREAD_COUNT, new LinkedBlockingQueue<Runnable>(), prefix);
+    }
+
     public static ThreadPoolExecutor newDefaultThreadPool(int nThreads, String prefix) {
         return newDefaultThreadPool(nThreads, new LinkedBlockingQueue<Runnable>(), prefix);
     }
