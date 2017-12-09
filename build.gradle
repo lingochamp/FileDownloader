@@ -25,7 +25,7 @@ buildscript {
         maven { url 'https://maven.google.com' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
+        classpath 'com.android.tools.build:gradle:3.0.1'
 
         File file = project.rootProject.file('local.properties')
         if (file.exists()) {
