@@ -37,6 +37,7 @@ public class FileDownloadSerialQueue {
 
     private final Object operationLock = new Object();
     private final BlockingQueue<BaseDownloadTask> mTasks = new LinkedBlockingQueue<>();
+    private final List<BaseDownloadTask> pausedList = new ArrayList<>();
     private final HandlerThread mHandlerThread;
     private final Handler mHandler;
 
@@ -60,10 +61,17 @@ public class FileDownloadSerialQueue {
      * the serial queue, the {@code task} will be started automatically.
      */
     public void enqueue(BaseDownloadTask task) {
-        try {
-            mTasks.put(task);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        synchronized (finishCallback) {
+            if (paused) {
+                pausedList.add(task);
+                return;
+            }
+
+            try {
+                mTasks.put(task);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -81,6 +89,7 @@ public class FileDownloadSerialQueue {
             }
 
             paused = true;
+            mTasks.drainTo(pausedList);
             if (workingTask != null) {
                 workingTask.removeFinishListener(finishCallback);
                 workingTask.pause();
@@ -103,6 +112,9 @@ public class FileDownloadSerialQueue {
             }
 
             paused = false;
+            mTasks.addAll(pausedList);
+            pausedList.clear();
+
             if (workingTask == null) {
                 sendNext();
             } else {
@@ -128,7 +140,7 @@ public class FileDownloadSerialQueue {
      * @return the count of waiting tasks on this queue.
      */
     public int getWaitingTaskCount() {
-        return mTasks.size();
+        return mTasks.size() + pausedList.size();
     }
 
     /**
@@ -137,17 +149,19 @@ public class FileDownloadSerialQueue {
      * queue upon return from this method.
      */
     public List<BaseDownloadTask> shutdown() {
-        if (workingTask != null) {
-            pause();
+        synchronized (finishCallback) {
+            if (workingTask != null) {
+                pause();
+            }
+
+            final List<BaseDownloadTask> unDealTaskList = new ArrayList<>(pausedList);
+            pausedList.clear();
+            mHandler.removeMessages(WHAT_NEXT);
+            mHandlerThread.interrupt();
+            mHandlerThread.quit();
+
+            return unDealTaskList;
         }
-
-        final List<BaseDownloadTask> unDealTaskList = new ArrayList<>();
-        mTasks.drainTo(unDealTaskList);
-        mHandler.removeMessages(WHAT_NEXT);
-        mHandlerThread.interrupt();
-        mHandlerThread.quit();
-
-        return unDealTaskList;
     }
 
 
@@ -158,16 +172,11 @@ public class FileDownloadSerialQueue {
             switch (msg.what) {
                 case WHAT_NEXT:
                     try {
-                        synchronized (finishCallback) {
-                            if (paused) break;
-                            workingTask = mTasks.take();
-                            workingTask.addFinishListener(finishCallback)
-                                    .start();
-                        }
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                        if (paused) break;
+                        workingTask = mTasks.take();
+                        workingTask.addFinishListener(finishCallback)
+                                .start();
+                    } catch (InterruptedException ignored) { }
                     break;
             }
             return false;
