@@ -26,6 +26,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
 
+import com.liulishuo.filedownloader.BuildConfig;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
@@ -708,5 +709,9 @@ public class FileDownloadUtils {
     public static boolean isNeedSync(long bytesDelta, long timestampDelta){
         return bytesDelta > FileDownloadUtils.getMinProgressStep() &&
                 timestampDelta > FileDownloadUtils.getMinProgressTime();
+    }
+
+    public static String defaultUserAgent() {
+        return formatString("FileDownloader/%s", BuildConfig.VERSION_NAME);
     }
 }

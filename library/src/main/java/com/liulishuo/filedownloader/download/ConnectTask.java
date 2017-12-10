@@ -61,6 +61,7 @@ public class ConnectTask {
 
         addUserRequiredHeader(connection);
         addRangeHeader(connection);
+        fixNeededHeader(connection);
 
         // init request
         // get the request header in here, because of there are many connection
@@ -78,7 +79,7 @@ public class ConnectTask {
         return connection;
     }
 
-    void addUserRequiredHeader(FileDownloadConnection connection) {
+    private void addUserRequiredHeader(FileDownloadConnection connection) {
         final HashMap<String, List<String>> additionHeaders;
         if (header != null) {
             additionHeaders = header.getHeaders();
@@ -107,7 +108,7 @@ public class ConnectTask {
         }
     }
 
-    void addRangeHeader(FileDownloadConnection connection) {
+    private void addRangeHeader(FileDownloadConnection connection) {
         if (connection.dispatchAddResumeOffset(etag, profile.startOffset)) {
             return;
         }
@@ -122,6 +123,12 @@ public class ConnectTask {
             range = FileDownloadUtils.formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
         }
         connection.addHeader("Range", range);
+    }
+
+    private void fixNeededHeader(FileDownloadConnection connection) {
+        if (header == null || header.getHeaders().get("User-Agent") == null) {
+            connection.addHeader("User-Agent", FileDownloadUtils.defaultUserAgent());
+        }
     }
 
     boolean isRangeNotFromBeginning(){
