@@ -21,11 +21,12 @@ import android.content.Context;
 
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.database.SqliteDatabaseImpl;
 import com.liulishuo.filedownloader.exception.PathConflictException;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
-import com.liulishuo.filedownloader.services.FileDownloadDatabase;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.stream.FileDownloadRandomAccessFile;
 
@@ -132,7 +133,7 @@ public class FileDownloadHelper {
          *
          * @return Nullable, Customize {@link FileDownloadDatabase} which will be used for storing
          * downloading model.
-         * @see com.liulishuo.filedownloader.services.DefaultDatabaseImpl
+         * @see SqliteDatabaseImpl
          */
         FileDownloadDatabase customMake();
     }

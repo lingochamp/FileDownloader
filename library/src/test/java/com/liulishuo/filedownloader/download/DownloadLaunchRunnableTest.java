@@ -27,7 +27,7 @@ import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.services.FileDownloadDatabase;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 import org.junit.Test;

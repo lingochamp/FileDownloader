@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.liulishuo.filedownloader.services;
+package com.liulishuo.filedownloader.database;
 
 import android.util.SparseArray;
 
@@ -56,14 +56,17 @@ import java.util.List;
  */
 public class NoDatabaseImpl implements FileDownloadDatabase {
 
-    private final SparseArray<FileDownloadModel> downloaderModelMap = new SparseArray<>();
-    private final SparseArray<List<ConnectionModel>> connectionModelListMap = new SparseArray<>();
+    final SparseArray<FileDownloadModel> downloaderModelMap = new SparseArray<>();
+    final SparseArray<List<ConnectionModel>> connectionModelListMap = new SparseArray<>();
 
-    protected NoDatabaseImpl() {
+    public NoDatabaseImpl() {
     }
 
     public static Maker createMaker() {
         return new Maker();
+    }
+
+    @Override public void onTaskStart(int id) {
     }
 
     @Override

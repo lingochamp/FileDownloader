@@ -21,6 +21,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * The model of the downloading task will be used in the filedownloader database.
  *
- * @see com.liulishuo.filedownloader.services.FileDownloadDatabase
+ * @see FileDownloadDatabase
  */
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadModel implements Parcelable {

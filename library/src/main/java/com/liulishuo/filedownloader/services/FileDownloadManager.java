@@ -20,6 +20,7 @@ package com.liulishuo.filedownloader.services;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.download.DownloadLaunchRunnable;
 import com.liulishuo.filedownloader.download.DownloadRunnable;

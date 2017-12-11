@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.liulishuo.filedownloader.services;
+package com.liulishuo.filedownloader.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -28,11 +28,11 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
 /**
  * The default opener of the filedownloader database helper.
  */
-public class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
+public class SqliteDatabaseOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "filedownloader.db";
     private static final int DATABASE_VERSION = 3;
 
-    public DefaultDatabaseOpenHelper(final Context context) {
+    public SqliteDatabaseOpenHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -50,7 +50,7 @@ public class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS " +
-                DefaultDatabaseImpl.TABLE_NAME + "( " +
+                SqliteDatabaseImpl.TABLE_NAME + "( " +
                 FileDownloadModel.ID + " INTEGER PRIMARY KEY, " + // id
                 FileDownloadModel.URL + " VARCHAR, " + // url
                 FileDownloadModel.PATH + " VARCHAR, " + // path
@@ -64,7 +64,7 @@ public class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
                 FileDownloadModel.CONNECTION_COUNT + " INTEGER DEFAULT 1" + // connection count
                 ")");
         db.execSQL("CREATE TABLE IF NOT EXISTS " +
-                DefaultDatabaseImpl.CONNECTION_TABLE_NAME + "( " +
+                SqliteDatabaseImpl.CONNECTION_TABLE_NAME + "( " +
                 ConnectionModel.ID + " INTEGER, " +
                 ConnectionModel.INDEX + " INTEGER, " +
                 ConnectionModel.START_OFFSET + " INTEGER, " +
@@ -78,25 +78,25 @@ public class DefaultDatabaseOpenHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         if (oldVersion < 2) {
-            String addAsDirectoryColumn = "ALTER TABLE " + DefaultDatabaseImpl.TABLE_NAME +
+            String addAsDirectoryColumn = "ALTER TABLE " + SqliteDatabaseImpl.TABLE_NAME +
                     " ADD COLUMN " + FileDownloadModel.PATH_AS_DIRECTORY +
                     " TINYINT(1) DEFAULT 0";
             db.execSQL(addAsDirectoryColumn);
 
-            String addFilenameColumn = "ALTER TABLE " + DefaultDatabaseImpl.TABLE_NAME +
+            String addFilenameColumn = "ALTER TABLE " + SqliteDatabaseImpl.TABLE_NAME +
                     " ADD COLUMN " + FileDownloadModel.FILENAME +
                     " VARCHAR";
             db.execSQL(addFilenameColumn);
         }
 
         if (oldVersion < 3) {
-            final String addConnectionCount = "ALTER TABLE " + DefaultDatabaseImpl.TABLE_NAME +
+            final String addConnectionCount = "ALTER TABLE " + SqliteDatabaseImpl.TABLE_NAME +
                     " ADD COLUMN " + FileDownloadModel.CONNECTION_COUNT +
                     " INTEGER DEFAULT 1";
             db.execSQL(addConnectionCount);
 
             db.execSQL("CREATE TABLE IF NOT EXISTS " +
-                    DefaultDatabaseImpl.CONNECTION_TABLE_NAME + "( " +
+                    SqliteDatabaseImpl.CONNECTION_TABLE_NAME + "( " +
                     ConnectionModel.ID + " INTEGER, " +
                     ConnectionModel.INDEX + " INTEGER, " +
                     ConnectionModel.START_OFFSET + " INTEGER, " +

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.liulishuo.filedownloader.services;
+package com.liulishuo.filedownloader.database;
 
 
 import com.liulishuo.filedownloader.model.ConnectionModel;
@@ -34,11 +34,18 @@ import java.util.List;
  * and if the task has finished downloading, its data will be {@link #remove(int)} from the database,
  * since that data is no longer available for resumption of its task pass.
  *
- * @see DefaultDatabaseImpl
+ * @see SqliteDatabaseImpl
  * @see FileDownloadUtils#isBreakpointAvailable(int, FileDownloadModel)
  */
 @SuppressWarnings("UnusedParameters")
 public interface FileDownloadDatabase {
+
+    /**
+     * Invoked when task is started.
+     *
+     * @param id the download id.
+     */
+    void onTaskStart(final int id);
 
     /**
      * Find the model which identify is {@code id}.
@@ -182,7 +189,7 @@ public interface FileDownloadDatabase {
      * <p>
      * The maintainer will return all data on the database.
      * <p>
-     * Demo: {@link com.liulishuo.filedownloader.services.DefaultDatabaseImpl.Maintainer}
+     * Demo: {@link SqliteDatabaseImpl.Maintainer}
      *
      * @return the maintainer for maintain the database.
      */

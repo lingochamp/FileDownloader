@@ -30,7 +30,7 @@ import com.liulishuo.filedownloader.message.MessageSnapshotTaker;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.services.FileDownloadBroadcastHandler;
-import com.liulishuo.filedownloader.services.FileDownloadDatabase;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
@@ -110,6 +110,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         // direct
         model.setStatus(FileDownloadStatus.started);
         onStatusChanged(FileDownloadStatus.started);
+        database.onTaskStart(model.getId());
     }
 
     void onConnected(boolean isResume, long totalLength, String etag, String fileName) throws

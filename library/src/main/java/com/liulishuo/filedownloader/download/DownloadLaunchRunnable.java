@@ -30,7 +30,7 @@ import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.services.FileDownloadDatabase;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;

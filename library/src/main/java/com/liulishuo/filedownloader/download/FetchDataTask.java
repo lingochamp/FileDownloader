@@ -21,7 +21,7 @@ import android.os.SystemClock;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException;
-import com.liulishuo.filedownloader.services.FileDownloadDatabase;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
