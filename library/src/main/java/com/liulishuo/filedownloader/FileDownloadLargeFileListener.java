@@ -53,7 +53,7 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @deprecated replaced with {@link #pending(BaseDownloadTask, long, long)}
      */
     @Override
-    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    public void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
     }
 
     /**
@@ -79,7 +79,7 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @deprecated replaced with {@link #connected(BaseDownloadTask, String, boolean, long, long)}
      */
     @Override
-    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+    public void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
     }
 
     /**
@@ -97,7 +97,7 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @deprecated replaced with {@link #progress(BaseDownloadTask, long, long)}
      */
     @Override
-    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    public void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
     }
 
     /**
@@ -122,7 +122,7 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      */
     @SuppressWarnings("EmptyMethod")
     @Override
-    protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
+    public void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
     }
 
     /**
@@ -142,6 +142,6 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @deprecated replaced with {@link #paused(BaseDownloadTask, long, long)}
      */
     @Override
-    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    public void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
     }
 }

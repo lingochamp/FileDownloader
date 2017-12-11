@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.notification.BaseNotificationItem;
@@ -71,7 +72,7 @@ public class NotificationMinSetActivity extends AppCompatActivity {
     }
 
     private class NotificationListener extends FileDownloadNotificationListener {
-
+FileDownloadListener mListener;
         private static final String TAG = "NotificationListener";
 
         public NotificationListener(FileDownloadNotificationHelper helper) {

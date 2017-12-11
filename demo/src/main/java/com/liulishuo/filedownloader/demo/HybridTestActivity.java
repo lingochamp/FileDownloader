@@ -170,28 +170,28 @@ public class HybridTestActivity extends AppCompatActivity {
         return new FileDownloadListener() {
 
             @Override
-            protected boolean isInvalid() {
+            public boolean isInvalid() {
                 return isFinishing();
             }
 
             @Override
-            protected void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
+            public void pending(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 updateDisplay(String.format("[pending] id[%d] %d/%d", task.getId(), soFarBytes, totalBytes));
             }
 
             @Override
-            protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+            public void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
                 super.connected(task, etag, isContinue, soFarBytes, totalBytes);
                 updateDisplay(String.format("[connected] id[%d] %s %B %d/%d", task.getId(), etag, isContinue, soFarBytes, totalBytes));
             }
 
             @Override
-            protected void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
+            public void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 updateDisplay(String.format("[progress] id[%d] %d/%d", task.getId(), soFarBytes, totalBytes));
             }
 
             @Override
-            protected void blockComplete(final BaseDownloadTask task) {
+            public void blockComplete(final BaseDownloadTask task) {
                 downloadMsgTv.post(new Runnable() {
                     @Override
                     public void run() {
@@ -201,14 +201,14 @@ public class HybridTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
+            public void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
                 super.retry(task, ex, retryingTimes, soFarBytes);
                 updateDisplay(String.format("[retry] id[%d] %s %d %d",
                         task.getId(), ex, retryingTimes, soFarBytes));
             }
 
             @Override
-            protected void completed(BaseDownloadTask task) {
+            public void completed(BaseDownloadTask task) {
                 finalCounts++;
                 updateDisplay(String.format("[completed] id[%d] oldFile[%B]",
                         task.getId(),
@@ -217,14 +217,14 @@ public class HybridTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
+            public void paused(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
                 finalCounts++;
                 updateDisplay(String.format("[paused] id[%d] %d/%d", task.getId(), soFarBytes, totalBytes));
                 updateDisplay(String.format("############################## %d", (Integer) task.getTag()));
             }
 
             @Override
-            protected void error(BaseDownloadTask task, Throwable e) {
+            public void error(BaseDownloadTask task, Throwable e) {
                 finalCounts++;
                 updateDisplay(Html.fromHtml(String.format("[error] id[%d] %s %s",
                         task.getId(),
@@ -235,7 +235,7 @@ public class HybridTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void warn(BaseDownloadTask task) {
+            public void warn(BaseDownloadTask task) {
                 finalCounts++;
                 updateDisplay(String.format("[warn] id[%d]", task.getId()));
                 updateDisplay(String.format("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %d", (Integer) task.getTag()));

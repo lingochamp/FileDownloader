@@ -135,49 +135,49 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
     }
 
     @Override
-    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    public void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
         addNotificationItem(task);
         showIndeterminate(task);
     }
 
     @Override
-    protected void started(BaseDownloadTask task) {
+    public void started(BaseDownloadTask task) {
         super.started(task);
         showIndeterminate(task);
     }
 
     @Override
-    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    public void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
         showProgress(task, soFarBytes, totalBytes);
     }
 
     @Override
-    protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
+    public void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
         super.retry(task, ex, retryingTimes, soFarBytes);
         showIndeterminate(task);
     }
 
     @Override
-    protected void blockComplete(BaseDownloadTask task) {
+    public void blockComplete(BaseDownloadTask task) {
     }
 
     @Override
-    protected void completed(BaseDownloadTask task) {
+    public void completed(BaseDownloadTask task) {
         destroyNotification(task);
     }
 
     @Override
-    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+    public void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
         destroyNotification(task);
     }
 
     @Override
-    protected void error(BaseDownloadTask task, Throwable e) {
+    public void error(BaseDownloadTask task, Throwable e) {
         destroyNotification(task);
     }
 
     @Override
-    protected void warn(BaseDownloadTask task) {
+    public void warn(BaseDownloadTask task) {
         // ignore
         // do not handle the case of the same URL and path task(the same download id), which
         // will share the same notification item

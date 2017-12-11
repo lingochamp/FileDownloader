@@ -206,7 +206,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            public void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 super.pending(task, soFarBytes, totalBytes);
                 final TaskItemViewHolder tag = checkCurrentHolder(task);
                 if (tag == null) {
@@ -219,7 +219,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void started(BaseDownloadTask task) {
+            public void started(BaseDownloadTask task) {
                 super.started(task);
                 final TaskItemViewHolder tag = checkCurrentHolder(task);
                 if (tag == null) {
@@ -230,7 +230,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+            public void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
                 super.connected(task, etag, isContinue, soFarBytes, totalBytes);
                 final TaskItemViewHolder tag = checkCurrentHolder(task);
                 if (tag == null) {
@@ -243,7 +243,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            public void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 super.progress(task, soFarBytes, totalBytes);
                 final TaskItemViewHolder tag = checkCurrentHolder(task);
                 if (tag == null) {
@@ -255,7 +255,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void error(BaseDownloadTask task, Throwable e) {
+            public void error(BaseDownloadTask task, Throwable e) {
                 super.error(task, e);
                 final TaskItemViewHolder tag = checkCurrentHolder(task);
                 if (tag == null) {
@@ -268,7 +268,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            public void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 super.paused(task, soFarBytes, totalBytes);
                 final TaskItemViewHolder tag = checkCurrentHolder(task);
                 if (tag == null) {
@@ -281,7 +281,7 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void completed(BaseDownloadTask task) {
+            public void completed(BaseDownloadTask task) {
                 super.completed(task);
                 final TaskItemViewHolder tag = checkCurrentHolder(task);
                 if (tag == null) {

@@ -287,7 +287,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
         return new FileDownloadListener() {
 
             @Override
-            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            public void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 // 之所以加这句判断，是因为有些异步任务在pause以后，会持续回调pause回来，而有些任务在pause之前已经完成，
                 // 但是通知消息还在线程池中还未回调回来，这里可以优化
                 // 后面所有在回调中加这句都是这个原因
@@ -300,8 +300,8 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void connected(BaseDownloadTask task, String etag, boolean isContinue,
-                                     int soFarBytes, int totalBytes) {
+            public void connected(BaseDownloadTask task, String etag, boolean isContinue,
+                                  int soFarBytes, int totalBytes) {
 
                 super.connected(task, etag, isContinue, soFarBytes, totalBytes);
                 if (task.getListener() != downloadListener) {
@@ -316,7 +316,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            public void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 if (task.getListener() != downloadListener) {
                     return;
                 }
@@ -326,14 +326,14 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void blockComplete(BaseDownloadTask task) {
+            public void blockComplete(BaseDownloadTask task) {
                 if (task.getListener() != downloadListener) {
                     return;
                 }
             }
 
             @Override
-            protected void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
+            public void retry(BaseDownloadTask task, Throwable ex, int retryingTimes, int soFarBytes) {
                 super.retry(task, ex, retryingTimes, soFarBytes);
                 if (task.getListener() != downloadListener) {
                     return;
@@ -349,7 +349,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void completed(BaseDownloadTask task) {
+            public void completed(BaseDownloadTask task) {
                 if (task.getListener() != downloadListener) {
                     return;
                 }
@@ -373,7 +373,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+            public void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 if (task.getListener() != downloadListener) {
                     return;
                 }
@@ -384,7 +384,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void error(BaseDownloadTask task, Throwable e) {
+            public void error(BaseDownloadTask task, Throwable e) {
                 if (task.getListener() != downloadListener) {
                     return;
                 }
@@ -396,7 +396,7 @@ public class MultitaskTestActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void warn(BaseDownloadTask task) {
+            public void warn(BaseDownloadTask task) {
                 if (task.getListener() != downloadListener) {
                     return;
                 }

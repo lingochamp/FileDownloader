@@ -138,7 +138,7 @@ public class NotificationSampleActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+        public void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
             super.pending(task, soFarBytes, totalBytes);
             if (wActivity.get() != null) {
                 wActivity.get().progressBar.setIndeterminate(true);
@@ -146,7 +146,7 @@ public class NotificationSampleActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+        public void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
             super.progress(task, soFarBytes, totalBytes);
             if (wActivity.get() != null) {
                 wActivity.get().progressBar.setIndeterminate(false);
@@ -156,7 +156,7 @@ public class NotificationSampleActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void completed(BaseDownloadTask task) {
+        public void completed(BaseDownloadTask task) {
             super.completed(task);
             if (wActivity.get() != null) {
                 wActivity.get().progressBar.setIndeterminate(false);
