@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * If one data insert and remove within 2 sec, which will do not effect on {@code realDatabase}.
+ * If one data insert/update and remove within 2 sec, which will do not effect on {@code realDatabase}.
  */
 public class RemitDatabase implements FileDownloadDatabase {
 

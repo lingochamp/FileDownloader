@@ -100,7 +100,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private boolean isSingleConnection;
 
     private final static ThreadPoolExecutor DOWNLOAD_EXECUTOR = FileDownloadExecutors
-            .newDefaultThreadPool(Integer.MAX_VALUE, "download-executor");
+            .newDefaultThreadPool(Integer.MAX_VALUE, "ConnectionBlock");
 
     private boolean isResumeAvailableOnDB;
     private boolean acceptPartial;

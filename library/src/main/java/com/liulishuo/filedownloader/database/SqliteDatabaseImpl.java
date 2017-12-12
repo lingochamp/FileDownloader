@@ -300,7 +300,7 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
                     }
                 }
 
-                // initial cache of connection module
+                // initial cache of connection model
                 if (downloaderModelMap != null && connectionModelListMap != null) {
                     final int size = downloaderModelMap.size();
                     for (int i = 0; i < size; i++) {
