@@ -85,7 +85,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     private boolean isTriedFixRangeNotSatisfiable;
 
-    private int validRetryTimes;
+    int validRetryTimes;
 
     /**
      * None of the ranges in the request's Range header field overlap the current extent of the
@@ -850,7 +850,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     validRetryTimes, model.getId());
         }
 
-        statusCallback.onRetry(exception, validRetryTimes--, invalidIncreaseBytes);
+        statusCallback.onRetry(exception, validRetryTimes, invalidIncreaseBytes);
     }
 
     @Override

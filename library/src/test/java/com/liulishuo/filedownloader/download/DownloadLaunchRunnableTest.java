@@ -23,11 +23,11 @@ import android.net.ConnectivityManager;
 
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 import org.junit.Test;
@@ -37,6 +37,7 @@ import org.robolectric.annotation.Config;
 
 import java.util.Iterator;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -48,6 +49,22 @@ import static org.robolectric.RuntimeEnvironment.application;
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class DownloadLaunchRunnableTest {
+
+    @Test
+    public void onRetry_validRetryTimesDecrease_only1() {
+        final DownloadLaunchRunnable launchRunnable = DownloadLaunchRunnable
+                .createForTest(mock(DownloadStatusCallback.class),
+                        mock(FileDownloadModel.class), mock(FileDownloadHeader.class),
+                        mock(IThreadPoolMonitor.class),
+                        1000, 100, false,
+                        true, 3);
+        launchRunnable.onRetry(mock(Exception.class), 0);
+        assertThat(launchRunnable.validRetryTimes).isEqualTo(2);
+        launchRunnable.onRetry(mock(Exception.class), 0);
+        assertThat(launchRunnable.validRetryTimes).isEqualTo(1);
+        launchRunnable.onRetry(mock(Exception.class), 0);
+        assertThat(launchRunnable.validRetryTimes).isEqualTo(0);
+    }
 
     @Test
     public void run_noWifiButRequired_callbackNetworkError() {
