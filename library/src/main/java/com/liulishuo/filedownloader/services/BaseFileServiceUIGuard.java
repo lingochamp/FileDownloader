@@ -113,12 +113,12 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
 
         FileDownloadEventPool.getImpl().
                 asyncPublishInNewThread(new DownloadServiceConnectChangedEvent(
-                        isLost ? DownloadServiceConnectChangedEvent.ConnectStatus.lost :
-                                DownloadServiceConnectChangedEvent.ConnectStatus.disconnected,
+                        isLost ? DownloadServiceConnectChangedEvent.ConnectStatus.lost
+                                : DownloadServiceConnectChangedEvent.ConnectStatus.disconnected,
                         serviceClass));
     }
 
-    private final List<Context> BIND_CONTEXTS = new ArrayList<>();
+    private final List<Context> bindContexts = new ArrayList<>();
     private final ArrayList<Runnable> connectedRunnableList = new ArrayList<>();
 
     @Override
@@ -129,12 +129,13 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     @Override
     public void bindStartByContext(final Context context, final Runnable connectedRunnable) {
         if (FileDownloadUtils.isDownloaderProcess(context)) {
-            throw new IllegalStateException("Fatal-Exception: You can't bind the " +
-                    "FileDownloadService in :filedownloader process.\n It's the invalid operation, " +
-                    "and is likely to cause unexpected problems.\n Maybe you want to use" +
-                    " non-separate process mode for FileDownloader, More detail about " +
-                    "non-separate mode, please move to wiki manually:" +
-                    " https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties");
+            throw new IllegalStateException("Fatal-Exception: You can't bind the "
+                    + "FileDownloadService in :filedownloader process.\n It's the invalid operation"
+                    + " and is likely to cause unexpected problems.\n Maybe you want to use"
+                    + " non-separate process mode for FileDownloader, More detail about "
+                    + "non-separate mode, please move to wiki manually:"
+                    + " https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties"
+            );
         }
 
         if (FileDownloadLog.NEED_LOG) {
@@ -148,9 +149,9 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             }
         }
 
-        if (!BIND_CONTEXTS.contains(context)) {
+        if (!bindContexts.contains(context)) {
             // 对称,只有一次remove，防止内存泄漏
-            BIND_CONTEXTS.add(context);
+            bindContexts.add(context);
         }
 
         context.bindService(i, this, Context.BIND_AUTO_CREATE);
@@ -159,7 +160,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
 
     @Override
     public void unbindByContext(final Context context) {
-        if (!BIND_CONTEXTS.contains(context)) {
+        if (!bindContexts.contains(context)) {
             return;
         }
 
@@ -167,10 +168,10 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             FileDownloadLog.d(this, "unbindByContext %s", context);
         }
 
-        BIND_CONTEXTS.remove(context);
+        bindContexts.remove(context);
 
 
-        if (BIND_CONTEXTS.isEmpty()) {
+        if (bindContexts.isEmpty()) {
             releaseConnect(false);
         }
 
@@ -187,9 +188,11 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
 
     protected abstract INTERFACE asInterface(IBinder service);
 
-    protected abstract void registerCallback(final INTERFACE service, final CALLBACK callback) throws RemoteException;
+    protected abstract void registerCallback(final INTERFACE service, final CALLBACK callback)
+            throws RemoteException;
 
-    protected abstract void unregisterCallback(final INTERFACE service, final CALLBACK callback) throws RemoteException;
+    protected abstract void unregisterCallback(final INTERFACE service, final CALLBACK callback)
+            throws RemoteException;
 
 
     protected Object popCache(final String key) {

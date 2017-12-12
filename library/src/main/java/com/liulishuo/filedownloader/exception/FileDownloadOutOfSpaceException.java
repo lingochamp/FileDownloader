@@ -27,8 +27,8 @@ import java.io.IOException;
  * Throw this exception, when the downloading file is too large to store, in other words,
  * the free space is less than the length of the downloading file.
  * <p/>
- * When the resource is non-Chunked(normally), we will check the space and handle this problem before
- * fetch data from the input stream:
+ * When the resource is non-Chunked(normally), we will check the space and handle this problem
+ * before fetch data from the input stream:
  * {@link FileDownloadUtils#createOutputStream(String)}
  * When the resource is chunked, we will handle this problem when the free space is not enough to
  * store the following chunk:
@@ -42,18 +42,18 @@ public class FileDownloadOutOfSpaceException extends IOException {
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public FileDownloadOutOfSpaceException(long freeSpaceBytes, long requiredSpaceBytes,
                                            long breakpointBytes, Throwable cause) {
-        super(FileDownloadUtils.formatString("The file is too large to store, breakpoint in bytes: " +
-                " %d, required space in bytes: %d, but free space in bytes: " +
-                "%d", breakpointBytes, requiredSpaceBytes, freeSpaceBytes), cause);
+        super(FileDownloadUtils.formatString("The file is too large to store, breakpoint in bytes: "
+                + " %d, required space in bytes: %d, but free space in bytes: "
+                + "%d", breakpointBytes, requiredSpaceBytes, freeSpaceBytes), cause);
 
         init(freeSpaceBytes, requiredSpaceBytes, breakpointBytes);
     }
 
     public FileDownloadOutOfSpaceException(long freeSpaceBytes, long requiredSpaceBytes,
                                            long breakpointBytes) {
-        super(FileDownloadUtils.formatString("The file is too large to store, breakpoint in bytes: " +
-                " %d, required space in bytes: %d, but free space in bytes: " +
-                "%d", breakpointBytes, requiredSpaceBytes, freeSpaceBytes));
+        super(FileDownloadUtils.formatString("The file is too large to store, breakpoint in bytes: "
+                + " %d, required space in bytes: %d, but free space in bytes: "
+                + "%d", breakpointBytes, requiredSpaceBytes, freeSpaceBytes));
 
         init(freeSpaceBytes, requiredSpaceBytes, breakpointBytes);
 
@@ -81,7 +81,8 @@ public class FileDownloadOutOfSpaceException extends IOException {
 
     /**
      * @return In normal Case: The value of breakpoint, which has already downloaded by past, if the
-     * value is more than 0, it must be resuming from breakpoint. For Chunked Resource(Streaming media):
+     * value is more than 0, it must be resuming from breakpoint.
+     * For Chunked Resource(Streaming media):
      * The value would be the filled size.
      */
     public long getBreakpointBytes() {

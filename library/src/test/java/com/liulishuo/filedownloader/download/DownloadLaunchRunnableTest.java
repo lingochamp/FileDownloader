@@ -81,9 +81,11 @@ public class DownloadLaunchRunnableTest {
 
 
     private static void mockContextNoWifiState(Context context) {
-        when(context.checkCallingOrSelfPermission(anyString())).thenReturn(PackageManager.PERMISSION_GRANTED);
+        when(context.checkCallingOrSelfPermission(anyString()))
+                .thenReturn(PackageManager.PERMISSION_GRANTED);
         final ConnectivityManager connectivityManager = mock(ConnectivityManager.class);
-        when(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(connectivityManager);
+        when(context.getSystemService(Context.CONNECTIVITY_SERVICE))
+                .thenReturn(connectivityManager);
 
         // not wifi.
         when(connectivityManager.getActiveNetworkInfo()).thenReturn(null);

@@ -18,17 +18,16 @@ package com.liulishuo.filedownloader.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
-
-import java.util.List;
 
 /**
  * The Minimal unit for a task.
  * <p/>
  * Used for telling the FileDownloader Engine that a task was downloaded by the other ways.
  *
- * @see com.liulishuo.filedownloader.FileDownloader#setTaskCompleted(List)
- * @deprecated No used. {@link com.liulishuo.filedownloader.FileDownloader#setTaskCompleted(String, String, long)}
+ * @see com.liulishuo.filedownloader.FileDownloader#setTaskCompleted
+ * @deprecated No used. {@link FileDownloader#setTaskCompleted(String, String, long)}
  */
 @SuppressWarnings({"WeakerAccess", "deprecation", "DeprecatedIsStillUsed"})
 public class FileDownloadTaskAtom implements Parcelable {
@@ -94,15 +93,16 @@ public class FileDownloadTaskAtom implements Parcelable {
         this.totalBytes = in.readLong();
     }
 
-    public static final Parcelable.Creator<FileDownloadTaskAtom> CREATOR = new Parcelable.Creator<FileDownloadTaskAtom>() {
-        @Override
-        public FileDownloadTaskAtom createFromParcel(Parcel source) {
-            return new FileDownloadTaskAtom(source);
-        }
+    public static final Parcelable.Creator<FileDownloadTaskAtom> CREATOR =
+            new Parcelable.Creator<FileDownloadTaskAtom>() {
+                @Override
+                public FileDownloadTaskAtom createFromParcel(Parcel source) {
+                    return new FileDownloadTaskAtom(source);
+                }
 
-        @Override
-        public FileDownloadTaskAtom[] newArray(int size) {
-            return new FileDownloadTaskAtom[size];
-        }
-    };
+                @Override
+                public FileDownloadTaskAtom[] newArray(int size) {
+                    return new FileDownloadTaskAtom[size];
+                }
+            };
 }

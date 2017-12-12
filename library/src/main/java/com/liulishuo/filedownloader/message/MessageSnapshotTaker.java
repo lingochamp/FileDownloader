@@ -34,7 +34,8 @@ public class MessageSnapshotTaker {
         return take(status, model, null);
     }
 
-    public static MessageSnapshot catchCanReusedOldFile(int id, File oldFile, boolean flowDirectly) {
+    public static MessageSnapshot catchCanReusedOldFile(int id, File oldFile,
+                                                        boolean flowDirectly) {
         final long totalBytes = oldFile.length();
         if (totalBytes > Integer.MAX_VALUE) {
             if (flowDirectly) {
@@ -61,7 +62,8 @@ public class MessageSnapshotTaker {
             }
         } else {
             if (flowDirectly) {
-                return new SmallMessageSnapshot.WarnFlowDirectlySnapshot(id, (int) sofar, (int) total);
+                return new SmallMessageSnapshot.WarnFlowDirectlySnapshot(id, (int) sofar,
+                        (int) total);
             } else {
                 return new SmallMessageSnapshot.WarnMessageSnapshot(id, (int) sofar, (int) total);
             }
@@ -89,8 +91,9 @@ public class MessageSnapshotTaker {
     public static MessageSnapshot takeBlockCompleted(MessageSnapshot snapshot) {
         if (snapshot.getStatus() != FileDownloadStatus.completed) {
             throw new IllegalStateException(
-                    FileDownloadUtils.formatString("take block completed snapshot, must has " +
-                            "already be completed. %d %d", snapshot.getId(), snapshot.getStatus()));
+                    FileDownloadUtils.formatString("take block completed snapshot, must has "
+                                    + "already be completed. %d %d",
+                            snapshot.getId(), snapshot.getStatus()));
         }
 
         return new BlockCompleteMessage.BlockCompleteMessageImpl(snapshot);
@@ -119,14 +122,15 @@ public class MessageSnapshotTaker {
                 snapShot = new MessageSnapshot.StartedMessageSnapshot(id);
                 break;
             case FileDownloadStatus.connected:
-                final String filename = model.isPathAsDirectory() ? model.getFilename() :
-                        null;
+                final String filename = model.isPathAsDirectory() ? model.getFilename() : null;
                 if (model.isLargeFile()) {
                     snapShot = new LargeMessageSnapshot.ConnectedMessageSnapshot(id,
-                            processParams.isResuming(), model.getTotal(), model.getETag(), filename);
+                            processParams.isResuming(), model.getTotal(), model.getETag(),
+                            filename);
                 } else {
                     snapShot = new SmallMessageSnapshot.ConnectedMessageSnapshot(id,
-                            processParams.isResuming(), (int) model.getTotal(), model.getETag(), filename);
+                            processParams.isResuming(), (int) model.getTotal(), model.getETag(),
+                            filename);
                 }
                 break;
             case FileDownloadStatus.progress:
@@ -150,7 +154,8 @@ public class MessageSnapshotTaker {
             case FileDownloadStatus.retry:
                 if (model.isLargeFile()) {
                     snapShot = new LargeMessageSnapshot.RetryMessageSnapshot(id,
-                            model.getSoFar(), processParams.getException(), processParams.getRetryingTimes());
+                            model.getSoFar(), processParams.getException(),
+                            processParams.getRetryingTimes());
                 } else {
                     snapShot = new SmallMessageSnapshot.RetryMessageSnapshot(id,
                             (int) model.getSoFar(), processParams.getException(),
@@ -169,11 +174,13 @@ public class MessageSnapshotTaker {
             default:
                 // deal with as error.
                 final String message = FileDownloadUtils.
-                        formatString("it can't takes a snapshot for the task(%s) when its status is %d,",
+                        formatString(
+                                "it can't takes a snapshot for the task(%s) when its status is %d,",
                                 model, status);
 
                 FileDownloadLog.w(MessageSnapshotTaker.class,
-                        "it can't takes a snapshot for the task(%s) when its status is %d,", model, status);
+                        "it can't takes a snapshot for the task(%s) when its status is %d,", model,
+                        status);
 
                 final Throwable throwable;
                 if (processParams.getException() != null) {

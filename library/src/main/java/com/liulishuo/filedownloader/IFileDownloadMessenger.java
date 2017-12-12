@@ -18,7 +18,6 @@ package com.liulishuo.filedownloader;
 
 import com.liulishuo.filedownloader.download.DownloadStatusCallback;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
-import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 /**
@@ -94,7 +93,7 @@ interface IFileDownloadMessenger {
      * There has already had some same Tasks(Same-URL & Same-SavePath) in Pending-Queue or is
      * running.
      *
-     * @see FileDownloadHelper#inspectAndInflowDownloading(int, FileDownloadModel, IThreadPoolMonitor, boolean)
+     * @see FileDownloadHelper#inspectAndInflowDownloading
      */
     void notifyWarn(MessageSnapshot snapshot);
 
@@ -144,7 +143,8 @@ interface IFileDownloadMessenger {
      * @param task Re-appointment for this task, when this messenger has already accomplished the
      *             old one.
      */
-    void reAppointment(BaseDownloadTask.IRunningTask task, BaseDownloadTask.LifeCycleCallback callback);
+    void reAppointment(BaseDownloadTask.IRunningTask task,
+                       BaseDownloadTask.LifeCycleCallback callback);
 
     /**
      * The 'block completed'(status) message will be handover in the non-UI thread and block the

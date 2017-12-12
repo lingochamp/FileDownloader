@@ -19,9 +19,9 @@ package com.liulishuo.filedownloader.exception;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 /**
- * Throw this exception, when there is an another running task with the same path with the current task,
- * so if the current task is started, the path of the file is sure to be written by multiple tasks, it is wrong,
- * then we through this exception to avoid such conflict.
+ * Throw this exception, when there is an another running task with the same path with the current
+ * task, so if the current task is started, the path of the file is sure to be written by multiple
+ * tasks, it is wrong, then we through this exception to avoid such conflict.
  */
 
 public class PathConflictException extends IllegalAccessException {
@@ -32,11 +32,11 @@ public class PathConflictException extends IllegalAccessException {
 
     public PathConflictException(final int anotherSamePathTaskId, final String conflictPath,
                                  final String targetFilePath) {
-        super(FileDownloadUtils.formatString("There is an another running task(%d) with the same " +
-                        "downloading path(%s), because of they are with the same target-file-path(%s)," +
-                        "so if the current task is started, the path of the file is sure to be " +
-                        "written by multiple tasks, it is wrong, then you receive this exception to" +
-                        " avoid such conflict.",
+        super(FileDownloadUtils.formatString("There is an another running task(%d) with the"
+                        + " same downloading path(%s), because of they are with the same "
+                        + "target-file-path(%s), so if the current task is started, the path of the"
+                        + " file is sure to be written by multiple tasks, it is wrong, then you "
+                        + "receive this exception to avoid such conflict.",
                 anotherSamePathTaskId, conflictPath, targetFilePath));
 
         mAnotherSamePathTaskId = anotherSamePathTaskId;

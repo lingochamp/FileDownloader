@@ -32,23 +32,24 @@ import java.util.Set;
  */
 public class RedirectHandler {
 
-    private final static int MAX_REDIRECT_TIMES = 10;
+    private static final int MAX_REDIRECT_TIMES = 10;
 
     /**
      * The target resource resides temporarily under a different URI and the user agent MUST NOT
      * change the request method if it performs an automatic redirection to that URI.
      */
-    private final static int HTTP_TEMPORARY_REDIRECT = 307;
+    private static final int HTTP_TEMPORARY_REDIRECT = 307;
     /**
      * The target resource has been assigned a new permanent URI and any future references to this
      * resource ought to use one of the enclosed URIs.
      */
-    private final static int HTTP_PERMANENT_REDIRECT = 308;
+    private static final int HTTP_PERMANENT_REDIRECT = 308;
 
 
-    public static FileDownloadConnection process(final Map<String, List<String>> requestHeaderFields,
-                                                 final FileDownloadConnection connection,
-                                                 List<String> redirectedUrlList)
+    public static FileDownloadConnection process(
+            final Map<String, List<String>> requestHeaderFields,
+            final FileDownloadConnection connection,
+            List<String> redirectedUrlList)
             throws IOException, IllegalAccessException {
 
         int code = connection.getResponseCode();
@@ -61,7 +62,8 @@ public class RedirectHandler {
         while (isRedirect(code)) {
             if (location == null) {
                 throw new IllegalAccessException(FileDownloadUtils.
-                        formatString("receive %d (redirect) but the location is null with response [%s]",
+                        formatString(
+                                "receive %d (redirect) but the location is null with response [%s]",
                                 code, redirectConnection.getResponseHeaderFields()));
             }
 
@@ -81,7 +83,8 @@ public class RedirectHandler {
 
             if (++redirectTimes >= MAX_REDIRECT_TIMES) {
                 throw new IllegalAccessException(
-                        FileDownloadUtils.formatString("redirect too many times! %s", redirectLocationList));
+                        FileDownloadUtils
+                                .formatString("redirect too many times! %s", redirectLocationList));
             }
         }
 
@@ -101,8 +104,9 @@ public class RedirectHandler {
                 || code == HTTP_PERMANENT_REDIRECT;
     }
 
-    private static FileDownloadConnection buildRedirectConnection(Map<String, List<String>> requestHeaderFields,
-                                                                  String newUrl) throws IOException {
+    private static FileDownloadConnection buildRedirectConnection(
+            Map<String, List<String>> requestHeaderFields,
+            String newUrl) throws IOException {
         FileDownloadConnection redirectConnection = CustomComponentHolder.getImpl().
                 createConnection(newUrl);
 

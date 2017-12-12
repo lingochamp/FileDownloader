@@ -36,19 +36,20 @@ class FileDownloadThreadPool {
 
     private ThreadPoolExecutor mThreadPool;
 
-    private final String THREAD_PREFIX = "Network";
+    private final String threadPrefix = "Network";
     private int mMaxThreadCount;
 
     FileDownloadThreadPool(final int maxNetworkThreadCount) {
-        mThreadPool = FileDownloadExecutors.newDefaultThreadPool(maxNetworkThreadCount, THREAD_PREFIX);
+        mThreadPool = FileDownloadExecutors.newDefaultThreadPool(maxNetworkThreadCount,
+                threadPrefix);
         mMaxThreadCount = maxNetworkThreadCount;
     }
 
     public synchronized boolean setMaxNetworkThreadCount(int count) {
         if (exactSize() > 0) {
-            FileDownloadLog.w(this, "Can't change the max network thread count, because the " +
-                    " network thread pool isn't in IDLE, please try again after all running" +
-                    " tasks are completed or invoking FileDownloader#pauseAll directly.");
+            FileDownloadLog.w(this, "Can't change the max network thread count, because the "
+                    + " network thread pool isn't in IDLE, please try again after all running"
+                    + " tasks are completed or invoking FileDownloader#pauseAll directly.");
             return false;
         }
 
@@ -60,7 +61,7 @@ class FileDownloadThreadPool {
         }
 
         final List<Runnable> taskQueue = mThreadPool.shutdownNow();
-        mThreadPool = FileDownloadExecutors.newDefaultThreadPool(validCount, THREAD_PREFIX);
+        mThreadPool = FileDownloadExecutors.newDefaultThreadPool(validCount, threadPrefix);
 
         if (taskQueue.size() > 0) {
             FileDownloadLog.w(this, "recreate the network thread pool and discard %d tasks",
@@ -78,8 +79,8 @@ class FileDownloadThreadPool {
         }
         mThreadPool.execute(launchRunnable);
 
-        final int CHECK_THRESHOLD_VALUE = 600;
-        if (mIgnoreCheckTimes >= CHECK_THRESHOLD_VALUE) {
+        final int checkThresholdValue = 600;
+        if (mIgnoreCheckTimes >= checkThresholdValue) {
             filterOutNoExist();
             mIgnoreCheckTimes = 0;
         } else {
@@ -133,17 +134,18 @@ class FileDownloadThreadPool {
         final int size = runnablePool.size();
         for (int i = 0; i < size; i++) {
             final DownloadLaunchRunnable runnable = runnablePool.valueAt(i);
-            // why not clone, no out-of-bounds exception? -- yes, we dig into SparseArray and find out
-            // there are only two ways can change mValues: GrowingArrayUtils#insert and GrowingArrayUtils#append
-            // they all only grow size, and valueAt only get value on mValues.
+            // why not clone, no out-of-bounds exception? -- yes, we dig into SparseArray and find
+            // out there are only two ways can change mValues: GrowingArrayUtils#insert and
+            // GrowingArrayUtils#append they all only grow size, and valueAt only get value on
+            // mValues.
             if (runnable == null) {
                 // why it is possible to occur null on here, because the value on  runnablePool can
                 // be remove on #cancel method.
                 continue;
             }
 
-            if (runnable.isAlive() && runnable.getId() != excludeId &&
-                    tempFilePath.equals(runnable.getTempFilePath())) {
+            if (runnable.isAlive() && runnable.getId() != excludeId
+                    && tempFilePath.equals(runnable.getTempFilePath())) {
                 return runnable.getId();
             }
         }

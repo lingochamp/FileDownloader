@@ -34,7 +34,8 @@ public interface FileDownloadConnection {
     /**
      * Sets the header named {@code name} to {@code value}.
      * <p>
-     * The capacity of this method is similar to the {@link URLConnection#addRequestProperty(String, String)}
+     * The capacity of this method is similar to the
+     * {@link URLConnection#addRequestProperty(String, String)}
      */
     void addHeader(String name, String value);
 
@@ -44,7 +45,8 @@ public interface FileDownloadConnection {
      *
      * @param etag   the etag is stored by the past downloaded.
      * @param offset the offset length has already been downloaded.
-     * @return {@code true} if adding resume offset was dispatched, so we can't handle that by internal.
+     * @return {@code true} if adding resume offset was dispatched, so we can't handle that by
+     * internal.
      */
     @SuppressWarnings("UnusedParameters")
     boolean dispatchAddResumeOffset(String etag, long offset);

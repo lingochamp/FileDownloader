@@ -26,8 +26,8 @@ public class MessageSnapshotFlow {
     private volatile MessageSnapshotThreadPool flowThreadPool;
     private volatile MessageReceiver receiver;
 
-    public final static class HolderClass {
-        private final static MessageSnapshotFlow INSTANCE = new MessageSnapshotFlow();
+    public static final class HolderClass {
+        private static final MessageSnapshotFlow INSTANCE = new MessageSnapshotFlow();
     }
 
     public static MessageSnapshotFlow getImpl() {

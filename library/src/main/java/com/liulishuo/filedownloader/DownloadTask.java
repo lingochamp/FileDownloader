@@ -64,7 +64,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
 
     private boolean mIsWifiRequired = false;
 
-    public final static int DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS = 10;
+    public static final int DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS = 10;
     private int mCallbackProgressTimes = FileDownloadModel.DEFAULT_CALLBACK_PROGRESS_TIMES;
     private int mCallbackProgressMinIntervalMillis = DEFAULT_CALLBACK_PROGRESS_MIN_INTERVAL_MILLIS;
 
@@ -166,13 +166,15 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     }
 
     @Override
-    public BaseDownloadTask setFinishListener(final BaseDownloadTask.FinishListener finishListener) {
+    public BaseDownloadTask setFinishListener(
+            final BaseDownloadTask.FinishListener finishListener) {
         addFinishListener(finishListener);
         return this;
     }
 
     @Override
-    public BaseDownloadTask addFinishListener(final BaseDownloadTask.FinishListener finishListener) {
+    public BaseDownloadTask addFinishListener(
+            final BaseDownloadTask.FinishListener finishListener) {
         if (mFinishListenerList == null) {
             mFinishListenerList = new ArrayList<>();
         }
@@ -249,8 +251,8 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public boolean reuse() {
         if (isRunning()) {
-            FileDownloadLog.w(this, "This task[%d] is running, if you want start the same task," +
-                    " please create a new one by FileDownloader#create", getId());
+            FileDownloadLog.w(this, "This task[%d] is running, if you want start the same task,"
+                    + " please create a new one by FileDownloader#create", getId());
             return false;
         }
 
@@ -286,20 +288,21 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     @Override
     public int start() {
         if (mIsInQueueTask) {
-            throw new IllegalStateException("If you start the task manually, it means this task " +
-                    "doesn't belong to a queue, so you must not invoke BaseDownloadTask#ready() or" +
-                    " InQueueTask#enqueue() before you start() this method. For detail: If this" +
-                    " task doesn't belong to a queue, what is just an isolated task, you just need" +
-                    " to invoke BaseDownloadTask#start() to start this task, that's all. In other" +
-                    " words, If this task doesn't belong to a queue, you must not invoke" +
-                    " BaseDownloadTask#ready() method or InQueueTask#enqueue() method before" +
-                    " invoke BaseDownloadTask#start(), If you do that and if there is the same" +
-                    " listener object to start a queue in another thread, this task may be " +
-                    "assembled by the queue, in that case, when you invoke BaseDownloadTask#start()" +
-                    " manually to start this task or this task is started by the queue, there is" +
-                    " an exception buried in there, because this task object is started two times" +
-                    " without declare BaseDownloadTask#reuse() : 1. you invoke " +
-                    "BaseDownloadTask#start() manually; 2. the queue start this task automatically.");
+            throw new IllegalStateException("If you start the task manually, it means this task "
+                    + "doesn't belong to a queue, so you must not invoke BaseDownloadTask#ready() "
+                    + "or InQueueTask#enqueue() before you start() this method. For detail: If this"
+                    + " task doesn't belong to a queue, what is just an isolated task, you just "
+                    + "need to invoke BaseDownloadTask#start() to start this task, that's all. In"
+                    + " other words, If this task doesn't belong to a queue, you must not invoke"
+                    + " BaseDownloadTask#ready() method or InQueueTask#enqueue() method before"
+                    + " invoke BaseDownloadTask#start(), If you do that and if there is the same"
+                    + " listener object to start a queue in another thread, this task may be "
+                    + "assembled by the queue, in that case, when you invoke "
+                    + "BaseDownloadTask#start() manually to start this task or this task is started"
+                    + " by the queue, there is an exception buried in there, because this task"
+                    + " object is started two times without declare BaseDownloadTask#reuse() :"
+                    + " 1. you invoke BaseDownloadTask#start() manually; "
+                    + " 2. the queue start this task automatically.");
         }
 
         return startTaskUnchecked();
@@ -309,13 +312,13 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         if (isUsing()) {
             if (isRunning()) {
                 throw new IllegalStateException(
-                        FileDownloadUtils.formatString("This task is running %d, if you" +
-                                " want to start the same task, please create a new one by" +
-                                " FileDownloader.create", getId()));
+                        FileDownloadUtils.formatString("This task is running %d, if you"
+                                + " want to start the same task, please create a new one by"
+                                + " FileDownloader.create", getId()));
             } else {
-                throw new IllegalStateException("This task is dirty to restart, If you want to " +
-                        "reuse this task, please invoke #reuse method manually and retry to " +
-                        "restart again." + mHunter.toString());
+                throw new IllegalStateException("This task is dirty to restart, If you want to "
+                        + "reuse this task, please invoke #reuse method manually and retry to "
+                        + "restart again." + mHunter.toString());
             }
         }
 
@@ -546,7 +549,8 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
     }
 
 
-    // why this? thread not safe: update,InQueueTask#enqueue, start, pause, start which influence of this
+    // why this? thread not safe: update,InQueueTask#enqueue, start, pause, start which influence of
+    // this
     // in the queue.
     // whether it has been added, whether or not it is removed.
     private volatile boolean mIsMarkedAdded2List = false;
@@ -659,7 +663,7 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
         return FileDownloadUtils.formatString("%d@%s", getId(), super.toString());
     }
 
-    private final static class InQueueTaskImpl implements InQueueTask {
+    private static final class InQueueTaskImpl implements InQueueTask {
         private final DownloadTask mTask;
 
         private InQueueTaskImpl(DownloadTask task) {

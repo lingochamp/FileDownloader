@@ -52,8 +52,8 @@ import static com.liulishuo.filedownloader.model.FileDownloadModel.TOTAL_VALUE_I
 @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
 public class FileDownloadUtils {
 
-    private static int MIN_PROGRESS_STEP = 65536;
-    private static long MIN_PROGRESS_TIME = 2000;
+    private static int minProgressStep = 65536;
+    private static long minProgressTime = 2000;
 
     /**
      * @param minProgressStep The minimum bytes interval in per step to sync to the file and the
@@ -72,13 +72,13 @@ public class FileDownloadUtils {
      */
     public static void setMinProgressStep(int minProgressStep) throws IllegalAccessException {
         if (isDownloaderProcess(FileDownloadHelper.getAppContext())) {
-            MIN_PROGRESS_STEP = minProgressStep;
+            FileDownloadUtils.minProgressStep = minProgressStep;
         } else {
-            throw new IllegalAccessException("This value is used in the :filedownloader process," +
-                    " so set this value in your process is without effect. You can add " +
-                    "'process.non-separate=true' in 'filedownloader.properties' to share the main " +
-                    "process to FileDownloadService. Or you can configure this value in " +
-                    "'filedownloader.properties' by 'download.min-progress-step'.");
+            throw new IllegalAccessException("This value is used in the :filedownloader process,"
+                    + " so set this value in your process is without effect. You can add "
+                    + "'process.non-separate=true' in 'filedownloader.properties' to share the main"
+                    + " process to FileDownloadService. Or you can configure this value in "
+                    + "'filedownloader.properties' by 'download.min-progress-step'.");
         }
     }
 
@@ -99,22 +99,22 @@ public class FileDownloadUtils {
      */
     public static void setMinProgressTime(long minProgressTime) throws IllegalAccessException {
         if (isDownloaderProcess(FileDownloadHelper.getAppContext())) {
-            MIN_PROGRESS_TIME = minProgressTime;
+            FileDownloadUtils.minProgressTime = minProgressTime;
         } else {
-            throw new IllegalAccessException("This value is used in the :filedownloader process," +
-                    " so set this value in your process is without effect. You can add " +
-                    "'process.non-separate=true' in 'filedownloader.properties' to share the main " +
-                    "process to FileDownloadService. Or you can configure this value in " +
-                    "'filedownloader.properties' by 'download.min-progress-time'.");
+            throw new IllegalAccessException("This value is used in the :filedownloader process,"
+                    + " so set this value in your process is without effect. You can add "
+                    + "'process.non-separate=true' in 'filedownloader.properties' to share the main"
+                    + " process to FileDownloadService. Or you can configure this value in "
+                    + "'filedownloader.properties' by 'download.min-progress-time'.");
         }
     }
 
     public static int getMinProgressStep() {
-        return MIN_PROGRESS_STEP;
+        return minProgressStep;
     }
 
     public static long getMinProgressTime() {
-        return MIN_PROGRESS_TIME;
+        return minProgressTime;
     }
 
     /**
@@ -131,11 +131,11 @@ public class FileDownloadUtils {
         return true;
     }
 
-    private static String DEFAULT_SAVE_ROOT_PATH;
+    private static String defaultSaveRootPath;
 
     public static String getDefaultSaveRootPath() {
-        if (!TextUtils.isEmpty(DEFAULT_SAVE_ROOT_PATH)) {
-            return DEFAULT_SAVE_ROOT_PATH;
+        if (!TextUtils.isEmpty(defaultSaveRootPath)) {
+            return defaultSaveRootPath;
         }
 
         if (FileDownloadHelper.getAppContext().getExternalCacheDir() == null) {
@@ -176,7 +176,7 @@ public class FileDownloadUtils {
      * @see com.liulishuo.filedownloader.BaseDownloadTask#setPath(String, boolean)
      */
     public static void setDefaultSaveRootPath(final String path) {
-        DEFAULT_SAVE_ROOT_PATH = path;
+        defaultSaveRootPath = path;
     }
 
     /**
@@ -194,7 +194,8 @@ public class FileDownloadUtils {
      * @return The download id.
      */
     public static int generateId(final String url, final String path) {
-        return CustomComponentHolder.getImpl().getIdGeneratorInstance().generateId(url, path, false);
+        return CustomComponentHolder.getImpl().getIdGeneratorInstance()
+                .generateId(url, path, false);
     }
 
     /**
@@ -205,8 +206,10 @@ public class FileDownloadUtils {
      *             file path.
      * @return The download id.
      */
-    public static int generateId(final String url, final String path, final boolean pathAsDirectory) {
-        return CustomComponentHolder.getImpl().getIdGeneratorInstance().generateId(url, path, pathAsDirectory);
+    public static int generateId(final String url, final String path,
+                                 final boolean pathAsDirectory) {
+        return CustomComponentHolder.getImpl().getIdGeneratorInstance()
+                .generateId(url, path, pathAsDirectory);
     }
 
     public static String md5(String string) {
@@ -249,7 +252,8 @@ public class FileDownloadUtils {
                 continue;
             }
             t.append("[");
-            t.append(stackTrace[i].getClassName().substring("com.liulishuo.filedownloader".length()));
+            t.append(stackTrace[i].getClassName()
+                    .substring("com.liulishuo.filedownloader".length()));
             t.append(":");
             t.append(stackTrace[i].getMethodName());
             if (printLine) {
@@ -261,7 +265,7 @@ public class FileDownloadUtils {
         return t.toString();
     }
 
-    private static Boolean IS_DOWNLOADER_PROCESS;
+    private static Boolean isDownloaderProcess;
 
     /**
      * @param context the context
@@ -269,13 +273,13 @@ public class FileDownloadUtils {
      * {@code false} otherwise.
      */
     public static boolean isDownloaderProcess(final Context context) {
-        if (IS_DOWNLOADER_PROCESS != null) {
-            return IS_DOWNLOADER_PROCESS;
+        if (isDownloaderProcess != null) {
+            return isDownloaderProcess;
         }
 
         boolean result = false;
         do {
-            if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
+            if (FileDownloadProperties.getImpl().processNonSeparate) {
                 result = true;
                 break;
             }
@@ -293,22 +297,24 @@ public class FileDownloadUtils {
                     activityManager.getRunningAppProcesses();
 
             if (null == runningAppProcessInfoList || runningAppProcessInfoList.isEmpty()) {
-                FileDownloadLog.w(FileDownloadUtils.class, "The running app process info list from" +
-                        " ActivityManager is null or empty, maybe current App is not running.");
+                FileDownloadLog
+                        .w(FileDownloadUtils.class, "The running app process info list from"
+                                + " ActivityManager is null or empty, maybe current App is not "
+                                + "running.");
                 return false;
             }
 
-            for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcessInfoList) {
-                if (runningAppProcessInfo.pid == pid) {
-                    result = runningAppProcessInfo.processName.endsWith(":filedownloader");
+            for (ActivityManager.RunningAppProcessInfo processInfo : runningAppProcessInfoList) {
+                if (processInfo.pid == pid) {
+                    result = processInfo.processName.endsWith(":filedownloader");
                     break;
                 }
             }
 
         } while (false);
 
-        IS_DOWNLOADER_PROCESS = result;
-        return IS_DOWNLOADER_PROCESS;
+        isDownloaderProcess = result;
+        return isDownloaderProcess;
     }
 
     public static String[] convertHeaderString(final String nameAndValuesString) {
@@ -346,8 +352,8 @@ public class FileDownloadUtils {
         return String.format(Locale.ENGLISH, msg, args);
     }
 
-    private final static String INTERNAL_DOCUMENT_NAME = "filedownloader";
-    private final static String OLD_FILE_CONVERTED_FILE_NAME = ".old_file_converted";
+    private static final String INTERNAL_DOCUMENT_NAME = "filedownloader";
+    private static final String OLD_FILE_CONVERTED_FILE_NAME = ".old_file_converted";
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void markConverted(final Context context) {
@@ -360,7 +366,7 @@ public class FileDownloadUtils {
         }
     }
 
-    private static Boolean FILENAME_CONVERTED = null;
+    private static Boolean filenameConverted = null;
 
     /**
      * @return Whether has converted all files' name from 'filename'(in old architecture) to
@@ -373,16 +379,16 @@ public class FileDownloadUtils {
      * {@code true} only once since you upgrade the filedownloader version to 0.3.3 or higher.
      */
     public static boolean isFilenameConverted(final Context context) {
-        if (FILENAME_CONVERTED == null) {
-            FILENAME_CONVERTED = getConvertedMarkedFile(context).exists();
+        if (filenameConverted == null) {
+            filenameConverted = getConvertedMarkedFile(context).exists();
         }
 
-        return FILENAME_CONVERTED;
+        return filenameConverted;
     }
 
     public static File getConvertedMarkedFile(final Context context) {
-        return new File(context.getFilesDir().getAbsolutePath() + File.separator +
-                INTERNAL_DOCUMENT_NAME, OLD_FILE_CONVERTED_FILE_NAME);
+        return new File(context.getFilesDir().getAbsolutePath() + File.separator
+                + INTERNAL_DOCUMENT_NAME, OLD_FILE_CONVERTED_FILE_NAME);
     }
 
     private static final Pattern CONTENT_DISPOSITION_PATTERN =
@@ -463,15 +469,16 @@ public class FileDownloadUtils {
         return path.substring(0, index);
     }
 
-    private final static String FILEDOWNLOADER_PREFIX = "FileDownloader";
+    private static final String FILEDOWNLOADER_PREFIX = "FileDownloader";
 
     public static String getThreadPoolName(String name) {
         return FILEDOWNLOADER_PREFIX + "-" + name;
     }
 
     public static boolean isNetworkNotOnWifiType() {
-        final ConnectivityManager manager = (ConnectivityManager) FileDownloadHelper.getAppContext().
-                getSystemService(Context.CONNECTIVITY_SERVICE);
+        final ConnectivityManager manager = (ConnectivityManager) FileDownloadHelper.getAppContext()
+                .
+                        getSystemService(Context.CONNECTIVITY_SERVICE);
 
         if (manager == null) {
             FileDownloadLog.w(FileDownloadUtils.class, "failed to get connectivity manager!");
@@ -485,7 +492,8 @@ public class FileDownloadUtils {
     }
 
     public static boolean checkPermission(String permission) {
-        final int perm = FileDownloadHelper.getAppContext().checkCallingOrSelfPermission(permission);
+        final int perm = FileDownloadHelper.getAppContext()
+                .checkCallingOrSelfPermission(permission);
         return perm == PackageManager.PERMISSION_GRANTED;
     }
 
@@ -513,27 +521,30 @@ public class FileDownloadUtils {
     }
 
     public static long findContentLength(final int id, FileDownloadConnection connection) {
-        long contentLength = FileDownloadUtils.convertContentLengthString(connection.getResponseHeaderField("Content-Length"));
+        long contentLength = FileDownloadUtils
+                .convertContentLengthString(connection.getResponseHeaderField("Content-Length"));
         final String transferEncoding = connection.getResponseHeaderField("Transfer-Encoding");
 
         if (contentLength < 0) {
-            final boolean isEncodingChunked = transferEncoding != null && transferEncoding.equals("chunked");
+            final boolean isEncodingChunked = transferEncoding != null && transferEncoding
+                    .equals("chunked");
             if (!isEncodingChunked) {
                 // not chunked transfer encoding data
-                if (FileDownloadProperties.getImpl().HTTP_LENIENT) {
+                if (FileDownloadProperties.getImpl().httpLenient) {
                     // do not response content-length either not chunk transfer encoding,
                     // but HTTP lenient is true, so handle as the case of transfer encoding chunk
                     contentLength = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
                     if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(FileDownloadUtils.class, "%d response header is not legal but " +
-                                "HTTP lenient is true, so handle as the case of " +
-                                "transfer encoding chunk", id);
+                        FileDownloadLog
+                                .d(FileDownloadUtils.class, "%d response header is not legal but "
+                                        + "HTTP lenient is true, so handle as the case of "
+                                        + "transfer encoding chunk", id);
                     }
                 } else {
-                    throw new FileDownloadGiveUpRetryException("can't know the size of the " +
-                            "download file, and its Transfer-Encoding is not Chunked " +
-                            "either.\nyou can ignore such exception by add " +
-                            "http.lenient=true to the filedownloader.properties");
+                    throw new FileDownloadGiveUpRetryException("can't know the size of the "
+                            + "download file, and its Transfer-Encoding is not Chunked "
+                            + "either.\nyou can ignore such exception by add "
+                            + "http.lenient=true to the filedownloader.properties");
                 }
             } else {
                 contentLength = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
@@ -554,7 +565,8 @@ public class FileDownloadUtils {
         return filename;
     }
 
-    public static FileDownloadOutputStream createOutputStream(final String path) throws IOException {
+    public static FileDownloadOutputStream createOutputStream(final String path)
+            throws IOException {
 
         if (TextUtils.isEmpty(path)) {
             throw new RuntimeException("found invalid internal destination path, empty");
@@ -563,16 +575,16 @@ public class FileDownloadUtils {
         //noinspection ConstantConditions
         if (!FileDownloadUtils.isFilenameValid(path)) {
             throw new RuntimeException(
-                    FileDownloadUtils.formatString("found invalid internal destination filename" +
-                            " %s", path));
+                    FileDownloadUtils.formatString("found invalid internal destination filename"
+                            + " %s", path));
         }
 
         File file = new File(path);
 
         if (file.exists() && file.isDirectory()) {
             throw new RuntimeException(
-                    FileDownloadUtils.formatString("found invalid internal destination path[%s]," +
-                            " & path is directory[%B]", path, file.isDirectory()));
+                    FileDownloadUtils.formatString("found invalid internal destination path[%s],"
+                            + " & path is directory[%B]", path, file.isDirectory()));
         }
         if (!file.exists()) {
             if (!file.createNewFile()) {
@@ -603,7 +615,8 @@ public class FileDownloadUtils {
 
         if (model.getTempFilePath() == null) {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d temp path == null", id);
+                FileDownloadLog
+                        .d(FileDownloadUtils.class, "can't continue %d temp path == null", id);
             }
             return false;
         }
@@ -630,7 +643,8 @@ public class FileDownloadUtils {
 
             if (!isExists || isDirectory) {
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d file not suit, exists[%B], directory[%B]",
+                    FileDownloadLog.d(FileDownloadUtils.class,
+                            "can't continue %d file not suit, exists[%B], directory[%B]",
                             id, isExists, isDirectory);
                 }
                 break;
@@ -642,33 +656,34 @@ public class FileDownloadUtils {
             if (model.getConnectionCount() <= 1 && currentOffset == 0) {
                 // the sofar is stored on connection table
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d the downloaded-record is zero.",
+                    FileDownloadLog.d(FileDownloadUtils.class,
+                            "can't continue %d the downloaded-record is zero.",
                             id);
                 }
                 break;
             }
 
             final long totalLength = model.getTotal();
-            if (fileLength < currentOffset ||
-                    (totalLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE  // not chunk transfer encoding data
-                            &&
-                            (fileLength > totalLength || currentOffset >= totalLength))
+            if (fileLength < currentOffset
+                    || (totalLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE  // not chunk transfer
+                    && (fileLength > totalLength || currentOffset >= totalLength))
                     ) {
                 // dirty data.
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d dirty data" +
-                                    " fileLength[%d] sofar[%d] total[%d]",
+                    FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d dirty data"
+                                    + " fileLength[%d] sofar[%d] total[%d]",
                             id, fileLength, currentOffset, totalLength);
                 }
                 break;
             }
 
-            if (outputStreamSupportSeek != null && !outputStreamSupportSeek &&
-                    totalLength == fileLength) {
+            if (outputStreamSupportSeek != null && !outputStreamSupportSeek
+                    && totalLength == fileLength) {
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d, because of the " +
-                                    "output stream doesn't support seek, but the task has already " +
-                                    "pre-allocated, so we only can download it from the very beginning.",
+                    FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d, because of the "
+                                    + "output stream doesn't support seek, but the task has "
+                                    + "already pre-allocated, so we only can download it from the"
+                                    + " very beginning.",
                             id);
                 }
                 break;
@@ -706,9 +721,9 @@ public class FileDownloadUtils {
         }
     }
 
-    public static boolean isNeedSync(long bytesDelta, long timestampDelta){
-        return bytesDelta > FileDownloadUtils.getMinProgressStep() &&
-                timestampDelta > FileDownloadUtils.getMinProgressTime();
+    public static boolean isNeedSync(long bytesDelta, long timestampDelta) {
+        return bytesDelta > FileDownloadUtils.getMinProgressStep()
+                && timestampDelta > FileDownloadUtils.getMinProgressTime();
     }
 
     public static String defaultUserAgent() {

@@ -40,8 +40,8 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
 
     private final SQLiteDatabase db;
 
-    public final static String TABLE_NAME = "filedownloader";
-    public final static String CONNECTION_TABLE_NAME = "filedownloaderConnection";
+    public static final String TABLE_NAME = "filedownloader";
+    public static final String CONNECTION_TABLE_NAME = "filedownloaderConnection";
 
 
     public SqliteDatabaseImpl() {
@@ -64,8 +64,7 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
             if (c.moveToNext()) return createFromCursor(c);
 
         } finally {
-            if (c != null)
-                c.close();
+            if (c != null) c.close();
         }
 
         return null;
@@ -91,8 +90,7 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
                 resultList.add(model);
             }
         } finally {
-            if (c != null)
-                c.close();
+            if (c != null) c.close();
         }
 
         return resultList;
@@ -100,8 +98,8 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public void removeConnections(int id) {
-        db.execSQL("DELETE FROM " + CONNECTION_TABLE_NAME + " WHERE " +
-                ConnectionModel.ID + " = " + id);
+        db.execSQL("DELETE FROM " + CONNECTION_TABLE_NAME + " WHERE "
+                + ConnectionModel.ID + " = " + id);
     }
 
     @Override
@@ -113,17 +111,17 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
     public void updateConnectionModel(int id, int index, long currentOffset) {
         final ContentValues values = new ContentValues();
         values.put(ConnectionModel.CURRENT_OFFSET, currentOffset);
-        db.update(CONNECTION_TABLE_NAME, values
-                , ConnectionModel.ID + " = ? AND " + ConnectionModel.INDEX + " = ?"
-                , new String[]{Integer.toString(id), Integer.toString(index)});
+        db.update(CONNECTION_TABLE_NAME, values,
+                ConnectionModel.ID + " = ? AND " + ConnectionModel.INDEX + " = ?",
+                new String[]{Integer.toString(id), Integer.toString(index)});
     }
 
     @Override
     public void updateConnectionCount(int id, int count) {
         ContentValues values = new ContentValues();
         values.put(FileDownloadModel.CONNECTION_COUNT, count);
-        db.update(TABLE_NAME, values
-                , FileDownloadModel.ID + " = ? ", new String[]{Integer.toString(id)});
+        db.update(TABLE_NAME, values,
+                FileDownloadModel.ID + " = ? ", new String[]{Integer.toString(id)});
     }
 
     @Override

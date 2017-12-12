@@ -16,8 +16,6 @@
 
 package com.liulishuo.filedownloader.stream;
 
-import com.liulishuo.filedownloader.util.FileDownloadHelper;
-
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -82,7 +80,7 @@ public interface FileDownloadOutputStream {
      *                                <code>0</code> or if an I/O error occurs.
      * @throws IllegalAccessException if in this output stream doesn't support this function.
      *                                You can return {@code false} in
-     *                                {@link FileDownloadHelper.OutputStreamCreator#supportSeek()}
+     *                                FileDownloadHelper.OutputStreamCreator#supportSeek()
      *                                let the internal mechanism can predict this situation, and
      *                                handle it smoothly.
      * @see java.io.RandomAccessFile#seek(long)

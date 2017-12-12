@@ -38,6 +38,7 @@ public class ConnectionProfile {
 
     @Override
     public String toString() {
-        return FileDownloadUtils.formatString("range[%d, %d) current offset[%d]", startOffset, endOffset, currentOffset);
+        return FileDownloadUtils.formatString("range[%d, %d) current offset[%d]",
+                startOffset, endOffset, currentOffset);
     }
 }

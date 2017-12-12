@@ -24,7 +24,7 @@ import com.liulishuo.filedownloader.event.DownloadEventPoolImpl;
 public class FileDownloadEventPool extends DownloadEventPoolImpl {
 
     private static class HolderClass {
-        private final static FileDownloadEventPool INSTANCE = new FileDownloadEventPool();
+        private static final FileDownloadEventPool INSTANCE = new FileDownloadEventPool();
     }
 
     private FileDownloadEventPool() {

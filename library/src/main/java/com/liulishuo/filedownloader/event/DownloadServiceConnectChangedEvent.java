@@ -21,9 +21,10 @@ package com.liulishuo.filedownloader.event;
  * Used to drive the FileDownload Service connection event.
  */
 public class DownloadServiceConnectChangedEvent extends IDownloadEvent {
-    public final static String ID = "event.service.connect.changed";
+    public static final String ID = "event.service.connect.changed";
 
-    public DownloadServiceConnectChangedEvent(final ConnectStatus status, final Class<?> serviceClass) {
+    public DownloadServiceConnectChangedEvent(final ConnectStatus status,
+                                              final Class<?> serviceClass) {
         super(ID);
 
         this.status = status;
@@ -45,8 +46,8 @@ public class DownloadServiceConnectChangedEvent extends IDownloadEvent {
     private final Class<?> serviceClass;
 
     public boolean isSuchService(final Class<?> serviceClass) {
-        return this.serviceClass != null &&
-                this.serviceClass.getName().equals(serviceClass.getName());
+        return this.serviceClass != null
+                && this.serviceClass.getName().equals(serviceClass.getName());
 
     }
 }

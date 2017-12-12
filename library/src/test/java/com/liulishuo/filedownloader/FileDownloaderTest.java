@@ -34,14 +34,16 @@ public class FileDownloaderTest {
     public void setup_withContext_hold() {
         FileDownloader.setup(application);
 
-        Assert.assertEquals(application.getApplicationContext(), FileDownloadHelper.getAppContext());
+        Assert.assertEquals(application.getApplicationContext(),
+                FileDownloadHelper.getAppContext());
     }
 
     @Test
     public void setupOnApplicationOnCreate_withContext_hold() {
         FileDownloader.setupOnApplicationOnCreate(application);
 
-        Assert.assertEquals(application.getApplicationContext(), FileDownloadHelper.getAppContext());
+        Assert.assertEquals(application.getApplicationContext(),
+                FileDownloadHelper.getAppContext());
     }
 
     @Test

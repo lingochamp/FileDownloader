@@ -182,8 +182,8 @@ public abstract class MessageSnapshot implements IMessageSnapshot, Parcelable {
             if (snapshot != null) {
                 snapshot.isLargeFile = largeFile;
             } else {
-                throw new IllegalStateException("Can't restore the snapshot because unknown " +
-                        "status: " + status);
+                throw new IllegalStateException("Can't restore the snapshot because unknown "
+                        + "status: " + status);
             }
 
             return snapshot;
@@ -197,8 +197,10 @@ public abstract class MessageSnapshot implements IMessageSnapshot, Parcelable {
 
     public static class NoFieldException extends IllegalStateException {
         NoFieldException(String methodName, MessageSnapshot snapshot) {
-            super(FileDownloadUtils.formatString("There isn't a field for '%s' in this message %d %d %s",
-                    methodName, snapshot.getId(), snapshot.getStatus(), snapshot.getClass().getName()));
+            super(FileDownloadUtils.formatString("There isn't a field for '%s' in this message"
+                            + " %d %d %s",
+                    methodName, snapshot.getId(), snapshot.getStatus(),
+                    snapshot.getClass().getName()));
         }
     }
 

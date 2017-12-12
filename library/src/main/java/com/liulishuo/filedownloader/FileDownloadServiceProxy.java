@@ -26,7 +26,8 @@ import com.liulishuo.filedownloader.util.FileDownloadProperties;
  * The proxy used for executing the action from FileDownloader to FileDownloadService.
  *
  * @see FileDownloadServiceSharedTransmit In case of FileDownloadService runs in the main process.
- * @see FileDownloadServiceUIGuard In case of FileDownloadService runs in the separate `:filedownloader` process.
+ * @see FileDownloadServiceUIGuard In case of FileDownloadService runs in the separate
+ * `:filedownloader` process.
  * <p/>
  * You can add a command `process.non-separate=true` to `/filedownloader.properties` to make the
  * FileDownloadService runs in the main process, and by default the FileDownloadService runs in the
@@ -34,15 +35,16 @@ import com.liulishuo.filedownloader.util.FileDownloadProperties;
  */
 public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
 
-    private final static class HolderClass {
-        private final static FileDownloadServiceProxy INSTANCE = new FileDownloadServiceProxy();
+    private static final class HolderClass {
+        private static final FileDownloadServiceProxy INSTANCE = new FileDownloadServiceProxy();
     }
 
     public static FileDownloadServiceProxy getImpl() {
         return HolderClass.INSTANCE;
     }
 
-    public static FDServiceSharedHandler.FileDownloadServiceSharedConnection getConnectionListener() {
+    public static FDServiceSharedHandler.FileDownloadServiceSharedConnection
+    getConnectionListener() {
         if (getImpl().handler instanceof FileDownloadServiceSharedTransmit) {
             return (FDServiceSharedHandler.FileDownloadServiceSharedConnection) getImpl().handler;
         }
@@ -52,13 +54,14 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     private final IFileDownloadServiceProxy handler;
 
     private FileDownloadServiceProxy() {
-        handler = FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE ?
-                new FileDownloadServiceSharedTransmit() :
-                new FileDownloadServiceUIGuard();
+        handler = FileDownloadProperties.getImpl().processNonSeparate
+                ? new FileDownloadServiceSharedTransmit()
+                : new FileDownloadServiceUIGuard();
     }
 
     @Override
-    public boolean start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
+    public boolean start(String url, String path, boolean pathAsDirectory,
+                         int callbackProgressTimes,
                          int callbackProgressMinIntervalMillis,
                          int autoRetryTimes, boolean forceReDownload, FileDownloadHeader header,
                          boolean isWifiRequired) {

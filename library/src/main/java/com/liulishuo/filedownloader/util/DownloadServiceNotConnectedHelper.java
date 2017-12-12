@@ -29,16 +29,18 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
  */
 public class DownloadServiceNotConnectedHelper {
 
-    private final static String CAUSE = ", but the download service isn't connected yet.";
-    private final static String TIPS = "\nYou can use FileDownloader#isServiceConnected() to check" +
-            " whether the service has been connected, \nbesides you can use following functions" +
-            " easier to control your code invoke after the service has been connected: \n" +
-            "1. FileDownloader#bindService(Runnable)\n" +
-            "2. FileDownloader#insureServiceBind()\n" +
-            "3. FileDownloader#insureServiceBindAsync()";
+    private static final String CAUSE = ", but the download service isn't connected yet.";
+    private static final String TIPS = "\nYou can use FileDownloader#isServiceConnected() to check"
+            + " whether the service has been connected, \nbesides you can use following functions"
+            + " easier to control your code invoke after the service has been connected: \n"
+            + "1. FileDownloader#bindService(Runnable)\n"
+            + "2. FileDownloader#insureServiceBind()\n"
+            + "3. FileDownloader#insureServiceBindAsync()";
 
-    public static boolean start(final String url, final String path, final boolean pathAsDirectory) {
-        log("request start the task([%s], [%s], [%B]) in the download service", url, path, pathAsDirectory);
+    public static boolean start(final String url, final String path,
+                                final boolean pathAsDirectory) {
+        log("request start the task([%s], [%s], [%B]) in the download service", url, path,
+                pathAsDirectory);
         return false;
     }
 
@@ -82,7 +84,8 @@ public class DownloadServiceNotConnectedHelper {
     }
 
     public static void stopForeground(boolean removeNotification) {
-        log("request cancel the foreground status[%B] for the download service", removeNotification);
+        log("request cancel the foreground status[%B] for the download service",
+                removeNotification);
     }
 
     public static boolean setMaxNetworkThreadCount(int count) {

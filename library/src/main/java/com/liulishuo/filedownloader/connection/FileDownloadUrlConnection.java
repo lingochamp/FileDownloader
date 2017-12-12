@@ -34,7 +34,8 @@ import java.util.Map;
 public class FileDownloadUrlConnection implements FileDownloadConnection {
     protected URLConnection mConnection;
 
-    public FileDownloadUrlConnection(String originUrl, Configuration configuration) throws IOException {
+    public FileDownloadUrlConnection(String originUrl, Configuration configuration)
+            throws IOException {
         this(new URL(originUrl), configuration);
     }
 
@@ -153,12 +154,14 @@ public class FileDownloadUrlConnection implements FileDownloadConnection {
 
         /**
          * Sets the read timeout to a specified timeout, in milliseconds. A non-zero value specifies
-         * the timeout when reading from Input stream when a connection is established to a resource.
+         * the timeout when reading from Input stream when a connection is established to a resource
+         * <p>
          * If the timeout expires before there is data available for read, a
          * java.net.SocketTimeoutException is raised. A timeout of zero is interpreted as an
          * infinite timeout.
          * <p>
-         * This {@code readTimeout} will be applied through {@link URLConnection#setReadTimeout(int)}
+         * This {@code readTimeout} will be applied through
+         * {@link URLConnection#setReadTimeout(int)}
          *
          * @param readTimeout an <code>int</code> that specifies the timeout value to be used in
          *                    milliseconds
@@ -174,7 +177,8 @@ public class FileDownloadUrlConnection implements FileDownloadConnection {
          * connection can be established, a java.net.SocketTimeoutException is raised. A timeout of
          * zero is interpreted as an infinite timeout.
          * <p>
-         * This {@code connectionTimeout} will be applied through {@link URLConnection#setConnectTimeout(int)}
+         * This {@code connectionTimeout} will be applied through
+         * {@link URLConnection#setConnectTimeout(int)}
          *
          * @param connectTimeout an <code>int</code> that specifies the connect timeout value in
          *                       milliseconds

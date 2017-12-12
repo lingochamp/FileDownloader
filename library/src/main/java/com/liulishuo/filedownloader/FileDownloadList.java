@@ -30,8 +30,8 @@ import java.util.List;
 @SuppressWarnings("UnusedReturnValue")
 public class FileDownloadList {
 
-    private final static class HolderClass {
-        private final static FileDownloadList INSTANCE = new FileDownloadList();
+    private static final class HolderClass {
+        private static final FileDownloadList INSTANCE = new FileDownloadList();
     }
 
     public static FileDownloadList getImpl() {
@@ -80,16 +80,15 @@ public class FileDownloadList {
         return null;
     }
 
-    List<BaseDownloadTask.IRunningTask> getReceiveServiceTaskList(final int id){
+    List<BaseDownloadTask.IRunningTask> getReceiveServiceTaskList(final int id) {
         final List<BaseDownloadTask.IRunningTask> list = new ArrayList<>();
         synchronized (this.mList) {
             for (BaseDownloadTask.IRunningTask task : this.mList) {
                 if (task.is(id) && !task.isOver()) {
 
                     final byte status = task.getOrigin().getStatus();
-                    if (status != FileDownloadStatus.INVALID_STATUS &&
-                            status != FileDownloadStatus.toLaunchPool) {
-
+                    if (status != FileDownloadStatus.INVALID_STATUS
+                            && status != FileDownloadStatus.toLaunchPool) {
                         list.add(task);
                     }
                 }
@@ -103,8 +102,8 @@ public class FileDownloadList {
         final List<BaseDownloadTask.IRunningTask> list = new ArrayList<>();
         synchronized (this.mList) {
             for (BaseDownloadTask.IRunningTask task : this.mList) {
-                if (task.is(id) &&
-                        !task.isOver()) {
+                if (task.is(id)
+                        && !task.isOver()) {
                     list.add(task);
                 }
             }
@@ -156,8 +155,9 @@ public class FileDownloadList {
     /**
      * Divert all data in list 2 destination list
      */
-    void divertAndIgnoreDuplicate(@SuppressWarnings("SameParameterValue") final List<BaseDownloadTask.IRunningTask>
-                                          destination) {
+    void divertAndIgnoreDuplicate(
+            @SuppressWarnings("SameParameterValue") final List<BaseDownloadTask.IRunningTask>
+                    destination) {
         synchronized (mList) {
             for (BaseDownloadTask.IRunningTask iRunningTask : mList) {
                 if (!destination.contains(iRunningTask)) {
@@ -200,8 +200,11 @@ public class FileDownloadList {
                     messenger.notifyPaused(snapshot);
                     break;
                 case FileDownloadStatus.completed:
-                    messenger.notifyBlockComplete(MessageSnapshotTaker.takeBlockCompleted(snapshot));
+                    messenger
+                            .notifyBlockComplete(MessageSnapshotTaker.takeBlockCompleted(snapshot));
                     break;
+                default:
+                    // ignored
             }
 
         } else {

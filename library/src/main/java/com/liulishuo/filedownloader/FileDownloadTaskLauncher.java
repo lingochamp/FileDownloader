@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 class FileDownloadTaskLauncher {
 
     private static class HolderClass {
-        private final static FileDownloadTaskLauncher INSTANCE = new FileDownloadTaskLauncher();
+        private static final FileDownloadTaskLauncher INSTANCE = new FileDownloadTaskLauncher();
 
         static {
             // We add the message receiver to the message snapshot flow central, when there is a
@@ -74,7 +74,7 @@ class FileDownloadTaskLauncher {
          */
         private LinkedBlockingQueue<Runnable> mWorkQueue;
 
-        public LaunchTaskPool() {
+        LaunchTaskPool() {
             init();
         }
 
@@ -92,8 +92,8 @@ class FileDownloadTaskLauncher {
 
         public void expire(final FileDownloadListener listener) {
             if (listener == null) {
-                FileDownloadLog.w(this, "want to expire by listener, but the listener provided is" +
-                        " null");
+                FileDownloadLog.w(this, "want to expire by listener, but the listener provided is"
+                        + " null");
                 return;
             }
 
@@ -159,6 +159,7 @@ class FileDownloadTaskLauncher {
             return mTaskStarter != null && mTaskStarter.equalListener(listener);
         }
 
+        @SuppressWarnings("checkstyle:equalshashcode")
         @Override
         public boolean equals(Object obj) {
             return super.equals(obj) || obj == mTaskStarter;

@@ -38,8 +38,8 @@ public class FileDownloadMessageStation {
     private final Handler handler;
     private final LinkedBlockingQueue<IFileDownloadMessenger> waitingQueue;
 
-    private final static class HolderClass {
-        private final static FileDownloadMessageStation INSTANCE = new FileDownloadMessageStation();
+    private static final class HolderClass {
+        private static final FileDownloadMessageStation INSTANCE = new FileDownloadMessageStation();
     }
 
     public static FileDownloadMessageStation getImpl() {
@@ -145,8 +145,8 @@ public class FileDownloadMessageStation {
     }
 
 
-    final static int HANDOVER_A_MESSENGER = 1;
-    final static int DISPOSE_MESSENGER_LIST = 2;
+    static final int HANDOVER_A_MESSENGER = 1;
+    static final int DISPOSE_MESSENGER_LIST = 2;
     private final ArrayList<IFileDownloadMessenger> disposingList = new ArrayList<>();
 
     private static class UIHandlerCallback implements Handler.Callback {
@@ -176,17 +176,19 @@ public class FileDownloadMessageStation {
 
     // ----------------- WAIT AND FREE INTERNAL TECH，SPLIT AND SUB-PACKAGE TECH ----------------
 
-    public final static int DEFAULT_INTERVAL = 10;
-    public final static int DEFAULT_SUB_PACKAGE_SIZE = 5;
+    public static final int DEFAULT_INTERVAL = 10;
+    public static final int DEFAULT_SUB_PACKAGE_SIZE = 5;
 
     /**
      * For avoid dropped ui refresh frame.
      * <p/>
      * Every {@code INTERVAL} milliseconds post 1 message to the ui thread at most,
-     * and will handle up to {@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} events on the ui thread at most.
+     * and will handle up to {@link FileDownloadMessageStation#SUB_PACKAGE_SIZE} events on the ui
+     * thread at most.
      */
-    static int INTERVAL = DEFAULT_INTERVAL;// 10ms, 0.01s, ui refresh 16ms per frame.
-    static int SUB_PACKAGE_SIZE = DEFAULT_SUB_PACKAGE_SIZE; // the size of one package for callback on the ui thread.
+    static int INTERVAL = DEFAULT_INTERVAL;
+    // the size of one package for callback on the ui thread.
+    static int SUB_PACKAGE_SIZE = DEFAULT_SUB_PACKAGE_SIZE;
 
     public static boolean isIntervalValid() {
         return INTERVAL > 0;

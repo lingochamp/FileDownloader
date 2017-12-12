@@ -42,8 +42,8 @@ public class CustomComponentHolder {
     private FileDownloadDatabase database;
     private FileDownloadHelper.IdGenerator idGenerator;
 
-    private final static class LazyLoader {
-        private final static CustomComponentHolder INSTANCE = new CustomComponentHolder();
+    private static final class LazyLoader {
+        private static final CustomComponentHolder INSTANCE = new CustomComponentHolder();
     }
 
     public static CustomComponentHolder getImpl() {
@@ -102,15 +102,18 @@ public class CustomComponentHolder {
     }
 
     public int determineConnectionCount(int downloadId, String url, String path, long totalLength) {
-        return getConnectionCountAdapter().determineConnectionCount(downloadId, url, path, totalLength);
+        return getConnectionCountAdapter()
+                .determineConnectionCount(downloadId, url, path, totalLength);
     }
 
     private FileDownloadHelper.ConnectionCountAdapter getConnectionCountAdapter() {
         if (connectionCountAdapter != null) return connectionCountAdapter;
 
         synchronized (this) {
-            if (connectionCountAdapter == null)
-                connectionCountAdapter = getDownloadMgrInitialParams().createConnectionCountAdapter();
+            if (connectionCountAdapter == null) {
+                connectionCountAdapter = getDownloadMgrInitialParams()
+                        .createConnectionCountAdapter();
+            }
         }
 
         return connectionCountAdapter;
@@ -120,8 +123,9 @@ public class CustomComponentHolder {
         if (connectionCreator != null) return connectionCreator;
 
         synchronized (this) {
-            if (connectionCreator == null)
+            if (connectionCreator == null) {
                 connectionCreator = getDownloadMgrInitialParams().createConnectionCreator();
+            }
         }
 
         return connectionCreator;
@@ -131,8 +135,9 @@ public class CustomComponentHolder {
         if (outputStreamCreator != null) return outputStreamCreator;
 
         synchronized (this) {
-            if (outputStreamCreator == null)
+            if (outputStreamCreator == null) {
                 outputStreamCreator = getDownloadMgrInitialParams().createOutputStreamCreator();
+            }
         }
 
         return outputStreamCreator;
@@ -161,10 +166,11 @@ public class CustomComponentHolder {
                 boolean isInvalid = false;
                 final FileDownloadModel model = iterator.next();
                 do {
-                    if (model.getStatus() == FileDownloadStatus.progress ||
-                            model.getStatus() == FileDownloadStatus.connected ||
-                            model.getStatus() == FileDownloadStatus.error ||
-                            (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() > 0)
+                    if (model.getStatus() == FileDownloadStatus.progress
+                            || model.getStatus() == FileDownloadStatus.connected
+                            || model.getStatus() == FileDownloadStatus.error
+                            || (model.getStatus() == FileDownloadStatus.pending && model
+                            .getSoFar() > 0)
                             ) {
                         // Ensure can be covered by RESUME FROM BREAKPOINT.
                         model.setStatus(FileDownloadStatus.paused);
@@ -177,10 +183,11 @@ public class CustomComponentHolder {
                     }
 
                     final File targetFile = new File(targetFilePath);
-                    // consider check in new thread, but SQLite lock | file lock aways effect, so sync
-                    if (model.getStatus() == FileDownloadStatus.paused &&
-                            FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
-                                    model.getPath(), null)) {
+                    // consider check in new thread, but SQLite lock | file lock aways effect, so
+                    // sync
+                    if (model.getStatus() == FileDownloadStatus.paused
+                            && FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
+                            model.getPath(), null)) {
                         // can be reused in the old mechanism(no-temp-file).
 
                         final File tempFile = new File(model.getTempFilePath());
@@ -189,7 +196,8 @@ public class CustomComponentHolder {
                             final boolean successRename = targetFile.renameTo(tempFile);
                             if (FileDownloadLog.NEED_LOG) {
                                 FileDownloadLog.d(FileDownloadDatabase.class,
-                                        "resume from the old no-temp-file architecture [%B], [%s]->[%s]",
+                                        "resume from the old no-temp-file architecture "
+                                                + "[%B], [%s]->[%s]",
                                         successRename, targetFile.getPath(), tempFile.getPath());
 
                             }
@@ -199,7 +207,8 @@ public class CustomComponentHolder {
                     /**
                      * Remove {@code model} from DB if it can't used for judging whether the
                      * old-downloaded file is valid for reused & it can't used for resuming from
-                     * BREAKPOINT, In other words, {@code model} is no use anymore for FileDownloader.
+                     * BREAKPOINT, In other words, {@code model} is no use anymore for
+                     * FileDownloader.
                      */
                     if (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() <= 0) {
                         // This model is redundant.
@@ -228,10 +237,14 @@ public class CustomComponentHolder {
                     removedDataCount++;
                 } else {
                     final int oldId = model.getId();
-                    final int newId = idGenerator.transOldId(oldId, model.getUrl(), model.getPath(), model.isPathAsDirectory());
+                    final int newId = idGenerator.transOldId(oldId, model.getUrl(), model.getPath(),
+                            model.isPathAsDirectory());
                     if (newId != oldId) {
                         if (FileDownloadLog.NEED_LOG) {
-                            FileDownloadLog.d(FileDownloadDatabase.class, "the id is changed on restoring from db: old[%d] -> new[%d]", oldId, newId);
+                            FileDownloadLog.d(FileDownloadDatabase.class,
+                                    "the id is changed on restoring from db:"
+                                            + " old[%d] -> new[%d]",
+                                    oldId, newId);
                         }
                         model.setId(newId);
                         maintainer.changeFileDownloadModelId(oldId, model);
@@ -249,8 +262,10 @@ public class CustomComponentHolder {
             // 566 data consumes about 140ms
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(FileDownloadDatabase.class,
-                        "refreshed data count: %d , delete data count: %d, reset id count: %d. consume %d",
-                        refreshDataCount, removedDataCount, resetIdCount, System.currentTimeMillis() - startTimestamp);
+                        "refreshed data count: %d , delete data count: %d, reset id count:"
+                                + " %d. consume %d",
+                        refreshDataCount, removedDataCount, resetIdCount,
+                        System.currentTimeMillis() - startTimestamp);
             }
         }
     }

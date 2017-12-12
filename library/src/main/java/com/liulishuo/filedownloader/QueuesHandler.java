@@ -36,7 +36,7 @@ class QueuesHandler implements IQueuesHandler {
 
     private final SparseArray<Handler> mRunningSerialMap;
 
-    public QueuesHandler() {
+    QueuesHandler() {
         this.mRunningSerialMap = new SparseArray<>();
     }
 
@@ -115,23 +115,24 @@ class QueuesHandler implements IQueuesHandler {
         return mRunningSerialMap.get(attachKey) != null;
     }
 
-    private boolean onAssembledTasksToStart(int attachKey, final List<BaseDownloadTask.IRunningTask> list,
+    private boolean onAssembledTasksToStart(int attachKey,
+                                            final List<BaseDownloadTask.IRunningTask> list,
                                             final FileDownloadListener listener, boolean isSerial) {
         if (FileDownloadMonitor.isValid()) {
             FileDownloadMonitor.getMonitor().onRequestStart(list.size(), true, listener);
         }
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(FileDownloader.class, "start list attachKey[%d] size[%d] " +
-                    "listener[%s] isSerial[%B]", attachKey, list.size(), listener, isSerial);
+            FileDownloadLog.v(FileDownloader.class, "start list attachKey[%d] size[%d] "
+                    + "listener[%s] isSerial[%B]", attachKey, list.size(), listener, isSerial);
         }
 
         if (list == null || list.isEmpty()) {
-            FileDownloadLog.w(FileDownloader.class, "Tasks with the listener can't start, " +
-                            "because can't find any task with the provided listener, maybe tasks " +
-                            "instance has been started in the past, so they are all are inUsing, if " +
-                            "in this case, you can use [BaseDownloadTask#reuse] to reuse theme " +
-                            "first then start again: [%s, %B]",
+            FileDownloadLog.w(FileDownloader.class, "Tasks with the listener can't start, "
+                            + "because can't find any task with the provided listener, maybe tasks "
+                            + "instance has been started in the past, so they are all are inUsing, "
+                            + "if in this case, you can use [BaseDownloadTask#reuse] to reuse theme"
+                            + " first then start again: [%s, %B]",
                     listener, isSerial);
 
             return true;
@@ -142,9 +143,9 @@ class QueuesHandler implements IQueuesHandler {
     }
 
 
-    final static int WHAT_SERIAL_NEXT = 1;
-    final static int WHAT_FREEZE = 2;
-    final static int WHAT_UNFREEZE = 3;
+    static final int WHAT_SERIAL_NEXT = 1;
+    static final int WHAT_FREEZE = 2;
+    static final int WHAT_UNFREEZE = 3;
 
 
     private class SerialHandlerCallback implements Handler.Callback {
@@ -183,8 +184,8 @@ class QueuesHandler implements IQueuesHandler {
 
                     if (FileDownloadLog.NEED_LOG) {
                         FileDownloadLog.d(SerialHandlerCallback.class, "final serial %s %d",
-                                this.mList == null ? null : this.mList.get(0) == null ?
-                                        null : this.mList.get(0).getOrigin().getListener(),
+                                this.mList == null ? null : this.mList.get(0) == null
+                                        ? null : this.mList.get(0).getOrigin().getListener(),
                                 msg.arg1);
                     }
                     return true;
@@ -193,8 +194,8 @@ class QueuesHandler implements IQueuesHandler {
                 mRunningIndex = msg.arg1;
                 final BaseDownloadTask.IRunningTask stackTopTask = this.mList.get(mRunningIndex);
                 synchronized (stackTopTask.getPauseLock()) {
-                    if (stackTopTask.getOrigin().getStatus() != FileDownloadStatus.INVALID_STATUS ||
-                            FileDownloadList.getImpl().isNotContains(stackTopTask)) {
+                    if (stackTopTask.getOrigin().getStatus() != FileDownloadStatus.INVALID_STATUS
+                            || FileDownloadList.getImpl().isNotContains(stackTopTask)) {
                         // pause?
                         if (FileDownloadLog.NEED_LOG) {
                             FileDownloadLog.d(SerialHandlerCallback.class,
@@ -205,7 +206,8 @@ class QueuesHandler implements IQueuesHandler {
                     }
 
                     stackTopTask.getOrigin()
-                            .addFinishListener(mSerialFinishListener.setNextIndex(mRunningIndex + 1));
+                            .addFinishListener(
+                                    mSerialFinishListener.setNextIndex(mRunningIndex + 1));
                     stackTopTask.startTaskByQueue();
                 }
 
@@ -238,8 +240,8 @@ class QueuesHandler implements IQueuesHandler {
             nextMsg.arg1 = nextIndex;
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(SerialHandlerCallback.class, "start next %s %s",
-                        this.mList == null ? null : this.mList.get(0) == null ? null :
-                                this.mList.get(0).getOrigin().getListener(), nextMsg.arg1);
+                        this.mList == null ? null : this.mList.get(0) == null ? null
+                                : this.mList.get(0).getOrigin().getListener(), nextMsg.arg1);
             }
             this.mHandler.sendMessage(nextMsg);
         }

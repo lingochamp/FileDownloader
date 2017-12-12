@@ -19,8 +19,6 @@ package com.liulishuo.filedownloader.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.liulishuo.filedownloader.connection.FileDownloadConnection;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +35,7 @@ public class FileDownloadHeader implements Parcelable {
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
-     * @see com.liulishuo.filedownloader.download.ConnectTask#addUserRequiredHeader(FileDownloadConnection)
+     * @see com.liulishuo.filedownloader.download.ConnectTask#addUserRequiredHeader
      */
     public void add(String name, String value) {
         if (name == null) throw new NullPointerException("name == null");
@@ -62,7 +60,7 @@ public class FileDownloadHeader implements Parcelable {
     /**
      * We have already handled etag, and will add 'If-Match' & 'Range' value if it works.
      *
-     * @see com.liulishuo.filedownloader.download.ConnectTask#addUserRequiredHeader(FileDownloadConnection)
+     * @see com.liulishuo.filedownloader.download.ConnectTask#addUserRequiredHeader
      */
     public void add(String line) {
         String[] parsed = line.split(":");

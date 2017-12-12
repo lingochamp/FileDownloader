@@ -37,45 +37,45 @@ import java.util.concurrent.atomic.AtomicLong;
 public class FileDownloadModel implements Parcelable {
 
     public static final int TOTAL_VALUE_IN_CHUNKED_RESOURCE = -1;
-    public final static int DEFAULT_CALLBACK_PROGRESS_TIMES = 100;
+    public static final int DEFAULT_CALLBACK_PROGRESS_TIMES = 100;
 
     // download id
     private int id;
-    public final static String ID = "_id";
+    public static final String ID = "_id";
 
     // download url
     private String url;
-    public final static String URL = "url";
+    public static final String URL = "url";
 
     // save path
     private String path;
-    public final static String PATH = "path";
+    public static final String PATH = "path";
 
 
     private boolean pathAsDirectory;
-    public final static String PATH_AS_DIRECTORY = "pathAsDirectory";
+    public static final String PATH_AS_DIRECTORY = "pathAsDirectory";
 
     private String filename;
-    public final static String FILENAME = "filename";
+    public static final String FILENAME = "filename";
 
     private final AtomicInteger status;
-    public final static String STATUS = "status";
+    public static final String STATUS = "status";
 
     private final AtomicLong soFar;
     private long total;
 
-    public final static String SOFAR = "sofar";
-    public final static String TOTAL = "total";
+    public static final String SOFAR = "sofar";
+    public static final String TOTAL = "total";
 
     private String errMsg;
-    public final static String ERR_MSG = "errMsg";
+    public static final String ERR_MSG = "errMsg";
 
     // header
     private String eTag;
-    public final static String ETAG = "etag";
+    public static final String ETAG = "etag";
 
     private int connectionCount;
-    public final static String CONNECTION_COUNT = "connectionCount";
+    public static final String CONNECTION_COUNT = "connectionCount";
 
     public void setId(int id) {
         this.id = id;
@@ -131,8 +131,8 @@ public class FileDownloadModel implements Parcelable {
      * This path is composited with {@link #path}、{@link #pathAsDirectory}、{@link #filename}.
      * <p/>
      * Why {@link #getPath()} may be not equal to getTargetFilePath()? this case only occurred
-     * when the {@link #isPathAsDirectory()} is {@code true}, on this scenario the {@link #getPath()}
-     * is directory, and the getTargetFilePath() is 'directory + "/" + filename'.
+     * when the {@link #isPathAsDirectory()} is {@code true}, on this scenario the
+     * {@link #getPath()} is directory, and the getTargetFilePath() is 'directory + "/" + filename'.
      *
      * @return the finally target file path.
      */
@@ -262,8 +262,9 @@ public class FileDownloadModel implements Parcelable {
 
     @Override
     public String toString() {
-        return FileDownloadUtils.formatString("id[%d], url[%s], path[%s], status[%d], sofar[%s]," +
-                        " total[%d], etag[%s], %s", id, url, path, status.get(), soFar, total, eTag,
+        return FileDownloadUtils.formatString("id[%d], url[%s], path[%s], status[%d], sofar[%s],"
+                        + " total[%d], etag[%s], %s",
+                id, url, path, status.get(), soFar, total, eTag,
                 super.toString());
     }
 
@@ -309,15 +310,16 @@ public class FileDownloadModel implements Parcelable {
         this.isLargeFile = in.readByte() != 0;
     }
 
-    public static final Parcelable.Creator<FileDownloadModel> CREATOR = new Parcelable.Creator<FileDownloadModel>() {
-        @Override
-        public FileDownloadModel createFromParcel(Parcel source) {
-            return new FileDownloadModel(source);
-        }
+    public static final Parcelable.Creator<FileDownloadModel> CREATOR =
+            new Parcelable.Creator<FileDownloadModel>() {
+                @Override
+                public FileDownloadModel createFromParcel(Parcel source) {
+                    return new FileDownloadModel(source);
+                }
 
-        @Override
-        public FileDownloadModel[] newArray(int size) {
-            return new FileDownloadModel[size];
-        }
-    };
+                @Override
+                public FileDownloadModel[] newArray(int size) {
+                    return new FileDownloadModel[size];
+                }
+            };
 }

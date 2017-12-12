@@ -55,8 +55,8 @@ public class DownloadStatusCallback implements Handler.Callback {
     private final int maxRetryTimes;
 
 
-    private static final int CALLBACK_SAFE_MIN_INTERVAL_BYTES = 1;//byte
-    private static final int CALLBACK_SAFE_MIN_INTERVAL_MILLIS = 5;//ms
+    private static final int CALLBACK_SAFE_MIN_INTERVAL_BYTES = 1/*byte*/;
+    private static final int CALLBACK_SAFE_MIN_INTERVAL_MILLIS = 5/*ms*/;
     private static final int NO_ANY_PROGRESS_CALLBACK = -1;
 
     private final int callbackProgressMinInterval;
@@ -117,8 +117,9 @@ public class DownloadStatusCallback implements Handler.Callback {
             IllegalArgumentException {
         final String oldEtag = model.getETag();
         if (oldEtag != null && !oldEtag.equals(etag)) throw
-                new IllegalArgumentException(FileDownloadUtils.formatString("callback " +
-                                "onConnected must with precondition succeed, but the etag is changes(%s != %s)",
+                new IllegalArgumentException(FileDownloadUtils.formatString("callback "
+                                + "onConnected must with precondition succeed, but the etag is "
+                                + "changes(%s != %s)",
                         etag, oldEtag));
 
         // direct
@@ -196,9 +197,9 @@ public class DownloadStatusCallback implements Handler.Callback {
         handleCompleted();
     }
 
-    private final static String ALREADY_DEAD_MESSAGE = "require callback %d but the host thread of the flow has " +
-            "already dead, what is occurred because of there are several reason can " +
-            "final this flow on different thread.";
+    private static final String ALREADY_DEAD_MESSAGE = "require callback %d but the host thread"
+            + " of the flow has already dead, what is occurred because of there are several reason"
+            + " can final this flow on different thread.";
 
     private synchronized void sendMessage(Message message) {
 
@@ -241,10 +242,9 @@ public class DownloadStatusCallback implements Handler.Callback {
          * Only handle the case of Chunked resource, if it is not chunked, has already been handled
          * in {@link #getOutputStream(boolean, long)}.
          */
-        if ((model.isChunked() ||
-                FileDownloadProperties.getImpl().FILE_NON_PRE_ALLOCATION)
-                && ex instanceof IOException &&
-                new File(tempPath).exists()) {
+        if ((model.isChunked() || FileDownloadProperties.getImpl().fileNonPreAllocation)
+                && ex instanceof IOException
+                && new File(tempPath).exists()) {
             // chunked
             final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(tempPath);
             if (freeSpaceBytes <= BUFFER_SIZE) {
@@ -252,8 +252,8 @@ public class DownloadStatusCallback implements Handler.Callback {
                 long downloadedSize = 0;
                 final File file = new File(tempPath);
                 if (!file.exists()) {
-                    FileDownloadLog.e(this, ex, "Exception with: free " +
-                            "space isn't enough, and the target file not exist.");
+                    FileDownloadLog.e(this, ex, "Exception with: free "
+                            + "space isn't enough, and the target file not exist.");
                 } else {
                     downloadedSize = file.length();
                 }
@@ -275,8 +275,8 @@ public class DownloadStatusCallback implements Handler.Callback {
     private void handleSQLiteFullException(final SQLiteFullException sqLiteFullException) {
         final int id = model.getId();
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "the data of the task[%d] is dirty, because the SQLite " +
-                            "full exception[%s], so remove it from the database directly.",
+            FileDownloadLog.d(this, "the data of the task[%d] is dirty, because the SQLite "
+                            + "full exception[%s], so remove it from the database directly.",
                     id, sqLiteFullException.toString());
         }
 
@@ -299,13 +299,13 @@ public class DownloadStatusCallback implements Handler.Callback {
                 final long oldTargetFileLength = targetFile.length();
                 if (!targetFile.delete()) {
                     throw new IOException(FileDownloadUtils.formatString(
-                            "Can't delete the old file([%s], [%d]), " +
-                                    "so can't replace it with the new downloaded one.",
+                            "Can't delete the old file([%s], [%d]), "
+                                    + "so can't replace it with the new downloaded one.",
                             targetPath, oldTargetFileLength
                     ));
                 } else {
-                    FileDownloadLog.w(this, "The target file([%s], [%d]) will be replaced with" +
-                                    " the new downloaded file[%d]",
+                    FileDownloadLog.w(this, "The target file([%s], [%d]) will be replaced with"
+                                    + " the new downloaded file[%d]",
                             targetPath, oldTargetFileLength, tempFile.length());
                 }
             }
@@ -340,6 +340,8 @@ public class DownloadStatusCallback implements Handler.Callback {
                 case FileDownloadStatus.retry:
                     handleRetry((Exception) msg.obj, msg.arg1);
                     break;
+                default:
+                    // ignored.
             }
         } finally {
             handlingMessage = false;
@@ -381,7 +383,7 @@ public class DownloadStatusCallback implements Handler.Callback {
 
         onStatusChanged(FileDownloadStatus.completed);
 
-        if (FileDownloadProperties.getImpl().BROADCAST_COMPLETED) {
+        if (FileDownloadProperties.getImpl().broadcastCompleted) {
             FileDownloadBroadcastHandler.sendCompletedBroadcast(model);
         }
     }
@@ -454,7 +456,8 @@ public class DownloadStatusCallback implements Handler.Callback {
         final long callbackTimeDelta = now - lastCallbackTimestamp;
 
 
-        return (callbackMinIntervalBytes != NO_ANY_PROGRESS_CALLBACK && callbackIncreaseBuffer.get() >= callbackMinIntervalBytes)
+        return (callbackMinIntervalBytes != NO_ANY_PROGRESS_CALLBACK
+                && callbackIncreaseBuffer.get() >= callbackMinIntervalBytes)
                 && (callbackTimeDelta >= callbackProgressMinInterval);
     }
 
@@ -474,8 +477,8 @@ public class DownloadStatusCallback implements Handler.Callback {
                  *
                  * High concurrent cause.
                  */
-                FileDownloadLog.d(this, "High concurrent cause, Already paused and we don't " +
-                        "need to call-back to Task in here, %d", model.getId());
+                FileDownloadLog.d(this, "High concurrent cause, Already paused and we don't "
+                        + "need to call-back to Task in here, %d", model.getId());
             }
             return;
         }

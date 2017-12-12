@@ -83,15 +83,19 @@ public class DownloadRunnable implements Runnable {
                 final int code = connection.getResponseCode();
 
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.d(this, "the connection[%d] for %d, is connected %s with code[%d]",
-                            connectionIndex, downloadId, connectTask.getProfile(), code);
+                    FileDownloadLog
+                            .d(this, "the connection[%d] for %d, is connected %s with code[%d]",
+                                    connectionIndex, downloadId, connectTask.getProfile(), code);
                 }
 
                 if (code != HttpURLConnection.HTTP_PARTIAL && code != HttpURLConnection.HTTP_OK) {
                     throw new SocketException(FileDownloadUtils.
-                            formatString("Connection failed with request[%s] response[%s] http-state[%d] on task[%d-%d], " +
-                                            "which is changed after verify connection, so please try again.",
-                                    connectTask.getRequestHeader(), connection.getResponseHeaderFields(),
+                            formatString(
+                                    "Connection failed with request[%s] response[%s] "
+                                            + "http-state[%d] on task[%d-%d], which is changed"
+                                            + " after verify connection, so please try again.",
+                                    connectTask.getRequestHeader(),
+                                    connection.getResponseHeaderFields(),
                                     code, downloadId, connectionIndex));
                 }
 
@@ -110,13 +114,13 @@ public class DownloadRunnable implements Runnable {
                         .setPath(path)
                         .build();
 
-
                 fetchDataTask.run();
-                if (paused){
-                    fetchDataTask.pause();
-                }
+
+                if (paused) fetchDataTask.pause();
                 break;
-            } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException | IllegalArgumentException e) {
+
+            } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException
+                    | IllegalArgumentException e) {
                 if (callback.isRetry(e)) {
                     if (!isConnected) {
                         callback.onRetry(e, 0);
@@ -126,8 +130,8 @@ public class DownloadRunnable implements Runnable {
                         callback.onRetry(e, invalidIncreaseBytes);
                     } else {
                         // connected but create fetch data task failed, give up directly.
-                        FileDownloadLog.w(this, "it is valid to retry and connection is valid but" +
-                                " create fetch-data-task failed, so give up directly with %s", e);
+                        FileDownloadLog.w(this, "it is valid to retry and connection is valid but"
+                                + " create fetch-data-task failed, so give up directly with %s", e);
                         callback.onError(e);
                         break;
                     }
@@ -198,9 +202,11 @@ public class DownloadRunnable implements Runnable {
         }
 
         public DownloadRunnable build() {
-            if (callback == null || path == null || isWifiRequired == null || connectionIndex == null)
-                throw new IllegalArgumentException(FileDownloadUtils.formatString("%s %s %B"
-                        , callback, path, isWifiRequired));
+            if (callback == null || path == null || isWifiRequired == null
+                    || connectionIndex == null) {
+                throw new IllegalArgumentException(FileDownloadUtils.formatString("%s %s %B",
+                        callback, path, isWifiRequired));
+            }
 
             final ConnectTask connectTask = connectTaskBuilder.build();
             return new DownloadRunnable(connectTask.downloadId, connectionIndex, connectTask,

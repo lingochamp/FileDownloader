@@ -150,7 +150,8 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
     }
 
     @Override
-    public void updateOldEtagOverdue(int id, String newEtag, long sofar, long total, int connectionCount) {
+    public void updateOldEtagOverdue(int id, String newEtag, long sofar, long total,
+                                     int connectionCount) {
     }
 
     @Override

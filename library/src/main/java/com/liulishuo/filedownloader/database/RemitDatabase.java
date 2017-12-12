@@ -32,7 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * If one data insert/update and remove within 2 sec, which will do not effect on {@code realDatabase}.
+ * If one data insert/update and remove within 2 sec, which will do not effect on
+ * {@code realDatabase}.
  */
 public class RemitDatabase implements FileDownloadDatabase {
 
@@ -48,12 +49,12 @@ public class RemitDatabase implements FileDownloadDatabase {
     private AtomicInteger handlingId = new AtomicInteger();
     private volatile Thread parkThread;
 
-    private final static int WHAT_CLEAN_LOCK = 0;
+    private static final int WHAT_CLEAN_LOCK = 0;
 
     public RemitDatabase() {
         this.cachedDatabase = new NoDatabaseImpl();
         this.realDatabase = new SqliteDatabaseImpl();
-        this.minInterval = FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_TIME;
+        this.minInterval = FileDownloadProperties.getImpl().downloadMinProgressTime;
 
         final HandlerThread thread = new HandlerThread(
                 FileDownloadUtils.getThreadPoolName("RemitHandoverToDB"));

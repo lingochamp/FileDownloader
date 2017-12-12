@@ -86,7 +86,8 @@ public class ConnectTask {
 
             if (additionHeaders != null) {
                 if (FileDownloadLog.NEED_LOG) {
-                    FileDownloadLog.v(this, "%d add outside header: %s", downloadId, additionHeaders);
+                    FileDownloadLog.v(this, "%d add outside header: %s",
+                            downloadId, additionHeaders);
                 }
 
                 String name;
@@ -120,7 +121,8 @@ public class ConnectTask {
         if (profile.endOffset == 0) {
             range = FileDownloadUtils.formatString("bytes=%d-", profile.currentOffset);
         } else {
-            range = FileDownloadUtils.formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
+            range = FileDownloadUtils
+                    .formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
         }
         connection.addHeader("Range", range);
     }
@@ -131,7 +133,7 @@ public class ConnectTask {
         }
     }
 
-    boolean isRangeNotFromBeginning(){
+    boolean isRangeNotFromBeginning() {
         return profile.currentOffset > 0;
     }
 
@@ -151,7 +153,8 @@ public class ConnectTask {
         return profile;
     }
 
-    public void retryOnConnectedWithNewParam(ConnectionProfile profile, String etag) throws Reconnect {
+    public void retryOnConnectedWithNewParam(ConnectionProfile profile, String etag)
+            throws Reconnect {
         if (profile == null) throw new IllegalArgumentException();
         this.profile = profile;
         this.etag = etag;
@@ -197,8 +200,9 @@ public class ConnectTask {
         }
 
         ConnectTask build() {
-            if (downloadId == null || connectionProfile == null || url == null)
+            if (downloadId == null || connectionProfile == null || url == null) {
                 throw new IllegalArgumentException();
+            }
 
             return new ConnectTask(connectionProfile, downloadId, url, etag, header);
         }

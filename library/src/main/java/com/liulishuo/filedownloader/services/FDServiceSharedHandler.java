@@ -34,7 +34,8 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     private final FileDownloadManager downloadManager;
     private final WeakReference<FileDownloadService> wService;
 
-    FDServiceSharedHandler(WeakReference<FileDownloadService> wService, FileDownloadManager manager) {
+    FDServiceSharedHandler(WeakReference<FileDownloadService> wService,
+                           FileDownloadManager manager) {
         this.wService = wService;
         this.downloadManager = manager;
     }
@@ -54,7 +55,8 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
 
     @Override
     public void start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
-                      int callbackProgressMinIntervalMillis, int autoRetryTimes, boolean forceReDownload,
+                      int callbackProgressMinIntervalMillis, int autoRetryTimes,
+                      boolean forceReDownload,
                       FileDownloadHeader header, boolean isWifiRequired) {
         downloadManager.start(url, path, pathAsDirectory, callbackProgressTimes,
                 callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header,

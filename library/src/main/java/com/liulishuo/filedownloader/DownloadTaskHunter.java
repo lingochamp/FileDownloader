@@ -33,7 +33,8 @@ import java.util.ArrayList;
  * The download task hunter.
  */
 
-public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, ITaskHunter.IMessageHandler,
+public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter,
+        ITaskHunter.IMessageHandler,
         BaseDownloadTask.LifeCycleCallback {
 
     private IFileDownloadMessenger mMessenger;
@@ -43,8 +44,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
     public boolean updateKeepAhead(MessageSnapshot snapshot) {
         if (!FileDownloadStatus.isKeepAhead(getStatus(), snapshot.getStatus())) {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "can't update mStatus change by keep ahead, %d, but the" +
-                        " current mStatus is %d, %d", mStatus, getStatus(), getId());
+                FileDownloadLog.d(this, "can't update mStatus change by keep ahead, %d, but the"
+                        + " current mStatus is %d, %d", mStatus, getStatus(), getId());
             }
             return false;
         }
@@ -62,20 +63,20 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
             if (FileDownloadLog.NEED_LOG) {
                 /**
                  * Occur such situation, must be the running-mStatus waiting for turning up in flow
-                 * thread pool(or binder thread) when there is someone invoked the {@link #pause()} .
+                 * thread pool(or binder thread) when there is someone invoked the {@link #pause()}.
                  *
                  * High concurrent cause.
                  */
-                FileDownloadLog.d(this, "High concurrent cause, callback pending, but has already" +
-                        " be paused %d", getId());
+                FileDownloadLog.d(this, "High concurrent cause, callback pending, but has already"
+                        + " be paused %d", getId());
             }
             return true;
         }
 
         if (!FileDownloadStatus.isKeepFlow(currentStatus, nextStatus)) {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "can't update mStatus change by keep flow, %d, but the" +
-                        " current mStatus is %d, %d", mStatus, getStatus(), getId());
+                FileDownloadLog.d(this, "can't update mStatus change by keep flow, %d, but the"
+                        + " current mStatus is %d, %d", mStatus, getStatus(), getId());
             }
 
             return false;
@@ -101,8 +102,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
             return false;
         }
 
-        if (snapshot.getStatus() != FileDownloadStatus.warn ||
-                getStatus() != FileDownloadStatus.connected) {
+        if (snapshot.getStatus() != FileDownloadStatus.warn
+                || getStatus() != FileDownloadStatus.connected) {
             return false;
         }
 
@@ -122,6 +123,7 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         return MessageSnapshotTaker.catchException(getId(), getSofarBytes(), cause);
     }
 
+    @SuppressWarnings("checkstyle:emptyblock")
     private void update(final MessageSnapshot snapshot) {
         final BaseDownloadTask task = mTask.getRunningTask().getOrigin();
         final byte status = snapshot.getStatus();
@@ -149,7 +151,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                 final String filename = snapshot.getFileName();
                 if (filename != null) {
                     if (task.getFilename() != null) {
-                        FileDownloadLog.w(this, "already has mFilename[%s], but assign mFilename[%s] again",
+                        FileDownloadLog.w(this,
+                                "already has mFilename[%s], but assign mFilename[%s] again",
                                 task.getFilename(), filename);
                     }
                     mTask.setFileName(filename);
@@ -226,8 +229,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                     // request mStatus
                     final int currentStatus = FileDownloadServiceProxy.getImpl().
                             getStatus(task.getId());
-                    FileDownloadLog.w(this, "warn, but no mListener to receive, " +
-                            "switch to pending %d %d", task.getId(), currentStatus);
+                    FileDownloadLog.w(this, "warn, but no mListener to receive, "
+                            + "switch to pending %d %d", task.getId(), currentStatus);
 
                     //noinspection StatementWithEmptyBody
                     if (FileDownloadStatus.isIng(currentStatus)) {
@@ -253,6 +256,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                 // to FileDownloadList
                 FileDownloadList.getImpl().remove(mTask.getRunningTask(), snapshot);
                 break;
+            default:
+                // ignored
         }
     }
 
@@ -263,7 +268,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         }
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
+            FileDownloadLog
+                    .v(this, "filedownloader:lifecycle:start %s by %d ", toString(), getStatus());
         }
     }
 
@@ -291,7 +297,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         if (mTask.getFinishListenerList() != null) {
             @SuppressWarnings("unchecked") final ArrayList<BaseDownloadTask.FinishListener>
                     listenersCopy =
-                    (ArrayList<BaseDownloadTask.FinishListener>) mTask.getFinishListenerList().clone();
+                    (ArrayList<BaseDownloadTask.FinishListener>) mTask.getFinishListenerList()
+                            .clone();
             final int numListeners = listenersCopy.size();
             for (int i = 0; i < numListeners; ++i) {
                 listenersCopy.get(i).over(origin);
@@ -343,8 +350,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
     public void intoLaunchPool() {
         synchronized (mPauseLock) {
             if (mStatus != FileDownloadStatus.INVALID_STATUS) {
-                FileDownloadLog.w(this, "High concurrent cause, this task %d will not input " +
-                                "to launch pool, because of the status isn't idle : %d",
+                FileDownloadLog.w(this, "High concurrent cause, this task %d will not input "
+                                + "to launch pool, because of the status isn't idle : %d",
                         getId(), mStatus);
                 return;
             }
@@ -360,8 +367,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         }
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.v(this, "call start " +
-                            "Url[%s], Path[%s] Listener[%s], Tag[%s]",
+            FileDownloadLog.v(this, "call start "
+                            + "Url[%s], Path[%s] Listener[%s], Tag[%s]",
                     origin.getUrl(), origin.getPath(), origin.getListener(), origin.getTag());
         }
 
@@ -395,8 +402,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                  *
                  * High concurrent cause.
                  */
-                FileDownloadLog.d(this, "High concurrent cause, Already is over, can't pause " +
-                        "again, %d %d", getStatus(), mTask.getRunningTask().getOrigin().getId());
+                FileDownloadLog.d(this, "High concurrent cause, Already is over, can't pause "
+                        + "again, %d %d", getStatus(), mTask.getRunningTask().getOrigin().getId());
             }
             return false;
         }
@@ -412,8 +419,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
         if (!FileDownloader.getImpl().isServiceConnected()) {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "request pause the task[%d] to the download service, but" +
-                        " the download service isn't connected yet.", origin.getId());
+                FileDownloadLog.d(this, "request pause the task[%d] to the download service,"
+                        + " but the download service isn't connected yet.", origin.getId());
             }
         } else {
             FileDownloadServiceProxy.getImpl().pause(origin.getId());
@@ -534,8 +541,8 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
             final String dirString = FileDownloadUtils.getParent(origin.getPath());
             if (dirString == null) {
                 throw new InvalidParameterException(
-                        FileDownloadUtils.formatString("the provided mPath[%s] is invalid," +
-                                " can't find its directory", origin.getPath()));
+                        FileDownloadUtils.formatString("the provided mPath[%s] is invalid,"
+                                + " can't find its directory", origin.getPath()));
             }
             dir = new File(dirString);
         }
@@ -543,8 +550,9 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         if (!dir.exists()) {
             if (!dir.mkdirs() && !dir.exists()) {
                 throw new IOException(FileDownloadUtils.
-                        formatString("Create parent directory failed, please make sure " +
-                                        "you have permission to create file or directory on the path: %s",
+                        formatString("Create parent directory failed, please make sure "
+                                        + "you have permission to create file or directory "
+                                        + "on the path: %s",
                                 dir.getAbsolutePath()));
             }
         }
@@ -554,11 +562,12 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
         return mTask.getRunningTask().getOrigin().getId();
     }
 
+    @SuppressWarnings("checkstyle:emptyblock")
     @Override
     public void start() {
         if (mStatus != FileDownloadStatus.toLaunchPool) {
-            FileDownloadLog.w(this, "High concurrent cause, this task %d will not start," +
-                            " because the of status isn't toLaunchPool: %d",
+            FileDownloadLog.w(this, "High concurrent cause, this task %d will not start,"
+                            + " because the of status isn't toLaunchPool: %d",
                     getId(), mStatus);
             return;
         }
@@ -576,9 +585,9 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
 
             synchronized (mPauseLock) {
                 if (mStatus != FileDownloadStatus.toLaunchPool) {
-                    FileDownloadLog.w(this, "High concurrent cause, this task %d will not start," +
-                                    " the status can't assign to toFileDownloadService, because the status" +
-                                    " isn't toLaunchPool: %d",
+                    FileDownloadLog.w(this, "High concurrent cause, this task %d will not start,"
+                                    + " the status can't assign to toFileDownloadService, because "
+                                    + "the status isn't toLaunchPool: %d",
                             getId(), mStatus);
                     return;
                 }
@@ -599,15 +608,18 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                             origin.getUrl(),
                             origin.getPath(),
                             origin.isPathAsDirectory(),
-                            origin.getCallbackProgressTimes(), origin.getCallbackProgressMinInterval(),
+                            origin.getCallbackProgressTimes(),
+                            origin.getCallbackProgressMinInterval(),
                             origin.getAutoRetryTimes(),
                             origin.isForceReDownload(),
                             mTask.getHeader(),
                             origin.isWifiRequired());
 
             if (mStatus == FileDownloadStatus.paused) {
-                FileDownloadLog.w(this, "High concurrent cause, this task %d will be paused," +
-                        "because of the status is paused, so the pause action must be applied", getId());
+                FileDownloadLog.w(this, "High concurrent cause, this task %d will be paused,"
+                                + "because of the status is paused, so the pause action must be "
+                                + "applied",
+                        getId());
                 if (succeed) {
                     FileDownloadServiceProxy.getImpl().pause(getId());
                 }
@@ -618,9 +630,9 @@ public class DownloadTaskHunter implements ITaskHunter, ITaskHunter.IStarter, IT
                 //noinspection StatementWithEmptyBody
                 if (!lostConnectedHandler.dispatchTaskStart(runningTask)) {
                     final MessageSnapshot snapshot = prepareErrorMessage(
-                            new RuntimeException("Occur Unknown Error, when request to start" +
-                                    " maybe some problem in binder, maybe the process was killed in " +
-                                    "unexpected."));
+                            new RuntimeException("Occur Unknown Error, when request to start"
+                                    + " maybe some problem in binder, maybe the process was killed "
+                                    + "in unexpected."));
 
                     if (FileDownloadList.getImpl().isNotContains(runningTask)) {
                         lostConnectedHandler.taskWorkFine(runningTask);

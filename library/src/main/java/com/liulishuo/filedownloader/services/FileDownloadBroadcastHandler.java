@@ -27,8 +27,8 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
  * The handler broadcast from filedownloader.
  */
 public class FileDownloadBroadcastHandler {
-    public final static String ACTION_COMPLETED = "filedownloader.intent.action.completed";
-    public final static String KEY_MODEL = "model";
+    public static final String ACTION_COMPLETED = "filedownloader.intent.action.completed";
+    public static final String KEY_MODEL = "model";
 
     /**
      * Parse the {@code intent} from the filedownloader broadcast.
@@ -39,8 +39,9 @@ public class FileDownloadBroadcastHandler {
     public static FileDownloadModel parseIntent(Intent intent) {
         if (!ACTION_COMPLETED.equals(intent.getAction())) {
             throw new IllegalArgumentException(FileDownloadUtils.
-                    formatString("can't recognize the intent with action %s, on the current" +
-                            " version we only support action [%s]", intent.getAction(), ACTION_COMPLETED));
+                    formatString("can't recognize the intent with action %s, on the current"
+                            + " version we only support action [%s]",
+                            intent.getAction(), ACTION_COMPLETED));
         }
 
         return intent.getParcelableExtra(KEY_MODEL);

@@ -25,18 +25,18 @@ package com.liulishuo.filedownloader;
  * @see FileDownloader#start(FileDownloadListener, boolean)
  */
 public class FileDownloadMonitor {
-    private static IMonitor MONITOR;
+    private static IMonitor monitor;
 
     public static void setGlobalMonitor(final IMonitor monitor) {
-        MONITOR = monitor;
+        FileDownloadMonitor.monitor = monitor;
     }
 
     public static void releaseGlobalMonitor() {
-        MONITOR = null;
+        monitor = null;
     }
 
     public static IMonitor getMonitor() {
-        return MONITOR;
+        return monitor;
     }
 
     public static boolean isValid() {

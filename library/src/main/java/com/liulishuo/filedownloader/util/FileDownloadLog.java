@@ -28,7 +28,7 @@ public class FileDownloadLog {
 
     public static boolean NEED_LOG = false;
 
-    private final static String TAG = "FileDownloader.";
+    private static final String TAG = "FileDownloader.";
 
     public static void e(Object o, Throwable e, String msg, Object... args) {
         log(Log.ERROR, o, e, msg, args);
@@ -58,7 +58,8 @@ public class FileDownloadLog {
         log(priority, o, null, message, args);
     }
 
-    private static void log(int priority, Object o, Throwable throwable, String message, Object... args) {
+    private static void log(int priority, Object o, Throwable throwable, String message,
+                            Object... args) {
         final boolean force = priority >= Log.WARN;
         if (!force && !NEED_LOG) {
             return;
@@ -71,6 +72,7 @@ public class FileDownloadLog {
     }
 
     private static String getTag(final Object o) {
-        return TAG + ((o instanceof Class) ? ((Class) o).getSimpleName() : o.getClass().getSimpleName());
+        return TAG + ((o instanceof Class)
+                ? ((Class) o).getSimpleName() : o.getClass().getSimpleName());
     }
 }

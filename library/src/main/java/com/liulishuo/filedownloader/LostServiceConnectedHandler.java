@@ -77,8 +77,8 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
             final IQueuesHandler queueHandler = FileDownloader.getImpl().getQueuesHandler();
             // lost the connection to the service
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "lost the connection to the " +
-                                "file download service, and current active task size is %d",
+                FileDownloadLog.d(this, "lost the connection to the "
+                                + "file download service, and current active task size is %d",
                         FileDownloadList.getImpl().size());
             }
 
@@ -96,8 +96,8 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
         } else {
 
             if (FileDownloadList.getImpl().size() > 0) {
-                FileDownloadLog.w(this, "file download service has be unbound" +
-                                " but the size of active tasks are not empty %d ",
+                FileDownloadLog.w(this, "file download service has be unbound"
+                                + " but the size of active tasks are not empty %d ",
                         FileDownloadList.getImpl().size());
             }
         }
@@ -123,8 +123,8 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
             synchronized (mWaitingList) {
                 if (!FileDownloader.getImpl().isServiceConnected()) {
                     if (FileDownloadLog.NEED_LOG) {
-                        FileDownloadLog.d(this, "Waiting for connecting with the downloader " +
-                                "service... %d", task.getOrigin().getId());
+                        FileDownloadLog.d(this, "Waiting for connecting with the downloader "
+                                + "service... %d", task.getOrigin().getId());
                     }
                     FileDownloadServiceProxy.getImpl().
                             bindStartByContext(FileDownloadHelper.getAppContext());

@@ -66,7 +66,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @param totalBytes Total size of the download in bytes
      */
     @SuppressWarnings("EmptyMethod")
-    protected void connected(final BaseDownloadTask task, final String etag, final boolean isContinue,
+    protected void connected(final BaseDownloadTask task, final String etag,
+                             final boolean isContinue,
                              final long soFarBytes, final long totalBytes) {
     }
 
@@ -79,7 +80,8 @@ public abstract class FileDownloadLargeFileListener extends FileDownloadListener
      * @deprecated replaced with {@link #connected(BaseDownloadTask, String, boolean, long, long)}
      */
     @Override
-    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes,
+                             int totalBytes) {
     }
 
     /**

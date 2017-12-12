@@ -45,15 +45,17 @@ public class FileDownloadService extends Service {
         FileDownloadHelper.holdContext(this);
 
         try {
-            FileDownloadUtils.setMinProgressStep(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_STEP);
-            FileDownloadUtils.setMinProgressTime(FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_TIME);
+            FileDownloadUtils.setMinProgressStep(
+                    FileDownloadProperties.getImpl().downloadMinProgressStep);
+            FileDownloadUtils.setMinProgressTime(
+                    FileDownloadProperties.getImpl().downloadMinProgressTime);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
 
         final FileDownloadManager manager = new FileDownloadManager();
 
-        if (FileDownloadProperties.getImpl().PROCESS_NON_SEPARATE) {
+        if (FileDownloadProperties.getImpl().processNonSeparate) {
             handler = new FDServiceSharedHandler(new WeakReference<>(this), manager);
         } else {
             handler = new FDServiceSeparateHandler(new WeakReference<>(this), manager);

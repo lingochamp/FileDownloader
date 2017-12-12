@@ -64,8 +64,8 @@ public class MessageSnapshotThreadPool {
                             break;
                         }
 
-                        if (leastTaskCount == 0 ||
-                                executor.enQueueTaskIdList.size() < leastTaskCount) {
+                        if (leastTaskCount == 0
+                                || executor.enQueueTaskIdList.size() < leastTaskCount) {
                             leastTaskCount = executor.enQueueTaskIdList.size();
                             targetPool = executor;
                         }

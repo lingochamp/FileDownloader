@@ -48,14 +48,15 @@ class FileDownloadManager implements IThreadPoolMonitor {
     private final FileDownloadDatabase mDatabase;
     private final FileDownloadThreadPool mThreadPool;
 
-    public FileDownloadManager() {
+    FileDownloadManager() {
         final CustomComponentHolder holder = CustomComponentHolder.getImpl();
         this.mDatabase = holder.getDatabaseInstance();
         this.mThreadPool = new FileDownloadThreadPool(holder.getMaxNetworkThreadCount());
     }
 
     // synchronize for safe: check downloading, check resume, update data, execute runnable
-    public synchronized void start(final String url, final String path, final boolean pathAsDirectory,
+    public synchronized void start(final String url, final String path,
+                                   final boolean pathAsDirectory,
                                    final int callbackProgressTimes,
                                    final int callbackProgressMinIntervalMillis,
                                    final int autoRetryTimes, final boolean forceReDownload,
@@ -72,8 +73,9 @@ class FileDownloadManager implements IThreadPoolMonitor {
 
         if (!pathAsDirectory && model == null) {
             // try dir data.
-            final int dirCaseId = FileDownloadUtils.generateId(url, FileDownloadUtils.getParent(path),
-                    true);
+            final int dirCaseId = FileDownloadUtils
+                    .generateId(url, FileDownloadUtils.getParent(path),
+                            true);
             model = mDatabase.find(dirCaseId);
             if (model != null && path.equals(model.getTargetFilePath())) {
                 if (FileDownloadLog.NEED_LOG) {
@@ -91,8 +93,8 @@ class FileDownloadManager implements IThreadPoolMonitor {
             return;
         }
 
-        final String targetFilePath = model != null ? model.getTargetFilePath() :
-                FileDownloadUtils.getTargetFilePath(path, pathAsDirectory, null);
+        final String targetFilePath = model != null ? model.getTargetFilePath()
+                : FileDownloadUtils.getTargetFilePath(path, pathAsDirectory, null);
         if (FileDownloadHelper.inspectAndInflowDownloaded(id, targetFilePath, forceReDownload,
                 true)) {
             if (FileDownloadLog.NEED_LOG) {
@@ -102,13 +104,14 @@ class FileDownloadManager implements IThreadPoolMonitor {
         }
 
         final long sofar = model != null ? model.getSoFar() : 0;
-        final String tempFilePath = model != null ? model.getTempFilePath() :
-                FileDownloadUtils.getTempPath(targetFilePath);
+        final String tempFilePath = model != null ? model.getTempFilePath()
+                : FileDownloadUtils.getTempPath(targetFilePath);
         if (FileDownloadHelper.inspectAndInflowConflictPath(id, sofar, tempFilePath, targetFilePath,
                 this)) {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "there is an another task with the same target-file-path %d %s",
-                        id, targetFilePath);
+                FileDownloadLog
+                        .d(this, "there is an another task with the same target-file-path %d %s",
+                                id, targetFilePath);
                 // because of the file is dirty for this task.
                 if (model != null) {
                     mDatabase.remove(id);
@@ -121,13 +124,13 @@ class FileDownloadManager implements IThreadPoolMonitor {
         // real start
         // - create model
         boolean needUpdate2DB;
-        if (model != null &&
-                (model.getStatus() == FileDownloadStatus.paused ||
-                        model.getStatus() == FileDownloadStatus.error ||
-                        model.getStatus() == FileDownloadStatus.pending ||
-                        model.getStatus() == FileDownloadStatus.started ||
-                        model.getStatus() == FileDownloadStatus.connected) // FileDownloadRunnable invoke
-            // #isBreakpointAvailable to determine whether it is really invalid.
+        if (model != null
+                && (model.getStatus() == FileDownloadStatus.paused
+                || model.getStatus() == FileDownloadStatus.error
+                || model.getStatus() == FileDownloadStatus.pending
+                || model.getStatus() == FileDownloadStatus.started
+                || model.getStatus() == FileDownloadStatus.connected) // FileDownloadRunnable
+            // invoke #isBreakpointAvailable to determine whether it is really invalid.
                 ) {
             if (model.getId() != id) {
                 // in try dir case.
@@ -146,7 +149,8 @@ class FileDownloadManager implements IThreadPoolMonitor {
                 needUpdate2DB = true;
             } else {
                 if (!TextUtils.equals(url, model.getUrl())) {
-                    // for cover the case of reusing the downloaded processing with the different url( using with idGenerator ).
+                    // for cover the case of reusing the downloaded processing with the different
+                    // url( using with idGenerator ).
                     model.setUrl(url);
                     needUpdate2DB = true;
                 } else {

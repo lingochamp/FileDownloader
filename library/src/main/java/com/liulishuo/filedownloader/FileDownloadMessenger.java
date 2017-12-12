@@ -201,17 +201,17 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
             if (FileDownloadLog.NEED_LOG) {
                 // the most possible of occurring this case is the thread for flowing the paused
                 // message is different with others.
-                FileDownloadLog.d(this, "occur this case, it would be the host task of this " +
-                                "messenger has been over(paused/warn/completed/error) on the " +
-                                "other thread before receiving the snapshot(id[%d], status[%d])",
+                FileDownloadLog.d(this, "occur this case, it would be the host task of this "
+                                + "messenger has been over(paused/warn/completed/error) on the "
+                                + "other thread before receiving the snapshot(id[%d], status[%d])",
                         snapshot.getId(), snapshot.getStatus());
             }
             return;
         }
 
         if (mIsDiscard || mTask.getOrigin().getListener() == null) {
-            if ((FileDownloadMonitor.isValid() || mTask.isContainFinishListener()) &&
-                    snapshot.getStatus() == FileDownloadStatus.blockComplete) {
+            if ((FileDownloadMonitor.isValid() || mTask.isContainFinishListener())
+                    && snapshot.getStatus() == FileDownloadStatus.blockComplete) {
                 // there is a FileDownloadMonitor, so we have to ensure the 'BaseDownloadTask#over'
                 // can be invoked.
                 mLifeCycleCallback.onOver();
@@ -231,9 +231,9 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
             if (!parcelQueue.isEmpty()) {
                 final MessageSnapshot queueTopTask = parcelQueue.peek();
                 FileDownloadLog.w(this,
-                        "the messenger[%s](with id[%d]) has already " +
-                                "accomplished all his job, but there still are some messages in" +
-                                " parcel queue[%d] queue-top-status[%d]",
+                        "the messenger[%s](with id[%d]) has already "
+                                + "accomplished all his job, but there still are some messages in"
+                                + " parcel queue[%d] queue-top-status[%d]",
                         this, queueTopTask.getId(), parcelQueue.size(), queueTopTask.getStatus());
             }
             mTask = null;
@@ -252,8 +252,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
         if (task == null) {
             throw new IllegalArgumentException(FileDownloadUtils.formatString(
-                    "can't handover the message, no master to receive this " +
-                            "message(status[%d]) size[%d]",
+                    "can't handover the message, no master to receive this "
+                            + "message(status[%d]) size[%d]",
                     currentStatus, parcelQueue.size()));
         }
 
@@ -362,6 +362,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
                     // already same url & path in pending/running list
                     listener.warn(originTask);
                     break;
+                default:
+                    // ignored
             }
         }
     }
@@ -376,8 +378,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
                               BaseDownloadTask.LifeCycleCallback callback) {
         if (this.mTask != null) {
             throw new IllegalStateException(
-                    FileDownloadUtils.formatString("the messenger is working, can't " +
-                            "re-appointment for %s", task));
+                    FileDownloadUtils.formatString("the messenger is working, can't "
+                            + "re-appointment for %s", task));
         }
 
         init(task, callback);

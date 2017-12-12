@@ -41,15 +41,16 @@ public class FileDownloadSerialQueue {
     private final HandlerThread mHandlerThread;
     private final Handler mHandler;
 
-    private final static int WHAT_NEXT = 1;
-    public final static int ID_INVALID = 0;
+    private static final int WHAT_NEXT = 1;
+    public static final int ID_INVALID = 0;
 
     volatile BaseDownloadTask workingTask;
     final SerialFinishCallback finishCallback;
     volatile boolean paused = false;
 
     public FileDownloadSerialQueue() {
-        mHandlerThread = new HandlerThread("SerialDownloadManager");
+        mHandlerThread = new HandlerThread(
+                FileDownloadUtils.getThreadPoolName("SerialDownloadManager"));
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper(), new SerialLoop());
         finishCallback = new SerialFinishCallback(new WeakReference<>(this));
@@ -83,8 +84,8 @@ public class FileDownloadSerialQueue {
     public void pause() {
         synchronized (finishCallback) {
             if (paused) {
-                FileDownloadLog.w(this, "require pause this queue(remain %d), but " +
-                        "it has already been paused", mTasks.size());
+                FileDownloadLog.w(this, "require pause this queue(remain %d), but "
+                        + "it has already been paused", mTasks.size());
                 return;
             }
 
@@ -106,8 +107,8 @@ public class FileDownloadSerialQueue {
     public void resume() {
         synchronized (finishCallback) {
             if (!paused) {
-                FileDownloadLog.w(this, "require resume this queue(remain %d), but it is" +
-                        " still running", mTasks.size());
+                FileDownloadLog.w(this, "require resume this queue(remain %d), but it is"
+                        + " still running", mTasks.size());
                 return;
             }
 
@@ -178,6 +179,8 @@ public class FileDownloadSerialQueue {
                                 .start();
                     } catch (InterruptedException ignored) { }
                     break;
+                default:
+                    //ignored
             }
             return false;
         }

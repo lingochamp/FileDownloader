@@ -32,7 +32,7 @@ public interface IDownloadSpeed {
         void start(long startBytes);
 
         /**
-         * End the monitor, and calculate the average speed during the entire downloading processing.
+         * End the monitor, and calculate the average speed during the entire downloading processing
          *
          * @param sofarBytes The so far downloaded bytes.
          */
@@ -63,8 +63,8 @@ public interface IDownloadSpeed {
         int getSpeed();
 
         /**
-         * @param minIntervalUpdateSpeed The minimum interval to update the speed, used to adjust the
-         *                               refresh frequent.
+         * @param minIntervalUpdateSpeed The minimum interval to update the speed, used to adjust
+         *                               the refresh frequent.
          */
         void setMinIntervalUpdateSpeed(int minIntervalUpdateSpeed);
     }

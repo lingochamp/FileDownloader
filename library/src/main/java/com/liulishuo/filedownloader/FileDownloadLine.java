@@ -151,9 +151,9 @@ public class FileDownloadLine {
             if (!connectListener.isFinished()) {
 
                 if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
-                    throw new IllegalThreadStateException("Sorry, FileDownloader can not block the " +
-                            "main thread, because the system is also  callbacks " +
-                            "ServiceConnection#onServiceConnected method in the main thread.");
+                    throw new IllegalThreadStateException("Sorry, FileDownloader can not block the "
+                            + "main thread, because the system is also  callbacks "
+                            + "ServiceConnection#onServiceConnected method in the main thread.");
                 }
 
                 try {

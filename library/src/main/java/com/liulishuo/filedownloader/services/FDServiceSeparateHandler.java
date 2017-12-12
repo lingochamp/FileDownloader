@@ -36,7 +36,8 @@ import java.lang.ref.WeakReference;
 public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
         implements MessageSnapshotFlow.MessageReceiver, IFileDownloadServiceHandler {
 
-    private final RemoteCallbackList<IFileDownloadIPCCallback> callbackList = new RemoteCallbackList<>();
+    private final RemoteCallbackList<IFileDownloadIPCCallback> callbackList =
+            new RemoteCallbackList<>();
     private final FileDownloadManager downloadManager;
     private final WeakReference<FileDownloadService> wService;
 
@@ -56,7 +57,8 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
         return n;
     }
 
-    FDServiceSeparateHandler(WeakReference<FileDownloadService> wService, FileDownloadManager manager) {
+    FDServiceSeparateHandler(WeakReference<FileDownloadService> wService,
+                             FileDownloadManager manager) {
         this.wService = wService;
         this.downloadManager = manager;
 
@@ -80,7 +82,8 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
 
     @Override
     public void start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
-                      int callbackProgressMinIntervalMillis, int autoRetryTimes, boolean forceReDownload,
+                      int callbackProgressMinIntervalMillis, int autoRetryTimes,
+                      boolean forceReDownload,
                       FileDownloadHeader header, boolean isWifiRequired) throws RemoteException {
         downloadManager.start(url, path, pathAsDirectory, callbackProgressTimes,
                 callbackProgressMinIntervalMillis, autoRetryTimes, forceReDownload, header,

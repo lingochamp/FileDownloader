@@ -82,7 +82,8 @@ public class MessageSnapshotGate implements MessageSnapshotFlow.MessageReceiver 
 
                 if (!transmitMessage(taskList, snapshot)) {
 
-                    StringBuilder log = new StringBuilder("The event isn't consumed, id:" + snapshot.getId() + " status:"
+                    StringBuilder log = new StringBuilder("The event isn't consumed, id:"
+                            + snapshot.getId() + " status:"
                             + snapshot.getStatus() + " task-count:" + taskList.size());
                     for (BaseDownloadTask.IRunningTask task : taskList) {
                         log.append(" | ").append(task.getOrigin().getStatus());
@@ -92,8 +93,8 @@ public class MessageSnapshotGate implements MessageSnapshotFlow.MessageReceiver 
 
 
             } else {
-                FileDownloadLog.i(this, "Receive the event %d, but there isn't any running task in " +
-                        "the upper layer", snapshot.getStatus());
+                FileDownloadLog.i(this, "Receive the event %d, but there isn't any running"
+                        + " task in the upper layer", snapshot.getStatus());
             }
 
         }

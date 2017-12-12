@@ -40,10 +40,11 @@ import java.util.List;
 class FileDownloadServiceSharedTransmit implements
         IFileDownloadServiceProxy, FileDownloadServiceSharedConnection {
 
-    private final static Class<?> SERVICE_CLASS = SharedMainProcessService.class;
+    private static final Class<?> SERVICE_CLASS = SharedMainProcessService.class;
 
     @Override
-    public boolean start(String url, String path, boolean pathAsDirectory, int callbackProgressTimes,
+    public boolean start(String url, String path, boolean pathAsDirectory,
+                         int callbackProgressTimes,
                          int callbackProgressMinIntervalMillis,
                          int autoRetryTimes, boolean forceReDownload, FileDownloadHeader header,
                          boolean isWifiRequired) {
@@ -51,7 +52,8 @@ class FileDownloadServiceSharedTransmit implements
             return DownloadServiceNotConnectedHelper.start(url, path, pathAsDirectory);
         }
 
-        handler.start(url, path, pathAsDirectory, callbackProgressTimes, callbackProgressMinIntervalMillis,
+        handler.start(url, path, pathAsDirectory, callbackProgressTimes,
+                callbackProgressMinIntervalMillis,
                 autoRetryTimes, forceReDownload, header, isWifiRequired);
         return true;
     }

@@ -27,19 +27,19 @@ import java.util.List;
  */
 
 public class ConnectionModel {
-    public final static String ID = "id";
+    public static final String ID = "id";
     private int id;
 
-    public final static String INDEX = "connectionIndex";
+    public static final String INDEX = "connectionIndex";
     private int index;
 
-    public final static String START_OFFSET = "startOffset";
+    public static final String START_OFFSET = "startOffset";
     private long startOffset;
 
-    public final static String CURRENT_OFFSET = "currentOffset";
+    public static final String CURRENT_OFFSET = "currentOffset";
     private long currentOffset;
 
-    public final static String END_OFFSET = "endOffset";
+    public static final String END_OFFSET = "endOffset";
     private long endOffset;
 
     public int getId() {

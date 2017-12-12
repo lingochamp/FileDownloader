@@ -17,13 +17,12 @@
 package com.liulishuo.filedownloader;
 
 
-import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.notification.FileDownloadNotificationListener;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 /**
- * Normally flow: {@link #pending} -> {@link #started} -> {@link #connected} -> {@link #progress}  ->
- * {@link #blockComplete} -> {@link #completed}
+ * Normally flow: {@link #pending} -> {@link #started} -> {@link #connected} -> {@link #progress}
+ * -> {@link #blockComplete} -> {@link #completed}
  * <p/>
  * Maybe over with: {@link #paused}/{@link #completed}/{@link #error}/{@link #warn}
  * <p/>
@@ -63,7 +62,7 @@ public abstract class FileDownloadListener {
      * @param task       The task
      * @param soFarBytes Already downloaded bytes stored in the db
      * @param totalBytes Total bytes stored in the db
-     * @see IFileDownloadMessenger#notifyPending(MessageSnapshot)
+     * @see IFileDownloadMessenger#notifyPending
      */
     protected abstract void pending(final BaseDownloadTask task, final int soFarBytes,
                                     final int totalBytes);
@@ -72,7 +71,7 @@ public abstract class FileDownloadListener {
      * Finish pending, and start the download runnable.
      *
      * @param task Current task.
-     * @see IFileDownloadMessenger#notifyStarted(MessageSnapshot)
+     * @see IFileDownloadMessenger#notifyStarted
      */
     protected void started(final BaseDownloadTask task) {
     }
@@ -85,7 +84,7 @@ public abstract class FileDownloadListener {
      * @param isContinue Is resume from breakpoint
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
-     * @see IFileDownloadMessenger#notifyConnected(MessageSnapshot)
+     * @see IFileDownloadMessenger#notifyConnected
      */
     protected void connected(final BaseDownloadTask task, final String etag,
                              final boolean isContinue, final int soFarBytes, final int totalBytes) {
@@ -98,7 +97,7 @@ public abstract class FileDownloadListener {
      * @param task       The task
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
-     * @see IFileDownloadMessenger#notifyProgress(MessageSnapshot)
+     * @see IFileDownloadMessenger#notifyProgress
      */
     protected abstract void progress(final BaseDownloadTask task, final int soFarBytes,
                                      final int totalBytes);
@@ -107,14 +106,14 @@ public abstract class FileDownloadListener {
      * Unlike other methods in {@link #FileDownloadListener}, BlockComplete is executed in other
      * thread than main as default, when you receive this execution, it means has already completed
      * downloading, but just block the execution of {@link #completed(BaseDownloadTask)}. therefore,
-     * you can unzip or do some ending operation before {@link #completed(BaseDownloadTask)} in other
-     * thread.
+     * you can unzip or do some ending operation before {@link #completed(BaseDownloadTask)} in
+     * other threads.
      *
      * @param task the current task
      * @throws Throwable if any {@code throwable} is thrown in this method, you will receive the
      *                   callback method of {@link #error(BaseDownloadTask, Throwable)} with the
-     *                   {@code throwable} parameter instead of the {@link #completed(BaseDownloadTask)}.
-     * @see IFileDownloadMessenger#notifyBlockComplete(MessageSnapshot)
+     *                   {@code throwable} parameter instead of {@link #completed(BaseDownloadTask)}
+     * @see IFileDownloadMessenger#notifyBlockComplete
      */
     protected void blockComplete(final BaseDownloadTask task) throws Throwable {
     }
@@ -127,7 +126,7 @@ public abstract class FileDownloadListener {
      * @param ex            Why retry
      * @param retryingTimes How many times will retry
      * @param soFarBytes    Number of bytes download so far
-     * @see IFileDownloadMessenger#notifyRetry(MessageSnapshot)
+     * @see IFileDownloadMessenger#notifyRetry
      */
     protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes,
                          final int soFarBytes) {
@@ -141,7 +140,7 @@ public abstract class FileDownloadListener {
      * Complete downloading.
      *
      * @param task The task
-     * @see IFileDownloadMessenger#notifyCompleted(MessageSnapshot)
+     * @see IFileDownloadMessenger#notifyCompleted
      * @see #blockComplete(BaseDownloadTask)
      */
     protected abstract void completed(final BaseDownloadTask task);
@@ -153,7 +152,7 @@ public abstract class FileDownloadListener {
      * @param task       The task
      * @param soFarBytes Number of bytes download so far
      * @param totalBytes Total size of the download in bytes
-     * @see IFileDownloadMessenger#notifyPaused(com.liulishuo.filedownloader.message.MessageSnapshot)
+     * @see IFileDownloadMessenger#notifyPaused
      */
     protected abstract void paused(final BaseDownloadTask task, final int soFarBytes,
                                    final int totalBytes);

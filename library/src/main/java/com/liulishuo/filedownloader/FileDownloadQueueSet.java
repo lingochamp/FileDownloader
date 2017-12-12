@@ -48,7 +48,8 @@ public class FileDownloadQueueSet {
      */
     public FileDownloadQueueSet(FileDownloadListener target) {
         if (target == null) {
-            throw new IllegalArgumentException("create FileDownloadQueueSet must with valid target!");
+            throw new IllegalArgumentException(
+                    "create FileDownloadQueueSet must with valid target!");
         }
         this.target = target;
     }
