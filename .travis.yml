@@ -7,14 +7,26 @@ android:
   components:
     # Ref https://github.com/travis-ci/travis-ci/issues/6260.
     - tools
-    - tools
     - platform-tools
     - build-tools-26.0.2
     - android-26
     - extra
+
+script:
+  - ./gradlew clean check
 
 after_script:
     - cat ./demo/build/outputs/lint-results.xml
     - cat ./library/build/outputs/lint-results.xml
 
 sudo: false
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.android/build-cache
