@@ -54,6 +54,8 @@ public class DemoApplication extends Application {
                         .add(FileDownloadUtils.getThreadPoolName("Flow"), "FlowSingle")
                         .add(FileDownloadUtils.getThreadPoolName("EventPool"), "Event")
                         .add(FileDownloadUtils.getThreadPoolName("LauncherTask"), "LauncherTask")
+                        .add(FileDownloadUtils.getThreadPoolName("ConnectionBlock"), "Connection")
+                        .add(FileDownloadUtils.getThreadPoolName("RemitHandoverToDB"), "RemitHandoverToDB")
                         .add(FileDownloadUtils.getThreadPoolName("BlockCompleted"), "BlockCompleted"),
 
                 2000, /** The frequent of Updating Thread Activity information **/
