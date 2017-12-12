@@ -39,7 +39,6 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 - 尽量多的英文注解。
 - 每个提交尽量的细而精准。
 - Commit message 遵循: [AngularJS's commit message convention](https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#-git-commit-guidelines)。
-- 尽可能的遵循IDE的代码检查建议(如 Android Studio 的 'Inspect Code')。
 
 ---
 
