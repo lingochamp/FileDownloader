@@ -34,8 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * For storing and updating the {@link FileDownloadModel} to the filedownloader database, and also
- * maintain the database when FileDownloader-Process is launching automatically.
+ * Persist data to SQLite database.
  */
 public class SqliteDatabaseImpl implements FileDownloadDatabase {
 

@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * second, the thread will be terminate to reduce the cost of resources.
  */
 public class FileDownloadExecutors {
-    private final static int DEFAULT_IDLE_SECOND = 10;
+    private final static int DEFAULT_IDLE_SECOND = 15;
 
     public static ThreadPoolExecutor newDefaultThreadPool(int nThreads, String prefix) {
         return newDefaultThreadPool(nThreads, new LinkedBlockingQueue<Runnable>(), prefix);
