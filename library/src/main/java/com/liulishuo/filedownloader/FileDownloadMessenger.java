@@ -22,8 +22,6 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
-import junit.framework.Assert;
-
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -252,12 +250,13 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         final int currentStatus = message.getStatus();
         final BaseDownloadTask.IRunningTask task = mTask;
 
-        Assert.assertTrue(
-                FileDownloadUtils.formatString(
-                        "can't handover the message, no master to receive this " +
-                                "message(status[%d]) size[%d]",
-                        currentStatus, parcelQueue.size()),
-                task != null);
+        if (task == null) {
+            throw new IllegalArgumentException(FileDownloadUtils.formatString(
+                    "can't handover the message, no master to receive this " +
+                            "message(status[%d]) size[%d]",
+                    currentStatus, parcelQueue.size()));
+        }
+
         final BaseDownloadTask originTask = task.getOrigin();
 
         final FileDownloadListener listener = originTask.getListener();

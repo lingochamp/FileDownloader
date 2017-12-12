@@ -20,8 +20,6 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadList;
 import com.liulishuo.filedownloader.FileDownloadListener;
 
-import junit.framework.Assert;
-
 /**
  * The listener of the notification with the task.
  *
@@ -33,7 +31,7 @@ public abstract class FileDownloadNotificationListener extends FileDownloadListe
     private final FileDownloadNotificationHelper helper;
 
     public FileDownloadNotificationListener(FileDownloadNotificationHelper helper) {
-        Assert.assertNotNull("FileDownloadNotificationHelper must not null", helper);
+        if (helper == null) throw new IllegalArgumentException("helper must not be null!");
         this.helper = helper;
     }
 

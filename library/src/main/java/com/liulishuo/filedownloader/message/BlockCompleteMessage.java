@@ -19,8 +19,6 @@ package com.liulishuo.filedownloader.message;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
-import junit.framework.Assert;
-
 /**
  * The interface of block complete message.
  *
@@ -37,11 +35,11 @@ public interface BlockCompleteMessage {
 
         public BlockCompleteMessageImpl(MessageSnapshot snapshot) {
             super(snapshot.getId());
-            Assert.assertTrue(
-                    FileDownloadUtils.formatString(
-                            "can't create the block complete message for id[%d], status[%d]",
-                            snapshot.getId(), snapshot.getStatus()),
-                    snapshot.getStatus() == FileDownloadStatus.completed);
+            if (snapshot.getStatus() != FileDownloadStatus.completed) {
+                throw new IllegalArgumentException(FileDownloadUtils.formatString(
+                        "can't create the block complete message for id[%d], status[%d]",
+                        snapshot.getId(), snapshot.getStatus()));
+            }
             this.mCompletedSnapshot = snapshot;
         }
 

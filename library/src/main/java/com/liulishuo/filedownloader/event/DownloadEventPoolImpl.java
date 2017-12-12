@@ -19,8 +19,6 @@ package com.liulishuo.filedownloader.event;
 import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
-import junit.framework.Assert;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
@@ -39,7 +37,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "setListener %s", eventId);
         }
-        Assert.assertNotNull("EventPoolImpl.add", listener);
+        if (listener == null) throw new IllegalArgumentException("listener must not be null!");
 
         LinkedList<IDownloadListener> container = listenersMap.get(eventId);
 
@@ -89,7 +87,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "publish %s", event.getId());
         }
-        Assert.assertNotNull("EventPoolImpl.publish", event);
+        if (event == null) throw new IllegalArgumentException("event must not be null!");
         String eventId = event.getId();
         LinkedList<IDownloadListener> listeners = listenersMap.get(eventId);
         if (listeners == null) {
@@ -113,7 +111,7 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.v(this, "asyncPublishInNewThread %s", event.getId());
         }
-        Assert.assertNotNull("EventPoolImpl.asyncPublish event", event);
+        if (event == null) throw new IllegalArgumentException("event must not be null!");
 
         threadPool.execute(new Runnable() {
             @Override
@@ -123,7 +121,8 @@ public class DownloadEventPoolImpl implements IDownloadEventPool {
         });
     }
 
-    private void trigger(final LinkedList<IDownloadListener> listeners, final IDownloadEvent event) {
+    private void trigger(final LinkedList<IDownloadListener> listeners,
+                         final IDownloadEvent event) {
 
         final Object[] lists = listeners.toArray();
         for (Object o : lists) {
