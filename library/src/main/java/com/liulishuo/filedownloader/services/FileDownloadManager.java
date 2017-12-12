@@ -213,6 +213,7 @@ class FileDownloadManager implements IThreadPoolMonitor {
             return false;
         }
 
+        model.setStatus(FileDownloadStatus.paused);
         mThreadPool.cancel(id);
         return true;
     }
