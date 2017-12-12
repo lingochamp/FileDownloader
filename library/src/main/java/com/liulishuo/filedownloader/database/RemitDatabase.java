@@ -25,13 +25,14 @@ import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * If one data insert and remove within 2 sec, which will be not do operation on {@code realDatabase}.
+ * If one data insert and remove within 2 sec, which will do not effect on {@code realDatabase}.
  */
 public class RemitDatabase implements FileDownloadDatabase {
 
@@ -54,7 +55,8 @@ public class RemitDatabase implements FileDownloadDatabase {
         this.realDatabase = new SqliteDatabaseImpl();
         this.minInterval = FileDownloadProperties.getImpl().DOWNLOAD_MIN_PROGRESS_TIME;
 
-        final HandlerThread thread = new HandlerThread("remit-handover");
+        final HandlerThread thread = new HandlerThread(
+                FileDownloadUtils.getThreadPoolName("RemitHandoverToDB"));
         thread.start();
         handler = new Handler(thread.getLooper(), new Handler.Callback() {
             @Override public boolean handleMessage(Message msg) {
