@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.util;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FileDownloadExecutors {
     private static final int DEFAULT_IDLE_SECOND = 15;
+
+    public static ThreadPoolExecutor newFixedThreadPool(String prefix) {
+        return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                DEFAULT_IDLE_SECOND, TimeUnit.SECONDS,
+                new SynchronousQueue<Runnable>(), new FileDownloadThreadFactory(prefix));
+    }
 
     public static ThreadPoolExecutor newDefaultThreadPool(int nThreads, String prefix) {
         return newDefaultThreadPool(nThreads, new LinkedBlockingQueue<Runnable>(), prefix);
