@@ -2,6 +2,27 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.6.9
+
+_2017_12_16_
+
+#### Fix
+
+- Fix(serial-queue): fix deadlock on `FileDownloadSerialQueue`. closes #858
+- Fix: do not use j-unit on library non-unit-test env to fix the `no-static-method-found` issue on some mi-phones. closes #867
+- Fix: fix decrease two times of retry-chance each time of retry. closes #838
+- Fix: fix get status is pending when a task has been paused on pending status. closes #855
+
+#### Enhancement
+
+- Improve Practicability: public `SqliteDatabaseImpl`、`RemitDatabase`、`NoDatabaseImpl`, so you can overwrite them
+- Improve Practicability: support downgrade version from newer version
+- Improve Practicability: add the default `User-Agent` if upper layer does not add. closes #848
+- Improve Performance: change the keepalive second(5s to 15s) for each executor, since when downloading multiple tasks thread release and recreate too frequently
+- Improve Performance: using `RemitDatabase` instead of `DefaultFiledownloadDatabase` to avoid some small task start and finished on the very short time but consume too much time on sync status to database what is useless
+
+![][RemitDatabase-png]
+
 ## Version 1.6.8
 
 _2017-10-13_
@@ -816,5 +837,6 @@ _2015-12-22_
 
 - initial release
 
+[RemitDatabase-png]: https://github.com/lingochamp/FileDownloader/raw/master/art/remit-database.gif
 [FileDownloadConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadConnection.java
 [FileDownloadUrlConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadUrlConnection.java
