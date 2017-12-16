@@ -19,7 +19,6 @@ package com.liulishuo.filedownloader.database;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.util.SparseBooleanArray;
 
 import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -27,6 +26,7 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
@@ -41,11 +41,10 @@ public class RemitDatabase implements FileDownloadDatabase {
     private final SqliteDatabaseImpl realDatabase;
 
 
-    private final SparseBooleanArray holdOrReleaseMap = new SparseBooleanArray();
+    private Handler handler;
     private final long minInterval;
 
-    private Handler handler;
-
+    private final List<Integer> freeToDBIdList = new ArrayList<>();
     private AtomicInteger handlingId = new AtomicInteger();
     private volatile Thread parkThread;
 
@@ -74,7 +73,7 @@ public class RemitDatabase implements FileDownloadDatabase {
                     handlingId.set(id);
 
                     syncCacheToDB(id);
-                    holdOrReleaseMap.put(id, false);
+                    freeToDBIdList.add(id);
                 } finally {
                     handlingId.set(0);
                     if (parkThread != null) {
@@ -98,11 +97,10 @@ public class RemitDatabase implements FileDownloadDatabase {
     }
 
     private boolean isNoNeedUpdateToRealDB(int id) {
-        return holdOrReleaseMap.get(id, true) || holdOrReleaseMap.get(id);
+        return !freeToDBIdList.contains(id);
     }
 
     @Override public void onTaskStart(int id) {
-        holdOrReleaseMap.put(id, true);
         handler.sendEmptyMessageDelayed(id, minInterval);
     }
 
@@ -195,7 +193,7 @@ public class RemitDatabase implements FileDownloadDatabase {
         this.realDatabase.updateRetry(id, throwable);
     }
 
-    private void safeReadyDataOnDB(int id) {
+    private void ensureCacheToDB(int id) {
         handler.removeMessages(id);
         if (handlingId.get() == id) {
             parkThread = Thread.currentThread();
@@ -209,9 +207,10 @@ public class RemitDatabase implements FileDownloadDatabase {
     @Override public void updateError(int id, Throwable throwable, long sofar) {
         this.cachedDatabase.updateError(id, throwable, sofar);
         if (isNoNeedUpdateToRealDB(id)) {
-            safeReadyDataOnDB(id);
+            ensureCacheToDB(id);
         }
         this.realDatabase.updateError(id, throwable, sofar);
+        freeToDBIdList.remove((Integer) id);
     }
 
     @Override public void updateCompleted(int id, long total) {
@@ -227,15 +226,16 @@ public class RemitDatabase implements FileDownloadDatabase {
         } else {
             this.realDatabase.updateCompleted(id, total);
         }
-        holdOrReleaseMap.delete(id);
+        freeToDBIdList.remove((Integer) id);
     }
 
     @Override public void updatePause(int id, long sofar) {
         this.cachedDatabase.updatePause(id, sofar);
         if (isNoNeedUpdateToRealDB(id)) {
-            safeReadyDataOnDB(id);
+            ensureCacheToDB(id);
         }
         this.realDatabase.updatePause(id, sofar);
+        freeToDBIdList.remove((Integer) id);
     }
 
 
