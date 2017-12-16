@@ -35,6 +35,22 @@ import java.util.List;
 
 /**
  * Persist data to SQLite database.
+ *
+ * You can valid this database implementation through:
+ * <p>
+ * class MyApplication extends Application {
+ *     ...
+ *     public void onCreate() {
+ *          ...
+ *          FileDownloader.setupOnApplicationOnCreate(this)
+ *              .database(SqliteDatabaseImpl.createMaker())
+ *              ...
+ *              .commit();
+ *          ...
+ *     }
+ *     ...
+ * }
+ *
  */
 public class SqliteDatabaseImpl implements FileDownloadDatabase {
 
@@ -43,6 +59,9 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
     public static final String TABLE_NAME = "filedownloader";
     public static final String CONNECTION_TABLE_NAME = "filedownloaderConnection";
 
+    public static Maker createMaker() {
+        return new Maker();
+    }
 
     public SqliteDatabaseImpl() {
         SqliteDatabaseOpenHelper openHelper = new SqliteDatabaseOpenHelper(
@@ -397,5 +416,13 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
                 c.getInt(c.getColumnIndex(FileDownloadModel.CONNECTION_COUNT)));
 
         return model;
+    }
+
+    public static class Maker implements FileDownloadHelper.DatabaseCustomMaker {
+
+        @Override
+        public FileDownloadDatabase customMake() {
+            return new SqliteDatabaseImpl();
+        }
     }
 }
