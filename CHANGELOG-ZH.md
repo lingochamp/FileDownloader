@@ -4,7 +4,7 @@
 
 ## Version 1.6.9
 
-_2017_12_16_
+_2017-12-16_
 
 #### 修复
 
@@ -854,5 +854,6 @@ _2015-12-22_
 
 - initial release
 
+[RemitDatabase-png]: https://github.com/lingochamp/FileDownloader/raw/master/art/remit-database.png
 [FileDownloadConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadConnection.java
 [FileDownloadUrlConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadUrlConnection.java
