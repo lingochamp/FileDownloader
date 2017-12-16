@@ -837,6 +837,6 @@ _2015-12-22_
 
 - initial release
 
-[RemitDatabase-png]: https://github.com/lingochamp/FileDownloader/raw/master/art/remit-database.gif
+[RemitDatabase-png]: https://github.com/lingochamp/FileDownloader/raw/master/art/remit-database.png
 [FileDownloadConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadConnection.java
 [FileDownloadUrlConnection-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/FileDownloadUrlConnection.java
