@@ -106,4 +106,9 @@ public class SqliteDatabaseOpenHelper extends SQLiteOpenHelper {
                     + ")");
         }
     }
+
+    @Override public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.delete(SqliteDatabaseImpl.TABLE_NAME, null, null);
+        db.delete(SqliteDatabaseImpl.CONNECTION_TABLE_NAME, null, null);
+    }
 }
