@@ -211,6 +211,9 @@ if (parallel) {
 //    );
 }
 
+// 最后你需要主动调用start方法来启动该Queue
+queueSet.start()
+
 // 串行任务动态管理也可以使用FileDownloadSerialQueue。
 ```
 
