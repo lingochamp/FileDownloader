@@ -57,6 +57,9 @@ Just create your own `DownloadMgrInitialParams.InitCustomMaker` and put those cu
 - Commit message format follow: [AngularJS's commit message convention](https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#-git-commit-guidelines) .
 - The change of each commit as small as possible.
 
+![][structure-img]
+![][message-system-img]
+
 ## Usage
 
 By default, the FileDownloadService runs on the separate process, if you want to run it on the main process, just configure on the [filedownloader.properties](https://github.com/lingochamp/FileDownloader/wiki/filedownloader.properties), and you can use `FileDownloadUtils.isDownloaderProcess(Context)` to check whether the FileDownloadService can run on the current process.
@@ -84,6 +87,8 @@ limitations under the License.
 [license_2_svg]: https://img.shields.io/hexpm/l/plug.svg
 [android_platform_svg]: https://img.shields.io/badge/Platform-Android-brightgreen.svg
 [file_downloader_svg]: https://img.shields.io/badge/Android-FileDownloader-orange.svg
+[structure-img]: https://github.com/lingochamp/FileDownloader/raw/master/art/structure.png
+[message-system-img]: https://github.com/lingochamp/FileDownloader/raw/master/art/message-system.png
 [hybrid_test_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/hybrid_test_demo.gif
 [parallel_tasks_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/parallel_tasks_demo.gif
 [serial_tasks_demo_gif]: https://github.com/lingochamp/FileDownloader/raw/master/art/serial_tasks_demo.gif
