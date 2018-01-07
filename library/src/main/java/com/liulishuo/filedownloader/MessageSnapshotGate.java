@@ -34,22 +34,31 @@ public class MessageSnapshotGate implements MessageSnapshotFlow.MessageReceiver 
 
         if (taskList.size() > 1 && snapshot.getStatus() == FileDownloadStatus.completed) {
             for (BaseDownloadTask.IRunningTask task : taskList) {
-                if (task.getMessageHandler().updateMoreLikelyCompleted(snapshot)) {
-                    return true;
+                synchronized (task.getPauseLock()) {
+                    if (task.getMessageHandler().updateMoreLikelyCompleted(snapshot)) {
+                        FileDownloadLog.d(this, "updateMoreLikelyCompleted");
+                        return true;
+                    }
                 }
             }
         }
 
         for (BaseDownloadTask.IRunningTask task : taskList) {
-            if (task.getMessageHandler().updateKeepFlow(snapshot)) {
-                return true;
+            synchronized (task.getPauseLock()) {
+                if (task.getMessageHandler().updateKeepFlow(snapshot)) {
+                    FileDownloadLog.d(this, "updateKeepFlow");
+                    return true;
+                }
             }
         }
 
         if (FileDownloadStatus.warn == snapshot.getStatus()) {
             for (BaseDownloadTask.IRunningTask task : taskList) {
-                if (task.getMessageHandler().updateSameFilePathTaskRunning(snapshot)) {
-                    return true;
+                synchronized (task.getPauseLock()) {
+                    if (task.getMessageHandler().updateSameFilePathTaskRunning(snapshot)) {
+                        FileDownloadLog.d(this, "updateSampleFilePathTaskRunning");
+                        return true;
+                    }
                 }
             }
         }
@@ -57,7 +66,11 @@ public class MessageSnapshotGate implements MessageSnapshotFlow.MessageReceiver 
         //noinspection SimplifiableIfStatement
         if (taskList.size() == 1) {
             // Cover the most case for restarting from the low memory status.
-            return taskList.get(0).getMessageHandler().updateKeepAhead(snapshot);
+            final BaseDownloadTask.IRunningTask onlyTask = taskList.get(0);
+            synchronized (onlyTask.getPauseLock()) {
+                FileDownloadLog.d(this, "updateKeepAhead");
+                return onlyTask.getMessageHandler().updateKeepAhead(snapshot);
+            }
         }
 
         return false;
