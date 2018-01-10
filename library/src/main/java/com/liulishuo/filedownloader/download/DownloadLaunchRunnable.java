@@ -22,6 +22,7 @@ import android.os.Process;
 import com.liulishuo.filedownloader.DownloadTask;
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
 import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException;
@@ -30,7 +31,6 @@ import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
@@ -191,13 +191,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         if (model.getConnectionCount() > 1) {
             final List<ConnectionModel> connectionOnDBList = database
                     .findConnectionModel(model.getId());
-            if (model.getConnectionCount() == connectionOnDBList.size()) {
-                model.setSoFar(ConnectionModel.getTotalOffset(connectionOnDBList));
-            } else {
-                // dirty
-                model.setSoFar(0);
-                database.removeConnections(model.getId());
-            }
+            //check model can be resumed or not, if false, the previous sofar cannot be used
+            checkTaskModelResumeAvailableOnDB(connectionOnDBList);
         }
 
         statusCallback.onPending();
@@ -262,8 +257,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     // the first connection is for: 1. etag verify; 2. first connect.
                     final List<ConnectionModel> connectionOnDBList = database
                             .findConnectionModel(model.getId());
-                    final ConnectionProfile connectionProfile = buildFirstConnectProfile(
-                            connectionOnDBList);
+                    checkTaskModelResumeAvailableOnDB(connectionOnDBList);
+                    final ConnectionProfile connectionProfile = new ConnectionProfile(0, model.getSoFar(), 0, model.getTotal() - model.getSoFar());
                     final ConnectTask.Builder build = new ConnectTask.Builder();
                     final ConnectTask firstConnectionTask = build.setDownloadId(model.getId())
                             .setUrl(model.getUrl())
@@ -383,7 +378,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         return defaultConnectionCount;
     }
 
-    private ConnectionProfile buildFirstConnectProfile(List<ConnectionModel> connectionOnDBList) {
+    private void checkTaskModelResumeAvailableOnDB(List<ConnectionModel> connectionOnDBList) {
         // check resume available
         final long offset;
         final int connectionCount = model.getConnectionCount();
@@ -425,8 +420,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             database.removeConnections(model.getId());
             FileDownloadUtils.deleteTaskFiles(targetFilePath, tempFilePath);
         }
-
-        return new ConnectionProfile(0, offset, 0, model.getTotal() - offset);
     }
 
     private void handleFirstConnected(Map<String, List<String>> requestHeader,
