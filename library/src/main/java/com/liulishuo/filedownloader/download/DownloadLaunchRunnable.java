@@ -258,7 +258,12 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     final List<ConnectionModel> connectionOnDBList = database
                             .findConnectionModel(model.getId());
                     checkTaskModelResumeAvailableOnDB(connectionOnDBList);
-                    final ConnectionProfile connectionProfile = new ConnectionProfile(0, model.getSoFar(), 0, model.getTotal() - model.getSoFar());
+                    final ConnectionProfile connectionProfile = new ConnectionProfile(
+                            0,
+                            model.getSoFar(),
+                            0,
+                            model.getTotal() - model.getSoFar()
+                    );
                     final ConnectTask.Builder build = new ConnectTask.Builder();
                     final ConnectTask firstConnectionTask = build.setDownloadId(model.getId())
                             .setUrl(model.getUrl())
