@@ -31,7 +31,7 @@ public class FileDownloadUtilsTest {
                 .parseContentDisposition("attachment; filename=\"hello world\"");
         assertThat(filename).isEqualTo("hello world");
         filename = FileDownloadUtils
-                .parseContentDisposition("attachment; filename=genome.jpeg");
+                .parseContentDisposition("attachment; filename=genome.jpeg\nabc");
         assertThat(filename).isEqualTo("genome.jpeg");
     }
 

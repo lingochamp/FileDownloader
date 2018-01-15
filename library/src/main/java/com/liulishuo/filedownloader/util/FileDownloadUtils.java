@@ -391,11 +391,11 @@ public class FileDownloadUtils {
                 + INTERNAL_DOCUMENT_NAME, OLD_FILE_CONVERTED_FILE_NAME);
     }
 
-    private static final Pattern CONTENT_DISPOSITION_PATTERN_QUOTED =
+    private static final Pattern CONTENT_DISPOSITION_QUOTED_PATTERN =
             Pattern.compile("attachment;\\s*filename\\s*=\\s*\"([^\"]*)\"");
     // note on http://www.ietf.org/rfc/rfc1806.txt
-    private static final Pattern CONTENT_DISPOSITION_PATTERN_NON_QUOTED =
-            Pattern.compile("attachment;\\s*filename\\s*=\\s*([^\"]*)");
+    private static final Pattern CONTENT_DISPOSITION_NON_QUOTED_PATTERN =
+            Pattern.compile("attachment;\\s*filename\\s*=\\s*(.*)");
 
     /**
      * The same to com.android.providers.downloads.Helpers#parseContentDisposition.
@@ -411,12 +411,12 @@ public class FileDownloadUtils {
         }
 
         try {
-            Matcher m = CONTENT_DISPOSITION_PATTERN_QUOTED.matcher(contentDisposition);
+            Matcher m = CONTENT_DISPOSITION_QUOTED_PATTERN.matcher(contentDisposition);
             if (m.find()) {
                 return m.group(1);
             }
 
-            m = CONTENT_DISPOSITION_PATTERN_NON_QUOTED.matcher(contentDisposition);
+            m = CONTENT_DISPOSITION_NON_QUOTED_PATTERN.matcher(contentDisposition);
             if (m.find()) {
                 return m.group(1);
             }
