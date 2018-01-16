@@ -292,6 +292,7 @@ public class DownloadStatusCallback implements Handler.Callback {
         final String targetPath = model.getTargetFilePath();
 
         final File tempFile = new File(tempPath);
+        boolean renameFailed = true;
         try {
             final File targetFile = new File(targetPath);
 
@@ -310,14 +311,15 @@ public class DownloadStatusCallback implements Handler.Callback {
                 }
             }
 
-            if (!tempFile.renameTo(targetFile)) {
+            renameFailed = !tempFile.renameTo(targetFile);
+            if (renameFailed) {
                 throw new IOException(FileDownloadUtils.formatString(
                         "Can't rename the  temp downloaded file(%s) to the target file(%s)",
                         tempPath, targetPath
                 ));
             }
         } finally {
-            if (tempFile.exists()) {
+            if (renameFailed && tempFile.exists()) {
                 if (!tempFile.delete()) {
                     FileDownloadLog.w(this,
                             "delete the temp file(%s) failed, on completed downloading.",
