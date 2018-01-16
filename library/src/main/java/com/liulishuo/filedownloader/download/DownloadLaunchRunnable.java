@@ -188,13 +188,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     public void pending() {
-        if (model.getConnectionCount() > 1) {
-            final List<ConnectionModel> connectionOnDBList = database
-                    .findConnectionModel(model.getId());
-            //check model can be resumed or not, if false, the previous sofar cannot be used
-            checkTaskModelResumeAvailableOnDB(connectionOnDBList);
-        }
-
+        final List<ConnectionModel> connectionOnDBList = database
+                .findConnectionModel(model.getId());
+        //inspect model can be resumed or not, if false, the previous sofar cannot be used
+        inspectTaskModelResumeAvailableOnDB(connectionOnDBList);
         statusCallback.onPending();
     }
 
@@ -257,7 +254,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     // the first connection is for: 1. etag verify; 2. first connect.
                     final List<ConnectionModel> connectionOnDBList = database
                             .findConnectionModel(model.getId());
-                    checkTaskModelResumeAvailableOnDB(connectionOnDBList);
+                    inspectTaskModelResumeAvailableOnDB(connectionOnDBList);
                     final ConnectionProfile connectionProfile = new ConnectionProfile(
                             0,
                             model.getSoFar(),
@@ -383,7 +380,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         return defaultConnectionCount;
     }
 
-    private void checkTaskModelResumeAvailableOnDB(List<ConnectionModel> connectionOnDBList) {
+    void inspectTaskModelResumeAvailableOnDB(List<ConnectionModel> connectionOnDBList) {
         // check resume available
         final long offset;
         final int connectionCount = model.getConnectionCount();
