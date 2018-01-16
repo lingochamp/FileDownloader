@@ -60,7 +60,7 @@ public abstract class FileDownloadListener {
      * Enqueue, and pending, waiting for {@link #started(BaseDownloadTask)}.
      *
      * @param task       The task
-     * @param soFarBytes Already downloaded bytes stored in the db
+     * @param soFarBytes Already downloaded and reusable bytes stored in the db
      * @param totalBytes Total bytes stored in the db
      * @see IFileDownloadMessenger#notifyPending
      */
