@@ -122,7 +122,8 @@ public class ConnectTask {
             if (profile.endOffset == 0) {
                 range = FileDownloadUtils.formatString("bytes=%d-", profile.currentOffset);
             } else {
-                range = FileDownloadUtils.formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
+                range = FileDownloadUtils
+                        .formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
             }
             connection.addHeader("Range", range);
         }

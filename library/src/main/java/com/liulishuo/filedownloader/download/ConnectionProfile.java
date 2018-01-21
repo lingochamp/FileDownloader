@@ -30,7 +30,8 @@ public class ConnectionProfile {
     final long contentLength;
     final boolean isRangeNotSatisfiable;
 
-    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength, boolean isRangeNotSatisfiable) {
+    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength,
+                      boolean isRangeNotSatisfiable) {
         this.startOffset = startOffset;
         this.currentOffset = currentOffset;
         this.endOffset = endOffset;
