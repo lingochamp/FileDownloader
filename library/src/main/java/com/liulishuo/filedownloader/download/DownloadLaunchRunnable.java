@@ -95,6 +95,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private static final int HTTP_REQUESTED_RANGE_NOT_SATISFIABLE = 416;
     private static final int TOTAL_VALUE_IN_CHUNKED_RESOURCE = -1;
 
+    private boolean isNeedForceDiscardRange = false;
 
     private final boolean supportSeek;
 
@@ -255,12 +256,19 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     final List<ConnectionModel> connectionOnDBList = database
                             .findConnectionModel(model.getId());
                     inspectTaskModelResumeAvailableOnDB(connectionOnDBList);
-                    final ConnectionProfile connectionProfile = new ConnectionProfile(
-                            0,
-                            model.getSoFar(),
-                            0,
-                            model.getTotal() - model.getSoFar()
-                    );
+
+                    final ConnectionProfile connectionProfile;
+                    if (isNeedForceDiscardRange) {
+                        connectionProfile = new ConnectionProfile(0, 0, 0, 0, true);
+                    } else {
+                        connectionProfile = new ConnectionProfile(
+                                0,
+                                model.getSoFar(),
+                                0,
+                                model.getTotal() - model.getSoFar()
+                        );
+                    }
+
                     final ConnectTask.Builder build = new ConnectTask.Builder();
                     final ConnectTask firstConnectionTask = build.setDownloadId(model.getId())
                             .setUrl(model.getUrl())
@@ -387,7 +395,9 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         final String tempFilePath = model.getTempFilePath();
         final String targetFilePath = model.getTargetFilePath();
         final boolean isMultiConnection = connectionCount > 1;
-        if (isMultiConnection && !supportSeek) {
+        if (isNeedForceDiscardRange) {
+            offset = 0;
+        } else if (isMultiConnection && !supportSeek) {
             // can't support seek for multi-connection is fatal problem, so discard resume.
             offset = 0;
         } else {
@@ -468,11 +478,21 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 break;
             }
 
-            if (code == HTTP_REQUESTED_RANGE_NOT_SATISFIABLE && model.getSoFar() > 0) {
-                // On the first connection range not satisfiable, there must something wrong,
-                // so have to retry.
-                isPreconditionFailed = true;
-                break;
+            if (code == HTTP_REQUESTED_RANGE_NOT_SATISFIABLE) {
+                if (model.getSoFar() > 0) {
+                    // On the first connection range not satisfiable, there must something wrong,
+                    // so have to retry.
+                    isPreconditionFailed = true;
+                    break;
+                } else {
+                    // range is right, but get 416
+                    if (!isNeedForceDiscardRange) {
+                        // if range is still added, but range is right with 416 response, so we
+                        // discard range on header and try again
+                        isNeedForceDiscardRange = true;
+                        isPreconditionFailed = true;
+                    }
+                }
             }
 
         } while (false);
