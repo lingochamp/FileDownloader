@@ -117,14 +117,7 @@ public class ConnectTask {
         if (!TextUtils.isEmpty(etag)) {
             connection.addHeader("If-Match", etag);
         }
-        final String range;
-        if (profile.endOffset == 0) {
-            range = FileDownloadUtils.formatString("bytes=%d-", profile.currentOffset);
-        } else {
-            range = FileDownloadUtils
-                    .formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
-        }
-        connection.addHeader("Range", range);
+        profile.addRangeHeader(connection);
     }
 
     private void fixNeededHeader(FileDownloadConnection connection) {

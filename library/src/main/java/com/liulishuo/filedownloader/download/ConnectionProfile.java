@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.download;
 
+import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 /**
@@ -29,11 +30,36 @@ public class ConnectionProfile {
     final long endOffset;
     final long contentLength;
 
+    private final boolean isForceNoRange;
+
     ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength) {
+        this(startOffset, currentOffset, endOffset, contentLength, false);
+    }
+
+    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength,
+                      boolean isForceNoRange) {
+        if ((startOffset != 0 || endOffset != 0) && isForceNoRange) {
+            throw new IllegalArgumentException();
+        }
+
         this.startOffset = startOffset;
         this.currentOffset = currentOffset;
         this.endOffset = endOffset;
         this.contentLength = contentLength;
+        this.isForceNoRange = isForceNoRange;
+    }
+
+    public void addRangeHeader(FileDownloadConnection connection) {
+        if (isForceNoRange) return;
+
+        final String range;
+        if (endOffset == 0) {
+            range = FileDownloadUtils.formatString("bytes=%d-", currentOffset);
+        } else {
+            range = FileDownloadUtils
+                    .formatString("bytes=%d-%d", currentOffset, endOffset);
+        }
+        connection.addHeader("Range", range);
     }
 
     @Override
