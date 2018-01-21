@@ -118,13 +118,14 @@ public class ConnectTask {
             connection.addHeader("If-Match", etag);
         }
         final String range;
-        if (profile.endOffset == 0) {
-            range = FileDownloadUtils.formatString("bytes=%d-", profile.currentOffset);
-        } else {
-            range = FileDownloadUtils
-                    .formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
+        if (!profile.isRangeNotSatisfiable) {
+            if (profile.endOffset == 0) {
+                range = FileDownloadUtils.formatString("bytes=%d-", profile.currentOffset);
+            } else {
+                range = FileDownloadUtils.formatString("bytes=%d-%d", profile.currentOffset, profile.endOffset);
+            }
+            connection.addHeader("Range", range);
         }
-        connection.addHeader("Range", range);
     }
 
     private void fixNeededHeader(FileDownloadConnection connection) {

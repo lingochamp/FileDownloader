@@ -28,12 +28,14 @@ public class ConnectionProfile {
     final long currentOffset;
     final long endOffset;
     final long contentLength;
+    final boolean isRangeNotSatisfiable;
 
-    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength) {
+    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength, boolean isRangeNotSatisfiable) {
         this.startOffset = startOffset;
         this.currentOffset = currentOffset;
         this.endOffset = endOffset;
         this.contentLength = contentLength;
+        this.isRangeNotSatisfiable = isRangeNotSatisfiable;
     }
 
     @Override

@@ -84,6 +84,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private final IThreadPoolMonitor threadPoolMonitor;
 
     private boolean isTriedFixRangeNotSatisfiable;
+    private boolean isRangeNotSatisfiable;
 
     int validRetryTimes;
 
@@ -259,7 +260,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                             0,
                             model.getSoFar(),
                             0,
-                            model.getTotal() - model.getSoFar()
+                            model.getTotal() - model.getSoFar(),
+                            isRangeNotSatisfiable
                     );
                     final ConnectTask.Builder build = new ConnectTask.Builder();
                     final ConnectTask firstConnectionTask = build.setDownloadId(model.getId())
@@ -547,7 +549,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             model.setSoFar(0);
 
             profile = new ConnectionProfile(0, 0,
-                    firstConnectionProfile.endOffset, firstConnectionProfile.contentLength);
+                    firstConnectionProfile.endOffset, firstConnectionProfile.contentLength,
+                    isRangeNotSatisfiable);
         } else {
             profile = firstConnectionProfile;
         }
@@ -665,7 +668,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             final ConnectionProfile connectionProfile = new ConnectionProfile(
                     connectionModel.getStartOffset(), connectionModel.getCurrentOffset(),
-                    connectionModel.getEndOffset(), contentLength);
+                    connectionModel.getEndOffset(), contentLength, isRangeNotSatisfiable);
 
             final DownloadRunnable runnable = builder
                     .setId(id)
@@ -800,6 +803,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     isTriedFixRangeNotSatisfiable = true;
                     return true;
                 }
+            }
+
+            if (validRetryTimes > 0 && code == HTTP_REQUESTED_RANGE_NOT_SATISFIABLE) {
+                isRangeNotSatisfiable = true;
             }
         }
 
