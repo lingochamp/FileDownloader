@@ -364,12 +364,16 @@ public class DownloadStatusCallback implements Handler.Callback {
         }
 
         if (needSetProcess.compareAndSet(true, false)) {
-            FileDownloadLog.i(this, "handleProgress update model's status with progress");
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.i(this, "handleProgress update model's status with progress");
+            }
             model.setStatus(FileDownloadStatus.progress);
         }
 
         if (needCallbackProgressToUser.compareAndSet(true, false)) {
-            FileDownloadLog.i(this, "handleProgress notify user progress status");
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.i(this, "handleProgress notify user progress status");
+            }
             onStatusChanged(FileDownloadStatus.progress);
         }
     }
@@ -459,7 +463,9 @@ public class DownloadStatusCallback implements Handler.Callback {
                     && (callbackTimeDelta >= callbackProgressMinInterval);
         }
         if (needCallback && needCallbackProgressToUser.compareAndSet(false, true)) {
-            FileDownloadLog.i(this, "inspectNeedCallbackToUser need callback to user");
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.i(this, "inspectNeedCallbackToUser need callback to user");
+            }
             lastCallbackTimestamp = now;
             callbackIncreaseBuffer.set(0);
         }
