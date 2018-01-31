@@ -107,7 +107,10 @@ public class FileDownloadUrlConnection implements FileDownloadConnection {
 
     @Override
     public void ending() {
-        // for reuse,so do nothing.
+        try {
+            mConnection.getInputStream().close();
+        } catch (IOException ignored) {
+        }
     }
 
 
