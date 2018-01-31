@@ -54,8 +54,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * You can use this to launch downloading, on here the download will be launched separate following
  * steps:
  * <p/>
- * step 1. create the first connection
- *          ( this first connection is used for:
+ * step 1. create the trial connection
+ *          ( this trial connection is used for:
  *                  1. checkup the saved etag is overdue
  *                  2. checkup whether the partial-accept is supported
  *                  3. checkup whether the current connection is chunked. )
@@ -65,7 +65,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * step 3. if (NOT chunked) & partial-accept & output stream support-seek:
  *              create multiple {@link DownloadTask} to download.
  *         else:
- *              reuse the first connection and use {@link FetchDataTask} to fetch data from the
+ *              create single first connection and use {@link FetchDataTask} to fetch data from the
  *              connection.
  * <p/>
  * We use {@link DownloadStatusCallback} to handle all events sync to DB/filesystem and callback to
@@ -101,7 +101,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
     private final ArrayList<DownloadRunnable> downloadRunnableList = new ArrayList<>(
             defaultConnectionCount);
-    private FetchDataTask singleFetchDataTask;
+    private DownloadRunnable singleDownloadRunnable;
     private boolean isSingleConnection;
 
     private static final ThreadPoolExecutor DOWNLOAD_EXECUTOR = FileDownloadExecutors
@@ -177,7 +177,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     public void pause() {
         this.paused = true;
 
-        if (singleFetchDataTask != null) singleFetchDataTask.pause();
+        if (singleDownloadRunnable != null) singleDownloadRunnable.pause();
         @SuppressWarnings("unchecked") ArrayList<DownloadRunnable> pauseList =
                 (ArrayList<DownloadRunnable>) downloadRunnableList.clone();
         for (DownloadRunnable runnable : pauseList) {
@@ -245,71 +245,37 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     return;
                 }
 
-                FileDownloadConnection connection = null;
                 try {
-
-
-                    // 1. connect
+                    // 1. check env state
                     checkupBeforeConnect();
 
-                    // the first connection is for: 1. etag verify; 2. first connect.
+                    // 2. trial connect
+                    trialConnect();
+
+                    // 3. reuse same task
+                    checkupAfterGetFilename();
+
+                    // 4. check local resume model
                     final List<ConnectionModel> connectionOnDBList = database
                             .findConnectionModel(model.getId());
                     inspectTaskModelResumeAvailableOnDB(connectionOnDBList);
 
-                    final ConnectionProfile connectionProfile;
-                    if (isNeedForceDiscardRange) {
-                        connectionProfile = new ConnectionProfile(0, 0, 0, 0, true);
-                    } else {
-                        connectionProfile = new ConnectionProfile(
-                                0,
-                                model.getSoFar(),
-                                0,
-                                model.getTotal() - model.getSoFar()
-                        );
-                    }
-
-                    final ConnectTask.Builder build = new ConnectTask.Builder();
-                    final ConnectTask firstConnectionTask = build.setDownloadId(model.getId())
-                            .setUrl(model.getUrl())
-                            .setEtag(model.getETag())
-                            .setHeader(userRequestHeader)
-                            .setConnectionProfile(connectionProfile)
-                            .build();
-
-                    connection = firstConnectionTask.connect();
-                    handleFirstConnected(firstConnectionTask.getRequestHeader(),
-                            firstConnectionTask, connection);
-
                     if (paused) {
                         model.setStatus(FileDownloadStatus.paused);
                         return;
                     }
 
-                    // 2. fetch
-                    checkupBeforeFetch();
                     final long totalLength = model.getTotal();
-                    // pre-allocate if need.
+
+                    // 5. pre-allocate if need.
                     handlePreAllocate(totalLength, model.getTempFilePath());
 
-                    final int connectionCount;
-                    // start fetching
-                    if (isMultiConnectionAvailable()) {
-                        if (isResumeAvailableOnDB) {
-                            connectionCount = model.getConnectionCount();
-                        } else {
-                            connectionCount = CustomComponentHolder.getImpl()
-                                    .determineConnectionCount(model.getId(), model.getUrl(),
-                                            model.getPath(), totalLength);
-                        }
-                    } else {
-                        connectionCount = 1;
-                    }
-
+                    // 6. calculate block count
+                    final int connectionCount = calcConnectionCount(totalLength);
                     if (connectionCount <= 0) {
                         throw new IllegalAccessException(FileDownloadUtils
                                 .formatString("invalid connection count %d, the connection count"
-                                        + " must be larger than 0", connection));
+                                        + " must be larger than 0", connectionCount));
                     }
 
                     if (paused) {
@@ -317,22 +283,20 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         return;
                     }
 
+                    // 7. start real connect and fetch to local filesystem
                     isSingleConnection = connectionCount == 1;
                     if (isSingleConnection) {
                         // single connection
-                        fetchWithSingleConnection(firstConnectionTask.getProfile(), connection);
+                        realDownloadWithSingleConnection(totalLength);
                     } else {
-                        if (connection != null) {
-                            connection.ending();
-                            connection = null;
-                        }
                         // multiple connection
                         statusCallback.onMultiConnection();
                         if (isResumeAvailableOnDB) {
-                            fetchWithMultiConnectionFromResume(connectionCount,
+                            realDownloadWithMultiConnectionFromResume(connectionCount,
                                     connectionOnDBList);
                         } else {
-                            fetchWithMultiConnectionFromBeginning(totalLength, connectionCount);
+                            realDownloadWithMultiConnectionFromBeginning(totalLength,
+                                    connectionCount);
                         }
                     }
 
@@ -350,8 +314,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 } catch (RetryDirectly retryDirectly) {
                     model.setStatus(FileDownloadStatus.retry);
                     continue;
-                } finally {
-                    if (connection != null) connection.ending();
                 }
 
                 break;
@@ -372,6 +334,48 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             }
 
             alive.set(false);
+        }
+    }
+
+    private int calcConnectionCount(long totalLength) {
+        if (isMultiConnectionAvailable()) {
+            if (isResumeAvailableOnDB) {
+                return model.getConnectionCount();
+            } else {
+                return CustomComponentHolder.getImpl()
+                        .determineConnectionCount(model.getId(), model.getUrl(),
+                                model.getPath(), totalLength);
+            }
+        } else {
+            return 1;
+        }
+    }
+
+    // the trial connection is for: 1. etag verify; 2. partial support verify.
+    private void trialConnect() throws IOException, RetryDirectly, IllegalAccessException {
+        FileDownloadConnection trialConnection = null;
+        try {
+            final ConnectionProfile trialConnectionProfile;
+            if (isNeedForceDiscardRange) {
+                trialConnectionProfile = ConnectionProfile.ConnectionProfileBuild
+                        .buildTrialConnectionProfileNoRange();
+            } else {
+                trialConnectionProfile = ConnectionProfile.ConnectionProfileBuild
+                        .buildTrialConnectionProfile();
+            }
+            final ConnectTask trialConnectTask = new ConnectTask.Builder()
+                    .setDownloadId(model.getId())
+                    .setUrl(model.getUrl())
+                    .setEtag(model.getETag())
+                    .setHeader(userRequestHeader)
+                    .setConnectionProfile(trialConnectionProfile)
+                    .build();
+            trialConnection = trialConnectTask.connect();
+            handleTrialConnectResult(trialConnectTask.getRequestHeader(),
+                    trialConnectTask, trialConnection);
+
+        } finally {
+            if (trialConnection != null) trialConnection.ending();
         }
     }
 
@@ -419,7 +423,6 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     } else {
                         offset = model.getSoFar();
                     }
-
                 }
             } else {
                 offset = 0;
@@ -434,8 +437,9 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
-    private void handleFirstConnected(Map<String, List<String>> requestHeader,
-                                      ConnectTask connectTask, FileDownloadConnection connection)
+    private void handleTrialConnectResult(Map<String, List<String>> requestHeader,
+                                          ConnectTask connectTask,
+                                          FileDownloadConnection connection)
             throws IOException, RetryDirectly, IllegalArgumentException {
         final int id = model.getId();
         final int code = connection.getResponseCode();
@@ -532,7 +536,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
         redirectedUrl = connectTask.getFinalRedirectedUrl();
         if (acceptPartial || onlyFromBeginning) {
-            final long contentLength = FileDownloadUtils.findContentLength(id, connection);
+            final long totalLength = FileDownloadUtils
+                    .findInstanceLengthFromContentRange(connection);
 
             // update model
             String fileName = null;
@@ -540,13 +545,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                 // filename
                 fileName = FileDownloadUtils.findFilename(connection, model.getUrl());
             }
-            isChunked = (contentLength == TOTAL_VALUE_IN_CHUNKED_RESOURCE);
-            final long totalLength;
-            if (!isChunked) {
-                totalLength = model.getSoFar() + contentLength;
-            } else {
-                totalLength = contentLength;
-            }
+            isChunked = (totalLength == TOTAL_VALUE_IN_CHUNKED_RESOURCE);
 
             // callback
             statusCallback.onConnected(isResumeAvailableOnDB && acceptPartial,
@@ -558,42 +557,45 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
-    private void fetchWithSingleConnection(final ConnectionProfile firstConnectionProfile,
-                                           FileDownloadConnection connection)
+    private void realDownloadWithSingleConnection(final long totalLength)
             throws IOException, IllegalAccessException {
 
+        // connect
         final ConnectionProfile profile;
         if (!acceptPartial) {
             model.setSoFar(0);
-
-            profile = new ConnectionProfile(0, 0,
-                    firstConnectionProfile.endOffset, firstConnectionProfile.contentLength);
+            profile = ConnectionProfile.ConnectionProfileBuild
+                    .buildBeginToEndConnectionProfile(totalLength);
         } else {
-            profile = firstConnectionProfile;
+            profile = ConnectionProfile.ConnectionProfileBuild
+                    .buildToEndConnectionProfile(model.getSoFar(), model.getSoFar(),
+                            totalLength - model.getSoFar());
         }
 
-        final FetchDataTask.Builder builder = new FetchDataTask.Builder();
-        builder.setCallback(this)
-                .setDownloadId(model.getId())
+        singleDownloadRunnable = new DownloadRunnable.Builder()
+                .setId(model.getId())
                 .setConnectionIndex(-1)
+                .setCallback(this)
+                .setUrl(model.getUrl())
+                .setEtag(model.getETag())
+                .setHeader(userRequestHeader)
                 .setWifiRequired(isWifiRequired)
-                .setConnection(connection)
-                .setConnectionProfile(profile)
-                .setPath(model.getTempFilePath());
+                .setConnectionModel(profile)
+                .setPath(model.getTempFilePath())
+                .build();
 
         model.setConnectionCount(1);
         database.updateConnectionCount(model.getId(), 1);
-        singleFetchDataTask = builder.build();
         if (paused) {
             model.setStatus(FileDownloadStatus.paused);
-            singleFetchDataTask.pause();
+            singleDownloadRunnable.pause();
         } else {
-            singleFetchDataTask.run();
+            singleDownloadRunnable.run();
         }
     }
 
-    private void fetchWithMultiConnectionFromResume(final int connectionCount,
-                                                    final List<ConnectionModel> connectionModelList)
+    private void realDownloadWithMultiConnectionFromResume(final int connectionCount,
+                                                           final List<ConnectionModel> connectionModelList)
             throws InterruptedException {
         if (connectionCount <= 1 || connectionModelList.size() != connectionCount) {
             throw new IllegalArgumentException();
@@ -602,8 +604,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         fetchWithMultipleConnection(connectionModelList, model.getTotal());
     }
 
-    private void fetchWithMultiConnectionFromBeginning(final long totalLength,
-                                                       final int connectionCount)
+    private void realDownloadWithMultiConnectionFromBeginning(final long totalLength,
+                                                              final int connectionCount)
             throws InterruptedException {
         long startOffset = 0;
         final long eachRegion = totalLength / connectionCount;
@@ -616,7 +618,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             final long endOffset;
             if (i == connectionCount - 1) {
                 // avoid float precision error
-                endOffset = 0;
+                endOffset = ConnectionProfile.RANGE_INFINITE;
             } else {
                 // [startOffset, endOffset)
                 endOffset = startOffset + eachRegion - 1;
@@ -683,9 +685,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
             final DownloadRunnable.Builder builder = new DownloadRunnable.Builder();
 
-            final ConnectionProfile connectionProfile = new ConnectionProfile(
-                    connectionModel.getStartOffset(), connectionModel.getCurrentOffset(),
-                    connectionModel.getEndOffset(), contentLength);
+            final ConnectionProfile connectionProfile = ConnectionProfile.ConnectionProfileBuild
+                    .buildConnectionProfile(
+                            connectionModel.getStartOffset(), connectionModel.getCurrentOffset(),
+                            connectionModel.getEndOffset(), contentLength);
 
             final DownloadRunnable runnable = builder
                     .setId(id)
@@ -738,16 +741,16 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
-    private void handlePreAllocate(long contentLength, String path)
+    private void handlePreAllocate(long totalLength, String path)
             throws IOException, IllegalAccessException {
 
         FileDownloadOutputStream outputStream = null;
         try {
 
-            if (contentLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
+            if (totalLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
                 outputStream = FileDownloadUtils.createOutputStream(model.getTempFilePath());
                 final long breakpointBytes = new File(path).length();
-                final long requiredSpaceBytes = contentLength - breakpointBytes;
+                final long requiredSpaceBytes = totalLength - breakpointBytes;
 
                 final long freeSpaceBytes = FileDownloadUtils.getFreeSpaceBytes(path);
 
@@ -757,7 +760,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                             requiredSpaceBytes, breakpointBytes);
                 } else if (!FileDownloadProperties.getImpl().fileNonPreAllocation) {
                     // pre allocate.
-                    outputStream.setLength(contentLength);
+                    outputStream.setLength(totalLength);
                 }
             }
         } finally {
@@ -893,7 +896,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
-    private void checkupBeforeFetch() throws RetryDirectly, DiscardSafely {
+    private void checkupAfterGetFilename() throws RetryDirectly, DiscardSafely {
         final int id = model.getId();
 
         if (model.isPathAsDirectory()) {

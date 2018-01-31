@@ -22,8 +22,9 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 /**
  * The connection profile for {@link ConnectTask}.
  */
-
 public class ConnectionProfile {
+
+    static final int RANGE_INFINITE = -1;
 
     final long startOffset;
     final long currentOffset;
@@ -32,12 +33,14 @@ public class ConnectionProfile {
 
     private final boolean isForceNoRange;
 
-    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength) {
+    private ConnectionProfile(long startOffset, long currentOffset, long endOffset,
+                              long contentLength) {
         this(startOffset, currentOffset, endOffset, contentLength, false);
     }
 
-    ConnectionProfile(long startOffset, long currentOffset, long endOffset, long contentLength,
-                      boolean isForceNoRange) {
+    private ConnectionProfile(long startOffset, long currentOffset, long endOffset,
+                              long contentLength,
+                              boolean isForceNoRange) {
         if ((startOffset != 0 || endOffset != 0) && isForceNoRange) {
             throw new IllegalArgumentException();
         }
@@ -53,7 +56,7 @@ public class ConnectionProfile {
         if (isForceNoRange) return;
 
         final String range;
-        if (endOffset == 0) {
+        if (endOffset == RANGE_INFINITE) {
             range = FileDownloadUtils.formatString("bytes=%d-", currentOffset);
         } else {
             range = FileDownloadUtils
@@ -66,5 +69,32 @@ public class ConnectionProfile {
     public String toString() {
         return FileDownloadUtils.formatString("range[%d, %d) current offset[%d]",
                 startOffset, endOffset, currentOffset);
+    }
+
+    public static class ConnectionProfileBuild {
+        public static ConnectionProfile buildTrialConnectionProfile() {
+            return new ConnectionProfile(0, 0, 0, 0);
+        }
+
+        public static ConnectionProfile buildTrialConnectionProfileNoRange() {
+            return new ConnectionProfile(0, 0, 0, 0, true);
+        }
+
+        public static ConnectionProfile buildBeginToEndConnectionProfile(long contentLength) {
+            return new ConnectionProfile(0, 0, RANGE_INFINITE, contentLength);
+        }
+
+        public static ConnectionProfile buildToEndConnectionProfile(long startOffset,
+                                                                    long currentOffset,
+                                                                    long contentLength) {
+            return new ConnectionProfile(startOffset, currentOffset, RANGE_INFINITE, contentLength);
+        }
+
+        public static ConnectionProfile buildConnectionProfile(long startOffset,
+                                                               long currentOffset,
+                                                               long endOffset,
+                                                               long contentLength) {
+            return new ConnectionProfile(startOffset, currentOffset, endOffset, contentLength);
+        }
     }
 }

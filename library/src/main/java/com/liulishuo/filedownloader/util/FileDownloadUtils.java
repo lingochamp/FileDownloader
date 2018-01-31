@@ -397,6 +397,22 @@ public class FileDownloadUtils {
     private static final Pattern CONTENT_DISPOSITION_NON_QUOTED_PATTERN =
             Pattern.compile("attachment;\\s*filename\\s*=\\s*(.*)");
 
+    public static long parseContentRangeFoInstanceLength(String contentRange) {
+        if (contentRange == null) return -1;
+
+        final String[] session = contentRange.split("/");
+        if (session.length >= 2) {
+            try {
+                return Long.parseLong(session[1]);
+            } catch (NumberFormatException e) {
+                FileDownloadLog.w(FileDownloadUtils.class, "parse instance length failed with %s",
+                        contentRange);
+            }
+        }
+
+        return -1;
+    }
+
     /**
      * The same to com.android.providers.downloads.Helpers#parseContentDisposition.
      * </p>
@@ -524,6 +540,11 @@ public class FileDownloadUtils {
         }
 
         return newEtag;
+    }
+
+    public static long findInstanceLengthFromContentRange(FileDownloadConnection connection) {
+        return parseContentRangeFoInstanceLength(
+                connection.getResponseHeaderField("Content-Range"));
     }
 
     public static long findContentLength(final int id, FileDownloadConnection connection) {
