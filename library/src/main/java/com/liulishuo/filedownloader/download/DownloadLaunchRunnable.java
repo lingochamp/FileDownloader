@@ -595,13 +595,13 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     private void realDownloadWithMultiConnectionFromResume(final int connectionCount,
-                                                           final List<ConnectionModel> connectionModelList)
+                                                           List<ConnectionModel> modelList)
             throws InterruptedException {
-        if (connectionCount <= 1 || connectionModelList.size() != connectionCount) {
+        if (connectionCount <= 1 || modelList.size() != connectionCount) {
             throw new IllegalArgumentException();
         }
 
-        fetchWithMultipleConnection(connectionModelList, model.getTotal());
+        fetchWithMultipleConnection(modelList, model.getTotal());
     }
 
     private void realDownloadWithMultiConnectionFromBeginning(final long totalLength,
