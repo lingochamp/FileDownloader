@@ -70,12 +70,17 @@ public class ConnectTask {
         // allow access to the request header after it connected.
         requestHeader = connection.getRequestHeaderFields();
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "%s request header %s", downloadId, requestHeader);
+            FileDownloadLog.d(this, "<---- %s request header %s", downloadId, requestHeader);
         }
 
         connection.execute();
         redirectedUrlList = new ArrayList<>();
         connection = RedirectHandler.process(requestHeader, connection, redirectedUrlList);
+
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "----> %s response header %s", downloadId,
+                    connection.getResponseHeaderFields());
+        }
 
         return connection;
     }
