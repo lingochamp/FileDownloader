@@ -37,6 +37,7 @@ import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -540,6 +541,25 @@ public class FileDownloadUtils {
         }
 
         return newEtag;
+    }
+
+    // accept range is effect by  response code and Accept-Ranges header field.
+    public static boolean isAcceptRange(int responseCode, FileDownloadConnection connection) {
+        if (responseCode == HttpURLConnection.HTTP_PARTIAL
+                || responseCode == FileDownloadConnection.RESPONSE_CODE_FROM_OFFSET) return true;
+
+        final String acceptRanges = connection.getResponseHeaderField("Accept-Ranges");
+        return "bytes".equals(acceptRanges);
+    }
+
+    // because of we using one of two HEAD method to request or using range:0-0 to trial connection
+    // only if connection api not support, so we test content-range first and then test
+    // content-length.
+    public static long findInstanceLengthForTrial(int id, FileDownloadConnection connection) {
+        long length = findInstanceLengthFromContentRange(connection);
+        if (length < 0) length = findContentLength(id, connection);
+
+        return length;
     }
 
     public static long findInstanceLengthFromContentRange(FileDownloadConnection connection) {

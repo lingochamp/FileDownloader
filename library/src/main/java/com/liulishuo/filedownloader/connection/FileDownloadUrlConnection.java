@@ -21,6 +21,7 @@ import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
@@ -89,6 +90,15 @@ public class FileDownloadUrlConnection implements FileDownloadConnection {
     @Override
     public String getResponseHeaderField(String name) {
         return mConnection.getHeaderField(name);
+    }
+
+    @Override public boolean setRequestMethod(String method) throws ProtocolException {
+        if (mConnection instanceof HttpURLConnection) {
+            ((HttpURLConnection) mConnection).setRequestMethod(method);
+            return true;
+        }
+
+        return false;
     }
 
     @Override

@@ -25,6 +25,7 @@ import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -109,7 +110,7 @@ public class ConnectTask {
         }
     }
 
-    private void addRangeHeader(FileDownloadConnection connection) {
+    private void addRangeHeader(FileDownloadConnection connection) throws ProtocolException {
         if (connection.dispatchAddResumeOffset(etag, profile.startOffset)) {
             return;
         }
@@ -117,7 +118,7 @@ public class ConnectTask {
         if (!TextUtils.isEmpty(etag)) {
             connection.addHeader("If-Match", etag);
         }
-        profile.addRangeHeader(connection);
+        profile.processProfile(connection);
     }
 
     private void fixNeededHeader(FileDownloadConnection connection) {

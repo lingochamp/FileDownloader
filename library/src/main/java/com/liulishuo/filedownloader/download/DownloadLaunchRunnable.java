@@ -444,10 +444,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         final int id = model.getId();
         final int code = connection.getResponseCode();
 
-        // if the response status code isn't point to PARTIAL/OFFSET, isSucceedResume will
-        // be assigned to false, so filedownloader will download the file from very beginning.
-        acceptPartial = (code == HttpURLConnection.HTTP_PARTIAL
-                || code == FileDownloadConnection.RESPONSE_CODE_FROM_OFFSET);
+        acceptPartial = FileDownloadUtils.isAcceptRange(code, connection);
         final boolean onlyFromBeginning = (code == HttpURLConnection.HTTP_OK
                 || code == HttpURLConnection.HTTP_CREATED
                 || code == FileDownloadConnection.NO_RESPONSE_CODE);
@@ -536,8 +533,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
         redirectedUrl = connectTask.getFinalRedirectedUrl();
         if (acceptPartial || onlyFromBeginning) {
-            final long totalLength = FileDownloadUtils
-                    .findInstanceLengthFromContentRange(connection);
+            final long totalLength = FileDownloadUtils.findInstanceLengthForTrial(id, connection);
 
             // update model
             String fileName = null;

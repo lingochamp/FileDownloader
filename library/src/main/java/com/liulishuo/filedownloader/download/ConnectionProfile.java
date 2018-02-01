@@ -19,6 +19,8 @@ package com.liulishuo.filedownloader.download;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.net.ProtocolException;
+
 /**
  * The connection profile for {@link ConnectTask}.
  */
@@ -32,6 +34,21 @@ public class ConnectionProfile {
     final long contentLength;
 
     private final boolean isForceNoRange;
+
+    private final boolean isTrialConnect;
+
+    /**
+     * This construct is just for build trial connection profile.
+     */
+    private ConnectionProfile() {
+        this.startOffset = 0;
+        this.currentOffset = 0;
+        this.endOffset = 0;
+        this.contentLength = 0;
+
+        this.isForceNoRange = false;
+        this.isTrialConnect = true;
+    }
 
     private ConnectionProfile(long startOffset, long currentOffset, long endOffset,
                               long contentLength) {
@@ -50,10 +67,15 @@ public class ConnectionProfile {
         this.endOffset = endOffset;
         this.contentLength = contentLength;
         this.isForceNoRange = isForceNoRange;
+        this.isTrialConnect = false;
     }
 
-    public void addRangeHeader(FileDownloadConnection connection) {
+    public void processProfile(FileDownloadConnection connection) throws ProtocolException {
         if (isForceNoRange) return;
+
+        if (isTrialConnect) {
+            connection.setRequestMethod("HEAD");
+        }
 
         final String range;
         if (endOffset == RANGE_INFINITE) {
@@ -73,7 +95,7 @@ public class ConnectionProfile {
 
     public static class ConnectionProfileBuild {
         public static ConnectionProfile buildTrialConnectionProfile() {
-            return new ConnectionProfile(0, 0, 0, 0);
+            return new ConnectionProfile();
         }
 
         public static ConnectionProfile buildTrialConnectionProfileNoRange() {
