@@ -23,6 +23,7 @@ import android.os.Message;
 import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -88,6 +89,10 @@ public class RemitDatabase implements FileDownloadDatabase {
     }
 
     private void syncCacheToDB(int id) {
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "sync cache to db %d", id);
+        }
+
         realDatabase.update(cachedDatabase.find(id));
         final List<ConnectionModel> modelList = cachedDatabase.findConnectionModel(id);
         realDatabase.removeConnections(id);
