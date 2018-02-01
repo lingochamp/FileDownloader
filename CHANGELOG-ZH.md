@@ -2,6 +2,25 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.0
+
+_2018-02-01_
+
+#### 修复
+
+- 修复: 通过同步处理暂停操作与状态的更新来修复状态不是一个正确向前的流的问题。 close #889
+- 修复: 修复在`pending`状态回调时带回来已经被弃用的`sofar-bytes`。 close #884
+- 修复: 修复当`filename`没有用`"`包裹时，无法通过`content-dispostion`获取文件名的问题。 close #908
+- 修复: 修正`setCallbackProgressTimes`设置的次数不能正常生效的问题。 close #901
+- 修复: 修复由于试探连接采用`0-infinite`的`Range`导致下载了无用内容到tcp-window的问题。close #933
+- 修复: 在连接`ending`的时候再次主动关闭输入流，防止输入流泄漏特别是对于试探连接来说。
+
+#### 性能与提高
+
+- 提高实用性: 当临时文件重命名为目标文件成功时，不再做一次移除临时文件的操作，防止一些文件系统报错的问题。close #912
+- 提高实用性: 当确定本地提供的`Range`是正确的，但是后端却返回`416`时，将完全弃用`Range`请求头。close #921
+- 提高性能: 为试探连接使用`HEAD`的请求替代`GET`方法，提高试探通信效率。 ref #933
+
 ## Version 1.6.9
 
 _2017-12-16_

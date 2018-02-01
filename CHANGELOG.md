@@ -2,6 +2,25 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.0
+
+_2018-02-01_
+
+#### Fix
+
+- Fix: fix update status can't keep flow through making updating status synchronized with pause action. close #889
+- Fix: fix the sofar-bytes carry back through pending state callback has already discarded. close #884
+- Fix: fix can't find filename if filename value on content-disposition without around with ". close #908
+- Fix: correct `setCallbackProgressTimes` method make `setCallbackProgressTimes` work correctly. close #901
+- Fix: fix download useless data on tcp-window because of the first trial connection use `0-infinite` range. close #933
+- Fix: close intput stream when connection ending avoid input-stream leak especially for the trial connection.
+
+#### Enhancement
+
+- Improve Practicability: do not remove the temp-file if rename it to the target path success to prevent raise some file-system problem. close #912
+- Improve Practicability: discard range totally if range is right but backend response 416. close #921
+- Improve Performance: using HEAD request method instead of GET method for trial connect. ref #933
+
 ## Version 1.6.9
 
 _2017-12-16_
