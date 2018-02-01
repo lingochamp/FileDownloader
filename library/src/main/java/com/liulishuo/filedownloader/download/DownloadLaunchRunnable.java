@@ -659,7 +659,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         final boolean withEtag = isResumeAvailableOnDB;
         for (ConnectionModel connectionModel : connectionModelList) {
             final long contentLength;
-            if (connectionModel.getEndOffset() == 0) {
+            if (connectionModel.getEndOffset() == ConnectionProfile.RANGE_INFINITE) {
                 // must be the last one
                 contentLength = totalLength - connectionModel.getCurrentOffset();
             } else {
