@@ -558,6 +558,7 @@ public class FileDownloadUtils {
     public static long findInstanceLengthForTrial(int id, FileDownloadConnection connection) {
         long length = findInstanceLengthFromContentRange(connection);
         if (length < 0) length = findContentLength(id, connection);
+        if (length <= 0) length = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
 
         return length;
     }
