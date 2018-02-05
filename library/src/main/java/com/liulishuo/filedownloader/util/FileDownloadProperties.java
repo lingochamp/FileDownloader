@@ -133,7 +133,8 @@ public class FileDownloadProperties {
             "download.max-network-thread-count";
     private static final String KEY_FILE_NON_PRE_ALLOCATION = "file.non-pre-allocation";
     private static final String KEY_BROADCAST_COMPLETED = "broadcast.completed";
-    private static final String KEY_TRIAL_CONNECTION_HEAD_METHOD = "download.trial-connection-head-method";
+    private static final String KEY_TRIAL_CONNECTION_HEAD_METHOD
+            = "download.trial-connection-head-method";
 
     public final int downloadMinProgressStep;
     public final long downloadMinProgressTime;
