@@ -112,6 +112,16 @@ import java.util.Properties;
  * 'filedownloader.intent.action.completed' action name on 'AndroidManifest.xml'.
  * <p>
  * You can use {@link FileDownloadBroadcastHandler} class to parse the received intent.
+ * <p/>
+ * Key {code download.trial-connection-head-method}
+ * Value: {@code true} or {@code false}
+ * Default: {@code false}.
+ * Such as download.trial-connection-head-method=false
+ * Description:
+ * Whether you want the first trial connection with HEAD method to request to backend or not, if
+ * this value is true, the first trial connection will with HEAD method instead of GET method and
+ * then you will reduce 1 byte cost on the response body, but if the backend can't support HEAD
+ * method you will receive 405 response code and failed to download.
  */
 public class FileDownloadProperties {
 
@@ -123,6 +133,7 @@ public class FileDownloadProperties {
             "download.max-network-thread-count";
     private static final String KEY_FILE_NON_PRE_ALLOCATION = "file.non-pre-allocation";
     private static final String KEY_BROADCAST_COMPLETED = "broadcast.completed";
+    private static final String KEY_TRIAL_CONNECTION_HEAD_METHOD = "download.trial-connection-head-method";
 
     public final int downloadMinProgressStep;
     public final long downloadMinProgressTime;
@@ -131,6 +142,7 @@ public class FileDownloadProperties {
     public final int downloadMaxNetworkThreadCount;
     public final boolean fileNonPreAllocation;
     public final boolean broadcastCompleted;
+    public final boolean trialConnectionHeadMethod;
 
     public static class HolderClass {
         private static final FileDownloadProperties INSTANCE = new FileDownloadProperties();
@@ -160,6 +172,7 @@ public class FileDownloadProperties {
         String downloadMaxNetworkThreadCount = null;
         String fileNonPreAllocation = null;
         String broadcastCompleted = null;
+        String downloadTrialConnectionHeadMethod = null;
 
         Properties p = new Properties();
         InputStream inputStream = null;
@@ -177,6 +190,7 @@ public class FileDownloadProperties {
                         .getProperty(KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT);
                 fileNonPreAllocation = p.getProperty(KEY_FILE_NON_PRE_ALLOCATION);
                 broadcastCompleted = p.getProperty(KEY_BROADCAST_COMPLETED);
+                downloadTrialConnectionHeadMethod = p.getProperty(KEY_TRIAL_CONNECTION_HEAD_METHOD);
             }
         } catch (IOException e) {
             if (e instanceof FileNotFoundException) {
@@ -262,6 +276,7 @@ public class FileDownloadProperties {
             this.fileNonPreAllocation = false;
         }
 
+        // broadcast.completed
         if (broadcastCompleted != null) {
             if (!broadcastCompleted.equals(TRUE_STRING)
                     && !broadcastCompleted.equals(FALSE_STRING)) {
@@ -275,15 +290,31 @@ public class FileDownloadProperties {
             this.broadcastCompleted = false;
         }
 
+        // download.trial-connection-head-method
+        if (downloadTrialConnectionHeadMethod != null) {
+            if (!downloadTrialConnectionHeadMethod.equals(TRUE_STRING)
+                    && !downloadTrialConnectionHeadMethod.equals(FALSE_STRING)) {
+                throw new IllegalStateException(
+                        FileDownloadUtils.formatString("the value of '%s' must be '%s' or '%s'",
+                                KEY_TRIAL_CONNECTION_HEAD_METHOD, TRUE_STRING, FALSE_STRING));
+            }
+            this.trialConnectionHeadMethod = downloadTrialConnectionHeadMethod.equals(TRUE_STRING);
+        } else {
+            this.trialConnectionHeadMethod = false;
+        }
+
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.i(FileDownloadProperties.class, "init properties %d\n load properties:"
-                            + " %s=%B; %s=%B; %s=%d; %s=%d; %s=%d",
+                            + " %s=%B; %s=%B; %s=%d; %s=%d; %s=%d; %s=%B; %s=%B; %s=%B",
                     System.currentTimeMillis() - start,
                     KEY_HTTP_LENIENT, this.httpLenient,
                     KEY_PROCESS_NON_SEPARATE, this.processNonSeparate,
                     KEY_DOWNLOAD_MIN_PROGRESS_STEP, this.downloadMinProgressStep,
                     KEY_DOWNLOAD_MIN_PROGRESS_TIME, this.downloadMinProgressTime,
-                    KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT, this.downloadMaxNetworkThreadCount);
+                    KEY_DOWNLOAD_MAX_NETWORK_THREAD_COUNT, this.downloadMaxNetworkThreadCount,
+                    KEY_FILE_NON_PRE_ALLOCATION, this.fileNonPreAllocation,
+                    KEY_BROADCAST_COMPLETED, this.broadcastCompleted,
+                    KEY_TRIAL_CONNECTION_HEAD_METHOD, this.trialConnectionHeadMethod);
         }
     }
 

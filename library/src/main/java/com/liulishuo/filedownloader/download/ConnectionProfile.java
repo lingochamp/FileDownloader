@@ -17,6 +17,7 @@
 package com.liulishuo.filedownloader.download;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.net.ProtocolException;
@@ -73,7 +74,7 @@ public class ConnectionProfile {
     public void processProfile(FileDownloadConnection connection) throws ProtocolException {
         if (isForceNoRange) return;
 
-        if (isTrialConnect) {
+        if (isTrialConnect && FileDownloadProperties.getImpl().trialConnectionHeadMethod) {
             connection.setRequestMethod("HEAD");
         }
 
