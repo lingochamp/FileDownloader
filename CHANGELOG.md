@@ -21,6 +21,10 @@ _2018-02-01_
 - Improve Practicability: discard range totally if range is right but backend response 416. close #921
 - Improve Performance: using HEAD request method instead of GET method for trial connect. ref #933
 
+#### Other
+
+If you are using filedownloader-okhttp3-connection, please upgrade it to the `1.1.0` to adapter FileDownloader 1.7.0.
+
 ## Version 1.6.9
 
 _2017-12-16_
