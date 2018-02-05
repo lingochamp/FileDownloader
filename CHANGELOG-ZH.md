@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.1
+
+_2018-02-05_
+
+#### 修复
+
+- 修复: 修复当后端不支持`HEAD`方法的时候，返回`405`响应状态导致下载失败的问题。 close #942
+
 ## Version 1.7.0
 
 _2018-02-01_

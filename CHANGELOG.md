@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.1
+
+_2018-02-05_
+
+#### Fix
+
+- Fix: fix download failed with 405 response code when backend can't support `HEAD` method. close #942
+
 ## Version 1.7.0
 
 _2018-02-01_
