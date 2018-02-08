@@ -555,7 +555,8 @@ public class FileDownloadUtils {
     // because of we using one of two HEAD method to request or using range:0-0 to trial connection
     // only if connection api not support, so we test content-range first and then test
     // content-length.
-    // the response of HEAD method is not very canonical sometimes(it depends on server implementation)
+    // the response of HEAD method is not very canonical
+    // sometimes(it depends on server implementation)
     // so that it's uncertain the content-length is the same as the response of GET method if
     // content-length=0, so must filter this case in here.
     public static long findInstanceLengthForTrial(int id, FileDownloadConnection connection) {
