@@ -278,6 +278,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                                         + " must be larger than 0", connectionCount));
                     }
 
+                    if (totalLength == 0) {
+                        return;
+                    }
+
                     if (paused) {
                         model.setStatus(FileDownloadStatus.paused);
                         return;
