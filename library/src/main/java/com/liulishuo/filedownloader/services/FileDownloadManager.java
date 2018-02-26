@@ -112,11 +112,12 @@ class FileDownloadManager implements IThreadPoolMonitor {
                 FileDownloadLog
                         .d(this, "there is an another task with the same target-file-path %d %s",
                                 id, targetFilePath);
-                // because of the file is dirty for this task.
-                if (model != null) {
-                    mDatabase.remove(id);
-                    mDatabase.removeConnections(id);
-                }
+            }
+
+            // because of the file is dirty for this task.
+            if (model != null) {
+                mDatabase.remove(id);
+                mDatabase.removeConnections(id);
             }
             return;
         }
