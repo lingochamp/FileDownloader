@@ -64,7 +64,8 @@ public class ConnectTask {
             }
             return;
         }
-        final long newContentLength = profile.contentLength - (haveFinishedOffset - profile.currentOffset);
+        final long newContentLength =
+                profile.contentLength - (haveFinishedOffset - profile.currentOffset);
         profile = ConnectionProfile.ConnectionProfileBuild.buildConnectionProfile(
                 profile.startOffset,
                 haveFinishedOffset,
