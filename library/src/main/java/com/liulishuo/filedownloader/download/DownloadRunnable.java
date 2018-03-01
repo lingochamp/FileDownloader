@@ -122,20 +122,19 @@ public class DownloadRunnable implements Runnable {
             } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException
                     | IllegalArgumentException e) {
                 if (callback.isRetry(e)) {
-                    if (!isConnected) {
-                        callback.onRetry(e, 0);
-                    } else if (fetchDataTask != null) {
-                        // connected
-                        final long invalidIncreaseBytes = fetchDataTask.currentOffset - beginOffset;
-                        callback.onRetry(e, invalidIncreaseBytes);
-                    } else {
+                    if (isConnected && fetchDataTask == null) {
                         // connected but create fetch data task failed, give up directly.
                         FileDownloadLog.w(this, "it is valid to retry and connection is valid but"
                                 + " create fetch-data-task failed, so give up directly with %s", e);
                         callback.onError(e);
                         break;
+                    } else {
+                        if (fetchDataTask != null) {
+                            //update currentOffset in ConnectionProfile
+                            connectTask.updateConnectionProfile(fetchDataTask.currentOffset);
+                        }
+                        callback.onRetry(e);
                     }
-
                 } else {
                     callback.onError(e);
                     break;

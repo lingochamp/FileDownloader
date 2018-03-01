@@ -57,6 +57,24 @@ public class ConnectTask {
         this.profile = profile;
     }
 
+    void updateConnectionProfile(long haveFinishedOffset) {
+        if (haveFinishedOffset == profile.currentOffset) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.w(this, "no data download, no need to update");
+            }
+            return;
+        }
+        final long newContentLength = profile.contentLength - (haveFinishedOffset - profile.currentOffset);
+        profile = ConnectionProfile.ConnectionProfileBuild.buildConnectionProfile(
+                profile.startOffset,
+                haveFinishedOffset,
+                profile.endOffset,
+                newContentLength);
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.i(this, "after update profile:%s", profile);
+        }
+    }
+
     FileDownloadConnection connect() throws IOException, IllegalAccessException {
         FileDownloadConnection connection = CustomComponentHolder.getImpl().createConnection(url);
 

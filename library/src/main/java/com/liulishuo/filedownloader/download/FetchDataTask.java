@@ -93,7 +93,7 @@ public class FetchDataTask {
 
         if (this.contentLength > 0 && contentLength != this.contentLength) {
             final String range;
-            if (endOffset == 0) {
+            if (endOffset <= 0) {
                 range = FileDownloadUtils.formatString("range[%d-)", currentOffset);
             } else {
                 range = FileDownloadUtils.formatString("range[%d-%d)", currentOffset, endOffset);

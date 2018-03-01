@@ -58,11 +58,11 @@ public class DownloadLaunchRunnableTest {
                         mock(IThreadPoolMonitor.class),
                         1000, 100, false,
                         true, 3);
-        launchRunnable.onRetry(mock(Exception.class), 0);
+        launchRunnable.onRetry(mock(Exception.class));
         assertThat(launchRunnable.validRetryTimes).isEqualTo(2);
-        launchRunnable.onRetry(mock(Exception.class), 0);
+        launchRunnable.onRetry(mock(Exception.class));
         assertThat(launchRunnable.validRetryTimes).isEqualTo(1);
-        launchRunnable.onRetry(mock(Exception.class), 0);
+        launchRunnable.onRetry(mock(Exception.class));
         assertThat(launchRunnable.validRetryTimes).isEqualTo(0);
     }
 

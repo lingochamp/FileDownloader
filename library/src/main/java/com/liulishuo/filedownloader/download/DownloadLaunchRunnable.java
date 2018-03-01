@@ -308,7 +308,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         | InterruptedException | IllegalArgumentException
                         | FileDownloadGiveUpRetryException e) {
                     if (isRetry(e)) {
-                        onRetry(e, 0);
+                        onRetry(e);
                         continue;
                     } else {
                         onError(e);
@@ -854,7 +854,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     @Override
-    public void onRetry(Exception exception, long invalidIncreaseBytes) {
+    public void onRetry(Exception exception) {
         if (paused) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(this, "the task[%d] has already been paused, so pass the"
@@ -868,7 +868,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     validRetryTimes, model.getId());
         }
 
-        statusCallback.onRetry(exception, validRetryTimes, invalidIncreaseBytes);
+        statusCallback.onRetry(exception, validRetryTimes);
     }
 
     @Override

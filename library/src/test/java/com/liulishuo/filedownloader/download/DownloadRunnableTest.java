@@ -67,7 +67,7 @@ public class DownloadRunnableTest {
 
         downloadRunnable.run();
 
-        verify(mockCallback).onRetry(mockIOException, 0);
+        verify(mockCallback).onRetry(mockIOException);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class DownloadRunnableTest {
         downloadRunnable.run();
 
         // retry first.
-        verify(mockCallback).onRetry(any(Exception.class), anyLong());
+        verify(mockCallback).onRetry(any(Exception.class));
 
         // then callback error.
         verify(mockCallback).onError(any(Exception.class));
@@ -113,7 +113,7 @@ public class DownloadRunnableTest {
 
 
         @Override
-        public void onRetry(Exception exception, long invalidIncreaseBytes) {
+        public void onRetry(Exception exception) {
         }
 
         @Override
