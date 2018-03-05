@@ -19,14 +19,18 @@ package com.liulishuo.filedownloader.download;
 import android.os.Process;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
+import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
+import java.util.List;
 
 /**
  * The single download runnable used for establish one connection and fetch data from it.
@@ -131,7 +135,10 @@ public class DownloadRunnable implements Runnable {
                     } else {
                         if (fetchDataTask != null) {
                             //update currentOffset in ConnectionProfile
-                            connectTask.updateConnectionProfile(fetchDataTask.currentOffset);
+                            final long downloadedOffset = getDownloadedOffset();
+                            if (downloadedOffset > 0) {
+                                connectTask.updateConnectionProfile(fetchDataTask.currentOffset);
+                            }
                         }
                         callback.onRetry(e);
                     }
@@ -145,6 +152,24 @@ public class DownloadRunnable implements Runnable {
             }
         } while (true);
 
+    }
+
+    private long getDownloadedOffset() {
+        final FileDownloadDatabase database = CustomComponentHolder.getImpl().getDatabaseInstance();
+        if (connectionIndex >= 0) {
+            // is multi connection
+            List<ConnectionModel> connectionModels = database.findConnectionModel(downloadId);
+            for (ConnectionModel connectionModel : connectionModels) {
+                if (connectionModel.getIndex() == connectionIndex) {
+                    return connectionModel.getCurrentOffset();
+                }
+            }
+        } else {
+            // is single connection
+            FileDownloadModel downloadModel = database.find(downloadId);
+            return downloadModel.getSoFar();
+        }
+        return 0;
     }
 
     public static class Builder {

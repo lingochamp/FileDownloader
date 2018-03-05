@@ -791,7 +791,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             return;
         }
 
-        final int doneConnectionIndex = doneRunnable == null ? -1 : doneRunnable.connectionIndex;
+        final int doneConnectionIndex = doneRunnable.connectionIndex;
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "the connection has been completed(%d): [%d, %d)  %d",
                     doneConnectionIndex, startOffset, endOffset, model.getTotal());

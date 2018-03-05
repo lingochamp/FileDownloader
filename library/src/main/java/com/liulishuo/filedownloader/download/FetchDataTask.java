@@ -229,7 +229,7 @@ public class FetchDataTask {
         }
 
         if (bufferPersistToDevice) {
-            final boolean isBelongMultiConnection = hostRunnable != null;
+            final boolean isBelongMultiConnection = connectionIndex >= 0;
             if (isBelongMultiConnection) {
                 // only need update the connection table.
                 database.updateConnectionModel(downloadId, connectionIndex, currentOffset);
