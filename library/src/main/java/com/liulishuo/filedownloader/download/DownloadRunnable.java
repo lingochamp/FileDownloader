@@ -137,7 +137,7 @@ public class DownloadRunnable implements Runnable {
                             //update currentOffset in ConnectionProfile
                             final long downloadedOffset = getDownloadedOffset();
                             if (downloadedOffset > 0) {
-                                connectTask.updateConnectionProfile(fetchDataTask.currentOffset);
+                                connectTask.updateConnectionProfile(downloadedOffset);
                             }
                         }
                         callback.onRetry(e);

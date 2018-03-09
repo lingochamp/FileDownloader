@@ -57,18 +57,18 @@ public class ConnectTask {
         this.profile = profile;
     }
 
-    void updateConnectionProfile(long haveFinishedOffset) {
-        if (haveFinishedOffset == profile.currentOffset) {
+    void updateConnectionProfile(long downloadedOffset) {
+        if (downloadedOffset == profile.currentOffset) {
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.w(this, "no data download, no need to update");
             }
             return;
         }
         final long newContentLength =
-                profile.contentLength - (haveFinishedOffset - profile.currentOffset);
+                profile.contentLength - (downloadedOffset - profile.currentOffset);
         profile = ConnectionProfile.ConnectionProfileBuild.buildConnectionProfile(
                 profile.startOffset,
-                haveFinishedOffset,
+                downloadedOffset,
                 profile.endOffset,
                 newContentLength);
         if (FileDownloadLog.NEED_LOG) {
