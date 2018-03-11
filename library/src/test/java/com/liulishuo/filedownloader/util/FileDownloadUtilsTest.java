@@ -35,4 +35,29 @@ public class FileDownloadUtilsTest {
         assertThat(filename).isEqualTo("genome.jpeg");
     }
 
+    @Test
+    public void parseContentLengthFromContentRange_withNullContentRange() {
+        long length = FileDownloadUtils.parseContentLengthFromContentRange(null);
+        assertThat(length).isEqualTo(-1);
+    }
+
+    @Test
+    public void parseContentLengthFromContentRange_withEmptyContentRange() {
+        long length = FileDownloadUtils.parseContentLengthFromContentRange("");
+        assertThat(length).isEqualTo(-1);
+    }
+
+    @Test
+    public void parseContentLengthFromContentRange_withStartToEndRange() {
+        long length = FileDownloadUtils
+                .parseContentLengthFromContentRange("bytes 25086300-37629450/37629451");
+        assertThat(length).isEqualTo(12543151);
+    }
+
+    @Test
+    public void parseContentLengthFromContentRange_withUnavailableContentRange() {
+        long length = FileDownloadUtils.parseContentLengthFromContentRange("bytes 0-/37629451");
+        assertThat(length).isEqualTo(-1);
+    }
+
 }

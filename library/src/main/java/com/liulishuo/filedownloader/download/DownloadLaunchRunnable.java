@@ -537,7 +537,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
         redirectedUrl = connectTask.getFinalRedirectedUrl();
         if (acceptPartial || onlyFromBeginning) {
-            final long totalLength = FileDownloadUtils.findInstanceLengthForTrial(id, connection);
+            final long totalLength = FileDownloadUtils.findInstanceLengthForTrial(connection);
 
             // update model
             String fileName = null;
