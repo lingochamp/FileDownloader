@@ -555,9 +555,9 @@ public class FileDownloadUtils {
     // because of we using one of two HEAD method to request or using range:0-0 to trial connection
     // only if connection api not support, so we test content-range first and then test
     // content-length.
-    public static long findInstanceLengthForTrial(int id, FileDownloadConnection connection) {
+    public static long findInstanceLengthForTrial(FileDownloadConnection connection) {
         long length = findInstanceLengthFromContentRange(connection);
-        if (length < 0) length = findContentLength(id, connection);
+        if (length < 0) length = findInstanceLengthFromContentLength(connection);
         if (length < 0) length = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
         // the response of HEAD method is not very canonical sometimes(it depends on server
         // implementation)
@@ -571,14 +571,24 @@ public class FileDownloadUtils {
     }
 
     public static long findInstanceLengthFromContentRange(FileDownloadConnection connection) {
-        return parseContentRangeFoInstanceLength(
-                connection.getResponseHeaderField("Content-Range"));
+        return parseContentRangeFoInstanceLength(getContentRangeHeader(connection));
+    }
+
+    private static String getContentRangeHeader(FileDownloadConnection connection) {
+        return  connection.getResponseHeaderField("Content-Range");
+    }
+
+    public static long findInstanceLengthFromContentLength(FileDownloadConnection connection) {
+        return convertContentLengthString(connection.getResponseHeaderField("Content-Length"));
     }
 
     public static long findContentLength(final int id, FileDownloadConnection connection) {
-        long contentLength = FileDownloadUtils
-                .convertContentLengthString(connection.getResponseHeaderField("Content-Length"));
-        if (contentLength < 0) contentLength = findInstanceLengthFromContentRange(connection);
+        long contentLength = findInstanceLengthFromContentLength(connection);
+        if (contentLength < 0) {
+            final String contentRange = getContentRangeHeader(connection);
+            contentLength = parseContentLengthFromContentRange(contentRange);
+        }
+
         final String transferEncoding = connection.getResponseHeaderField("Transfer-Encoding");
 
         if (contentLength < 0) {
@@ -608,6 +618,24 @@ public class FileDownloadUtils {
         }
 
         return contentLength;
+    }
+
+    public static long parseContentLengthFromContentRange(String contentRange) {
+        if (contentRange == null || contentRange.length() == 0) return -1;
+        final String pattern = "bytes (\\d+)-(\\d+)/\\d+";
+        try {
+            final Pattern r = Pattern.compile(pattern);
+            final Matcher m = r.matcher(contentRange);
+            if (m.find()) {
+                final long rangeStart = Long.parseLong(m.group(1));
+                final long rangeEnd = Long.parseLong(m.group(2));
+                return rangeEnd - rangeStart + 1;
+            }
+        }catch (Exception e) {
+            FileDownloadLog.e(FileDownloadUtils.class, e, "parse content length" +
+                    " from content range error");
+        }
+        return -1;
     }
 
     public static String findFilename(FileDownloadConnection connection, String url) {
