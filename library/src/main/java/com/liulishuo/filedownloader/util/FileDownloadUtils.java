@@ -578,6 +578,7 @@ public class FileDownloadUtils {
     public static long findContentLength(final int id, FileDownloadConnection connection) {
         long contentLength = FileDownloadUtils
                 .convertContentLengthString(connection.getResponseHeaderField("Content-Length"));
+        if (contentLength < 0) contentLength = findInstanceLengthFromContentRange(connection);
         final String transferEncoding = connection.getResponseHeaderField("Transfer-Encoding");
 
         if (contentLength < 0) {
