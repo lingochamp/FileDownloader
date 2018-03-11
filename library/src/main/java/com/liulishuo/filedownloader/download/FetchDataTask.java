@@ -186,7 +186,7 @@ public class FetchDataTask {
         if (contentLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE && contentLength != fetchedLength) {
             throw new FileDownloadGiveUpRetryException(
                     FileDownloadUtils.formatString("fetched length[%d] != content length[%d],"
-                                    + " range[%d, %d) offset[%d] fetch begin offset",
+                                    + " range[%d, %d) offset[%d] fetch begin offset[%d]",
                             fetchedLength, contentLength,
                             startOffset, endOffset, currentOffset, fetchBeginOffset));
         }

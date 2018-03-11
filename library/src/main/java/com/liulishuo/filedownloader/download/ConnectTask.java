@@ -59,9 +59,7 @@ public class ConnectTask {
 
     void updateConnectionProfile(long downloadedOffset) {
         if (downloadedOffset == profile.currentOffset) {
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.w(this, "no data download, no need to update");
-            }
+            FileDownloadLog.w(this, "no data download, no need to update");
             return;
         }
         final long newContentLength =
