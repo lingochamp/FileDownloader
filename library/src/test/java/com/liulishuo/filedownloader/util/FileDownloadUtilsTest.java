@@ -49,7 +49,8 @@ public class FileDownloadUtilsTest {
 
     @Test
     public void parseContentLengthFromContentRange_withStartToEndRange() {
-        long length = FileDownloadUtils.parseContentLengthFromContentRange("bytes 25086300-37629450/37629451");
+        long length = FileDownloadUtils
+                .parseContentLengthFromContentRange("bytes 25086300-37629450/37629451");
         assertThat(length).isEqualTo(12543151);
     }
 

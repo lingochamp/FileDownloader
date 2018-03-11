@@ -82,7 +82,10 @@ public class FetchDataTask {
 
         if (paused) return;
 
-        final long contentLength = FileDownloadUtils.findContentLength(connectionIndex, connection);
+        long contentLength = FileDownloadUtils.findContentLength(connectionIndex, connection);
+        if (contentLength == TOTAL_VALUE_IN_CHUNKED_RESOURCE) {
+            contentLength = FileDownloadUtils.findContentLengthFromContentRange(connection);
+        }
         if (contentLength == 0) {
             throw new FileDownloadGiveUpRetryException(FileDownloadUtils.
                     formatString(
