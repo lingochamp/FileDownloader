@@ -19,14 +19,18 @@ package com.liulishuo.filedownloader.download;
 import android.os.Process;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
+import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
+import java.util.List;
 
 /**
  * The single download runnable used for establish one connection and fetch data from it.
@@ -122,20 +126,22 @@ public class DownloadRunnable implements Runnable {
             } catch (IllegalAccessException | IOException | FileDownloadGiveUpRetryException
                     | IllegalArgumentException e) {
                 if (callback.isRetry(e)) {
-                    if (!isConnected) {
-                        callback.onRetry(e, 0);
-                    } else if (fetchDataTask != null) {
-                        // connected
-                        final long invalidIncreaseBytes = fetchDataTask.currentOffset - beginOffset;
-                        callback.onRetry(e, invalidIncreaseBytes);
-                    } else {
+                    if (isConnected && fetchDataTask == null) {
                         // connected but create fetch data task failed, give up directly.
                         FileDownloadLog.w(this, "it is valid to retry and connection is valid but"
                                 + " create fetch-data-task failed, so give up directly with %s", e);
                         callback.onError(e);
                         break;
+                    } else {
+                        if (fetchDataTask != null) {
+                            //update currentOffset in ConnectionProfile
+                            final long downloadedOffset = getDownloadedOffset();
+                            if (downloadedOffset > 0) {
+                                connectTask.updateConnectionProfile(downloadedOffset);
+                            }
+                        }
+                        callback.onRetry(e);
                     }
-
                 } else {
                     callback.onError(e);
                     break;
@@ -146,6 +152,24 @@ public class DownloadRunnable implements Runnable {
             }
         } while (true);
 
+    }
+
+    private long getDownloadedOffset() {
+        final FileDownloadDatabase database = CustomComponentHolder.getImpl().getDatabaseInstance();
+        if (connectionIndex >= 0) {
+            // is multi connection
+            List<ConnectionModel> connectionModels = database.findConnectionModel(downloadId);
+            for (ConnectionModel connectionModel : connectionModels) {
+                if (connectionModel.getIndex() == connectionIndex) {
+                    return connectionModel.getCurrentOffset();
+                }
+            }
+        } else {
+            // is single connection
+            FileDownloadModel downloadModel = database.find(downloadId);
+            return downloadModel.getSoFar();
+        }
+        return 0;
     }
 
     public static class Builder {

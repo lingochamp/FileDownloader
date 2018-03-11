@@ -93,6 +93,10 @@ public class RemitDatabase implements FileDownloadDatabase {
             FileDownloadLog.d(this, "sync cache to db %d", id);
         }
 
+        // need to attention that the `sofar` in `FileDownloadModel` database will
+        // be updated even through this is a multiple connections task. But the
+        // multi-connections task only concern about the `ConnectionModel` database,
+        // so it doesn't matter in current.
         realDatabase.update(cachedDatabase.find(id));
         final List<ConnectionModel> modelList = cachedDatabase.findConnectionModel(id);
         realDatabase.removeConnections(id);
