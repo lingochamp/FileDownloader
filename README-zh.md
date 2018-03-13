@@ -59,7 +59,7 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 在项目中引用:
 
 ```groovy
-compile 'com.liulishuo.filedownloader:library:1.7.1'
+compile 'com.liulishuo.filedownloader:library:1.7.2'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)

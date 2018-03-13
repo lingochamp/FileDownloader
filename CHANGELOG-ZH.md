@@ -2,6 +2,21 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.2
+
+_2018-03-14_
+
+#### 修复
+
+- 修复: 将原本所需要下载的文件大小为`0`的时候，回调错误，修改为直接回调完成。closes #789
+- 修复: 修复当存在另外一个正在下载的相同临时文件路径的任务时，数据库中存在数据未被删除的问题。closes #953
+- 修复: 修复在重试后重试之前下载的进度丢失的问题。closes #958
+- 修复: 修复当试探连接没有提供`Content-Range`字段，但是提供`Content-Length`字段时，计算出的总长度始终是`1`的问题。
+
+#### 性能与提高
+
+- 提高实用性: 当在响应头中不存在`Content-Length`字段时，使用隐藏在`Content-Range`中的内容大小数据。 cloese #968
+
 ## Version 1.7.1
 
 _2018-02-05_

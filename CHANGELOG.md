@@ -2,6 +2,21 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.2
+
+_2018-03-14_
+
+#### Fix
+
+- Fix: do not download callback error when the instance length of the task is zero, callback complete directly instead. close #789
+- Fix: fix the temp duplicate data on the database isn't removed when there are another running task with the same temp file path. closes #953
+- Fix: the data lost when retry. cloese #958
+- Fix: fix the instance length is always `1` when the `Content-Range` isn't provided but the `Content-Length` is provided on the trial connection.
+
+#### Enhancement
+
+- Improve Practicability: using the content length value on the `Content-Range` field when there isn't `Content-Length` field found on the response header. closes #968
+
 ## Version 1.7.1
 
 _2018-02-05_
