@@ -15,7 +15,7 @@ _2018-03-14_
 
 #### 性能与提高
 
-- 提高实用性: 当在响应头中不存在`Content-Length`字段时，使用隐藏在`Content-Range`中的内容大小数据。 cloese #967
+- 提高实用性: 当在响应头中不存在`Content-Length`字段时，使用隐藏在`Content-Range`中的内容大小数据。 closes #967
 
 ## Version 1.7.1
 
