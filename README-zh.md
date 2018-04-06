@@ -16,6 +16,14 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 
 ---
 
+### FileDownloader2 
+
+现在, [FileDownloader2-OkDownload](https://github.com/lingochamp/okdownload) 已经正式发布, okdownload继承了所有FileDownloader的优点，甚至做了更多的优化以及更多的特性。
+
+由于FileDownloader的单元测试覆盖太低，因此所有的进一步的需求以及提高都将会在okdownload上进行实现而非FileDownloader，而FileDownloader本身将只会关注于修复Bug。
+
+---
+
 ### 特点
 
 - 简单易用

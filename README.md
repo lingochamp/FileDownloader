@@ -19,6 +19,11 @@ Android multi-task file download engine.
 ![][avoid_drop_frames_1_gif]
 ![][avoid_drop_frames_2_gif]
 
+## FileDownloader2
+
+Now, [FileDownloader2-OkDownload](https://github.com/lingochamp/okdownload) is released, okdownload will contain all advantage on the FileDownloader and beyond.
+
+Because of FileDownloader unit-test coverage is very low, so all farther features and enhances will be achieved on the okdownload instead of FileDownloader, and FileDownloader will only focuses on bug fixes.
 
 ## Installation
 
