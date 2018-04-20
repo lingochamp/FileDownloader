@@ -54,6 +54,7 @@ public class FileDownloadRandomAccessFile implements FileDownloadOutputStream {
     @Override
     public void close() throws IOException {
         out.close();
+        randomAccess.close();
     }
 
     @Override
