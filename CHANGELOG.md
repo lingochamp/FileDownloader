@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.3
+
+_2018-04-20_
+
+#### Fix
+
+Fix: fix `fd` isn't released manually when download finished which may raise oom when there are a large number of tasks that are continuously initiated.
+
 ## Version 1.7.2
 
 _2018-03-14_

@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.3
+
+_2018-04-20_
+
+#### 修复
+
+修复: 修复由于在下载结束时`fd`没有被主动释放，导致当有大量的任务被不断的发起执行时有可能引发的OOM问题。
+
 ## Version 1.7.2
 
 _2018-03-14_
