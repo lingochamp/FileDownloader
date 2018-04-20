@@ -13,7 +13,7 @@ android {
     buildToolsVersion BUILD_TOOLS_VERSION as String
 
     defaultConfig {
-        minSdkVersion 11
+        minSdkVersion 14
         targetSdkVersion COMPILE_SDK_VERSION as int
         versionCode VERSION_CODE as int
         versionName VERSION_NAME as String
@@ -46,12 +46,12 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:recyclerview-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
-    debugCompile 'cn.dreamtobe.threaddebugger:threaddebugger:1.3.3'
-    releaseCompile 'cn.dreamtobe.threaddebugger:threaddebugger-no-op:1.3.3'
-    compile project(':library')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:recyclerview-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    debugImplementation 'cn.dreamtobe.threaddebugger:threaddebugger:1.3.3'
+    releaseImplementation 'cn.dreamtobe.threaddebugger:threaddebugger-no-op:1.3.3'
+    implementation project(':library')
     // for testing
-    compile 'com.squareup.okio:okio:1.11.0'
+    implementation 'com.squareup.okio:okio:1.13.0'
 }
