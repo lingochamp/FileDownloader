@@ -5,6 +5,7 @@
 /.idea/libraries
 /.idea/misc.xml
 /.idea/checkstyle-idea.xml
+/.idea/caches
 .DS_Store
 /build
 /captures
