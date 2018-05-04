@@ -97,8 +97,8 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
                 try {
                     FileDownloader.getImpl().bindService();
                 } catch (IllegalStateException ignored) {
-                    FileDownloadLog.w(this, "restart service failed, you may need to " +
-                            "restart downloading manually when the app comes back to foreground");
+                    FileDownloadLog.w(this, "restart service failed, you may need to "
+                            + "restart downloading manually when the app comes back to foreground");
                 }
             }
         } else {
