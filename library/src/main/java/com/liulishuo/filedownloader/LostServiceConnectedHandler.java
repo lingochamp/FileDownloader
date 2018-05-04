@@ -91,7 +91,15 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
 
                     queueHandler.freezeAllSerialQueues();
                 }
-                FileDownloader.getImpl().bindService();
+
+                // start service during the app is in background, the IllegalStateException may be
+                // thrown, but just ignore it is fun.
+                try {
+                    FileDownloader.getImpl().bindService();
+                } catch (IllegalStateException ignored) {
+                    FileDownloadLog.w(this, "restart service failed, you may need to "
+                            + "restart downloading manually when the app comes back to foreground");
+                }
             }
         } else {
 
