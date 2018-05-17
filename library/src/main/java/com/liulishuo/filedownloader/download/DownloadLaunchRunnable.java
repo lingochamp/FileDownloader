@@ -27,6 +27,7 @@ import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadHttpException;
 import com.liulishuo.filedownloader.exception.FileDownloadNetworkPolicyException;
 import com.liulishuo.filedownloader.exception.FileDownloadOutOfSpaceException;
+import com.liulishuo.filedownloader.exception.FileDownloadSecurityException;
 import com.liulishuo.filedownloader.model.ConnectionModel;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
@@ -306,6 +307,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
                 } catch (IOException | IllegalAccessException
                         | InterruptedException | IllegalArgumentException
+                        | FileDownloadSecurityException
                         | FileDownloadGiveUpRetryException e) {
                     if (isRetry(e)) {
                         onRetry(e);
@@ -356,7 +358,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     // the trial connection is for: 1. etag verify; 2. partial support verify.
-    private void trialConnect() throws IOException, RetryDirectly, IllegalAccessException {
+    private void trialConnect() throws IOException, RetryDirectly, IllegalAccessException,
+            FileDownloadSecurityException {
         FileDownloadConnection trialConnection = null;
         try {
             final ConnectionProfile trialConnectionProfile;
@@ -444,7 +447,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     private void handleTrialConnectResult(Map<String, List<String>> requestHeader,
                                           ConnectTask connectTask,
                                           FileDownloadConnection connection)
-            throws IOException, RetryDirectly, IllegalArgumentException {
+            throws IOException, RetryDirectly, IllegalArgumentException,
+            FileDownloadSecurityException {
         final int id = model.getId();
         final int code = connection.getResponseCode();
 

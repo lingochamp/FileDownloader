@@ -16,10 +16,18 @@
 
 package com.liulishuo.filedownloader.util;
 
+import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.exception.FileDownloadSecurityException;
+
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@RunWith(RobolectricTestRunner.class)
 public class FileDownloadUtilsTest {
 
     @Test
@@ -58,6 +66,14 @@ public class FileDownloadUtilsTest {
     public void parseContentLengthFromContentRange_withUnavailableContentRange() {
         long length = FileDownloadUtils.parseContentLengthFromContentRange("bytes 0-/37629451");
         assertThat(length).isEqualTo(-1);
+    }
+
+    @Test(expected = FileDownloadSecurityException.class)
+    public void findFilename_securityIssue() throws FileDownloadSecurityException {
+        final FileDownloadConnection connection = mock(FileDownloadConnection.class);
+        when(connection.getResponseHeaderField("Content-Disposition")).thenReturn("attachment; filename=\"../abc\"");
+
+        FileDownloadUtils.findFilename(connection, "url");
     }
 
 }

@@ -30,6 +30,7 @@ import com.liulishuo.filedownloader.BuildConfig;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
+import com.liulishuo.filedownloader.exception.FileDownloadSecurityException;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.FileDownloadService;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
@@ -618,7 +619,7 @@ public class FileDownloadUtils {
     public static long findContentLengthFromContentRange(FileDownloadConnection connection) {
         final String contentRange = getContentRangeHeader(connection);
         long contentLength = parseContentLengthFromContentRange(contentRange);
-        if (contentLength  < 0) contentLength = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
+        if (contentLength < 0) contentLength = TOTAL_VALUE_IN_CHUNKED_RESOURCE;
         return contentLength;
     }
 
@@ -640,12 +641,18 @@ public class FileDownloadUtils {
         return -1;
     }
 
-    public static String findFilename(FileDownloadConnection connection, String url) {
+    public static String findFilename(FileDownloadConnection connection, String url)
+            throws FileDownloadSecurityException {
         String filename = FileDownloadUtils.parseContentDisposition(connection.
                 getResponseHeaderField("Content-Disposition"));
 
         if (TextUtils.isEmpty(filename)) {
             filename = FileDownloadUtils.generateFileName(url);
+        } else if (filename.startsWith("../")) {
+            throw new FileDownloadSecurityException(FileDownloadUtils.formatString(
+                    "The filename [%s] from the response is not allowable, because it start"
+                            + " with '../', which can raise the directory traversal vulnerability",
+                    filename));
         }
 
         return filename;
