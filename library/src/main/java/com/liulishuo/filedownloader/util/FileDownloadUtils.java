@@ -650,8 +650,8 @@ public class FileDownloadUtils {
             filename = FileDownloadUtils.generateFileName(url);
         } else if (filename.contains("../")) {
             throw new FileDownloadSecurityException(FileDownloadUtils.formatString(
-                    "The filename [%s] from the response is not allowable, because it is " +
-                            "contains '../', which can raise the directory traversal vulnerability",
+                    "The filename [%s] from the response is not allowable, because it contains "
+                            + "'../', which can raise the directory traversal vulnerability",
                     filename));
         }
 
