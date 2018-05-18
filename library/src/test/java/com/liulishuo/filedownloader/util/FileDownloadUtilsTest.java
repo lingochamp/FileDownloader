@@ -19,7 +19,9 @@ package com.liulishuo.filedownloader.util;
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
 import com.liulishuo.filedownloader.exception.FileDownloadSecurityException;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
@@ -68,13 +70,25 @@ public class FileDownloadUtilsTest {
         assertThat(length).isEqualTo(-1);
     }
 
-    @Test(expected = FileDownloadSecurityException.class)
+    @Rule public ExpectedException thrown = ExpectedException.none();
+
+    @Test
     public void findFilename_securityIssue() throws FileDownloadSecurityException {
         final FileDownloadConnection connection = mock(FileDownloadConnection.class);
         when(connection.getResponseHeaderField("Content-Disposition"))
                 .thenReturn("attachment; filename=\"../abc\"");
 
+        thrown.expect(FileDownloadSecurityException.class);
         FileDownloadUtils.findFilename(connection, "url");
+
+        thrown.expect(FileDownloadSecurityException.class);
+        when(connection.getResponseHeaderField("Content-Disposition"))
+                .thenReturn("attachment; filename=\"a/b/../abc\"");
+        FileDownloadUtils.findFilename(connection, "url");
+
+        when(connection.getResponseHeaderField("Content-Disposition"))
+                .thenReturn("attachment; filename=\"/abc/adb\"");
+        assertThat(FileDownloadUtils.findFilename(connection, "url")).isEqualTo("/abc/adb");
     }
 
 }
