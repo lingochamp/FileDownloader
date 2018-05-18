@@ -71,7 +71,8 @@ public class FileDownloadUtilsTest {
     @Test(expected = FileDownloadSecurityException.class)
     public void findFilename_securityIssue() throws FileDownloadSecurityException {
         final FileDownloadConnection connection = mock(FileDownloadConnection.class);
-        when(connection.getResponseHeaderField("Content-Disposition")).thenReturn("attachment; filename=\"../abc\"");
+        when(connection.getResponseHeaderField("Content-Disposition"))
+                .thenReturn("attachment; filename=\"../abc\"");
 
         FileDownloadUtils.findFilename(connection, "url");
     }
