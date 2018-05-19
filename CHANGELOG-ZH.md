@@ -2,6 +2,15 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.4
+
+_2018-05-19_
+
+#### 修复 
+
+- 修复: 修复在Android 8或更高版本上，当应用在后台时，并且此时正在下载，但是下载服务的链接断开，此时尝试重新绑定的时候发生'IllegalStateException'的问题。closes #1017
+- 修复: 修复响应头带回来的文件名可能存在安全隐患的问题. closes #1028
+
 ## Version 1.7.3
 
 _2018-04-20_

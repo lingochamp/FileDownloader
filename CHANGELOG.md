@@ -2,6 +2,15 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.4
+
+_2018-05-19_
+
+#### Fix
+
+- Fix: fix raise 'IllegalStateException' on Android 8+ when FileDownloader try to re-bind service after the connection with the service is lost on downloading state and the app is on the background. closes #1017
+- Fix: fix directory traversal vulnerability security issue. closes #1028
+
 ## Version 1.7.3
 
 _2018-04-20_
