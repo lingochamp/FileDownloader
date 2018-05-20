@@ -1,3 +1,5 @@
+<p align="center"><img src="logo/1024px.png" alt="FileDownloader" height="200px"></p>
+
 # FileDownloader
 Android multi-task file download engine.
 
