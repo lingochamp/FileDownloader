@@ -456,6 +456,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         final boolean onlyFromBeginning = (code == HttpURLConnection.HTTP_OK
                 || code == HttpURLConnection.HTTP_CREATED
                 || code == FileDownloadConnection.NO_RESPONSE_CODE);
+        final long totalLength = FileDownloadUtils.findInstanceLengthForTrial(connection);
 
         final String oldEtag = model.getETag();
         String newEtag = FileDownloadUtils.findEtag(id, connection);
@@ -488,10 +489,19 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             }
 
             if (code == HTTP_REQUESTED_RANGE_NOT_SATISFIABLE) {
+                if (acceptPartial && totalLength >= 0) {
+                    // there is a special case: the server(such as Ali Cloud) doesn't follow the
+                    // agreement(https://tools.ietf.org/html/rfc7233), so they return a 416
+                    // response with Content-Range
+                    FileDownloadLog.w(this,
+                            "get 416 but the Content-Range is returned, no need to retry");
+                    break;
+                }
                 if (model.getSoFar() > 0) {
                     // On the first connection range not satisfiable, there must something wrong,
                     // so have to retry.
                     isPreconditionFailed = true;
+                    FileDownloadLog.w(this, "get 416, precondition failed and just retry");
                     break;
                 } else {
                     // range is right, but get 416
@@ -500,6 +510,8 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                         // discard range on header and try again
                         isNeedForceDiscardRange = true;
                         isPreconditionFailed = true;
+                        FileDownloadLog.w(this, "get 416, precondition failed and need "
+                                + "to retry with discarding range");
                     }
                 }
             }
@@ -541,7 +553,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
 
         redirectedUrl = connectTask.getFinalRedirectedUrl();
         if (acceptPartial || onlyFromBeginning) {
-            final long totalLength = FileDownloadUtils.findInstanceLengthForTrial(connection);
+
 
             // update model
             String fileName = null;
