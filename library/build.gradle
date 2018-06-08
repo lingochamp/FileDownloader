@@ -6,23 +6,7 @@ android {
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion COMPILE_SDK_VERSION as int
-        versionCode VERSION_CODE as int
         versionName VERSION_NAME as String
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    lintOptions {
-        // don't need parcel creator for the sub-class of MessageSnapshot.
-        warning 'ParcelCreator'
-
-        // avoid warning for "Not all execution paths return a value"
-        return true
     }
 }
 
@@ -55,8 +39,4 @@ dependencies {
     testImplementation "org.robolectric:robolectric:3.3.2"
 }
 
-if (isForUpload2Maven()) {
-    println ':library:include upload 2 maven methods'
-    apply from: 'https://raw.githubusercontent.com/Jacksgong/JCenter/master/installv1.gradle'
-    apply from: 'https://raw.githubusercontent.com/Jacksgong/JCenter/master/bintrayv1.gradle'
-}
+apply from: rootProject.file('gradle/mvn-push.gradle')

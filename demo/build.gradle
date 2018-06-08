@@ -15,8 +15,6 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion COMPILE_SDK_VERSION as int
-        versionCode VERSION_CODE as int
-        versionName VERSION_NAME as String
 
         File file = project.rootProject.file('local.properties');
         def needLog = null

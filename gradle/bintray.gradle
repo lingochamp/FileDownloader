@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2018 LingoChamp Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+apply plugin: 'com.jfrog.bintray'
+
+afterEvaluate { project ->
+    task sourcesJar(type: Jar) {
+        from android.sourceSets.main.java.srcDirs
+        classifier = 'sources'
+    }
+
+    task javadoc(type: Javadoc) {
+        failOnError false
+        source = android.sourceSets.main.java.srcDirs
+        options {
+            charSet = 'UTF-8'
+            links "http://docs.oracle.com/javase/7/docs/api/"
+            linksOffline "http://d.android.com/reference", System.getenv("ANDROID_HOME") + "/docs/reference"
+        }
+        classpath += project.android.libraryVariants.toList().first().javaCompile.classpath
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives javadocJar
+        archives sourcesJar
+    }
+}
+
+
+def getBintrayUser() {
+    return hasProperty('BINTRAY_USER') ? BINTRAY_USER : ""
+}
+
+def getBintrayGPGPassword() {
+    return hasProperty('BINTRAY_GPG_PASSWORD') ? BINTRAY_GPG_PASSWORD : ""
+}
+
+def getBintrayApiKey() {
+    return hasProperty('BINTRAY_API_KEY') ? BINTRAY_API_KEY : ""
+}
+
+def getSonatypeUsername() {
+    return hasProperty('SONATYPE_NEXUS_USERNAME') ? SONATYPE_NEXUS_USERNAME : ""
+}
+
+def getSonatypePassword() {
+    return hasProperty('SONATYPE_NEXUS_PASSWORD') ? SONATYPE_NEXUS_PASSWORD : ""
+}
+version = VERSION_NAME
+
+bintray {
+    user = getBintrayUser()
+    key = getBintrayApiKey()
+
+//    publish = true //[Default: false] Whether version should be auto published after an upload
+//    override = false //[Default: false] Whether to override version artifacts already published
+
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = POM_NAME
+        desc = POM_DESCRIPTION
+        websiteUrl = POM_URL
+        issueTrackerUrl = ISSUE_URL
+        vcsUrl = POM_SCM_URL
+        licenses = ["Apache-2.0"]
+        publish = true
+        publicDownloadNumbers = true
+
+        githubRepo = POM_URL
+        githubReleaseNotesFile = 'README.md'
+
+        version {
+            gpg {
+                sign = true //Determines whether to GPG sign the files. The default is false
+                passphrase = getBintrayGPGPassword()
+            }
+
+            mavenCentralSync {
+                sync = true
+                user = getSonatypeUsername()
+                password = getSonatypePassword()
+                close = '1'  //Optional property. By default the staging repository is closed and artifacts are released to Maven Central. You can optionally turn this behaviour off (by puting 0 as value) and release the version manually.
+            }
+        }
+    }
+}
