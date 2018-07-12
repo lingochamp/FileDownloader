@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -393,11 +394,12 @@ public class FileDownloadUtils {
                 + INTERNAL_DOCUMENT_NAME, OLD_FILE_CONVERTED_FILE_NAME);
     }
 
-    private static final Pattern CONTENT_DISPOSITION_QUOTED_PATTERN =
-            Pattern.compile("attachment;\\s*filename\\s*=\\s*\"([^\"]*)\"");
+    // note on https://tools.ietf.org/html/rfc5987
+    private static final Pattern CONTENT_DISPOSITION_WITH_ASTERISK_PATTERN =
+            Pattern.compile("attachment;\\s*filename\\*\\s*=\\s*\"*([^\"]*)'\\S*'([^\"]*)\"*");
     // note on http://www.ietf.org/rfc/rfc1806.txt
-    private static final Pattern CONTENT_DISPOSITION_NON_QUOTED_PATTERN =
-            Pattern.compile("attachment;\\s*filename\\s*=\\s*(.*)");
+    private static final Pattern CONTENT_DISPOSITION_WITHOUT_ASTERISK_PATTERN =
+            Pattern.compile("attachment;\\s*filename\\s*=\\s*\"*([^\"\\n]*)\"*");
 
     public static long parseContentRangeFoInstanceLength(String contentRange) {
         if (contentRange == null) return -1;
@@ -429,16 +431,18 @@ public class FileDownloadUtils {
         }
 
         try {
-            Matcher m = CONTENT_DISPOSITION_QUOTED_PATTERN.matcher(contentDisposition);
+            Matcher m = CONTENT_DISPOSITION_WITH_ASTERISK_PATTERN.matcher(contentDisposition);
             if (m.find()) {
-                return m.group(1);
+                String charset = m.group(1);
+                String encodeFileName = m.group(2);
+                return URLDecoder.decode(encodeFileName, charset);
             }
 
-            m = CONTENT_DISPOSITION_NON_QUOTED_PATTERN.matcher(contentDisposition);
+            m = CONTENT_DISPOSITION_WITHOUT_ASTERISK_PATTERN.matcher(contentDisposition);
             if (m.find()) {
                 return m.group(1);
             }
-        } catch (IllegalStateException ex) {
+        } catch (IllegalStateException | UnsupportedEncodingException ignore) {
             // This function is defined as returning null when it can't parse the header
         }
         return null;
