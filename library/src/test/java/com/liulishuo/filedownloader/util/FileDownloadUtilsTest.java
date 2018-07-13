@@ -43,6 +43,20 @@ public class FileDownloadUtilsTest {
         filename = FileDownloadUtils
                 .parseContentDisposition("attachment; filename=genome.jpeg\nabc");
         assertThat(filename).isEqualTo("genome.jpeg");
+        filename = FileDownloadUtils
+                .parseContentDisposition(
+                        "attachment; filename*=\"gb2312''%d4%b4%ce%c4%bc%fe.mp3\"");
+        assertThat(filename).isEqualTo("源文件.mp3");
+        filename = FileDownloadUtils
+                .parseContentDisposition("attachment; filename*=gb2312''%d4%b4%ce%c4%bc%fe.mp3");
+        assertThat(filename).isEqualTo("源文件.mp3");
+        filename = FileDownloadUtils
+                .parseContentDisposition(
+                        "attachment; filename*=\"UTF-8''%e6%ba%90%e6%96%87%e4%bb%b6.mp3\"");
+        assertThat(filename).isEqualTo("源文件.mp3");
+        filename = FileDownloadUtils
+                .parseContentDisposition("attachment;filename*=\"UTF8''1.mp3\"");
+        assertThat(filename).isEqualTo("1.mp3");
     }
 
     @Test
@@ -70,7 +84,8 @@ public class FileDownloadUtilsTest {
         assertThat(length).isEqualTo(-1);
     }
 
-    @Rule public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void findFilename_securityIssue() throws FileDownloadSecurityException {
