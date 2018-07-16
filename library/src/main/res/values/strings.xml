@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_filedownloader_notification_title">FileDownloader</string>
+    <string name="default_filedownloader_notification_content">FileDownloader is running.</string>
+</resources>

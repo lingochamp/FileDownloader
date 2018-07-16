@@ -17,11 +17,18 @@
 package com.liulishuo.filedownloader.services;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 
+import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -65,12 +72,35 @@ public class FileDownloadService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         handler.onStartCommand(intent, flags, startId);
+        if (FileDownloadUtils.needMakeServiceForeground(this)) makeServiceForeground();
         return START_STICKY;
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private void makeServiceForeground() {
+        ForegroundServiceConfig config =
+                CustomComponentHolder.getImpl().getForegroundConfigInstance();
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "make service foreground: %s", config);
+        }
+        if (config.isNeedRecreateChannelId()) {
+            NotificationChannel notificationChannel = new NotificationChannel(
+                    config.getNotificationChannelId(),
+                    config.getNotificationChannelName(),
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager == null) return;
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+        startForeground(config.getNotificationId(), config.getNotification(this));
     }
 
     @Override
     public void onDestroy() {
         handler.onDestroy();
+        stopForeground(true);
         super.onDestroy();
     }
 

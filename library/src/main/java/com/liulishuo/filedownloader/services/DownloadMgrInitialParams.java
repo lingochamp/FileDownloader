@@ -154,6 +154,27 @@ public class DownloadMgrInitialParams {
         }
     }
 
+    public ForegroundServiceConfig createForegroundServiceConfig() {
+        if (mMaker == null) {
+            return createDefaultForegroundServiceConfig();
+        }
+
+        final ForegroundServiceConfig foregroundServiceConfig = mMaker.mForegroundServiceConfig;
+        if (foregroundServiceConfig != null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "initial FileDownloader manager with the customize "
+                        + "foreground service config: %s", foregroundServiceConfig);
+            }
+            return foregroundServiceConfig;
+        } else {
+            return createDefaultForegroundServiceConfig();
+        }
+    }
+
+    private ForegroundServiceConfig createDefaultForegroundServiceConfig() {
+        return new ForegroundServiceConfig.Builder().needRecreateChannelId(true).build();
+    }
+
     private FileDownloadHelper.IdGenerator createDefaultIdGenerator() {
         return new DefaultIdGenerator();
     }
@@ -185,6 +206,7 @@ public class DownloadMgrInitialParams {
         FileDownloadHelper.ConnectionCreator mConnectionCreator;
         FileDownloadHelper.ConnectionCountAdapter mConnectionCountAdapter;
         FileDownloadHelper.IdGenerator mIdGenerator;
+        ForegroundServiceConfig mForegroundServiceConfig;
 
         /**
          * customize the id generator.
@@ -291,6 +313,15 @@ public class DownloadMgrInitialParams {
          */
         public InitCustomMaker connectionCreator(FileDownloadHelper.ConnectionCreator creator) {
             this.mConnectionCreator = creator;
+            return this;
+        }
+
+        /**
+         * customize configurations of foreground service
+         * @param config determines how to show an notification for the foreground service
+         */
+        public InitCustomMaker foregroundServiceConfig(ForegroundServiceConfig config) {
+            this.mForegroundServiceConfig = config;
             return this;
         }
 
