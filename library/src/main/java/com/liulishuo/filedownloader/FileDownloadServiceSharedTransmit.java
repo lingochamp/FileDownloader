@@ -25,6 +25,8 @@ import com.liulishuo.filedownloader.services.FDServiceSharedHandler;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownloadServiceSharedConnection;
 import com.liulishuo.filedownloader.services.FileDownloadService.SharedMainProcessService;
 import com.liulishuo.filedownloader.util.DownloadServiceNotConnectedHelper;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -142,7 +144,12 @@ class FileDownloadServiceSharedTransmit implements
             }
         }
         Intent i = new Intent(context, SERVICE_CLASS);
-        context.startService(i);
+        if (FileDownloadUtils.mustPushServiceToForeground(context)) {
+            if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
+            context.startForegroundService(i);
+        } else  {
+            context.startService(i);
+        }
     }
 
     @Override

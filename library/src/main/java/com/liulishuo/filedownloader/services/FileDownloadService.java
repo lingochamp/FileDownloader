@@ -17,11 +17,18 @@
 package com.liulishuo.filedownloader.services;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
+import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -38,6 +45,11 @@ import java.lang.ref.WeakReference;
 public class FileDownloadService extends Service {
 
     private IFileDownloadServiceHandler handler;
+    private static final String NOTIFICATION_CHANNEL_ID = "filedownloader_channel";
+    private static final String NOTIFICATION_CHANNEL_NAME = "Filedownloader";
+    private static final String NOTIFICATION_TITLE = "Filedownloader";
+    private static final String NOTIFICATION_CONTENT = "FileDownloader is running.";
+    private static final int NOTIFICATION_ID = 6666;
 
     @Override
     public void onCreate() {
@@ -65,12 +77,34 @@ public class FileDownloadService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         handler.onStartCommand(intent, flags, startId);
+        if (FileDownloadUtils.mustPushServiceToForeground(this)) pushServiceToForegroundIfNeeded();
         return START_STICKY;
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private void pushServiceToForegroundIfNeeded() {
+        if (FileDownloadLog.NEED_LOG) {
+            FileDownloadLog.d(this, "push download service to foreground");
+        }
+        NotificationChannel notificationChannel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager == null) return;
+        notificationManager.createNotificationChannel(notificationChannel);
+
+        Notification.Builder builder = new Notification.Builder(this, NOTIFICATION_CHANNEL_ID);
+        builder.setContentTitle(NOTIFICATION_TITLE)
+                .setSmallIcon(android.R.drawable.arrow_down_float)
+                .setContentText(NOTIFICATION_CONTENT)
+                .setLocalOnly(true);
+        startForeground(NOTIFICATION_ID, builder.build());
     }
 
     @Override
     public void onDestroy() {
         handler.onDestroy();
+        stopForeground(true);
         super.onDestroy();
     }
 
