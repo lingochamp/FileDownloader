@@ -155,7 +155,12 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         }
 
         context.bindService(i, this, Context.BIND_AUTO_CREATE);
-        context.startService(i);
+        if (FileDownloadUtils.mustPushServiceToForeground(context)) {
+            if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
+            context.startForegroundService(i);
+        } else {
+            context.startService(i);
+        }
     }
 
     @Override
@@ -181,9 +186,13 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     }
 
     public void startService(final Context context) {
-
         Intent i = new Intent(context, serviceClass);
-        context.startService(i);
+        if (FileDownloadUtils.mustPushServiceToForeground(context)) {
+            if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
+            context.startForegroundService(i);
+        } else {
+            context.startService(i);
+        }
     }
 
     protected abstract INTERFACE asInterface(IBinder service);
