@@ -838,8 +838,11 @@ public class FileDownloadUtils {
         if (appProcesses == null) return false;
 
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        if (pm == null || !pm.isScreenOn()) {
-            return false;
+        if (pm == null) return false;
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+            if (!pm.isInteractive()) return false;
+        } else {
+            if (!pm.isScreenOn()) return false;
         }
 
         String packageName = context.getApplicationContext().getPackageName();
