@@ -507,5 +507,5 @@ limitations under the License.
 [bintray_url]: https://bintray.com/jacksgong/maven/FileDownloader/_latestVersion
 [file_download_listener_callback_flow_png]: https://github.com/lingochamp/FileDownloader/raw/master/art/filedownloadlistener_callback_flow.png
 [build_status_svg]: https://travis-ci.org/lingochamp/FileDownloader.svg?branch=master
-[filedownloader_snapshot_svg]: https://img.shields.io/badge/SnapShot-1.7.5-yellow.svg
+[filedownloader_snapshot_svg]: https://img.shields.io/badge/SnapShot-1.7.6-yellow.svg
 [build_status_link]: https://travis-ci.org/lingochamp/FileDownloader
