@@ -848,8 +848,8 @@ public class FileDownloadUtils {
         String packageName = context.getApplicationContext().getPackageName();
         for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
             // The name of the process that this object is associated with.
-            if (appProcess.processName.equals(packageName) && appProcess.importance ==
-                    ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+            if (appProcess.processName.equals(packageName) && appProcess.importance
+                    == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
                 return true;
             }
 

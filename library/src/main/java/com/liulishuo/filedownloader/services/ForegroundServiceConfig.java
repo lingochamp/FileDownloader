@@ -96,13 +96,15 @@ public class ForegroundServiceConfig {
 
     @Override
     public String toString() {
-        return "ForegroundServiceConfig{" +
-                "notificationId=" + notificationId +
-                ", notificationChannelId='" + notificationChannelId + '\'' +
-                ", notificationChannelName='" + notificationChannelName + '\'' +
-                ", notification=" + notification +
-                ", needRecreateChannelId=" + needRecreateChannelId +
-                '}';
+        return "ForegroundServiceConfig{"
+                + "notificationId=" + notificationId
+                + ", notificationChannelId='" + notificationChannelId
+                + '\''
+                + ", notificationChannelName='" + notificationChannelName
+                + '\''
+                + ", notification=" + notification
+                + ", needRecreateChannelId=" + needRecreateChannelId
+                + '}';
     }
 
     public static class Builder {
@@ -139,12 +141,12 @@ public class ForegroundServiceConfig {
 
         public ForegroundServiceConfig build() {
             final ForegroundServiceConfig config = new ForegroundServiceConfig();
-            config.setNotificationChannelId(notificationChannelId == null ?
-                    DEFAULT_NOTIFICATION_CHANNEL_ID : notificationChannelId);
-            config.setNotificationChannelName(notificationChannelName == null ?
-                    DEFAULT_NOTIFICATION_CHANNEL_NAME : notificationChannelName);
-            config.setNotificationId(notificationId == 0 ?
-                    DEFAULT_NOTIFICATION_ID : notificationId);
+            config.setNotificationChannelId(notificationChannelId == null
+                    ? DEFAULT_NOTIFICATION_CHANNEL_ID : notificationChannelId);
+            config.setNotificationChannelName(notificationChannelName == null
+                    ? DEFAULT_NOTIFICATION_CHANNEL_NAME : notificationChannelName);
+            config.setNotificationId(notificationId == 0
+                    ? DEFAULT_NOTIFICATION_ID : notificationId);
             config.setNeedRecreateChannelId(needRecreateChannelId);
             config.setNotification(notification);
             return config;
