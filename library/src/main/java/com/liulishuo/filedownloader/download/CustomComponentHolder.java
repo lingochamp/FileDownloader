@@ -17,10 +17,11 @@
 package com.liulishuo.filedownloader.download;
 
 import com.liulishuo.filedownloader.connection.FileDownloadConnection;
+import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
-import com.liulishuo.filedownloader.database.FileDownloadDatabase;
+import com.liulishuo.filedownloader.services.ForegroundServiceConfig;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -41,6 +42,7 @@ public class CustomComponentHolder {
     private FileDownloadHelper.OutputStreamCreator outputStreamCreator;
     private FileDownloadDatabase database;
     private FileDownloadHelper.IdGenerator idGenerator;
+    private ForegroundServiceConfig foregroundServiceConfig;
 
     private static final class LazyLoader {
         private static final CustomComponentHolder INSTANCE = new CustomComponentHolder();
@@ -91,6 +93,19 @@ public class CustomComponentHolder {
         }
 
         return database;
+    }
+
+    public ForegroundServiceConfig getForegroundConfigInstance() {
+        if (foregroundServiceConfig != null) return foregroundServiceConfig;
+
+        synchronized (this) {
+            if (foregroundServiceConfig == null) {
+                foregroundServiceConfig = getDownloadMgrInitialParams()
+                        .createForegroundServiceConfig();
+            }
+        }
+
+        return foregroundServiceConfig;
     }
 
     public int getMaxNetworkThreadCount() {

@@ -23,6 +23,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.os.StatFs;
 import android.text.TextUtils;
 
@@ -825,5 +826,38 @@ public class FileDownloadUtils {
 
     public static String defaultUserAgent() {
         return formatString("FileDownloader/%s", BuildConfig.VERSION_NAME);
+    }
+
+    private static boolean isAppOnForeground(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getApplicationContext()
+                .getSystemService(Context.ACTIVITY_SERVICE);
+        if (activityManager == null) return false;
+
+        List<ActivityManager.RunningAppProcessInfo> appProcesses =
+                activityManager.getRunningAppProcesses();
+        if (appProcesses == null) return false;
+
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        if (pm == null) return false;
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+            if (!pm.isInteractive()) return false;
+        } else {
+            if (!pm.isScreenOn()) return false;
+        }
+
+        String packageName = context.getApplicationContext().getPackageName();
+        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+            // The name of the process that this object is associated with.
+            if (appProcess.processName.equals(packageName) && appProcess.importance
+                    == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    public static boolean needMakeServiceForeground(Context context) {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAppOnForeground(context);
     }
 }
