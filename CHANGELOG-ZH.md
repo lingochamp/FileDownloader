@@ -2,6 +2,19 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.5
+
+_2018-08-03_
+
+#### 修复
+
+- 修复: 修复在Android O的系统上，当应用不在前台，并且不在白名单的时候，由于下载服务无法通过`JobScheduler`来执行下载事务，只能通过`startService`，引起 "Not allowed to start service Intent..." 的问题。 closes #1078
+
+#### Enhance
+
+- 提升实用性: 支持`Content-Disposition`中的非UTF-8编码。 closes #1057
+- 提高实用性: 处理了阿里云服务错误反馈`416`的情况`。 closes #1050
+
 ## Version 1.7.4
 
 _2018-05-19_

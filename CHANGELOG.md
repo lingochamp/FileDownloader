@@ -2,6 +2,19 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.5
+
+_2018-08-03_
+
+#### Fix
+
+- Fix: fix raise "Not allowed to start service Intent..." issue when starting DownloadService on Android O and the application isn't on the foreground and also not on the whitelist, because we can't use `JobScheduler` to handle the download affair. closes #1078
+
+#### Enhance
+
+- Improve Practicability: support character set and the launguage encoding for `Content-Disposition`. closes #1057
+- Improve Practicability: cover the error response code 416 from aliyun repo. closes #1050
+
 ## Version 1.7.4
 
 _2018-05-19_
