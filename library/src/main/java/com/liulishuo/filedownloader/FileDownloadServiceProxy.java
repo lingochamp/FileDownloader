@@ -149,4 +149,9 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     public void clearAllTaskData() {
         handler.clearAllTaskData();
     }
+
+    @Override
+    public boolean madeServiceForeground() {
+        return handler.madeServiceForeground();
+    }
 }

@@ -248,6 +248,8 @@ class FileDownloadServiceUIGuard extends
             getService().stopForeground(removeNotification);
         } catch (RemoteException e) {
             e.printStackTrace();
+        } finally {
+            madeServiceForeground = false;
         }
     }
 
