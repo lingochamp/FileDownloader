@@ -45,7 +45,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     private final CALLBACK callback;
     private volatile INTERFACE service;
     private final Class<?> serviceClass;
-    protected boolean madeServiceForeground = false;
+    protected boolean runServiceForeground = false;
 
     private final HashMap<String, Object> uiCacheMap = new HashMap<>();
 
@@ -159,10 +159,10 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         if (FileDownloadUtils.needMakeServiceForeground(context)) {
             if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
             context.startForegroundService(i);
-            madeServiceForeground = true;
+            runServiceForeground = true;
         } else {
             context.startService(i);
-            madeServiceForeground = false;
+            runServiceForeground = false;
         }
     }
 
@@ -189,8 +189,8 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     }
 
     @Override
-    public boolean madeServiceForeground() {
-        return madeServiceForeground;
+    public boolean isRunServiceForeground() {
+        return runServiceForeground;
     }
 
     public void startService(final Context context) {
@@ -198,10 +198,10 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         if (FileDownloadUtils.needMakeServiceForeground(context)) {
             if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
             context.startForegroundService(i);
-            madeServiceForeground = true;
+            runServiceForeground = true;
         } else {
             context.startService(i);
-            madeServiceForeground = false;
+            runServiceForeground = false;
         }
     }
 

@@ -249,7 +249,7 @@ class FileDownloadServiceUIGuard extends
         } catch (RemoteException e) {
             e.printStackTrace();
         } finally {
-            madeServiceForeground = false;
+            runServiceForeground = false;
         }
     }
 

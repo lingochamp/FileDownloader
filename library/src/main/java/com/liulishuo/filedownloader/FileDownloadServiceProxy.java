@@ -151,7 +151,7 @@ public class FileDownloadServiceProxy implements IFileDownloadServiceProxy {
     }
 
     @Override
-    public boolean madeServiceForeground() {
-        return handler.madeServiceForeground();
+    public boolean isRunServiceForeground() {
+        return handler.isRunServiceForeground();
     }
 }

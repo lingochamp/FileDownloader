@@ -178,7 +178,7 @@ public class FileDownloadList {
         synchronized (mList) {
             succeed = mList.remove(willRemoveDownload);
             if (succeed && mList.size() == 0) {
-                if (FileDownloadServiceProxy.getImpl().madeServiceForeground()) {
+                if (FileDownloadServiceProxy.getImpl().isRunServiceForeground()) {
                     FileDownloader.getImpl().stopForeground(true);
                 }
             }
