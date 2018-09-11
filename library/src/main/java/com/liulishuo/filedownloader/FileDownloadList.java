@@ -177,6 +177,11 @@ public class FileDownloadList {
         boolean succeed;
         synchronized (mList) {
             succeed = mList.remove(willRemoveDownload);
+            if (succeed && mList.size() == 0) {
+                if (FileDownloadServiceProxy.getImpl().isRunServiceForeground()) {
+                    FileDownloader.getImpl().stopForeground(true);
+                }
+            }
         }
         if (FileDownloadLog.NEED_LOG) {
             if (mList.size() == 0) {
@@ -206,7 +211,6 @@ public class FileDownloadList {
                 default:
                     // ignored
             }
-
         } else {
             FileDownloadLog.e(this, "remove error, not exist: %s %d", willRemoveDownload,
                     removeByStatus);

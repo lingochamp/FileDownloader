@@ -45,6 +45,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
     private final CALLBACK callback;
     private volatile INTERFACE service;
     private final Class<?> serviceClass;
+    protected boolean runServiceForeground = false;
 
     private final HashMap<String, Object> uiCacheMap = new HashMap<>();
 
@@ -158,8 +159,10 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         if (FileDownloadUtils.needMakeServiceForeground(context)) {
             if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
             context.startForegroundService(i);
+            runServiceForeground = true;
         } else {
             context.startService(i);
+            runServiceForeground = false;
         }
     }
 
@@ -185,13 +188,20 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         context.stopService(i);
     }
 
+    @Override
+    public boolean isRunServiceForeground() {
+        return runServiceForeground;
+    }
+
     public void startService(final Context context) {
         Intent i = new Intent(context, serviceClass);
         if (FileDownloadUtils.needMakeServiceForeground(context)) {
             if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
             context.startForegroundService(i);
+            runServiceForeground = true;
         } else {
             context.startService(i);
+            runServiceForeground = false;
         }
     }
 

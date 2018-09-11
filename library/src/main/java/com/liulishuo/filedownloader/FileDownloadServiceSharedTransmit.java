@@ -44,6 +44,8 @@ class FileDownloadServiceSharedTransmit implements
 
     private static final Class<?> SERVICE_CLASS = SharedMainProcessService.class;
 
+    private boolean runServiceForeground = false;
+
     @Override
     public boolean start(String url, String path, boolean pathAsDirectory,
                          int callbackProgressTimes,
@@ -147,8 +149,10 @@ class FileDownloadServiceSharedTransmit implements
         if (FileDownloadUtils.needMakeServiceForeground(context)) {
             if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
             context.startForegroundService(i);
+            runServiceForeground = true;
         } else  {
             context.startService(i);
+            runServiceForeground = false;
         }
     }
 
@@ -177,6 +181,7 @@ class FileDownloadServiceSharedTransmit implements
         }
 
         handler.stopForeground(removeNotification);
+        runServiceForeground = false;
     }
 
     @Override
@@ -204,6 +209,11 @@ class FileDownloadServiceSharedTransmit implements
         }
 
         handler.clearAllTaskData();
+    }
+
+    @Override
+    public boolean isRunServiceForeground() {
+        return runServiceForeground;
     }
 
     private FDServiceSharedHandler handler;

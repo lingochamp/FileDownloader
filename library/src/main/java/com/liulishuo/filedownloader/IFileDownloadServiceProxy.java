@@ -61,4 +61,6 @@ public interface IFileDownloadServiceProxy {
     boolean clearTaskData(int id);
 
     void clearAllTaskData();
+
+    boolean isRunServiceForeground();
 }
