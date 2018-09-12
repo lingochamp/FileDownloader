@@ -17,7 +17,6 @@
 package com.liulishuo.filedownloader.services;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
@@ -27,6 +26,7 @@ import android.os.Build;
 import android.os.IBinder;
 
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
+import com.liulishuo.filedownloader.model.ServiceStatusModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -72,18 +72,25 @@ public class FileDownloadService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         handler.onStartCommand(intent, flags, startId);
-        if (FileDownloadUtils.needMakeServiceForeground(this)) makeServiceForeground();
+        inspectRunServiceForeground();
         return START_STICKY;
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+    private void inspectRunServiceForeground() {
+        final ServiceStatusModel serviceStatusModel = new ServiceStatusModel();
+        handler.checkRunServiceForeground(serviceStatusModel);
+        if (serviceStatusModel.isRunServiceForeground()) {
+            makeServiceForeground();
+        }
+    }
+
     private void makeServiceForeground() {
         ForegroundServiceConfig config =
                 CustomComponentHolder.getImpl().getForegroundConfigInstance();
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "make service foreground: %s", config);
         }
-        if (config.isNeedRecreateChannelId()) {
+        if (config.isNeedRecreateChannelId() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(
                     config.getNotificationChannelId(),
                     config.getNotificationChannelName(),

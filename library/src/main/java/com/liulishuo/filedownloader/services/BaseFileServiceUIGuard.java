@@ -193,18 +193,6 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         return runServiceForeground;
     }
 
-    public void startService(final Context context) {
-        Intent i = new Intent(context, serviceClass);
-        if (FileDownloadUtils.needMakeServiceForeground(context)) {
-            if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
-            context.startForegroundService(i);
-            runServiceForeground = true;
-        } else {
-            context.startService(i);
-            runServiceForeground = false;
-        }
-    }
-
     protected abstract INTERFACE asInterface(IBinder service);
 
     protected abstract void registerCallback(final INTERFACE service, final CALLBACK callback)

@@ -26,6 +26,7 @@ import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
+import com.liulishuo.filedownloader.model.ServiceStatusModel;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.lang.ref.WeakReference;
@@ -161,6 +162,28 @@ public class FDServiceSeparateHandler extends IFileDownloadIPCService.Stub
     @Override
     public void onDestroy() {
         MessageSnapshotFlow.getImpl().setReceiver(null);
+    }
+
+    @Override
+    public void checkRunServiceForeground(ServiceStatusModel serviceStatusModel) {
+        final int n = callbackList.beginBroadcast();
+        try {
+            for (int i = 0; i < n; i++) {
+                callbackList.getBroadcastItem(i).checkRunServiceForeground(serviceStatusModel);
+                if (serviceStatusModel.isHandled()) {
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.d(this, "check run service foreground success with"
+                                        + " callback: %d and result: %b",
+                                i, serviceStatusModel.isRunServiceForeground());
+                    }
+                    break;
+                }
+            }
+        } catch (RemoteException e) {
+            FileDownloadLog.e(this, e, "check run service foreground error");
+        } finally {
+            callbackList.finishBroadcast();
+        }
     }
 
     @Override
