@@ -24,7 +24,8 @@ public class ServiceStatusModel implements Parcelable {
     private boolean isHandled;
     private boolean runServiceForeground;
 
-    public ServiceStatusModel() {}
+    public ServiceStatusModel() {
+    }
 
     public boolean isHandled() {
         return isHandled;
