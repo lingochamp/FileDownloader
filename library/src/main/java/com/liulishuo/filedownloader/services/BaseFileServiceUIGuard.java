@@ -28,9 +28,8 @@ import android.os.RemoteException;
 
 import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.IFileDownloadServiceProxy;
-import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
-import com.liulishuo.filedownloader.util.FileDownloadHelper;
+import com.liulishuo.filedownloader.util.ExtraKeys;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -72,19 +71,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         this.service = asInterface(service);
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "onServiceConnected %s %s, run service foreground %b",
-                    name, this.service, runServiceForeground);
-        }
-
-        if (runServiceForeground) {
-            final Context context = FileDownloadHelper.getAppContext();
-            ForegroundServiceConfig config = CustomComponentHolder.getImpl()
-                    .getForegroundConfigInstance();
-            FileDownloadUtils.inspectNotificationChannelIdCreated(context, config);
-            startForeground(config.getNotificationId(), config.getNotification(context));
-            if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "run service foreground with config: %s", config);
-            }
+            FileDownloadLog.d(this, "onServiceConnected %s %s", name, this.service);
         }
 
         try {
@@ -171,6 +158,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         }
 
         runServiceForeground = FileDownloadUtils.needMakeServiceForeground(context);
+        i.putExtra(ExtraKeys.IS_FOREGROUND, runServiceForeground);
         context.bindService(i, this, Context.BIND_AUTO_CREATE);
         if (runServiceForeground) {
             if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
