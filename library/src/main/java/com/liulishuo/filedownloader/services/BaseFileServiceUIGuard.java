@@ -21,13 +21,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
 
 import com.liulishuo.filedownloader.FileDownloadEventPool;
 import com.liulishuo.filedownloader.IFileDownloadServiceProxy;
+import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
@@ -69,7 +72,19 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
         this.service = asInterface(service);
 
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "onServiceConnected %s %s", name, this.service);
+            FileDownloadLog.d(this, "onServiceConnected %s %s, run service foreground %b",
+                    name, this.service, runServiceForeground);
+        }
+
+        if (runServiceForeground) {
+            final Context context = FileDownloadHelper.getAppContext();
+            ForegroundServiceConfig config = CustomComponentHolder.getImpl()
+                    .getForegroundConfigInstance();
+            FileDownloadUtils.inspectNotificationChannelIdCreated(context, config);
+            startForeground(config.getNotificationId(), config.getNotification(context));
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "run service foreground with config: %s", config);
+            }
         }
 
         try {
@@ -155,14 +170,13 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             bindContexts.add(context);
         }
 
+        runServiceForeground = FileDownloadUtils.needMakeServiceForeground(context);
         context.bindService(i, this, Context.BIND_AUTO_CREATE);
-        if (FileDownloadUtils.needMakeServiceForeground(context)) {
+        if (runServiceForeground) {
             if (FileDownloadLog.NEED_LOG) FileDownloadLog.d(this, "start foreground service");
-            context.startForegroundService(i);
-            runServiceForeground = true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(i);
         } else {
             context.startService(i);
-            runServiceForeground = false;
         }
     }
 

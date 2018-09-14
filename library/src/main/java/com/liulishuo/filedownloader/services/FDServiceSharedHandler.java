@@ -23,7 +23,6 @@ import com.liulishuo.filedownloader.FileDownloadServiceProxy;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCCallback;
 import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
-import com.liulishuo.filedownloader.model.ServiceStatusModel;
 
 import java.lang.ref.WeakReference;
 
@@ -138,13 +137,6 @@ public class FDServiceSharedHandler extends IFileDownloadIPCService.Stub
     public void onDestroy() {
         //noinspection ConstantConditions
         FileDownloadServiceProxy.getConnectionListener().onDisconnected();
-    }
-
-    @Override
-    public void checkRunServiceForeground(ServiceStatusModel serviceStatusModel) {
-        serviceStatusModel.setHandled(true);
-        serviceStatusModel.setRunServiceForeground(
-                FileDownloadServiceProxy.getImpl().isRunServiceForeground());
     }
 
     public interface FileDownloadServiceSharedConnection {

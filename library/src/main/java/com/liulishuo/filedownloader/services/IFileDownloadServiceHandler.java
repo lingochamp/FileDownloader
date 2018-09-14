@@ -18,7 +18,6 @@ package com.liulishuo.filedownloader.services;
 import android.content.Intent;
 import android.os.IBinder;
 
-import com.liulishuo.filedownloader.model.ServiceStatusModel;
 import com.liulishuo.filedownloader.services.FDServiceSharedHandler.FileDownloadServiceSharedConnection;
 
 /**
@@ -50,10 +49,4 @@ interface IFileDownloadServiceHandler {
      * @see FDServiceSeparateHandler
      */
     void onDestroy();
-
-    /**
-     * called by service to check whether need to make service be foreground or not
-     * @param serviceStatusModel hold the result
-     */
-    void checkRunServiceForeground(ServiceStatusModel serviceStatusModel);
 }

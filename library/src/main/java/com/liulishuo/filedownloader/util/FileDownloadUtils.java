@@ -17,6 +17,8 @@
 package com.liulishuo.filedownloader.util;
 
 import android.app.ActivityManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -34,6 +36,7 @@ import com.liulishuo.filedownloader.exception.FileDownloadGiveUpRetryException;
 import com.liulishuo.filedownloader.exception.FileDownloadSecurityException;
 import com.liulishuo.filedownloader.model.FileDownloadModel;
 import com.liulishuo.filedownloader.services.FileDownloadService;
+import com.liulishuo.filedownloader.services.ForegroundServiceConfig;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 
 import java.io.File;
@@ -859,5 +862,20 @@ public class FileDownloadUtils {
 
     public static boolean needMakeServiceForeground(Context context) {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAppOnForeground(context);
+    }
+
+    public static void inspectNotificationChannelIdCreated(Context context,
+                                                           ForegroundServiceConfig config) {
+        if (config.isNeedRecreateChannelId() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(
+                    config.getNotificationChannelId(),
+                    config.getNotificationChannelName(),
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            NotificationManager notificationManager =
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager == null) return;
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
     }
 }

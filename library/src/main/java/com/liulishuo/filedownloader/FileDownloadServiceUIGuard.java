@@ -26,7 +26,6 @@ import com.liulishuo.filedownloader.message.MessageSnapshot;
 import com.liulishuo.filedownloader.message.MessageSnapshotFlow;
 import com.liulishuo.filedownloader.model.FileDownloadHeader;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
-import com.liulishuo.filedownloader.model.ServiceStatusModel;
 import com.liulishuo.filedownloader.services.BaseFileServiceUIGuard;
 import com.liulishuo.filedownloader.services.FileDownloadService.SeparateProcessService;
 import com.liulishuo.filedownloader.util.DownloadServiceNotConnectedHelper;
@@ -84,14 +83,6 @@ class FileDownloadServiceUIGuard extends
             MessageSnapshotFlow.getImpl().inflow(snapshot);
         }
 
-        @Override
-        public void checkRunServiceForeground(ServiceStatusModel serviceStatusModel)
-                throws RemoteException {
-            if (serviceStatusModel.isHandled()) return;
-            serviceStatusModel.setHandled(true);
-            serviceStatusModel.setRunServiceForeground(
-                    FileDownloadServiceProxy.getImpl().isRunServiceForeground());
-        }
     }
 
     /**

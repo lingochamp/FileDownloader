@@ -17,16 +17,12 @@
 package com.liulishuo.filedownloader.services;
 
 import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 
+import com.liulishuo.filedownloader.FileDownloadServiceProxy;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
-import com.liulishuo.filedownloader.model.ServiceStatusModel;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadProperties;
@@ -77,31 +73,16 @@ public class FileDownloadService extends Service {
     }
 
     private void inspectRunServiceForeground() {
-        final ServiceStatusModel serviceStatusModel = new ServiceStatusModel();
-        handler.checkRunServiceForeground(serviceStatusModel);
-        if (serviceStatusModel.isRunServiceForeground()) {
-            makeServiceForeground();
+        if (FileDownloadProperties.getImpl().processNonSeparate
+                && FileDownloadServiceProxy.getImpl().isRunServiceForeground()) {
+            ForegroundServiceConfig config = CustomComponentHolder.getImpl()
+                    .getForegroundConfigInstance();
+            FileDownloadUtils.inspectNotificationChannelIdCreated(this, config);
+            startForeground(config.getNotificationId(), config.getNotification(this));
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "run service foreground with config: %s", config);
+            }
         }
-    }
-
-    private void makeServiceForeground() {
-        ForegroundServiceConfig config =
-                CustomComponentHolder.getImpl().getForegroundConfigInstance();
-        if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "make service foreground: %s", config);
-        }
-        if (config.isNeedRecreateChannelId() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel = new NotificationChannel(
-                    config.getNotificationChannelId(),
-                    config.getNotificationChannelName(),
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            NotificationManager notificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notificationManager == null) return;
-            notificationManager.createNotificationChannel(notificationChannel);
-        }
-        startForeground(config.getNotificationId(), config.getNotification(this));
     }
 
     @Override
