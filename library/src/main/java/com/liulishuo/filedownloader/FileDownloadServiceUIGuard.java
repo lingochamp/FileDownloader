@@ -82,6 +82,7 @@ class FileDownloadServiceUIGuard extends
         public void callback(MessageSnapshot snapshot) throws RemoteException {
             MessageSnapshotFlow.getImpl().inflow(snapshot);
         }
+
     }
 
     /**
