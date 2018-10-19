@@ -251,7 +251,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     checkupBeforeConnect();
 
                     // 2. trial connect
-                    trialConnect();
+                    long contentLength = trialConnect();
 
                     // 3. reuse same task
                     checkupAfterGetFilename();
@@ -272,7 +272,7 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
                     handlePreAllocate(totalLength, model.getTempFilePath());
 
                     // 6. calculate block count
-                    final int connectionCount = calcConnectionCount(totalLength);
+                    final int connectionCount = calcConnectionCount(totalLength,contentLength);
                     if (connectionCount <= 0) {
                         throw new IllegalAccessException(FileDownloadUtils
                                 .formatString("invalid connection count %d, the connection count"
@@ -343,14 +343,20 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
         }
     }
 
-    private int calcConnectionCount(long totalLength) {
+    private int calcConnectionCount(long totalLength, long contentLength) {
         if (isMultiConnectionAvailable()) {
             if (isResumeAvailableOnDB) {
                 return model.getConnectionCount();
             } else {
-                return CustomComponentHolder.getImpl()
-                        .determineConnectionCount(model.getId(), model.getUrl(),
-                                model.getPath(), totalLength);
+                int connectionCount;
+                if (totalLength != contentLength && contentLength != 0) {
+                    connectionCount = (int) (totalLength / contentLength) + 1;
+                }else {
+                    connectionCount = CustomComponentHolder.getImpl()
+                            .determineConnectionCount(model.getId(), model.getUrl(),
+                                    model.getPath(), totalLength);
+                }
+                return connectionCount;
             }
         } else {
             return 1;
@@ -358,9 +364,10 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
     }
 
     // the trial connection is for: 1. etag verify; 2. partial support verify.
-    private void trialConnect() throws IOException, RetryDirectly, IllegalAccessException,
+    private long trialConnect() throws IOException, RetryDirectly, IllegalAccessException,
             FileDownloadSecurityException {
         FileDownloadConnection trialConnection = null;
+        long contentLength;
         try {
             final ConnectionProfile trialConnectionProfile;
             if (isNeedForceDiscardRange) {
@@ -380,10 +387,11 @@ public class DownloadLaunchRunnable implements Runnable, ProcessCallback {
             trialConnection = trialConnectTask.connect();
             handleTrialConnectResult(trialConnectTask.getRequestHeader(),
                     trialConnectTask, trialConnection);
-
+            contentLength = FileDownloadUtils.findContentLength(model.getId(), trialConnection);
         } finally {
             if (trialConnection != null) trialConnection.ending();
         }
+        return contentLength;
     }
 
     private boolean isMultiConnectionAvailable() {

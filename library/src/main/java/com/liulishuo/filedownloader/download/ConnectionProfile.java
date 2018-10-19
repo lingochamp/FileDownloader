@@ -79,7 +79,7 @@ public class ConnectionProfile {
         }
 
         final String range;
-        if (endOffset == RANGE_INFINITE) {
+        if (endOffset == RANGE_INFINITE || endOffset == 0) {
             range = FileDownloadUtils.formatString("bytes=%d-", currentOffset);
         } else {
             range = FileDownloadUtils
