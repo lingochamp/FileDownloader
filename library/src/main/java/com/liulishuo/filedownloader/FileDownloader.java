@@ -254,8 +254,6 @@ public class FileDownloader {
         }
     }
 
-    private Runnable pauseAllRunnable;
-
     /**
      * Pause all tasks running in FileDownloader.
      */
@@ -270,18 +268,8 @@ public class FileDownloader {
         if (FileDownloadServiceProxy.getImpl().isConnected()) {
             FileDownloadServiceProxy.getImpl().pauseAllTasks();
         } else {
-            if (pauseAllRunnable == null) {
-                pauseAllRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        FileDownloadServiceProxy.getImpl().pauseAllTasks();
-                    }
-                };
-            }
-            FileDownloadServiceProxy.getImpl()
-                    .bindStartByContext(FileDownloadHelper.getAppContext(), pauseAllRunnable);
+            PauseAllMarker.createMarker(FileDownloadHelper.getAppContext());
         }
-
     }
 
     /**

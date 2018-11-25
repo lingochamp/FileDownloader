@@ -23,9 +23,15 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.RemoteException;
 
+import com.liulishuo.filedownloader.PauseAllMarker;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
+import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.util.ExtraKeys;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -42,9 +48,14 @@ import java.lang.ref.WeakReference;
  * runs in the separate process(`:filedownloader`).
  */
 @SuppressLint("Registered")
-public class FileDownloadService extends Service {
+public class FileDownloadService extends Service implements Handler.Callback {
 
     private IFileDownloadServiceHandler handler;
+    private HandlerThread pauseAllChecker;
+    private Handler pauseAllHandler;
+
+    private static final Long PAUSE_ALL_CHECKER_PERIOD = 1000L; // 1 second
+    private static final int PAUSE_ALL_CHECKER_WHAT = 0;
 
     @Override
     public void onCreate() {
@@ -67,6 +78,37 @@ public class FileDownloadService extends Service {
         } else {
             handler = new FDServiceSeparateHandler(new WeakReference<>(this), manager);
         }
+
+        startPauseAllLooperCheck();
+    }
+
+    private void startPauseAllLooperCheck() {
+        pauseAllChecker = new HandlerThread("PauseAllChecker");
+        pauseAllChecker.start();
+        pauseAllHandler = new Handler(pauseAllChecker.getLooper(), this);
+        pauseAllHandler.sendEmptyMessageDelayed(PAUSE_ALL_CHECKER_WHAT, PAUSE_ALL_CHECKER_PERIOD);
+        // clear marker file at first
+        PauseAllMarker.clearMarker(this);
+    }
+
+    private void stopPauseAllLooperCheck() {
+        pauseAllHandler.removeMessages(PAUSE_ALL_CHECKER_WHAT);
+        pauseAllChecker.quit();
+    }
+
+    @Override
+    public boolean handleMessage(Message msg) {
+        if (PauseAllMarker.isMarked(this)) {
+            try {
+                final IFileDownloadIPCService ipcService = (IFileDownloadIPCService) handler;
+                ipcService.pauseAllTasks();
+            } catch (RemoteException ignore) {
+            } finally {
+                PauseAllMarker.clearMarker(this);
+            }
+        }
+        pauseAllHandler.sendEmptyMessageDelayed(0, PAUSE_ALL_CHECKER_PERIOD);
+        return true;
     }
 
     @Override
@@ -103,6 +145,7 @@ public class FileDownloadService extends Service {
 
     @Override
     public void onDestroy() {
+        stopPauseAllLooperCheck();
         handler.onDestroy();
         stopForeground(true);
         super.onDestroy();
