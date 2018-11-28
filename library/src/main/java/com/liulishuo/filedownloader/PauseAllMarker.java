@@ -26,6 +26,7 @@ import java.io.IOException;
 public class PauseAllMarker {
 
     private static final String MAKER_FILE_NAME = ".filedownloader_pause_all_marker.b";
+    private static File markerFile;
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void createMarker(Context context) {
@@ -44,7 +45,10 @@ public class PauseAllMarker {
     }
 
     private static File markerFile(Context context) {
-        return new File(context.getCacheDir() + File.separator + MAKER_FILE_NAME);
+        if (markerFile == null) {
+            markerFile = new File(context.getCacheDir() + File.separator + MAKER_FILE_NAME);
+        }
+        return markerFile;
     }
 
     public static boolean isMarked(Context context) {
