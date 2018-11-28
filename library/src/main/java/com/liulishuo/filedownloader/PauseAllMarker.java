@@ -33,12 +33,14 @@ public class PauseAllMarker {
         final File markerFile = markerFile(context);
         if (!markerFile.getParentFile().exists()) markerFile.getParentFile().mkdirs();
         if (markerFile.exists()) {
-            FileDownloadLog.w(PauseAllMarker.class, "marker file " + markerFile.getAbsolutePath() + " exists");
+            FileDownloadLog.w(PauseAllMarker.class, "marker file " + markerFile.getAbsolutePath()
+                    + " exists");
             return;
         }
         try {
             boolean success = markerFile.createNewFile();
-            FileDownloadLog.d(PauseAllMarker.class, "create marker file" + markerFile.getAbsolutePath() + " " + success);
+            FileDownloadLog.d(PauseAllMarker.class, "create marker file"
+                    + markerFile.getAbsolutePath() + " " + success);
         } catch (IOException e) {
             FileDownloadLog.e(PauseAllMarker.class, "create marker file failed", e);
         }
