@@ -20,6 +20,7 @@ package com.liulishuo.filedownloader.services;
 import android.text.TextUtils;
 
 import com.liulishuo.filedownloader.IThreadPoolMonitor;
+import com.liulishuo.filedownloader.PauseAllMarker;
 import com.liulishuo.filedownloader.database.FileDownloadDatabase;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
 import com.liulishuo.filedownloader.download.DownloadLaunchRunnable;
@@ -65,6 +66,10 @@ class FileDownloadManager implements IThreadPoolMonitor {
             FileDownloadLog.d(this, "request start the task with url(%s) path(%s) isDirectory(%B)",
                     url, path, pathAsDirectory);
         }
+
+        // clear pause all marker so that the delay pause all check doesn't obstruct normal start of
+        // new task
+        PauseAllMarker.clearMarker();
 
         final int id = FileDownloadUtils.generateId(url, path, pathAsDirectory);
         FileDownloadModel model = mDatabase.find(id);
