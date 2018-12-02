@@ -79,6 +79,7 @@ public class FileDownloadService extends Service implements Handler.Callback {
             handler = new FDServiceSeparateHandler(new WeakReference<>(this), manager);
         }
 
+        PauseAllMarker.clearMarker(this);
         startPauseAllLooperCheck();
     }
 
@@ -87,8 +88,6 @@ public class FileDownloadService extends Service implements Handler.Callback {
         pauseAllChecker.start();
         pauseAllHandler = new Handler(pauseAllChecker.getLooper(), this);
         pauseAllHandler.sendEmptyMessageDelayed(PAUSE_ALL_CHECKER_WHAT, PAUSE_ALL_CHECKER_PERIOD);
-        // clear marker file at first
-        PauseAllMarker.clearMarker(this);
     }
 
     private void stopPauseAllLooperCheck() {
