@@ -99,7 +99,8 @@ public class PauseAllMarker implements Handler.Callback {
         if (PauseAllMarker.isMarked()) {
             try {
                 serviceHandler.pauseAllTasks();
-            } catch (RemoteException ignore) {
+            } catch (RemoteException e) {
+                FileDownloadLog.e(this, e, "pause all failed");
             } finally {
                 PauseAllMarker.clearMarker();
             }
