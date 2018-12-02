@@ -17,20 +17,35 @@
 package com.liulishuo.filedownloader;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
+import android.os.RemoteException;
 
+import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
+import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 
 import java.io.File;
 import java.io.IOException;
 
-public class PauseAllMarker {
+public class PauseAllMarker implements Handler.Callback {
 
     private static final String MAKER_FILE_NAME = ".filedownloader_pause_all_marker.b";
     private static File markerFile;
+    private static final Long PAUSE_ALL_CHECKER_PERIOD = 1000L; // 1 second
+    private static final int PAUSE_ALL_CHECKER_WHAT = 0;
+    private HandlerThread pauseAllChecker;
+    private Handler pauseAllHandler;
+    private final IFileDownloadIPCService serviceHandler;
+
+    public PauseAllMarker(IFileDownloadIPCService serviceHandler) {
+        this.serviceHandler = serviceHandler;
+    }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void createMarker(Context context) {
-        final File markerFile = markerFile(context);
+    public static void createMarker() {
+        final File markerFile = markerFile();
         if (!markerFile.getParentFile().exists()) markerFile.getParentFile().mkdirs();
         if (markerFile.exists()) {
             FileDownloadLog.w(PauseAllMarker.class, "marker file " + markerFile.getAbsolutePath()
@@ -46,24 +61,50 @@ public class PauseAllMarker {
         }
     }
 
-    private static File markerFile(Context context) {
+    private static File markerFile() {
         if (markerFile == null) {
+            final Context context = FileDownloadHelper.getAppContext();
             markerFile = new File(context.getCacheDir() + File.separator + MAKER_FILE_NAME);
         }
         return markerFile;
     }
 
-    public static boolean isMarked(Context context) {
-        return markerFile(context).exists();
+    private static boolean isMarked() {
+        return markerFile().exists();
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void clearMarker(Context context) {
-        final File file = markerFile(context);
+    public static void clearMarker() {
+        final File file = markerFile();
         if (file.exists()) {
             FileDownloadLog.d(PauseAllMarker.class, "delete marker file " + file.delete());
-        } else {
-            FileDownloadLog.w(PauseAllMarker.class, "marker file doesn't exist");
         }
+    }
+
+    public void startPauseAllLooperCheck() {
+        pauseAllChecker = new HandlerThread("PauseAllChecker");
+        pauseAllChecker.start();
+        pauseAllHandler = new Handler(pauseAllChecker.getLooper(), this);
+        pauseAllHandler.sendEmptyMessageDelayed(PAUSE_ALL_CHECKER_WHAT, PAUSE_ALL_CHECKER_PERIOD);
+    }
+
+    public void stopPauseAllLooperCheck() {
+        pauseAllHandler.removeMessages(PAUSE_ALL_CHECKER_WHAT);
+        pauseAllChecker.quit();
+    }
+
+
+    @Override
+    public boolean handleMessage(Message msg) {
+        if (PauseAllMarker.isMarked()) {
+            try {
+                serviceHandler.pauseAllTasks();
+            } catch (RemoteException ignore) {
+            } finally {
+                PauseAllMarker.clearMarker();
+            }
+        }
+        pauseAllHandler.sendEmptyMessageDelayed(0, PAUSE_ALL_CHECKER_PERIOD);
+        return true;
     }
 }

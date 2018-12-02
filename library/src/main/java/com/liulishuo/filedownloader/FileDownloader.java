@@ -268,7 +268,7 @@ public class FileDownloader {
         if (FileDownloadServiceProxy.getImpl().isConnected()) {
             FileDownloadServiceProxy.getImpl().pauseAllTasks();
         } else {
-            PauseAllMarker.createMarker(FileDownloadHelper.getAppContext());
+            PauseAllMarker.createMarker();
         }
     }
 
