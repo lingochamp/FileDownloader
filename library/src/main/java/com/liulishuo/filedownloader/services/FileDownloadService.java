@@ -25,7 +25,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
 
+import com.liulishuo.filedownloader.PauseAllMarker;
 import com.liulishuo.filedownloader.download.CustomComponentHolder;
+import com.liulishuo.filedownloader.i.IFileDownloadIPCService;
 import com.liulishuo.filedownloader.util.ExtraKeys;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
@@ -45,6 +47,7 @@ import java.lang.ref.WeakReference;
 public class FileDownloadService extends Service {
 
     private IFileDownloadServiceHandler handler;
+    private PauseAllMarker pauseAllMarker;
 
     @Override
     public void onCreate() {
@@ -67,6 +70,10 @@ public class FileDownloadService extends Service {
         } else {
             handler = new FDServiceSeparateHandler(new WeakReference<>(this), manager);
         }
+
+        PauseAllMarker.clearMarker();
+        pauseAllMarker = new PauseAllMarker((IFileDownloadIPCService) handler);
+        pauseAllMarker.startPauseAllLooperCheck();
     }
 
     @Override
@@ -103,7 +110,7 @@ public class FileDownloadService extends Service {
 
     @Override
     public void onDestroy() {
-        handler.onDestroy();
+        pauseAllMarker.stopPauseAllLooperCheck();
         stopForeground(true);
         super.onDestroy();
     }
