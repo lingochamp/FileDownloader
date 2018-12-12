@@ -166,8 +166,8 @@ public class DownloadRunnable implements Runnable {
             }
         } else {
             // is single connection
-            FileDownloadModel downloadModel = database.find(downloadId);
-            return downloadModel.getSoFar();
+            final FileDownloadModel downloadModel = database.find(downloadId);
+            if (downloadModel != null) return downloadModel.getSoFar();
         }
         return 0;
     }
