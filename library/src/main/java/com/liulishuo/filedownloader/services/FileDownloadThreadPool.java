@@ -114,7 +114,7 @@ class FileDownloadThreadPool {
         for (int i = 0; i < size; i++) {
             final int key = runnablePool.keyAt(i);
             final DownloadLaunchRunnable runnable = runnablePool.get(key);
-            if (runnable.isAlive()) {
+            if (runnable != null && runnable.isAlive()) {
                 correctedRunnablePool.put(key, runnable);
             }
         }
