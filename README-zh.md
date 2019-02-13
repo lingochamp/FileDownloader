@@ -44,6 +44,23 @@ Android 文件下载引擎，稳定、高效、灵活、简单易用
 
 ---
 
+## Android 系统适配
+
+### 适配 Android 8.0
+
+从 Android 8.0 开发，后台服务的限制增强了，可以参考[这里](https://developer.android.com/about/versions/oreo/background)了解更多信息。
+因此，自 FileDownloader 1.7.6 版本开始， Android 8.0 及之后的系统上，如果在后台启动下载服务，这个服务将会是一个前台服务，同时你会看到一个标题为 "FileDownloader" 的通知。
+你可以参考[这里](https://github.com/lingochamp/FileDownloader/wiki/Compatibility-of-Android-O-Servic)去自定义通知的内容。
+
+### 适配 Android 9.0
+
+从 Android 9.0 (API level 28) 开始，明文请求默认被禁止，你可以在[这里](https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted)了解详细信息。
+FileDownloader 1.7.6 已经在 demo 中处理了此问题。
+
+根据[迁移笔记](https://developer.android.com/about/versions/pie/android-9.0-migration#tya)，`FOREGROUND_SERVICE` 这个权限已经在 1.7.6 版本添加到 library 的 manifest 里面了。
+
+---
+
 ## 欢迎提交 Pull requests
 
 - 尽量多的英文注解。
