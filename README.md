@@ -55,6 +55,7 @@ From now on, FileDownloader support following components to be customized by you
 | Database | [FileDownloadDatabase][FileDownloadDatabase-java-link] | [RemitDatabase][RemitDatabase-java-link]
 | ConnectionCountAdapter | [ConnectionCountAdapter][ConnectionCountAdapter-java-link] | [DefaultConnectionCountAdapter][DefaultConnectionCountAdapter-java-link]
 | IdGenerator | [IdGenerator][IdGenerator-java-link] | [DefaultIdGenerator][DefaultIdGenerator-java-link]
+| ForegroundServiceConfig | [ForegroundServiceConfig][ForegroundServiceConfig-java-link] | [ForegroundServiceConfig][ForegroundServiceConfig-java-link]
 
 > - If you want to use okhttp as your connection component, the simplest way is [this repo](https://github.com/Jacksgong/filedownloader-okhttp3-connection).
 > - If you don't want to use any database on FileDownloader(the database on FileDownloader is used for persist tasks' breakpoint info) just using [NoDatabaseImpl.java](https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/services/NoDatabaseImpl.java)
@@ -62,6 +63,21 @@ From now on, FileDownloader support following components to be customized by you
 ### How to valid it?
 
 Just create your own `DownloadMgrInitialParams.InitCustomMaker` and put those customized component to it, finally init the FileDownloader with it: [FileDownloader#init](https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/FileDownloader.java#L62)
+
+## Adaptation
+
+### Adapt to Android 8.0
+
+The restriction of background service has been tightened since Android 8.0, for more details, please refer to [here](https://developer.android.com/about/versions/oreo/background).
+So, after Android 8.0, the download service will be a foreground service when start downloading during app is in background and you will see a notification with a title named "FileDownloader" start from FileDownloader 1.7.6.
+You can refer to [here](https://github.com/lingochamp/FileDownloader/wiki/Compatibility-of-Android-O-Service) to custom the notification.
+
+### Adapt to Android 9.0
+
+Starting with Android 9.0 (API level 28), cleartext support is disabled by default, you can have a look at [here](https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted) to know about more details.
+FileDownloader demo has handled this problem start with 1.7.6.
+
+According to the [migration notes](https://developer.android.com/about/versions/pie/android-9.0-migration#tya), the FOREGROUND_SERVICE permission has been added to the library manifest since FileDownloader 1.7.6.
 
 ## Welcome PR
 
@@ -127,3 +143,4 @@ limitations under the License.
 [DefaultConnectionCountAdapter-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/connection/DefaultConnectionCountAdapter.java
 [IdGenerator-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/util/FileDownloadHelper.java#L55
 [DefaultIdGenerator-java-link]: https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/services/DefaultIdGenerator.java
+[ForegroundServiceConfig-java-link]:https://github.com/lingochamp/FileDownloader/blob/master/library/src/main/java/com/liulishuo/filedownloader/services/ForegroundServiceConfig.java
