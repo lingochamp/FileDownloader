@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">cdn.llsapp.com</domain>
+        <domain includeSubdomains="true">httpwatch.com</domain>
+        <domain includeSubdomains="true">mirror.internode.on.net</domain>
+        <domain includeSubdomains="true">download.chinaunix.net</domain>
+        <domain includeSubdomains="true">7xjww9.com1.z0.glb.clouddn.com</domain>
+        <domain includeSubdomains="true">dg.101.hk</domain>
+        <domain includeSubdomains="true">180.153.105.144</domain>
+        <domain includeSubdomains="true">dlsw.baidu.com</domain>
+        <domain includeSubdomains="true">pc6.com</domain>
+        <domain includeSubdomains="true">113.207.16.84</domain>
+        <domain includeSubdomains="true">down.tech.sina.com.cn</domain>
+        <domain includeSubdomains="true">girlatlas.b0.upaiyun.com</domain>
+        <domain includeSubdomains="true">cdn-l.llsapp.com</domain>
+        <domain includeSubdomains="true">imgsrc.baidu.com</domain>
+        <domain includeSubdomains="true">tech.down.sina.com.cn</domain>
+    </domain-config>
+</network-security-config>
