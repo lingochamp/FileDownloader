@@ -16,5 +16,6 @@
         <domain includeSubdomains="true">cdn-l.llsapp.com</domain>
         <domain includeSubdomains="true">imgsrc.baidu.com</domain>
         <domain includeSubdomains="true">tech.down.sina.com.cn</domain>
+        <domain includeSubdomains="true">placekitten.com</domain>
     </domain-config>
 </network-security-config>
