@@ -2,6 +2,17 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.6
+
+_2019-02-20_
+
+#### Fix
+
+- Fix: stop foreground service after all tasks finished in Android O. closes #1096
+- Fix: fix 'Context.startForegroundService() did not then call Service.startForeground()' issue. closes #1104
+- Fix: insure all foreground service running notification is canceled when pause download. closes #1136
+- Fix: fix tiny possibility npe during retry. closes #1100
+
 ## Version 1.7.5
 
 _2018-08-03_
