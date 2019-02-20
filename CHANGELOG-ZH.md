@@ -2,6 +2,17 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.6
+
+_2019-02-20_
+
+#### 修复
+
+- 修复: 在Android O以及更高版本手机上，在所有任务结束后自动将前台服务关闭. closes #1096
+- 修复: 修复'Context.startForegroundService() did not then call Service.startForeground()'的问题. closes #1104
+- 修复: 确保在调用停止任务后，运行中的通知被关闭. closes #1136
+- 修复: 修复在重试时小概率NPE. closes #1100
+
 ## Version 1.7.5
 
 _2018-08-03_
