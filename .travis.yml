@@ -8,7 +8,7 @@ android:
     # Ref https://github.com/travis-ci/travis-ci/issues/6260.
     - tools
     - platform-tools
-    - build-tools-28.0.2
+    - build-tools-28.0.3
     - android-28
     - extra
 
