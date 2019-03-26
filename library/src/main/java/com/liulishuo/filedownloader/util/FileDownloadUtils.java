@@ -858,6 +858,7 @@ public class FileDownloadUtils {
     }
 
     public static boolean needMakeServiceForeground(Context context) {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAppOnForeground(context);
+        // FIXME return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAppOnForeground(context);
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 }
