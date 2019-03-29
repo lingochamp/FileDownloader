@@ -24,6 +24,7 @@ import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The messenger for sending messages to  {@link FileDownloadListener}.
@@ -38,6 +39,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     private Queue<MessageSnapshot> parcelQueue;
 
     private boolean mIsDiscard = false;
+
+    private AtomicBoolean mBlockCompleteCall = new AtomicBoolean(false);
 
     FileDownloadMessenger(final BaseDownloadTask.IRunningTask task,
                           final BaseDownloadTask.LifeCycleCallback callback) {
@@ -122,18 +125,23 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     }
 
+
     /**
      * sync
      */
     @Override
     public void notifyBlockComplete(MessageSnapshot snapshot) {
+        mBlockCompleteCall.compareAndSet(false, true);
         if (FileDownloadLog.NEED_LOG) {
-            FileDownloadLog.d(this, "notify block completed %s %s", mTask,
-                    Thread.currentThread().getName());
+            if (parcelQueue != null) {
+                FileDownloadLog.d(this, "notify block completed %s %s %b %d", mTask,
+                        Thread.currentThread().getName(), isBlockingCompleted(), parcelQueue.size());
+            } else {
+                FileDownloadLog.d(this, "notify block completed %s %s %b %d", mTask,
+                        Thread.currentThread().getName(), true, -1);
+            }
         }
-
         mLifeCycleCallback.onIng();
-
         process(snapshot);
     }
 
@@ -249,7 +257,6 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         final MessageSnapshot message = parcelQueue.poll();
         final int currentStatus = message.getStatus();
         final BaseDownloadTask.IRunningTask task = mTask;
-
         if (task == null) {
             throw new IllegalArgumentException(FileDownloadUtils.formatString(
                     "can't handover the message, no master to receive this "
@@ -271,6 +278,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         if (currentStatus == FileDownloadStatus.blockComplete) {
             try {
                 listener.blockComplete(originTask);
+                mBlockCompleteCall.compareAndSet(true, false);
                 notifyCompleted(((BlockCompleteMessage) message).transmitToCompleted());
             } catch (Throwable throwable) {
                 notifyError(messageHandler.prepareErrorMessage(throwable));
@@ -387,7 +395,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public boolean isBlockingCompleted() {
-        return parcelQueue.peek().getStatus() == FileDownloadStatus.blockComplete;
+        return parcelQueue.peek().getStatus() == FileDownloadStatus.blockComplete
+                || mBlockCompleteCall.get();
     }
 
     @Override

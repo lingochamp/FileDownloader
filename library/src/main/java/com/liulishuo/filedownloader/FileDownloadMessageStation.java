@@ -32,11 +32,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadMessageStation {
 
-    private final Executor blockCompletedPool = FileDownloadExecutors.
+    private static final Executor BLOCK_COMPLETED_POOL = FileDownloadExecutors.
             newDefaultThreadPool(5, "BlockCompleted");
 
     private final Handler handler;
     private final LinkedBlockingQueue<IFileDownloadMessenger> waitingQueue;
+    private IFileDownloadMessenger mBlockCompleteMessenger;
 
     private static final class HolderClass {
         private static final FileDownloadMessageStation INSTANCE = new FileDownloadMessageStation();
@@ -64,12 +65,8 @@ public class FileDownloadMessageStation {
         }
 
         if (messenger.isBlockingCompleted()) {
-            blockCompletedPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    messenger.handoverMessage();
-                }
-            });
+            mBlockCompleteMessenger = messenger;
+            checkBlockCompeteMessage();
             return;
         }
 
@@ -84,18 +81,31 @@ public class FileDownloadMessageStation {
                         }
                     }
                     waitingQueue.clear();
+                    checkBlockCompeteMessage();
                 }
+            } else {
+                checkBlockCompeteMessage();
             }
         }
 
         if (!isIntervalValid() || immediately) {
             // post to UI thread immediately.
             handoverInUIThread(messenger);
+            checkBlockCompeteMessage();
             return;
         }
 
         // enqueue.
         enqueue(messenger);
+    }
+
+    private void checkBlockCompeteMessage() {
+        if (waitingQueue.isEmpty()) {
+            if (mBlockCompleteMessenger != null && mBlockCompleteMessenger.isBlockingCompleted()) {
+                handler.sendMessage(handler.obtainMessage(HANDOVER_A_BLOCK_COMPLETE_MESSENGER, mBlockCompleteMessenger));
+                mBlockCompleteMessenger = null;
+            }
+        }
     }
 
     private void handoverInUIThread(IFileDownloadMessenger messenger) {
@@ -123,6 +133,7 @@ public class FileDownloadMessageStation {
 
             if (waitingQueue.isEmpty()) {
                 // not messenger need be handled.
+                checkBlockCompeteMessage();
                 return;
             }
 
@@ -139,7 +150,6 @@ public class FileDownloadMessageStation {
 
 
         }
-
         handler.sendMessageDelayed(handler.obtainMessage(DISPOSE_MESSENGER_LIST, disposingList),
                 delayMillis);
     }
@@ -147,6 +157,7 @@ public class FileDownloadMessageStation {
 
     static final int HANDOVER_A_MESSENGER = 1;
     static final int DISPOSE_MESSENGER_LIST = 2;
+    static final int HANDOVER_A_BLOCK_COMPLETE_MESSENGER = 3;
     private final ArrayList<IFileDownloadMessenger> disposingList = new ArrayList<>();
 
     private static class UIHandlerCallback implements Handler.Callback {
@@ -159,6 +170,14 @@ public class FileDownloadMessageStation {
                 //noinspection unchecked
                 dispose((ArrayList<IFileDownloadMessenger>) msg.obj);
                 FileDownloadMessageStation.getImpl().push();
+            } else if (msg.what == HANDOVER_A_BLOCK_COMPLETE_MESSENGER) {
+                final IFileDownloadMessenger messenger = ((IFileDownloadMessenger) msg.obj);
+                BLOCK_COMPLETED_POOL.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        messenger.handoverMessage();
+                    }
+                });
             }
             return true;
         }
@@ -168,7 +187,6 @@ public class FileDownloadMessageStation {
             for (IFileDownloadMessenger iFileDownloadMessenger : disposingList) {
                 iFileDownloadMessenger.handoverMessage();
             }
-
             disposingList.clear();
         }
     }
