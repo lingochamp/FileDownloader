@@ -278,8 +278,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
         if (currentStatus == FileDownloadStatus.blockComplete) {
             try {
-                listener.blockComplete(originTask);
                 mBlockCompleteCall.compareAndSet(true, false);
+                listener.blockComplete(originTask);
                 notifyCompleted(((BlockCompleteMessage) message).transmitToCompleted());
             } catch (Throwable throwable) {
                 notifyError(messageHandler.prepareErrorMessage(throwable));
