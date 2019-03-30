@@ -102,7 +102,14 @@ public class FileDownloadMessageStation {
     private void checkBlockCompeteMessage() {
         if (waitingQueue.isEmpty()) {
             if (mBlockCompleteMessenger != null && mBlockCompleteMessenger.isBlockingCompleted()) {
-                handler.sendMessage(handler.obtainMessage(HANDOVER_A_BLOCK_COMPLETE_MESSENGER, mBlockCompleteMessenger));
+                long delayMillis;
+                if (!isIntervalValid()) {
+                    delayMillis = 0;
+                } else {
+                    delayMillis = INTERVAL;
+                }
+                handler.sendMessageDelayed(handler.obtainMessage(HANDOVER_A_BLOCK_COMPLETE_MESSENGER
+                                , mBlockCompleteMessenger), delayMillis);
                 mBlockCompleteMessenger = null;
             }
         }

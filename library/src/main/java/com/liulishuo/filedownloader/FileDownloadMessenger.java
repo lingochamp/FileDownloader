@@ -135,7 +135,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         if (FileDownloadLog.NEED_LOG) {
             if (parcelQueue != null) {
                 FileDownloadLog.d(this, "notify block completed %s %s %b %d", mTask,
-                        Thread.currentThread().getName(), isBlockingCompleted(), parcelQueue.size());
+                        Thread.currentThread().getName(), isBlockingCompleted()
+                        , parcelQueue.size());
             } else {
                 FileDownloadLog.d(this, "notify block completed %s %s %b %d", mTask,
                         Thread.currentThread().getName(), true, -1);
