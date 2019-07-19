@@ -16,6 +16,7 @@
 
 package com.liulishuo.filedownloader.database;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -30,7 +31,7 @@ import com.liulishuo.filedownloader.model.FileDownloadModel;
  */
 public class SqliteDatabaseOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "filedownloader.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     public SqliteDatabaseOpenHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -104,6 +105,13 @@ public class SqliteDatabaseOpenHelper extends SQLiteOpenHelper {
                     + ConnectionModel.END_OFFSET + " INTEGER, "
                     + "PRIMARY KEY ( " + ConnectionModel.ID + ", " + ConnectionModel.INDEX  + " )"
                     + ")");
+        }
+
+        if (oldVersion < 4) {
+            ContentValues values = new ContentValues();
+            values.put(ConnectionModel.END_OFFSET, -1);
+            String whereClause = ConnectionModel.END_OFFSET + "=? AND " + ConnectionModel.START_OFFSET + ">?";
+            db.update(SqliteDatabaseImpl.CONNECTION_TABLE_NAME, values, whereClause, new String[]{"0", "0"});
         }
     }
 
