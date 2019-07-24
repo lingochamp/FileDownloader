@@ -142,11 +142,19 @@ public class FileDownloadUtils {
             return defaultSaveRootPath;
         }
 
-        if (FileDownloadHelper.getAppContext().getExternalCacheDir() == null) {
-            return Environment.getDownloadCacheDirectory().getAbsolutePath();
-        } else {
-            //noinspection ConstantConditions
+        boolean useExternalStorage = false;
+        if (FileDownloadHelper.getAppContext().getExternalCacheDir() != null) {
+            if (Environment.getExternalStorageState().equals("mounted")) {
+                if (Environment.getExternalStorageDirectory().getFreeSpace() > 0) {
+                    useExternalStorage = true;
+                }
+            }
+        }
+
+        if (useExternalStorage) {
             return FileDownloadHelper.getAppContext().getExternalCacheDir().getAbsolutePath();
+        } else {
+            return FileDownloadHelper.getAppContext().getCacheDir().getAbsolutePath();
         }
     }
 
@@ -765,7 +773,7 @@ public class FileDownloadUtils {
             if (fileLength < currentOffset
                     || (totalLength != TOTAL_VALUE_IN_CHUNKED_RESOURCE  // not chunk transfer
                     && (fileLength > totalLength || currentOffset >= totalLength))
-                    ) {
+            ) {
                 // dirty data.
                 if (FileDownloadLog.NEED_LOG) {
                     FileDownloadLog.d(FileDownloadUtils.class, "can't continue %d dirty data"
