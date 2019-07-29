@@ -63,5 +63,5 @@
 
     <string name="notification_min_set_title">下载通知最简单案例</string>
     <string name="notification_min_set_desc">这是一个最少代码的Notification案例,在这里我们使用尽量少的代码将下载任务与通知绑定在一起。</string>
-    <string name="notification_sample_desc">这是一个简单的Notification案例,在这里我们显示下载信息在通知面板的同时,还获取下载信息显示在Activity上,并且在下载任务结束或者暂停之后,我们依然保留任务的Notification在Notification面板上。</string>
+    <string name="notification_sample_desc">这是一个简单的 Notification 案例，每一个下载的任务都会有一个通知展示下载进度，且在下载结束后通知栏不会自动消失。同时，在 Actitiy 里有个动态的进度条表示整个的下载过程。</string>
 </resources>

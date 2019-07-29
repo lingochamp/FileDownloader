@@ -9,9 +9,4 @@
         android:onClick="onClickSample"
         android:text="@string/notification_sample_title" />
 
-    <Button
-        style="@style/DemoButton"
-        android:onClick="onClickMinSet"
-        android:text="@string/notification_min_set_title" />
-
 </LinearLayout>

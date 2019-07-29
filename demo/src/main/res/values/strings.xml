@@ -42,7 +42,7 @@
     <string name="notification_demo_title">Notification Demo</string>
 
     <string name="notification_sample_title">Notification Sample Demo</string>
-    <string name="notification_sample_desc">This is notification sample demo, in this demo, we show the downloading information in the notification panel, we also need to get the downloading information to show in Activity, and we still hold the notification item in the notification panel when downloading is finished.</string>
+    <string name="notification_sample_desc">This is notification sample demo, in this demo, we show the downloading information in the notification panel and Activity. Every downloading task has a notification item in the notification panel and we will hold them after finishing download. In the meantime, there is a indeterminate progress bar in the activity to indicate the whole process of download.</string>
     <string name="notification_sample_show">Show the Notification</string>
 
     <string name="notification_min_set_title">Notification MinSet Demo</string>

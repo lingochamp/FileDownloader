@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadSampleListener;
 import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
@@ -158,7 +157,8 @@ public class SingleTaskTestActivity extends AppCompatActivity {
 
         switch (position) {
             case 1:
-                url = Constant.LIULISHUO_APK_URL;
+//                url = Constant.LIULISHUO_APK_URL;
+                url = "http://static.open.baidu.com/media/ch1000/png/chenweiting.png";
                 tag = new ViewHolder(new WeakReference<>(this), progressBar1, null, speedTv1, 1);
                 path = llsApkFilePath;
                 tag.setFilenameTv(filenameTv1);
