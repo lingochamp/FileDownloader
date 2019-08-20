@@ -746,7 +746,7 @@ public class FileDownloader {
     private static final Object INIT_LOST_CONNECTED_HANDLER_LOCK = new Object();
     private ILostServiceConnectedHandler mLostConnectedHandler;
 
-    ILostServiceConnectedHandler getLostConnectedHandler() {
+    public ILostServiceConnectedHandler getLostConnectedHandler() {
         if (mLostConnectedHandler == null) {
             synchronized (INIT_LOST_CONNECTED_HANDLER_LOCK) {
                 if (mLostConnectedHandler == null) {

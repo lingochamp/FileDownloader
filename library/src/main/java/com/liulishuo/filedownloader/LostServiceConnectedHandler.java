@@ -126,6 +126,13 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
     }
 
     @Override
+    public boolean haveWaitingTask() {
+        synchronized (mWaitingList) {
+            return !mWaitingList.isEmpty();
+        }
+    }
+
+    @Override
     public boolean dispatchTaskStart(BaseDownloadTask.IRunningTask task) {
         if (!FileDownloader.getImpl().isServiceConnected()) {
             synchronized (mWaitingList) {
@@ -134,12 +141,12 @@ public class LostServiceConnectedHandler extends FileDownloadConnectListener imp
                         FileDownloadLog.d(this, "Waiting for connecting with the downloader "
                                 + "service... %d", task.getOrigin().getId());
                     }
-                    FileDownloadServiceProxy.getImpl().
-                            bindStartByContext(FileDownloadHelper.getAppContext());
                     if (!mWaitingList.contains(task)) {
                         task.free();
                         mWaitingList.add(task);
                     }
+                    FileDownloadServiceProxy.getImpl().
+                            bindStartByContext(FileDownloadHelper.getAppContext());
                     return true;
                 }
             }
