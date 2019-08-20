@@ -38,4 +38,9 @@ public interface ILostServiceConnectedHandler {
      * @return {@code true} if the start action was dispatched.
      */
     boolean dispatchTaskStart(BaseDownloadTask.IRunningTask task);
+
+    /**
+     * @return {@code true} if there is task in waiting list.
+     */
+    boolean haveWaitingTask();
 }
