@@ -27,7 +27,6 @@ import android.os.IInterface;
 import android.os.RemoteException;
 
 import com.liulishuo.filedownloader.FileDownloadEventPool;
-import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.IFileDownloadServiceProxy;
 import com.liulishuo.filedownloader.event.DownloadServiceConnectChangedEvent;
 import com.liulishuo.filedownloader.util.ExtraKeys;
@@ -158,10 +157,7 @@ public abstract class BaseFileServiceUIGuard<CALLBACK extends Binder, INTERFACE 
             bindContexts.add(context);
         }
 
-        boolean needMakeServiceForeground = FileDownloadUtils.needMakeServiceForeground(context);
-        boolean haveWaitingTask =
-                FileDownloader.getImpl().getLostConnectedHandler().haveWaitingTask();
-        runServiceForeground = needMakeServiceForeground && haveWaitingTask;
+        runServiceForeground = FileDownloadUtils.needMakeServiceForeground(context);
         i.putExtra(ExtraKeys.IS_FOREGROUND, runServiceForeground);
         context.bindService(i, this, Context.BIND_AUTO_CREATE);
         if (runServiceForeground) {
