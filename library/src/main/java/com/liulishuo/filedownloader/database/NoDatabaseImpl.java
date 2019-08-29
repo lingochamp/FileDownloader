@@ -85,7 +85,9 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public void removeConnections(int id) {
-        connectionModelListMap.remove(id);
+        synchronized (connectionModelListMap) {
+            connectionModelListMap.remove(id);
+        }
     }
 
     @Override
@@ -94,10 +96,12 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
         List<ConnectionModel> processList = connectionModelListMap.get(id);
         if (processList == null) {
             processList = new ArrayList<>();
-            connectionModelListMap.put(id, processList);
-        }
+            synchronized (connectionModelListMap) {
+                connectionModelListMap.put(id, processList);
+            }
 
-        processList.add(model);
+            processList.add(model);
+        }
     }
 
     @Override
@@ -119,7 +123,9 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public void insert(FileDownloadModel downloadModel) {
-        downloaderModelMap.put(downloadModel.getId(), downloadModel);
+        synchronized (downloaderModelMap) {
+            downloaderModelMap.put(downloadModel.getId(), downloadModel);
+        }
     }
 
     @Override
@@ -131,8 +137,10 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
 
         if (find(downloadModel.getId()) != null) {
             // 替换
-            downloaderModelMap.remove(downloadModel.getId());
-            downloaderModelMap.put(downloadModel.getId(), downloadModel);
+            synchronized (downloaderModelMap) {
+                downloaderModelMap.remove(downloadModel.getId());
+                downloaderModelMap.put(downloadModel.getId(), downloadModel);
+            }
         } else {
             insert(downloadModel);
         }
@@ -140,13 +148,17 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public boolean remove(int id) {
-        downloaderModelMap.remove(id);
+        synchronized (downloaderModelMap) {
+            downloaderModelMap.remove(id);
+        }
         return true;
     }
 
     @Override
     public void clear() {
-        downloaderModelMap.clear();
+        synchronized (downloaderModelMap) {
+            downloaderModelMap.clear();
+        }
     }
 
     @Override
