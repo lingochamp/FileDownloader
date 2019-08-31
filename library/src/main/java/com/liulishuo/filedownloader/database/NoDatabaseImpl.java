@@ -66,49 +66,59 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
         return new Maker();
     }
 
-    @Override public void onTaskStart(int id) {
+    @Override
+    public void onTaskStart(int id) {
     }
 
     @Override
     public FileDownloadModel find(final int id) {
-        return downloaderModelMap.get(id);
+        synchronized (downloaderModelMap) {
+            return downloaderModelMap.get(id);
+        }
     }
 
     @Override
     public List<ConnectionModel> findConnectionModel(int id) {
         final List<ConnectionModel> resultList = new ArrayList<>();
-        final List<ConnectionModel> processList = connectionModelListMap.get(id);
+        List<ConnectionModel> processList = null;
+        synchronized (connectionModelListMap) {
+            processList = connectionModelListMap.get(id);
+        }
         if (processList != null) resultList.addAll(processList);
-
         return resultList;
     }
 
     @Override
     public void removeConnections(int id) {
-        connectionModelListMap.remove(id);
+        synchronized (connectionModelListMap) {
+            connectionModelListMap.remove(id);
+        }
     }
 
     @Override
     public void insertConnectionModel(ConnectionModel model) {
         final int id = model.getId();
-        List<ConnectionModel> processList = connectionModelListMap.get(id);
-        if (processList == null) {
-            processList = new ArrayList<>();
-            connectionModelListMap.put(id, processList);
+        synchronized (connectionModelListMap) {
+            List<ConnectionModel> processList = connectionModelListMap.get(id);
+            if (processList == null) {
+                processList = new ArrayList<>();
+                connectionModelListMap.put(id, processList);
+            }
+            processList.add(model);
         }
-
-        processList.add(model);
     }
 
     @Override
     public void updateConnectionModel(int id, int index, long currentOffset) {
-        final List<ConnectionModel> processList = connectionModelListMap.get(id);
-        if (processList == null) return;
+        synchronized (connectionModelListMap) {
+            final List<ConnectionModel> processList = connectionModelListMap.get(id);
+            if (processList == null) return;
 
-        for (ConnectionModel connectionModel : processList) {
-            if (connectionModel.getIndex() == index) {
-                connectionModel.setCurrentOffset(currentOffset);
-                return;
+            for (ConnectionModel connectionModel : processList) {
+                if (connectionModel.getIndex() == index) {
+                    connectionModel.setCurrentOffset(currentOffset);
+                    return;
+                }
             }
         }
     }
@@ -119,7 +129,9 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public void insert(FileDownloadModel downloadModel) {
-        downloaderModelMap.put(downloadModel.getId(), downloadModel);
+        synchronized (downloaderModelMap) {
+            downloaderModelMap.put(downloadModel.getId(), downloadModel);
+        }
     }
 
     @Override
@@ -131,8 +143,10 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
 
         if (find(downloadModel.getId()) != null) {
             // 替换
-            downloaderModelMap.remove(downloadModel.getId());
-            downloaderModelMap.put(downloadModel.getId(), downloadModel);
+            synchronized (downloaderModelMap) {
+                downloaderModelMap.remove(downloadModel.getId());
+                downloaderModelMap.put(downloadModel.getId(), downloadModel);
+            }
         } else {
             insert(downloadModel);
         }
@@ -140,13 +154,17 @@ public class NoDatabaseImpl implements FileDownloadDatabase {
 
     @Override
     public boolean remove(int id) {
-        downloaderModelMap.remove(id);
+        synchronized (downloaderModelMap) {
+            downloaderModelMap.remove(id);
+        }
         return true;
     }
 
     @Override
     public void clear() {
-        downloaderModelMap.clear();
+        synchronized (downloaderModelMap) {
+            downloaderModelMap.clear();
+        }
     }
 
     @Override
