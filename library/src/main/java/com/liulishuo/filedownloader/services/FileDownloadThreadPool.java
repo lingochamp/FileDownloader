@@ -126,7 +126,7 @@ class FileDownloadThreadPool {
         return runnable != null && runnable.isAlive();
     }
 
-    public int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId) {
+    public synchronized int findRunningTaskIdBySameTempPath(String tempFilePath, int excludeId) {
         if (null == tempFilePath) {
             return 0;
         }
@@ -138,6 +138,11 @@ class FileDownloadThreadPool {
             // out there are only two ways can change mValues: GrowingArrayUtils#insert and
             // GrowingArrayUtils#append they all only grow size, and valueAt only get value on
             // mValues.
+
+            // update(rth): No, out-of-bounds exception may occur in concurrent case. Even though
+            // mValues will always increase it's size, but this is not visible to all threads
+            // immediately. And in other hand, if the i(th) is removed, the value in mValues will be
+            // an object(SparseArray#DELETE), so, valueAt(int) method will throw ClassCastException.
             if (runnable == null) {
                 // why it is possible to occur null on here, because the value on  runnablePool can
                 // be remove on #cancel method.
