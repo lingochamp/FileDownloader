@@ -40,6 +40,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -660,6 +662,10 @@ public class FileDownloadUtils {
                 getResponseHeaderField("Content-Disposition"));
 
         if (TextUtils.isEmpty(filename)) {
+            filename = findFileNameFromUrl(url);
+        }
+
+        if (TextUtils.isEmpty(filename)) {
             filename = FileDownloadUtils.generateFileName(url);
         } else if (filename.contains("../")) {
             throw new FileDownloadSecurityException(FileDownloadUtils.formatString(
@@ -867,5 +873,20 @@ public class FileDownloadUtils {
 
     public static boolean needMakeServiceForeground(Context context) {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAppOnForeground(context);
+    }
+
+    static String findFileNameFromUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+        try {
+            final URL parseUrl = new URL(url);
+            final String path = parseUrl.getPath();
+            String fileName = path.substring(path.lastIndexOf('/') + 1);
+            if (fileName.isEmpty()) return null;
+            return fileName;
+        } catch (MalformedURLException ignore) {
+        }
+        return null;
     }
 }
