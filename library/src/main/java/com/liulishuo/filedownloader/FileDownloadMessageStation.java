@@ -32,7 +32,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @SuppressWarnings("WeakerAccess")
 public class FileDownloadMessageStation {
 
-    private final Executor blockCompletedPool = FileDownloadExecutors.
+    private static final Executor BLOCK_COMPLETED_POOL = FileDownloadExecutors.
             newDefaultThreadPool(5, "BlockCompleted");
 
     private final Handler handler;
@@ -63,13 +63,7 @@ public class FileDownloadMessageStation {
             return;
         }
 
-        if (messenger.isBlockingCompleted()) {
-            blockCompletedPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    messenger.handoverMessage();
-                }
-            });
+        if (interceptBlockCompleteMessage(messenger)) {
             return;
         }
 
@@ -100,6 +94,25 @@ public class FileDownloadMessageStation {
 
     private void handoverInUIThread(IFileDownloadMessenger messenger) {
         handler.sendMessage(handler.obtainMessage(HANDOVER_A_MESSENGER, messenger));
+    }
+
+    /**
+     * @param messenger {@link com.liulishuo.filedownloader.IFileDownloadMessenger}
+     * @return true if the messenger is a block complete messenger and handle it through
+     * {@linkplain FileDownloadMessageStation#BLOCK_COMPLETED_POOL} in the meantime.
+     */
+    private static boolean interceptBlockCompleteMessage(final IFileDownloadMessenger messenger) {
+        if (messenger.isBlockingCompleted()) {
+            BLOCK_COMPLETED_POOL.execute(new Runnable() {
+                @Override
+                public void run() {
+                    messenger.handoverMessage();
+                }
+            });
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private final Object queueLock = new Object();
@@ -166,6 +179,9 @@ public class FileDownloadMessageStation {
         private void dispose(final ArrayList<IFileDownloadMessenger> disposingList) {
             // dispose Sub-package-size each time.
             for (IFileDownloadMessenger iFileDownloadMessenger : disposingList) {
+                if (interceptBlockCompleteMessage(iFileDownloadMessenger)) {
+                    continue;
+                }
                 iFileDownloadMessenger.handoverMessage();
             }
 
