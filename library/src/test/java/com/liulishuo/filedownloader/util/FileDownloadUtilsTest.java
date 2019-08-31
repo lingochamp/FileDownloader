@@ -24,12 +24,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class FileDownloadUtilsTest {
 
     @Test
@@ -106,4 +108,28 @@ public class FileDownloadUtilsTest {
         assertThat(FileDownloadUtils.findFilename(connection, "url")).isEqualTo("/abc/adb");
     }
 
+    @Test
+    public void getFileNameFromUrl() {
+        String url = "http://mirror.internode.on.net/pub/test/5meg.test5";
+        assertThat(FileDownloadUtils.findFileNameFromUrl(url)).isEqualTo("5meg.test5");
+
+        url = "http://cdn-l.llsapp.com/connett/25183b40-22f2-0133-6e99-029df5130f9e";
+        assertThat(FileDownloadUtils.findFileNameFromUrl(url))
+                .isEqualTo("25183b40-22f2-0133-6e99-029df5130f9e");
+
+        url = "http://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx?0.04400023248109086";
+        assertThat(FileDownloadUtils.findFileNameFromUrl(url)).isEqualTo("chunkedimage.aspx");
+
+        url = "http://113.207.16.84/dd.myapp.com/16891/2E53C25B6BC55D3330AB85A1B7B57485.apk?mkey="
+                + "5630b43973f537cf&f=cf87&fsname=com.htshuo.htsg_3.0.1_49.apk&asr=02f1&p=.apk";
+        assertThat(FileDownloadUtils.findFileNameFromUrl(url))
+                .isEqualTo("2E53C25B6BC55D3330AB85A1B7B57485.apk");
+
+        url = "";
+        assertThat(FileDownloadUtils.findFileNameFromUrl(url)).isNull();
+
+        assertThat(FileDownloadUtils.findFileNameFromUrl(null)).isNull();
+
+        assertThat(FileDownloadUtils.findFileNameFromUrl("abc")).isNull();
+    }
 }
