@@ -121,7 +121,7 @@ class FileDownloadThreadPool {
         runnablePool = correctedRunnablePool;
     }
 
-    public boolean isInThreadPool(final int downloadId) {
+    public synchronized boolean isInThreadPool(final int downloadId) {
         final DownloadLaunchRunnable runnable = runnablePool.get(downloadId);
         return runnable != null && runnable.isAlive();
     }
