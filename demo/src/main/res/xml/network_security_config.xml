@@ -2,6 +2,7 @@
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">cdn.llsapp.com</domain>
+        <domain includeSubdomains="true">117.143.109.173</domain>
         <domain includeSubdomains="true">httpwatch.com</domain>
         <domain includeSubdomains="true">mirror.internode.on.net</domain>
         <domain includeSubdomains="true">download.chinaunix.net</domain>
