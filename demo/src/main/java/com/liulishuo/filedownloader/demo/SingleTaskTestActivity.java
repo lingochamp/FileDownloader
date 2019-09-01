@@ -157,8 +157,7 @@ public class SingleTaskTestActivity extends AppCompatActivity {
 
         switch (position) {
             case 1:
-//                url = Constant.LIULISHUO_APK_URL;
-                url = "http://static.open.baidu.com/media/ch1000/png/chenweiting.png";
+                url = Constant.LIULISHUO_APK_URL;
                 tag = new ViewHolder(new WeakReference<>(this), progressBar1, null, speedTv1, 1);
                 path = llsApkFilePath;
                 tag.setFilenameTv(filenameTv1);
