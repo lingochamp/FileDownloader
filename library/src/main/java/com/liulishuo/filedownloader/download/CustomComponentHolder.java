@@ -88,17 +88,7 @@ public class CustomComponentHolder {
         synchronized (this) {
             if (database == null) {
                 database = getDownloadMgrInitialParams().createDatabase();
-                // There is no reusable thread for this action and this action has
-                // a very low frequency, so, a new thread is simplest way to make this action
-                // run on background thread.
-                final String maintainThreadName =
-                        FileDownloadUtils.getThreadPoolName("MaintainDatabase");
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        maintainDatabase(database.maintainer());
-                    }
-                }, maintainThreadName).start();
+                maintainDatabase(database.maintainer());
             }
         }
 
@@ -196,7 +186,7 @@ public class CustomComponentHolder {
                             || model.getStatus() == FileDownloadStatus.error
                             || (model.getStatus() == FileDownloadStatus.pending && model
                             .getSoFar() > 0)
-                    ) {
+                            ) {
                         // Ensure can be covered by RESUME FROM BREAKPOINT.
                         model.setStatus(FileDownloadStatus.paused);
                     }
@@ -285,9 +275,6 @@ public class CustomComponentHolder {
             FileDownloadUtils.markConverted(FileDownloadHelper.getAppContext());
             maintainer.onFinishMaintain();
             // 566 data consumes about 140ms
-            // update by rth: different devices have very large disparity, such as,
-            // in my HuaWei Android 8.0, 67 data consumes about 355ms.
-            // so, it's better do this action in background thread.
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(FileDownloadDatabase.class,
                         "refreshed data count: %d , delete data count: %d, reset id count:"
