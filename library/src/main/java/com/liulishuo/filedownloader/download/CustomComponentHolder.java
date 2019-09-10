@@ -23,13 +23,19 @@ import com.liulishuo.filedownloader.model.FileDownloadStatus;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 import com.liulishuo.filedownloader.services.ForegroundServiceConfig;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
+import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The holder for supported custom components.
@@ -168,118 +174,147 @@ public class CustomComponentHolder {
         return initialParams;
     }
 
-    private static void maintainDatabase(FileDownloadDatabase.Maintainer maintainer) {
+    private static void maintainDatabase(final FileDownloadDatabase.Maintainer maintainer) {
         final Iterator<FileDownloadModel> iterator = maintainer.iterator();
-        long refreshDataCount = 0;
-        long removedDataCount = 0;
-        long resetIdCount = 0;
+        final AtomicInteger removedDataCount = new AtomicInteger(0);
+        final AtomicInteger resetIdCount = new AtomicInteger(0);
+        final AtomicInteger refreshDataCount = new AtomicInteger(0);
         final FileDownloadHelper.IdGenerator idGenerator = getImpl().getIdGeneratorInstance();
 
         final long startTimestamp = System.currentTimeMillis();
+        final List<Future> futures = new ArrayList<>();
+        final ThreadPoolExecutor maintainThreadPool = FileDownloadExecutors.newDefaultThreadPool(3,
+                FileDownloadUtils.getThreadPoolName("MaintainDatabase"));
         try {
             while (iterator.hasNext()) {
-                boolean isInvalid = false;
                 final FileDownloadModel model = iterator.next();
-                do {
-                    if (model.getStatus() == FileDownloadStatus.progress
-                            || model.getStatus() == FileDownloadStatus.connected
-                            || model.getStatus() == FileDownloadStatus.error
-                            || (model.getStatus() == FileDownloadStatus.pending && model
-                            .getSoFar() > 0)
+                final Future modelFuture = maintainThreadPool.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isInvalid = false;
+                        do {
+                            if (model.getStatus() == FileDownloadStatus.progress
+                                    || model.getStatus() == FileDownloadStatus.connected
+                                    || model.getStatus() == FileDownloadStatus.error
+                                    || (model.getStatus() == FileDownloadStatus.pending && model
+                                    .getSoFar() > 0)
                             ) {
-                        // Ensure can be covered by RESUME FROM BREAKPOINT.
-                        model.setStatus(FileDownloadStatus.paused);
-                    }
-                    final String targetFilePath = model.getTargetFilePath();
-                    if (targetFilePath == null) {
-                        // no target file path, can't used to resume from breakpoint.
-                        isInvalid = true;
-                        break;
-                    }
-
-                    final File targetFile = new File(targetFilePath);
-                    // consider check in new thread, but SQLite lock | file lock aways effect, so
-                    // sync
-                    if (model.getStatus() == FileDownloadStatus.paused
-                            && FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
-                            model.getPath(), null)) {
-                        // can be reused in the old mechanism(no-temp-file).
-
-                        final File tempFile = new File(model.getTempFilePath());
-
-                        if (!tempFile.exists() && targetFile.exists()) {
-                            final boolean successRename = targetFile.renameTo(tempFile);
-                            if (FileDownloadLog.NEED_LOG) {
-                                FileDownloadLog.d(FileDownloadDatabase.class,
-                                        "resume from the old no-temp-file architecture "
-                                                + "[%B], [%s]->[%s]",
-                                        successRename, targetFile.getPath(), tempFile.getPath());
-
+                                // Ensure can be covered by RESUME FROM BREAKPOINT.
+                                model.setStatus(FileDownloadStatus.paused);
                             }
+                            final String targetFilePath = model.getTargetFilePath();
+                            if (targetFilePath == null) {
+                                // no target file path, can't used to resume from breakpoint.
+                                isInvalid = true;
+                                break;
+                            }
+
+                            final File targetFile = new File(targetFilePath);
+                            // consider check in new thread, but SQLite lock | file lock aways
+                            // effect, so sync
+                            if (model.getStatus() == FileDownloadStatus.paused
+                                    && FileDownloadUtils.isBreakpointAvailable(model.getId(), model,
+                                    model.getPath(), null)) {
+                                // can be reused in the old mechanism(no-temp-file).
+
+                                final File tempFile = new File(model.getTempFilePath());
+
+                                if (!tempFile.exists() && targetFile.exists()) {
+                                    final boolean successRename = targetFile.renameTo(tempFile);
+                                    if (FileDownloadLog.NEED_LOG) {
+                                        FileDownloadLog.d(FileDownloadDatabase.class,
+                                                "resume from the old no-temp-file architecture "
+                                                        + "[%B], [%s]->[%s]",
+                                                successRename, targetFile.getPath(),
+                                                tempFile.getPath());
+                                    }
+                                }
+                            }
+
+                            /**
+                             * Remove {@code model} from DB if it can't used for judging whether the
+                             * old-downloaded file is valid for reused & it can't used for resuming
+                             * from BREAKPOINT, In other words, {@code model} is no use anymore for
+                             * FileDownloader.
+                             */
+                            if (model.getStatus() == FileDownloadStatus.pending
+                                    && model.getSoFar() <= 0) {
+                                // This model is redundant.
+                                isInvalid = true;
+                                break;
+                            }
+
+                            if (!FileDownloadUtils.isBreakpointAvailable(model.getId(), model)) {
+                                // It can't used to resuming from breakpoint.
+                                isInvalid = true;
+                                break;
+                            }
+
+                            if (targetFile.exists()) {
+                                // It has already completed downloading.
+                                isInvalid = true;
+                                break;
+                            }
+
+                        } while (false);
+
+
+                        if (isInvalid) {
+                            maintainer.onRemovedInvalidData(model);
+                            removedDataCount.addAndGet(1);
+                        } else {
+                            final int oldId = model.getId();
+                            final int newId = idGenerator.transOldId(oldId, model.getUrl(),
+                                    model.getPath(), model.isPathAsDirectory());
+                            if (newId != oldId) {
+                                if (FileDownloadLog.NEED_LOG) {
+                                    FileDownloadLog.d(FileDownloadDatabase.class,
+                                            "the id is changed on restoring from db:"
+                                                    + " old[%d] -> new[%d]",
+                                            oldId, newId);
+                                }
+                                model.setId(newId);
+                                maintainer.changeFileDownloadModelId(oldId, model);
+                                resetIdCount.addAndGet(1);
+                            }
+
+                            maintainer.onRefreshedValidData(model);
+                            refreshDataCount.addAndGet(1);
                         }
                     }
-
-                    /**
-                     * Remove {@code model} from DB if it can't used for judging whether the
-                     * old-downloaded file is valid for reused & it can't used for resuming from
-                     * BREAKPOINT, In other words, {@code model} is no use anymore for
-                     * FileDownloader.
-                     */
-                    if (model.getStatus() == FileDownloadStatus.pending && model.getSoFar() <= 0) {
-                        // This model is redundant.
-                        isInvalid = true;
-                        break;
-                    }
-
-                    if (!FileDownloadUtils.isBreakpointAvailable(model.getId(), model)) {
-                        // It can't used to resuming from breakpoint.
-                        isInvalid = true;
-                        break;
-                    }
-
-                    if (targetFile.exists()) {
-                        // It has already completed downloading.
-                        isInvalid = true;
-                        break;
-                    }
-
-                } while (false);
-
-
-                if (isInvalid) {
-                    iterator.remove();
-                    maintainer.onRemovedInvalidData(model);
-                    removedDataCount++;
-                } else {
-                    final int oldId = model.getId();
-                    final int newId = idGenerator.transOldId(oldId, model.getUrl(), model.getPath(),
-                            model.isPathAsDirectory());
-                    if (newId != oldId) {
-                        if (FileDownloadLog.NEED_LOG) {
-                            FileDownloadLog.d(FileDownloadDatabase.class,
-                                    "the id is changed on restoring from db:"
-                                            + " old[%d] -> new[%d]",
-                                    oldId, newId);
-                        }
-                        model.setId(newId);
-                        maintainer.changeFileDownloadModelId(oldId, model);
-                        resetIdCount++;
-                    }
-
-                    maintainer.onRefreshedValidData(model);
-                    refreshDataCount++;
-                }
+                });
+                futures.add(modelFuture);
             }
 
         } finally {
-            FileDownloadUtils.markConverted(FileDownloadHelper.getAppContext());
-            maintainer.onFinishMaintain();
-            // 566 data consumes about 140ms
+            final Future markConvertedFuture = maintainThreadPool.submit(new Runnable() {
+                @Override
+                public void run() {
+                    FileDownloadUtils.markConverted(FileDownloadHelper.getAppContext());
+                }
+            });
+            futures.add(markConvertedFuture);
+            final Future finishMaintainFuture = maintainThreadPool.submit(new Runnable() {
+                @Override
+                public void run() {
+                    maintainer.onFinishMaintain();
+                }
+            });
+            futures.add(finishMaintainFuture);
+            for (Future future : futures) {
+                try {
+                    if (!future.isDone()) future.get();
+                } catch (Exception e) {
+                    if (FileDownloadLog.NEED_LOG) FileDownloadLog
+                            .e(FileDownloadDatabase.class, e, e.getMessage());
+                }
+            }
+            futures.clear();
             if (FileDownloadLog.NEED_LOG) {
                 FileDownloadLog.d(FileDownloadDatabase.class,
                         "refreshed data count: %d , delete data count: %d, reset id count:"
                                 + " %d. consume %d",
-                        refreshDataCount, removedDataCount, resetIdCount,
+                        refreshDataCount.get(), removedDataCount.get(), resetIdCount.get(),
                         System.currentTimeMillis() - startTimestamp);
             }
         }

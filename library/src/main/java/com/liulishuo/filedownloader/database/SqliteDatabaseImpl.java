@@ -35,22 +35,21 @@ import java.util.List;
 
 /**
  * Persist data to SQLite database.
- *
+ * <p>
  * You can valid this database implementation through:
  * <p>
  * class MyApplication extends Application {
  *     ...
  *     public void onCreate() {
- *          ...
- *          FileDownloader.setupOnApplicationOnCreate(this)
- *              .database(SqliteDatabaseImpl.createMaker())
- *              ...
- *              .commit();
- *          ...
+ *         ...
+ *         FileDownloader.setupOnApplicationOnCreate(this)
+ *             .database(SqliteDatabaseImpl.createMaker())
+ *             ...
+ *             .commit();
+ *         ...
  *     }
  *     ...
  * }
- *
  */
 public class SqliteDatabaseImpl implements FileDownloadDatabase {
 
@@ -267,6 +266,7 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
     public class Maintainer implements FileDownloadDatabase.Maintainer {
 
         private final SparseArray<FileDownloadModel> needChangeIdList = new SparseArray<>();
+        private final SparseArray<FileDownloadModel> needRemoveList = new SparseArray<>();
         private MaintainerIterator currentIterator;
 
         private final SparseArray<FileDownloadModel> downloaderModelMap;
@@ -317,6 +317,14 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
                     }
                 }
 
+                // remove invalid
+                final int removeSize = needRemoveList.size();
+                for (int i = 0; i < removeSize; i++) {
+                    final int modelId = needRemoveList.keyAt(i);
+                    db.delete(TABLE_NAME, FileDownloadModel.ID + " = ?",
+                            new String[]{String.valueOf(modelId)});
+                }
+
                 // initial cache of connection model
                 if (downloaderModelMap != null && connectionModelListMap != null) {
                     final int size = downloaderModelMap.size();
@@ -339,16 +347,25 @@ public class SqliteDatabaseImpl implements FileDownloadDatabase {
 
         @Override
         public void onRemovedInvalidData(FileDownloadModel model) {
+            synchronized (needRemoveList) {
+                needRemoveList.put(model.getId(), model);
+            }
         }
 
         @Override
         public void onRefreshedValidData(FileDownloadModel model) {
-            if (downloaderModelMap != null) downloaderModelMap.put(model.getId(), model);
+            if (downloaderModelMap != null) {
+                synchronized (downloaderModelMap) {
+                    downloaderModelMap.put(model.getId(), model);
+                }
+            }
         }
 
         @Override
         public void changeFileDownloadModelId(int oldId, FileDownloadModel modelWithNewId) {
-            needChangeIdList.put(oldId, modelWithNewId);
+            synchronized (needChangeIdList) {
+                needChangeIdList.put(oldId, modelWithNewId);
+            }
         }
 
     }
