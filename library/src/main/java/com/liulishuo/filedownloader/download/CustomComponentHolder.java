@@ -305,8 +305,9 @@ public class CustomComponentHolder {
                 try {
                     if (!future.isDone()) future.get();
                 } catch (Exception e) {
-                    if (FileDownloadLog.NEED_LOG) FileDownloadLog
-                            .e(FileDownloadDatabase.class, e, e.getMessage());
+                    if (FileDownloadLog.NEED_LOG) {
+                        FileDownloadLog.e(FileDownloadDatabase.class, e, e.getMessage());
+                    }
                 }
             }
             futures.clear();
