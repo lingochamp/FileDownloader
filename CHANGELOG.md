@@ -2,6 +2,14 @@
 
 > [中文迭代日志](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG-ZH.md)
 
+## Version 1.7.7
+
+- Fix: FileDownloadThreadPool may throw ArrayIndexOutOfBoundsException & ClassCastException. closes #1258
+- Fix: Resume a task may occur 416 problem after upgrading from 1.6.x to 1.7.x.
+- Fix: Cannot show notification in demo. closes #1224
+- Fix: The callback blockComplete may be invoked in main thread.closes #1069
+- Fix: The thread unsafe problem of SparseArray in NoDatabaseImpl. closes #1225 
+
 ## Version 1.7.6
 
 _2019-02-20_

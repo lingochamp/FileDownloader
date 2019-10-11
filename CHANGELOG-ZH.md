@@ -2,6 +2,14 @@
 
 > [ Change log in english](https://github.com/lingochamp/FileDownloader/blob/master/CHANGELOG.md)
 
+## Version 1.7.7
+
+- 修复: FileDownloadThreadPool 可能会抛出 ArrayIndexOutOfBoundsException 和 ClassCastException。 closes #1258
+- 修复: 从 1.6.x 升级到 1.7.x 后恢复之前的下载任务时出现 416 错误。
+- 修复: Demo 中下载通知示例无法显示通知。closes #1224
+- 修复: blockComplete 可能会在主线程中回调。closes #1069
+- 修复: NoDatabaseImpl 中 SparseArray 非线程安全问题。closes #1225 
+
 ## Version 1.7.6
 
 _2019-02-20_

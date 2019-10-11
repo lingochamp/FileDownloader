@@ -86,7 +86,7 @@ FileDownloader 1.7.6 已经在 demo 中处理了此问题。
 在项目中引用:
 
 ```groovy
-implementation 'com.liulishuo.filedownloader:library:1.7.6'
+implementation 'com.liulishuo.filedownloader:library:1.7.7'
 ```
 
 > 如果是eclipse引入jar包参考: [这里](https://github.com/lingochamp/FileDownloader/issues/212#issuecomment-232240415)
