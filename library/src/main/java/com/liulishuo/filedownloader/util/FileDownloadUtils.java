@@ -222,6 +222,8 @@ public class FileDownloadUtils {
      */
     public static int generateId(final String url, final String path,
                                  final boolean pathAsDirectory) {
+        if (url == null || url.length() == 0) return 0;
+        if (path == null || path.length() == 0) return 0;
         return CustomComponentHolder.getImpl().getIdGeneratorInstance()
                 .generateId(url, path, pathAsDirectory);
     }
