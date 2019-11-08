@@ -356,7 +356,8 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
 
 
             if (TasksManager.getImpl().isReady()) {
-                final int status = TasksManager.getImpl().getStatus(model.getId(), model.getPath());
+//                final int status = TasksManager.getImpl().getStatus(model.getId(), model.getPath());
+                final int status = TasksManager.getImpl().getStatus(model.getUrl(), model.getPath());
                 if (status == FileDownloadStatus.pending || status == FileDownloadStatus.started ||
                         status == FileDownloadStatus.connected) {
                     // start task, but file not created yet
@@ -420,6 +421,8 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
                     final String url = Constant.BIG_FILE_URLS[i];
                     addTask(url);
                 }
+            } else {
+                correctModelId();
             }
         }
 
@@ -492,6 +495,15 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             }
         }
 
+        private void correctModelId() {
+            for (TasksManagerModel model : modelList) {
+                final BaseDownloadTask task = FileDownloader.getImpl().create(model.getUrl());
+                model.id = task.getId();
+                model.name = DemoApplication.CONTEXT
+                        .getString(R.string.tasks_manager_demo_name, model.id);
+            }
+        }
+
         public void onDestroy() {
             unregisterServiceConnectionListener();
             releaseTask();
@@ -524,8 +536,13 @@ public class TasksManagerDemoActivity extends AppCompatActivity {
             return status == FileDownloadStatus.completed;
         }
 
+        @Deprecated
         public int getStatus(final int id, String path) {
             return FileDownloader.getImpl().getStatus(id, path);
+        }
+
+        public int getStatus(final String url, final String path) {
+            return FileDownloader.getImpl().getStatus(url, path);
         }
 
         public long getTotal(final int id) {
