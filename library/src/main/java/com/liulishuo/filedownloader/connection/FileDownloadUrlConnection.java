@@ -46,6 +46,9 @@ public class FileDownloadUrlConnection implements FileDownloadConnection {
         } else {
             mConnection = url.openConnection();
         }
+        if (mConnection instanceof HttpURLConnection) {
+            ((HttpURLConnection) mConnection).setInstanceFollowRedirects(false);
+        }
 
         if (configuration != null) {
             if (configuration.readTimeout != null) {
