@@ -41,6 +41,10 @@ android {
         // which is harmless for us.
         warning 'InvalidPackage'
     }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
 dependencies {
@@ -49,7 +53,10 @@ dependencies {
     implementation 'com.android.support:design:28.0.0'
     debugImplementation 'cn.dreamtobe.threaddebugger:threaddebugger:1.3.3'
     releaseImplementation 'cn.dreamtobe.threaddebugger:threaddebugger-no-op:1.3.3'
-    implementation project(':library')
+//    implementation "com.liulishuo.filedownloader:library:1.7.7"
     // for testing
     implementation 'com.squareup.okio:okio:1.14.0'
+    implementation "com.liulishuo.okdownload:okdownload:1.0.7-SNAPSHOT"
+    implementation "com.liulishuo.okdownload:filedownloader:1.0.7-SNAPSHOT"
+    implementation "com.liulishuo.okdownload:sqlite:1.0.7-SNAPSHOT"
 }

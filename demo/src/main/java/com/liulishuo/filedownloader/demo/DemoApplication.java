@@ -6,8 +6,9 @@ import android.util.Log;
 
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.connection.FileDownloadUrlConnection;
-import com.liulishuo.filedownloader.util.FileDownloadLog;
+//import com.liulishuo.filedownloader.util.FileDownloadLog;
 import com.liulishuo.filedownloader.util.FileDownloadUtils;
+import com.liulishuo.okdownload.core.Util;
 
 import cn.dreamtobe.threaddebugger.IThreadDebugger;
 import cn.dreamtobe.threaddebugger.ThreadDebugger;
@@ -27,7 +28,8 @@ public class DemoApplication extends Application {
         CONTEXT = this;
 
         // just for open the log in this demo project.
-        FileDownloadLog.NEED_LOG = BuildConfig.DOWNLOAD_NEED_LOG;
+//        FileDownloadLog.NEED_LOG = BuildConfig.DOWNLOAD_NEED_LOG;
+        Util.enableConsoleLog();
 
         /**
          * just for cache Application's Context, and ':filedownloader' progress will NOT be launched
