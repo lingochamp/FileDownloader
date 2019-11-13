@@ -355,11 +355,8 @@ public class DownloadTask implements BaseDownloadTask, BaseDownloadTask.IRunning
             return mId;
         }
 
-        if (!TextUtils.isEmpty(mPath) && !TextUtils.isEmpty(mUrl)) {
-            return mId = FileDownloadUtils.generateId(mUrl, mPath, mPathAsDirectory);
-        }
-
-        return 0;
+        mId = FileDownloadUtils.generateId(mUrl, mPath, mPathAsDirectory);
+        return mId;
     }
 
     /**
