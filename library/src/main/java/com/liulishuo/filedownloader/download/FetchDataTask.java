@@ -116,7 +116,8 @@ public class FetchDataTask {
 
         try {
             final boolean isSupportSeek = CustomComponentHolder.getImpl().isSupportSeek();
-            if (hostRunnable != null && !isSupportSeek) {
+            final boolean isMultiConnection = connectionIndex >= 0;
+            if (isMultiConnection && !isSupportSeek) {
                 throw new IllegalAccessException(
                         "can't using multi-download when the output stream can't support seek");
             }
