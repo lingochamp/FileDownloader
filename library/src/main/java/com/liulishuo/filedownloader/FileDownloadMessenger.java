@@ -105,7 +105,7 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
     public void notifyProgress(MessageSnapshot snapshot) {
         if (mTask == null) {
             if (FileDownloadLog.NEED_LOG) {
-                FileDownloadLog.d(this, "notify progress nil",
+                FileDownloadLog.d(this, "can't notify progress snapshot(id[%d], status[%d])",
                         snapshot.getId(), snapshot.getStatus());
             }
             return;
@@ -146,6 +146,13 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public void notifyRetry(MessageSnapshot snapshot) {
+        if (mTask == null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "can't notify retry snapshot(id[%d], status[%d])",
+                        snapshot.getId(), snapshot.getStatus());
+            }
+            return;
+        }
         if (FileDownloadLog.NEED_LOG) {
             final BaseDownloadTask originTask = mTask.getOrigin();
             FileDownloadLog.d(this, "notify retry %s %d %d %s", mTask,
@@ -172,6 +179,13 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
 
     @Override
     public void notifyError(MessageSnapshot snapshot) {
+        if (mTask == null) {
+            if (FileDownloadLog.NEED_LOG) {
+                FileDownloadLog.d(this, "can't notify error snapshot(id[%d], status[%d])",
+                        snapshot.getId(), snapshot.getStatus());
+            }
+            return;
+        }
         if (FileDownloadLog.NEED_LOG) {
             FileDownloadLog.d(this, "notify error %s %s", mTask, mTask.getOrigin().getErrorCause());
         }
