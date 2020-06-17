@@ -189,10 +189,13 @@ public class FileDownloadMessageStation {
         private void dispose(final ArrayList<IFileDownloadMessenger> disposingList) {
             // dispose Sub-package-size each time.
             for (IFileDownloadMessenger iFileDownloadMessenger : disposingList) {
-                if (interceptBlockCompleteMessage(iFileDownloadMessenger)) {
-                    continue;
+                if (iFileDownloadMessenger instanceof FileDownloadMessenger &&
+                        ((FileDownloadMessenger) iFileDownloadMessenger).hasTask()) {
+                    if (interceptBlockCompleteMessage(iFileDownloadMessenger)) {
+                        continue;
+                    }
+                    iFileDownloadMessenger.handoverMessage();
                 }
-                iFileDownloadMessenger.handoverMessage();
             }
 
             disposingList.clear();
