@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 /**
  * The connect task which used for connect to the backend.
@@ -116,18 +117,32 @@ public class ConnectTask {
                 String name;
                 List<String> list;
 
+                Stack<String> names = new Stack<>();
+                Stack<List<String>> lists = new Stack<>();
+
                 // add addition headers which is provided by the user
                 Set<Map.Entry<String, List<String>>> entries = additionHeaders.entrySet();
                 for (Map.Entry<String, List<String>> e : entries) {
                     name = e.getKey();
                     list = e.getValue();
+                    names.push(name);
+                    lists.push(list);
+                    /*if (list != null) {
+                        for (String value : list) {
+                            connection.addHeader(name, value);
+                        }
+                    }*/
+                }
+
+                while (lists.size() > 0) {
+                    list = lists.pop();
+                    name = names.pop();
                     if (list != null) {
                         for (String value : list) {
                             connection.addHeader(name, value);
                         }
                     }
                 }
-
             }
         }
     }
