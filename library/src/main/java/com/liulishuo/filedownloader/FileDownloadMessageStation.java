@@ -22,6 +22,7 @@ import android.os.Message;
 
 import com.liulishuo.filedownloader.util.FileDownloadExecutors;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -63,9 +64,18 @@ public class FileDownloadMessageStation {
             return;
         }
 
-        if (interceptBlockCompleteMessage(messenger)) {
+        // check if messenger.mTask is null
+        // if null, return; according to filedownloader/FileDownloadMessenger.java -> process()
+        // line 200 to 210
+        if (messenger instanceof FileDownloadMessenger
+                && ((FileDownloadMessenger) messenger).hasTask()) {
+            if (interceptBlockCompleteMessage(messenger)) {
+                return;
+            }
+        } else {
             return;
         }
+
 
         if (!isIntervalValid()) {
             // invalid
