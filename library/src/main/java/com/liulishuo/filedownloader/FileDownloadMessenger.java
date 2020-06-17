@@ -400,4 +400,8 @@ class FileDownloadMessenger implements IFileDownloadMessenger {
         return FileDownloadUtils.formatString("%d:%s",
                 mTask == null ? -1 : mTask.getOrigin().getId(), super.toString());
     }
+
+    public boolean hasTask() {
+        return mTask != null;
+    }
 }
